@@ -652,9 +652,158 @@ def create_post_comment(content_id):
     }), 201
 
 
+
+# SOCIALAPP_AUTH_FOUNDATION_V1
+import secrets
+import hashlib
+import hmac
+from functools import wraps
+from flask import g
+from werkzeug.security import generate_password_hash, check_password_hash
+
+def init_auth_tables():
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                username TEXT PRIMARY KEY COLLATE NOCASE,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS auth_sessions (
+                token_hash TEXT PRIMARY KEY,
+                username TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL
+            )
+        """)
+
+def _auth_user():
+    header = request.headers.get("Authorization", "")
+    if not header.startswith("Bearer "):
+        return None
+    token = header[7:].strip()
+    if len(token) < 32:
+        return None
+    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        row = db.execute("""
+            SELECT s.username FROM auth_sessions s
+            JOIN users u ON u.username=s.username
+            WHERE s.token_hash=? AND s.expires_at>?
+        """, (digest, now)).fetchone()
+    return row["username"] if row else None
+
+@app.before_request
+def enforce_authenticated_mutations():
+    if request.method in ("GET", "HEAD", "OPTIONS"):
+        return None
+    if request.path in ("/api/auth/register", "/api/auth/login"):
+        return None
+    if not request.path.startswith("/api/"):
+        return None
+
+    username = _auth_user()
+    if not username:
+        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+
+    g.auth_username = username
+    supplied = request.form.get("username")
+    if supplied and supplied.strip().lstrip("@").lower() != username.lower():
+        return jsonify({"error": "लॉगिन अकाउंट से ही पोस्ट करें।"}), 403
+
+    if request.path.startswith("/api/profile/"):
+        parts = request.path.split("/")
+        if len(parts) >= 4:
+            target = parts[3].strip().lstrip("@")
+            if target and target.lower() != username.lower():
+                return jsonify({"error": "दूसरे अकाउंट में बदलाव की अनुमति नहीं है।"}), 403
+
+    data = request.get_json(silent=True) or {}
+    supplied_json = data.get("username") or data.get("viewer")
+    if supplied_json and str(supplied_json).strip().lstrip("@").lower() != username.lower():
+        return jsonify({"error": "लॉगिन अकाउंट से ही यह काम करें।"}), 403
+    return None
+
+@app.post("/api/auth/register")
+def auth_register():
+    data = request.get_json(silent=True) or {}
+    username = str(data.get("username", "")).strip().lstrip("@")
+    password = str(data.get("password", ""))
+    if not username or not username.replace("_", "").replace(".", "").isalnum() or len(username) < 3 or len(username) > 30:
+        return jsonify({"error": "यूज़रनेम 3 से 30 अक्षरों का होना चाहिए।"}), 400
+    if len(password) < 8 or len(password) > 128:
+        return jsonify({"error": "पासवर्ड 8 से 128 अक्षरों का रखें।"}), 400
+
+    now = datetime.now(timezone.utc)
+    token = secrets.token_urlsafe(32)
+    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    expires = (now + timedelta(days=30)).isoformat()
+    try:
+        with get_db() as db:
+            db.execute(
+                "INSERT INTO users(username,password_hash,created_at) VALUES(?,?,?)",
+                (username, generate_password_hash(password), now.isoformat())
+            )
+            db.execute(
+                "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+                (digest, username, now.isoformat(), expires)
+            )
+            profile_json(db, username)
+            db.execute(
+                "INSERT OR IGNORE INTO user_settings(username,updated_at) VALUES(?,?)",
+                (username, now.isoformat())
+            )
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "यह यूज़रनेम पहले से मौजूद है।"}), 409
+    return jsonify({"ok": True, "username": username, "token": token}), 201
+
+@app.post("/api/auth/login")
+def auth_login():
+    data = request.get_json(silent=True) or {}
+    username = str(data.get("username", "")).strip().lstrip("@")
+    password = str(data.get("password", ""))
+    with get_db() as db:
+        row = db.execute(
+            "SELECT username,password_hash FROM users WHERE username=? COLLATE NOCASE",
+            (username,)
+        ).fetchone()
+        if not row or not check_password_hash(row["password_hash"], password):
+            return jsonify({"error": "यूज़रनेम या पासवर्ड गलत है।"}), 401
+        now = datetime.now(timezone.utc)
+        token = secrets.token_urlsafe(32)
+        digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        expires = (now + timedelta(days=30)).isoformat()
+        db.execute(
+            "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+            (digest, row["username"], now.isoformat(), expires)
+        )
+    return jsonify({"ok": True, "username": row["username"], "token": token})
+
+@app.get("/api/auth/me")
+def auth_me():
+    username = _auth_user()
+    if not username:
+        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+    return jsonify({"ok": True, "username": username})
+
+@app.post("/api/auth/logout")
+def auth_logout():
+    header = request.headers.get("Authorization", "")
+    token = header[7:].strip() if header.startswith("Bearer ") else ""
+    if token:
+        digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        with get_db() as db:
+            db.execute("DELETE FROM auth_sessions WHERE token_hash=?", (digest,))
+    return jsonify({"ok": True})
+
+
 # Initialize database only after all functions and routes are defined.
 init_db()
 init_profile_tables()
+init_auth_tables()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)
