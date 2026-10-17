@@ -674,6 +674,13 @@ def init_auth_tables():
         columns = {row["name"] for row in db.execute("PRAGMA table_info(users)")}
         if "phone_number" not in columns:
             db.execute("ALTER TABLE users ADD COLUMN phone_number TEXT")
+        if "email" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN email TEXT")
+        db.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
+            ON users(email COLLATE NOCASE)
+            WHERE email IS NOT NULL AND email != ''
+        """)
         db.execute("""
             CREATE TABLE IF NOT EXISTS auth_sessions (
                 token_hash TEXT PRIMARY KEY,
@@ -734,26 +741,42 @@ def enforce_authenticated_mutations():
 @app.post("/api/auth/register")
 def auth_register():
     data = request.get_json(silent=True) or {}
-    username = str(data.get("username", "")).strip().lstrip("@")
+    email = str(data.get("email", "")).strip().lower()
     password = str(data.get("password", ""))
     phone_number = str(data.get("phone_number", "")).strip()
     phone_digits = "".join(ch for ch in phone_number if ch.isdigit())
+
+    if "@" not in email or "." not in email.rsplit("@", 1)[-1] or len(email) > 254:
+        return jsonify({"error": "कृपया सही ईमेल आईडी दर्ज करें।"}), 400
     if len(phone_digits) < 10 or len(phone_digits) > 15:
         return jsonify({"error": "कृपया सही मोबाइल नंबर दर्ज करें।"}), 400
-    if not username or not username.replace("_", "").replace(".", "").isalnum() or len(username) < 3 or len(username) > 30:
-        return jsonify({"error": "यूज़रनेम 3 से 30 अक्षरों का होना चाहिए।"}), 400
     if len(password) < 8 or len(password) > 128:
         return jsonify({"error": "पासवर्ड 8 से 128 अक्षरों का रखें।"}), 400
+
+    local_part = email.split("@", 1)[0].lower()
+    base = "".join(ch for ch in local_part if ch.isalnum() or ch in "_.").strip("_.")
+    base = base[:24]
+    if len(base) < 3:
+        base = "user" + base
 
     now = datetime.now(timezone.utc)
     token = secrets.token_urlsafe(32)
     digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
     expires = (now + timedelta(days=30)).isoformat()
+
     try:
         with get_db() as db:
+            username = base
+            suffix = 1
+            while db.execute(
+                "SELECT 1 FROM users WHERE username=? COLLATE NOCASE", (username,)
+            ).fetchone():
+                suffix += 1
+                username = f"{base[:24]}{suffix}"
+
             db.execute(
-                "INSERT INTO users(username,password_hash,created_at,phone_number) VALUES(?,?,?,?)",
-                (username, generate_password_hash(password), now.isoformat(), phone_number)
+                "INSERT INTO users(username,password_hash,created_at,phone_number,email) VALUES(?,?,?,?,?)",
+                (username, generate_password_hash(password), now.isoformat(), phone_number, email)
             )
             db.execute(
                 "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
@@ -765,21 +788,24 @@ def auth_register():
                 (username, now.isoformat())
             )
     except sqlite3.IntegrityError:
-        return jsonify({"error": "यह यूज़रनेम पहले से मौजूद है।"}), 409
+        return jsonify({"error": "यह ईमेल पहले से किसी अकाउंट में इस्तेमाल हो रहा है।"}), 409
+
     return jsonify({"ok": True, "username": username, "token": token}), 201
 
 @app.post("/api/auth/login")
 def auth_login():
     data = request.get_json(silent=True) or {}
-    username = str(data.get("username", "")).strip().lstrip("@")
+    identifier = str(data.get("username", data.get("email", ""))).strip().lstrip("@")
     password = str(data.get("password", ""))
+
     with get_db() as db:
         row = db.execute(
-            "SELECT username,password_hash FROM users WHERE username=? COLLATE NOCASE",
-            (username,)
+            "SELECT username,password_hash FROM users WHERE username=? COLLATE NOCASE OR email=? COLLATE NOCASE",
+            (identifier, identifier)
         ).fetchone()
         if not row or not check_password_hash(row["password_hash"], password):
-            return jsonify({"error": "यूज़रनेम या पासवर्ड गलत है।"}), 401
+            return jsonify({"error": "ईमेल/यूज़रनेम या पासवर्ड गलत है।"}), 401
+
         now = datetime.now(timezone.utc)
         token = secrets.token_urlsafe(32)
         digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
@@ -788,6 +814,7 @@ def auth_login():
             "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
             (digest, row["username"], now.isoformat(), expires)
         )
+
     return jsonify({"ok": True, "username": row["username"], "token": token})
 
 @app.get("/api/auth/me")

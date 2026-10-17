@@ -640,6 +640,9 @@ const refreshProfile = React.useCallback(async () => {
           <Text style={{ color: '#777777', marginBottom: 26 }}>
             {authMode === 'register' ? 'Create your account' : 'Sign in to your account'}
           </Text>
+          <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>
+            {authMode === 'register' ? 'Email address' : 'Email or username'}
+          </Text>
           <TextInput
             value={authUsername}
             onChangeText={setAuthUsername}
@@ -650,6 +653,8 @@ const refreshProfile = React.useCallback(async () => {
             style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
           />
           {authMode === 'register' && (
+            <>
+            <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Mobile number</Text>
             <TextInput
               value={authPhoneNumber}
               onChangeText={setAuthPhoneNumber}
@@ -658,7 +663,9 @@ const refreshProfile = React.useCallback(async () => {
               editable={!authBusy}
               style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
             />
+            </>
           )}
+          <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Password (at least 8 characters)</Text>
           <TextInput
             value={authPassword}
             onChangeText={setAuthPassword}
@@ -670,6 +677,8 @@ const refreshProfile = React.useCallback(async () => {
             style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 16, color: '#222222' }}
           />
           {authMode === 'register' && (
+            <>
+            <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Confirm password</Text>
             <TextInput
               value={authConfirmPassword}
               onChangeText={setAuthConfirmPassword}
@@ -679,6 +688,7 @@ const refreshProfile = React.useCallback(async () => {
               editable={!authBusy}
               style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 16, color: '#222222' }}
             />
+            </>
           )}
           <TouchableOpacity
             onPress={submitAuth}

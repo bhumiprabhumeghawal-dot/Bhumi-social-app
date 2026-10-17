@@ -27,7 +27,7 @@ export async function registerAccount(username, password, phoneNumber) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      username: username.trim(),
+      email: username.trim(),
       password,
       phone_number: phoneNumber.trim(),
     }),
