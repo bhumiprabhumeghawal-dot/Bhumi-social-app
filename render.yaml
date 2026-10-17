@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: bhumi-social-app
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 server.app:app
+    healthCheckPath: /api/health
