@@ -667,9 +667,13 @@ def init_auth_tables():
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY COLLATE NOCASE,
                 password_hash TEXT NOT NULL,
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                phone_number TEXT
             )
         """)
+        columns = {row["name"] for row in db.execute("PRAGMA table_info(users)")}
+        if "phone_number" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN phone_number TEXT")
         db.execute("""
             CREATE TABLE IF NOT EXISTS auth_sessions (
                 token_hash TEXT PRIMARY KEY,
@@ -732,6 +736,10 @@ def auth_register():
     data = request.get_json(silent=True) or {}
     username = str(data.get("username", "")).strip().lstrip("@")
     password = str(data.get("password", ""))
+    phone_number = str(data.get("phone_number", "")).strip()
+    phone_digits = "".join(ch for ch in phone_number if ch.isdigit())
+    if len(phone_digits) < 10 or len(phone_digits) > 15:
+        return jsonify({"error": "कृपया सही मोबाइल नंबर दर्ज करें।"}), 400
     if not username or not username.replace("_", "").replace(".", "").isalnum() or len(username) < 3 or len(username) > 30:
         return jsonify({"error": "यूज़रनेम 3 से 30 अक्षरों का होना चाहिए।"}), 400
     if len(password) < 8 or len(password) > 128:
@@ -744,8 +752,8 @@ def auth_register():
     try:
         with get_db() as db:
             db.execute(
-                "INSERT INTO users(username,password_hash,created_at) VALUES(?,?,?)",
-                (username, generate_password_hash(password), now.isoformat())
+                "INSERT INTO users(username,password_hash,created_at,phone_number) VALUES(?,?,?,?)",
+                (username, generate_password_hash(password), now.isoformat(), phone_number)
             )
             db.execute(
                 "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",

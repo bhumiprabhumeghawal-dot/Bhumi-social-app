@@ -286,6 +286,8 @@ export default function App() {
   const [authMode, setAuthMode] = React.useState('login');
   const [authUsername, setAuthUsername] = React.useState('');
   const [authPassword, setAuthPassword] = React.useState('');
+  const [authPhoneNumber, setAuthPhoneNumber] = React.useState('');
+  const [authConfirmPassword, setAuthConfirmPassword] = React.useState('');
   const [authBusy, setAuthBusy] = React.useState(false);
 
   React.useEffect(() => {
@@ -588,10 +590,25 @@ const refreshProfile = React.useCallback(async () => {
       Alert.alert('Required', 'Enter your username and password.');
       return;
     }
+    if (authMode === 'register') {
+      const phoneDigits = authPhoneNumber.replace(/\D/g, '');
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+        Alert.alert('Invalid mobile number', 'Enter a valid mobile number.');
+        return;
+      }
+      if (authPassword.length < 8 || authPassword.length > 128) {
+        Alert.alert('Invalid password', 'Password must be 8 to 128 characters.');
+        return;
+      }
+      if (authPassword !== authConfirmPassword) {
+        Alert.alert('Password mismatch', 'Password and confirm password do not match.');
+        return;
+      }
+    }
     setAuthBusy(true);
     try {
       const result = authMode === 'register'
-        ? await registerAccount(username, authPassword)
+        ? await registerAccount(username, authPassword, authPhoneNumber)
         : await loginAccount(username, authPassword);
       setAuthSession({ token: result.token, username: result.username });
       setAuthPassword('');
@@ -632,6 +649,16 @@ const refreshProfile = React.useCallback(async () => {
             editable={!authBusy}
             style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
           />
+          {authMode === 'register' && (
+            <TextInput
+              value={authPhoneNumber}
+              onChangeText={setAuthPhoneNumber}
+              placeholder="Mobile number"
+              keyboardType="phone-pad"
+              editable={!authBusy}
+              style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+            />
+          )}
           <TextInput
             value={authPassword}
             onChangeText={setAuthPassword}
@@ -642,6 +669,17 @@ const refreshProfile = React.useCallback(async () => {
             onSubmitEditing={submitAuth}
             style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 16, color: '#222222' }}
           />
+          {authMode === 'register' && (
+            <TextInput
+              value={authConfirmPassword}
+              onChangeText={setAuthConfirmPassword}
+              placeholder="Confirm password"
+              secureTextEntry
+              autoCapitalize="none"
+              editable={!authBusy}
+              style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 16, color: '#222222' }}
+            />
+          )}
           <TouchableOpacity
             onPress={submitAuth}
             disabled={authBusy}

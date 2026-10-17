@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
-const API_BASE_URL = 'http://127.0.0.1:5000';
+const API_BASE_URL = 'https://bhumi-social-app-1.onrender.com';
 
 const AUTH_TOKEN_KEY = 'socialapp_auth_token';
 const AUTH_USERNAME_KEY = 'socialapp_auth_username';
@@ -22,11 +22,15 @@ export async function getAuthSession() {
 }
 
 
-export async function registerAccount(username, password) {
+export async function registerAccount(username, password, phoneNumber) {
   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: username.trim(), password }),
+    body: JSON.stringify({
+      username: username.trim(),
+      password,
+      phone_number: phoneNumber.trim(),
+    }),
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'रजिस्ट्रेशन नहीं हुआ।');
