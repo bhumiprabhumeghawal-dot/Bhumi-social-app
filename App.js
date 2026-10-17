@@ -9,6 +9,7 @@ import {
   deleteProfileAvatar, loadProfileConnections,
   loadPrivacySettings, savePrivacySettings,
   togglePostLike, loadPostComments, createPostComment,
+  registerAccount, loginAccount, getAuthSession,
 } from './api';
 import {
   SafeAreaView,
@@ -279,6 +280,23 @@ export default function App() {
   const [serverOnline, setServerOnline] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
 
+  // SOCIALAPP_AUTH_SCREEN_V1
+  const [authReady, setAuthReady] = React.useState(false);
+  const [authSession, setAuthSession] = React.useState(null);
+  const [authMode, setAuthMode] = React.useState('login');
+  const [authUsername, setAuthUsername] = React.useState('');
+  const [authPassword, setAuthPassword] = React.useState('');
+  const [authBusy, setAuthBusy] = React.useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+    getAuthSession()
+      .then(session => { if (mounted) setAuthSession(session); })
+      .catch(error => console.error('Auth session load failed:', error))
+      .finally(() => { if (mounted) setAuthReady(true); });
+    return () => { mounted = false; };
+  }, []);
+
   // SOCIALAPP_PROFILE_SCREEN_V1
   const [profile, setProfile] = React.useState(null);
   const [profileEditing, setProfileEditing] = React.useState(false);
@@ -381,8 +399,9 @@ export default function App() {
   };
 
 const refreshProfile = React.useCallback(async () => {
+    if (!authSession?.username) return;
     try {
-      const result = await loadProfile('you', 'you');
+      const result = await loadProfile(authSession.username, authSession.username);
       const item = result.profile || result;
       setProfile(item);
       setProfileDraft({
@@ -392,11 +411,11 @@ const refreshProfile = React.useCallback(async () => {
     } catch (e) {
       Alert.alert('प्रोफ़ाइल लोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
     }
-  }, []);
+  }, [authSession]);
 
   React.useEffect(() => {
-    refreshProfile();
-  }, [refreshProfile]);
+    if (authSession) refreshProfile();
+  }, [refreshProfile, authSession]);
 
   const saveProfile = async () => {
     if (profileBusy) return;
@@ -560,6 +579,91 @@ const refreshProfile = React.useCallback(async () => {
       }
     }
   };
+
+
+  const submitAuth = async () => {
+    if (authBusy) return;
+    const username = authUsername.trim();
+    if (!username || !authPassword) {
+      Alert.alert('Required', 'Enter your username and password.');
+      return;
+    }
+    setAuthBusy(true);
+    try {
+      const result = authMode === 'register'
+        ? await registerAccount(username, authPassword)
+        : await loginAccount(username, authPassword);
+      setAuthSession({ token: result.token, username: result.username });
+      setAuthPassword('');
+      Alert.alert('Success', authMode === 'register' ? 'Account created.' : 'Login successful.');
+    } catch (error) {
+      Alert.alert('Authentication failed', error.message || 'Please check the server connection.');
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  if (!authReady) {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <StatusBar style="dark" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#555555' }}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!authSession) {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <StatusBar style="dark" />
+        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
+          <Text style={{ fontSize: 30, fontWeight: '800', color: '#171717', marginBottom: 8 }}>SocialApp</Text>
+          <Text style={{ color: '#777777', marginBottom: 26 }}>
+            {authMode === 'register' ? 'Create your account' : 'Sign in to your account'}
+          </Text>
+          <TextInput
+            value={authUsername}
+            onChangeText={setAuthUsername}
+            placeholder="Username"
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!authBusy}
+            style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+          />
+          <TextInput
+            value={authPassword}
+            onChangeText={setAuthPassword}
+            placeholder="Password (at least 8 characters)"
+            secureTextEntry
+            autoCapitalize="none"
+            editable={!authBusy}
+            onSubmitEditing={submitAuth}
+            style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 16, color: '#222222' }}
+          />
+          <TouchableOpacity
+            onPress={submitAuth}
+            disabled={authBusy}
+            style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>
+              {authBusy ? 'Please wait...' : authMode === 'register' ? 'Create account' : 'Log in'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+            disabled={authBusy}
+            style={{ padding: 16, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#1685D9' }}>
+              {authMode === 'login' ? 'Create a new account' : 'Already have an account? Log in'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.screen}>

@@ -1,5 +1,67 @@
 import * as FileSystem from 'expo-file-system/legacy';
+import * as SecureStore from 'expo-secure-store';
 const API_BASE_URL = 'http://127.0.0.1:5000';
+
+const AUTH_TOKEN_KEY = 'socialapp_auth_token';
+const AUTH_USERNAME_KEY = 'socialapp_auth_username';
+
+export async function saveAuthSession(token, username) {
+  await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
+  await SecureStore.setItemAsync(AUTH_USERNAME_KEY, username);
+}
+
+export async function clearAuthSession() {
+  await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+  await SecureStore.deleteItemAsync(AUTH_USERNAME_KEY);
+}
+
+export async function getAuthSession() {
+  const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+  const username = await SecureStore.getItemAsync(AUTH_USERNAME_KEY);
+  return token && username ? { token, username } : null;
+}
+
+
+export async function registerAccount(username, password) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: username.trim(), password }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'रजिस्ट्रेशन नहीं हुआ।');
+  await saveAuthSession(data.token, data.username);
+  return data;
+}
+
+export async function loginAccount(username, password) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: username.trim(), password }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'लॉगिन नहीं हुआ।');
+  await saveAuthSession(data.token, data.username);
+  return data;
+}
+
+export async function logoutAccount() {
+  try {
+    await fetch(`${API_BASE_URL}/api/auth/logout`, { method: 'POST' });
+  } finally {
+    await clearAuthSession();
+  }
+}
+
+const originalFetch = globalThis.fetch.bind(globalThis);
+globalThis.fetch = async (input, init = {}) => {
+  const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+  const headers = new Headers(init.headers || {});
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  return originalFetch(input, { ...init, headers });
+};
+
 
 export async function checkServer() {
   const response = await fetch(`${API_BASE_URL}/api/health`);
@@ -47,18 +109,21 @@ export async function uploadContent(type, asset, caption = '') {
     webm: 'video/webm',
   };
 
+  const authSession = await getAuthSession();
   const result = await FileSystem.uploadAsync(
     `${API_BASE_URL}/api/${type}`,
     asset.uri,
     {
       httpMethod: 'POST',
+      headers: authSession ? { Authorization: `Bearer ${authSession.token}` } : {},
+
       uploadType: FileSystem.FileSystemUploadType.MULTIPART,
       fieldName: 'file',
       mimeType: mimeTypes[fileExtension] ||
         (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
       parameters: {
         caption,
-        username: 'you',
+        username: authSession?.username || 'you',
       },
     }
   );
