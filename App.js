@@ -596,8 +596,8 @@ const refreshProfile = React.useCallback(async () => {
         Alert.alert('Invalid mobile number', 'Enter a valid mobile number.');
         return;
       }
-      if (authPassword.length < 8 || authPassword.length > 128) {
-        Alert.alert('Invalid password', 'Password must be 8 to 128 characters.');
+      if (authPassword.length < 4 || authPassword.length > 24) {
+        Alert.alert('Invalid password', 'Password must be 4 to 24 characters.');
         return;
       }
       if (authPassword !== authConfirmPassword) {
@@ -665,11 +665,11 @@ const refreshProfile = React.useCallback(async () => {
             />
             </>
           )}
-          <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Password (at least 8 characters)</Text>
+          <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Password (4 to 24 characters)</Text>
           <TextInput
             value={authPassword}
             onChangeText={setAuthPassword}
-            placeholder="Password (at least 8 characters)"
+            placeholder="Password (4 to 24 characters)"
             secureTextEntry
             autoCapitalize="none"
             editable={!authBusy}

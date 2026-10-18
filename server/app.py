@@ -750,7 +750,7 @@ def auth_register():
         return jsonify({"error": "कृपया सही ईमेल आईडी दर्ज करें।"}), 400
     if len(phone_digits) < 10 or len(phone_digits) > 15:
         return jsonify({"error": "कृपया सही मोबाइल नंबर दर्ज करें।"}), 400
-    if len(password) < 8 or len(password) > 128:
+    if len(password) < 4 or len(password) > 24:
         return jsonify({"error": "पासवर्ड 8 से 128 अक्षरों का रखें।"}), 400
 
     local_part = email.split("@", 1)[0].lower()
