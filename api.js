@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
-const API_BASE_URL = 'https://bhumi-social-app-1.onrender.com';
+const API_BASE_URL = 'https://bhumi-social-app-fresh.onrender.com';
 
 const AUTH_TOKEN_KEY = 'socialapp_auth_token';
 const AUTH_USERNAME_KEY = 'socialapp_auth_username';

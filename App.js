@@ -6,6 +6,7 @@ import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanima
 import { Alert } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { applyZoomEffect } from './videoEditor';
+import { editPhotoAsset } from './photoEditor';
 import {
   loadContent, uploadContent, checkServer,
   loadProfile, updateProfile, uploadProfileAvatar,
@@ -960,6 +961,29 @@ const refreshProfile = React.useCallback(async () => {
     }
   };
 
+  const handlePhotoEdit = async (action) => {
+    if (!mediaDraft || busy) return;
+
+    const index = mediaDraftIndex;
+    const asset = mediaDraft.assets?.[index];
+    const isVideo = asset?.type === 'video' || /\.(mp4|mov|webm)(\?|$)/i.test(asset?.uri || '');
+
+    if (!asset || isVideo) return;
+
+    setBusy(true);
+    try {
+      const editedAsset = await editPhotoAsset(asset, action);
+      setMediaDraft(current => current ? {
+        ...current,
+        assets: current.assets.map((item, i) => i === index ? editedAsset : item),
+      } : current);
+    } catch (e) {
+      Alert.alert('Photo editing failed', e.message || 'Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const uploadDraftMedia = async () => {
     if (!mediaDraft || busy) return;
     const { kind, assets } = mediaDraft;
@@ -1411,24 +1435,17 @@ const refreshProfile = React.useCallback(async () => {
 
       <Modal
         visible={Boolean(mediaDraft)}
+        presentationStyle="fullScreen"
         animationType="slide"
         onRequestClose={cancelDraftMedia}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
-            <TouchableOpacity onPress={cancelDraftMedia}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
+            <TouchableOpacity onPress={cancelDraftMedia} style={{ paddingVertical: 8, paddingRight: 12 }}>
               <Text style={{ color: '#1685D9', fontSize: 16 }}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ color: '#222222', fontSize: 17, fontWeight: '700' }}>Preview</Text>
-            <TouchableOpacity
-              disabled={busy}
-              onPress={() => Alert.alert('Upload media?', 'क्या आप चुनी हुई मीडिया अपलोड करना चाहते हैं?', [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Upload', onPress: uploadDraftMedia },
-              ])}
-            >
-              <Text style={{ color: '#0095F6', fontSize: 16, fontWeight: '700' }}>Done</Text>
-            </TouchableOpacity>
+            <Text style={{ color: '#222222', fontSize: 17, fontWeight: '700' }}>Edit media</Text>
+            <View style={{ width: 54 }} />
           </View>
 
           {mediaDraft && (() => {
@@ -1437,14 +1454,47 @@ const refreshProfile = React.useCallback(async () => {
             if (!asset) return null;
             const isVideo = asset.type === 'video' || /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || '');
             return (
-              <View style={{ flex: 1, padding: 12 }}>
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111111', borderRadius: 8, overflow: 'hidden' }}>
+              <View style={{ flex: 1, padding: 6 }}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111111', borderRadius: 0, overflow: 'hidden' }}>
                   {isVideo ? (
                     <ReelVideo uri={asset.uri} />
                   ) : (
                     <Image source={{ uri: asset.uri }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
                   )}
                 </View>
+
+                {!isVideo && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8 }}
+                  >
+                    {[
+                      { label: '▣ Crop', action: 'crop' },
+                      { label: '↻ Rotate', action: 'rotate' },
+                      { label: '⇋ Flip', action: 'flip' },
+                      { label: '◐ Filter', action: 'filter' },
+                      { label: '☀ Brightness +', action: 'brightness' },
+                    ].map(tool => (
+                      <TouchableOpacity
+                        key={tool.action}
+                        disabled={busy}
+                        onPress={() => handlePhotoEdit(tool.action)}
+                        style={{
+                          paddingVertical: 9,
+                          paddingHorizontal: 13,
+                          marginRight: 8,
+                          borderWidth: 1,
+                          borderColor: '#DDDDDD',
+                          borderRadius: 8,
+                          opacity: busy ? 0.5 : 1,
+                        }}
+                      >
+                        <Text style={{ color: '#1685D9', fontWeight: '600' }}>{tool.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                )}
 
                 {assets.length > 1 && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 }}>
@@ -1514,6 +1564,15 @@ const refreshProfile = React.useCallback(async () => {
               </View>
             );
           })()}
+          <View style={{ flexDirection: 'row', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 12, borderTopWidth: 1, borderTopColor: '#EEEEEE', backgroundColor: '#FFFFFF' }}>
+            <TouchableOpacity onPress={cancelDraftMedia} disabled={busy} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 13, marginRight: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 10 }}>
+              <Text style={{ color: '#1685D9', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity disabled={busy} onPress={uploadDraftMedia} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 13, marginLeft: 8, backgroundColor: '#0095F6', borderRadius: 10, opacity: busy ? 0.6 : 1 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>{busy ? 'Please wait...' : 'Done'}</Text>
+            </TouchableOpacity>
+          </View>
+
         </SafeAreaView>
       </Modal>
 
