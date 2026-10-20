@@ -1,18 +1,29 @@
 import os
+import json
+import urllib.request
+import urllib.error
 import sqlite3
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from dotenv import load_dotenv
 
 from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.utils import secure_filename
 
 BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / '.env')
+load_dotenv(BASE_DIR.parent / '.env')
 DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR = BASE_DIR / "uploads"
 DB_PATH = DATA_DIR / "socialapp.db"
 
-MAX_UPLOAD_BYTES = 50 * 1024 * 1024
+UPLOAD_LIMITS = {
+    "posts": 1024 * 1024 * 1024,
+    "stories": 500 * 1024 * 1024,
+    "reels": 500 * 1024 * 1024,
+}
+MAX_UPLOAD_BYTES = 1024 * 1024 * 1024
 
 ALLOWED_EXTENSIONS = {
     "posts": {"jpg", "jpeg", "png", "webp", "gif", "mp4", "mov", "webm"},
@@ -21,7 +32,7 @@ ALLOWED_EXTENSIONS = {
 }
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES + 2 * 1024 * 1024
 
 
 def get_db():
@@ -45,10 +56,20 @@ def init_db():
                 caption TEXT NOT NULL DEFAULT '',
                 media_url TEXT NOT NULL,
                 media_type TEXT NOT NULL,
+                group_id TEXT,
                 created_at TEXT NOT NULL,
                 expires_at TEXT
             )
         """)
+        columns = {row["name"] for row in db.execute("PRAGMA table_info(content)").fetchall()}
+        if "group_id" not in columns:
+            db.execute("ALTER TABLE content ADD COLUMN group_id TEXT")
+
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_content_group_id
+            ON content(group_id)
+        """)
+
         db.execute("""
             CREATE INDEX IF NOT EXISTS idx_content_kind_id
             ON content(kind, id DESC)
@@ -88,6 +109,7 @@ def content_json(row):
         "caption": row["caption"],
         "mediaUrl": row["media_url"],
         "mediaType": row["media_type"],
+        "groupId": row["group_id"],
         "createdAt": row["created_at"],
         "expiresAt": row["expires_at"],
     }
@@ -164,6 +186,14 @@ def create_content(kind):
     try:
         media.save(destination)
 
+        uploaded_size = destination.stat().st_size
+        size_limit = UPLOAD_LIMITS.get(kind, MAX_UPLOAD_BYTES)
+        if uploaded_size > size_limit:
+            destination.unlink(missing_ok=True)
+            return jsonify({
+                "error": f"File exceeds the {size_limit // (1024 * 1024)} MB limit for {kind}"
+            }), 413
+
         if destination.stat().st_size == 0:
             destination.unlink(missing_ok=True)
             return jsonify({"error": "The uploaded file is empty"}), 400
@@ -184,11 +214,12 @@ def create_content(kind):
                 """
                 INSERT INTO content
                     (kind, username, caption, media_url, media_type,
-                     created_at, expires_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                     group_id, created_at, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     kind, username, caption, media_url, media_type,
+                    (request.form.get("group_id") or request.headers.get("X-Post-Group-Id") or None),
                     created_at, expires_at,
                 ),
             )
@@ -215,7 +246,7 @@ def uploaded_file(kind, filename):
 
 @app.errorhandler(413)
 def file_too_large(error):
-    return jsonify({"error": "File exceeds the 50 MB upload limit"}), 413
+    return jsonify({"error": "File exceeds the upload limit for this media type"}), 413
 
 
 @app.get("/")
@@ -671,16 +702,21 @@ def init_auth_tables():
                 phone_number TEXT
             )
         """)
-        columns = {row["name"] for row in db.execute("PRAGMA table_info(users)")}
+
+        columns = {
+            row["name"] for row in db.execute("PRAGMA table_info(users)")
+        }
         if "phone_number" not in columns:
             db.execute("ALTER TABLE users ADD COLUMN phone_number TEXT")
         if "email" not in columns:
             db.execute("ALTER TABLE users ADD COLUMN email TEXT")
+
         db.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
             ON users(email COLLATE NOCASE)
             WHERE email IS NOT NULL AND email != ''
         """)
+
         db.execute("""
             CREATE TABLE IF NOT EXISTS auth_sessions (
                 token_hash TEXT PRIMARY KEY,
@@ -689,6 +725,19 @@ def init_auth_tables():
                 expires_at TEXT NOT NULL
             )
         """)
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS password_reset_otps (
+                email TEXT PRIMARY KEY COLLATE NOCASE,
+                otp_hash TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                last_sent_at TEXT NOT NULL,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                reset_token_hash TEXT,
+                reset_expires_at TEXT
+            )
+        """)
+
 
 def _auth_user():
     header = request.headers.get("Authorization", "")
@@ -711,7 +760,13 @@ def _auth_user():
 def enforce_authenticated_mutations():
     if request.method in ("GET", "HEAD", "OPTIONS"):
         return None
-    if request.path in ("/api/auth/register", "/api/auth/login"):
+    if request.path in (
+        "/api/auth/register",
+        "/api/auth/login",
+        "/api/auth/forgot-password/request",
+        "/api/auth/forgot-password/verify",
+        "/api/auth/forgot-password/reset",
+    ):
         return None
     if not request.path.startswith("/api/"):
         return None
@@ -751,13 +806,18 @@ def auth_register():
     if len(phone_digits) < 10 or len(phone_digits) > 15:
         return jsonify({"error": "कृपया सही मोबाइल नंबर दर्ज करें।"}), 400
     if len(password) < 4 or len(password) > 24:
-        return jsonify({"error": "पासवर्ड 8 से 128 अक्षरों का रखें।"}), 400
+        return jsonify({"error": "पासवर्ड 4 से 24 अक्षरों का रखें।"}), 400
 
-    local_part = email.split("@", 1)[0].lower()
-    base = "".join(ch for ch in local_part if ch.isalnum() or ch in "_.").strip("_.")
-    base = base[:24]
-    if len(base) < 3:
-        base = "user" + base
+    username = str(data.get("username", "")).strip().lstrip("@")
+    full_name = str(data.get("full_name", "")).strip()
+
+    if not (3 <= len(username) <= 30) or any(
+        not (ch.isascii() and (ch.isalnum() or ch in "_."))
+        for ch in username
+    ):
+        return jsonify({"error": "Username must be 3 to 30 letters, numbers, dots, or underscores."}), 400
+    if not full_name or len(full_name) > 60:
+        return jsonify({"error": "Full name is required and must be at most 60 characters."}), 400
 
     now = datetime.now(timezone.utc)
     token = secrets.token_urlsafe(32)
@@ -766,13 +826,10 @@ def auth_register():
 
     try:
         with get_db() as db:
-            username = base
-            suffix = 1
-            while db.execute(
+            if db.execute(
                 "SELECT 1 FROM users WHERE username=? COLLATE NOCASE", (username,)
             ).fetchone():
-                suffix += 1
-                username = f"{base[:24]}{suffix}"
+                return jsonify({"error": "यह username पहले से इस्तेमाल हो रहा है।"}), 409
 
             db.execute(
                 "INSERT INTO users(username,password_hash,created_at,phone_number,email) VALUES(?,?,?,?,?)",
@@ -783,6 +840,10 @@ def auth_register():
                 (digest, username, now.isoformat(), expires)
             )
             profile_json(db, username)
+            db.execute(
+                "UPDATE profiles SET display_name=? WHERE username=?",
+                (full_name, username)
+            )
             db.execute(
                 "INSERT OR IGNORE INTO user_settings(username,updated_at) VALUES(?,?)",
                 (username, now.isoformat())
@@ -833,6 +894,261 @@ def auth_logout():
         with get_db() as db:
             db.execute("DELETE FROM auth_sessions WHERE token_hash=?", (digest,))
     return jsonify({"ok": True})
+
+
+
+@app.post("/api/auth/change-password")
+def auth_change_password():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in again."}), 401
+
+    data = request.get_json(silent=True) or {}
+    old_password = str(data.get("old_password", ""))
+    new_password = str(data.get("new_password", ""))
+    confirm_password = str(data.get("confirm_password", ""))
+
+    if not old_password or not new_password or not confirm_password:
+        return jsonify({"error": "All password fields are required."}), 400
+    if new_password != confirm_password:
+        return jsonify({"error": "New password and confirmation do not match."}), 400
+    if len(new_password) < 4 or len(new_password) > 24:
+        return jsonify({"error": "New password must be 4 to 24 characters."}), 400
+    if new_password == old_password:
+        return jsonify({"error": "Choose a password different from the old password."}), 400
+
+    with get_db() as db:
+        row = db.execute(
+            "SELECT password_hash FROM users WHERE username=?",
+            (username,)
+        ).fetchone()
+
+        if not row or not check_password_hash(row["password_hash"], old_password):
+            return jsonify({"error": "Old password is incorrect."}), 401
+
+        db.execute(
+            "UPDATE users SET password_hash=? WHERE username=?",
+            (generate_password_hash(new_password), username)
+        )
+
+        header = request.headers.get("Authorization", "")
+        token = header[7:].strip() if header.startswith("Bearer ") else ""
+        current_digest = hashlib.sha256(token.encode("utf-8")).hexdigest() if token else ""
+        db.execute(
+            "DELETE FROM auth_sessions WHERE username=? AND token_hash!=?",
+            (username, current_digest)
+        )
+
+    return jsonify({"ok": True, "message": "Password changed successfully."})
+
+
+
+
+def _send_password_reset_email(email, otp):
+    api_key = os.environ.get("RESEND_API_KEY", "").strip()
+    sender = os.environ.get("RESEND_FROM_EMAIL", "").strip()
+    if not api_key or not sender:
+        raise RuntimeError("Email provider is not configured.")
+
+    payload = {
+        "from": sender,
+        "to": [email],
+        "subject": "Your SocialApp password reset code",
+        "text": (
+            f"Your SocialApp password reset code is {otp}.\n\n"
+            "This code expires in 10 minutes. If you did not request this, "
+            "you can ignore this email."
+        ),
+    }
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=15) as response:
+        if response.status < 200 or response.status >= 300:
+            raise RuntimeError("Email provider rejected the request.")
+
+
+@app.post("/api/auth/forgot-password/request")
+def auth_forgot_password_request():
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email", "")).strip().lower()
+    if len(email) > 254 or "@" not in email or "." not in email.rsplit("@", 1)[-1]:
+        return jsonify({"error": "Enter a valid email address."}), 400
+
+    api_key = os.environ.get("RESEND_API_KEY", "").strip()
+    sender = os.environ.get("RESEND_FROM_EMAIL", "").strip()
+    if not api_key or not sender:
+        return jsonify({"error": "Password recovery email is not configured on the server yet."}), 503
+
+    now = datetime.now(timezone.utc)
+    now_iso = now.isoformat()
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE email=? COLLATE NOCASE", (email,)
+        ).fetchone()
+        if not user:
+            return jsonify({
+                "ok": True,
+                "message": "If an account uses that email, a reset code will be sent."
+            }), 200
+
+        previous = db.execute(
+            "SELECT last_sent_at FROM password_reset_otps WHERE email=? COLLATE NOCASE",
+            (email,),
+        ).fetchone()
+        if previous:
+            try:
+                last_sent = datetime.fromisoformat(previous["last_sent_at"])
+                if (now - last_sent).total_seconds() < 60:
+                    return jsonify({
+                        "ok": True,
+                        "message": "If an account uses that email, a reset code will be sent."
+                    }), 200
+            except (TypeError, ValueError):
+                pass
+
+    otp = f"{secrets.randbelow(1000000):06d}"
+    otp_hash = hmac.new(
+        api_key.encode("utf-8"),
+        f"{email}:{otp}".encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    expires = (now + timedelta(minutes=10)).isoformat()
+
+    try:
+        _send_password_reset_email(email, otp)
+    except (urllib.error.URLError, TimeoutError, RuntimeError, ValueError):
+        app.logger.warning("Password reset email delivery failed.")
+        return jsonify({"error": "Could not send the reset email. Check the server email configuration."}), 503
+
+    with get_db() as db:
+        db.execute("""
+            INSERT INTO password_reset_otps
+                (email, otp_hash, expires_at, last_sent_at, attempts, reset_token_hash, reset_expires_at)
+            VALUES (?, ?, ?, ?, 0, NULL, NULL)
+            ON CONFLICT(email) DO UPDATE SET
+                otp_hash=excluded.otp_hash,
+                expires_at=excluded.expires_at,
+                last_sent_at=excluded.last_sent_at,
+                attempts=0,
+                reset_token_hash=NULL,
+                reset_expires_at=NULL
+        """, (email, otp_hash, expires, now_iso))
+
+    return jsonify({
+        "ok": True,
+        "message": "If an account uses that email, a reset code will be sent."
+    }), 200
+
+
+@app.post("/api/auth/forgot-password/verify")
+def auth_forgot_password_verify():
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email", "")).strip().lower()
+    otp = str(data.get("otp", "")).strip()
+    api_key = os.environ.get("RESEND_API_KEY", "").strip()
+
+    if not api_key:
+        return jsonify({"error": "Password recovery email is not configured on the server yet."}), 503
+    if not email or not re.fullmatch(r"[0-9]{6}", otp):
+        return jsonify({"error": "Enter the email address and 6-digit code."}), 400
+
+    now = datetime.now(timezone.utc)
+    with get_db() as db:
+        row = db.execute(
+            "SELECT * FROM password_reset_otps WHERE email=? COLLATE NOCASE", (email,)
+        ).fetchone()
+        if not row:
+            return jsonify({"error": "The code is invalid or expired."}), 400
+        if row["attempts"] >= 5:
+            return jsonify({"error": "Too many attempts. Request a new code."}), 429
+        try:
+            expired = datetime.fromisoformat(row["expires_at"]) <= now
+        except (TypeError, ValueError):
+            expired = True
+        if expired:
+            return jsonify({"error": "The code is invalid or expired. Request a new code."}), 400
+
+        submitted_hash = hmac.new(
+            api_key.encode("utf-8"),
+            f"{email}:{otp}".encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(submitted_hash, row["otp_hash"]):
+            db.execute(
+                "UPDATE password_reset_otps SET attempts=attempts+1 WHERE email=? COLLATE NOCASE",
+                (email,),
+            )
+            return jsonify({"error": "The code is invalid or expired."}), 400
+
+        reset_token = secrets.token_urlsafe(32)
+        reset_digest = hashlib.sha256(reset_token.encode("utf-8")).hexdigest()
+        reset_expires = (now + timedelta(minutes=10)).isoformat()
+        db.execute("""
+            UPDATE password_reset_otps
+            SET reset_token_hash=?, reset_expires_at=?
+            WHERE email=? COLLATE NOCASE
+        """, (reset_digest, reset_expires, email))
+
+    return jsonify({"ok": True, "reset_token": reset_token}), 200
+
+
+@app.post("/api/auth/forgot-password/reset")
+def auth_forgot_password_reset():
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email", "")).strip().lower()
+    reset_token = str(data.get("reset_token", ""))
+    new_password = str(data.get("new_password", ""))
+    confirm_password = str(data.get("confirm_password", ""))
+
+    if not email or not reset_token:
+        return jsonify({"error": "Verify the email code first."}), 400
+    if new_password != confirm_password:
+        return jsonify({"error": "Passwords do not match."}), 400
+    if len(new_password) < 4 or len(new_password) > 24:
+        return jsonify({"error": "Password must be 4 to 24 characters long."}), 400
+
+    reset_digest = hashlib.sha256(reset_token.encode("utf-8")).hexdigest()
+    now = datetime.now(timezone.utc)
+    with get_db() as db:
+        row = db.execute(
+            "SELECT reset_token_hash, reset_expires_at FROM password_reset_otps WHERE email=? COLLATE NOCASE",
+            (email,),
+        ).fetchone()
+        if not row or not row["reset_token_hash"] or not hmac.compare_digest(
+            reset_digest, row["reset_token_hash"]
+        ):
+            return jsonify({"error": "The reset session is invalid. Verify the code again."}), 400
+        try:
+            if not row["reset_expires_at"] or datetime.fromisoformat(row["reset_expires_at"]) <= now:
+                return jsonify({"error": "The reset session expired. Verify the code again."}), 400
+        except (TypeError, ValueError):
+            return jsonify({"error": "The reset session expired. Verify the code again."}), 400
+
+        user = db.execute(
+            "SELECT username FROM users WHERE email=? COLLATE NOCASE", (email,)
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "The account could not be found."}), 400
+
+        db.execute(
+            "UPDATE users SET password_hash=? WHERE username=?",
+            (generate_password_hash(new_password), user["username"]),
+        )
+        db.execute(
+            "DELETE FROM auth_sessions WHERE username=?", (user["username"],)
+        )
+        db.execute(
+            "DELETE FROM password_reset_otps WHERE email=? COLLATE NOCASE", (email,)
+        )
+
+    return jsonify({"ok": True, "message": "Password reset successfully. Please log in again."}), 200
 
 
 # Initialize database only after all functions and routes are defined.

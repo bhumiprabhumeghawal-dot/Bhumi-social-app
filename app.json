@@ -27,7 +27,8 @@
     },
     "plugins": [
       "expo-video",
-      "expo-secure-store"
+      "expo-secure-store",
+      "munim-ffmpeg"
     ],
     "extra": {
       "eas": {

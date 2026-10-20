@@ -1,16 +1,19 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { Alert } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import { applyZoomEffect } from './videoEditor';
 import {
   loadContent, uploadContent, checkServer,
   loadProfile, updateProfile, uploadProfileAvatar,
   deleteProfileAvatar, loadProfileConnections,
-  loadPrivacySettings, savePrivacySettings,
+  loadPrivacySettings, savePrivacySettings, changeAccountPassword,
   togglePostLike, loadPostComments, createPostComment,
-  registerAccount, loginAccount, getAuthSession,
-} from './api';
+  registerAccount, loginAccount, getAuthSession, clearAuthSession,
+  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession} from './api';
 import {
   SafeAreaView,
   ScrollView,
@@ -73,9 +76,290 @@ function Story({ item, onPress }) {
   );
 }
 
-function ReelVideo({ uri }) {
+// SOCIALAPP_MEDIA_MASTER2
+function ZoomableImage({ uri, style }) {
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const savedX = useSharedValue(0);
+  const savedY = useSharedValue(0);
+  const [fitMode, setFitMode] = React.useState('fit');
+  const [zoomLevel, setZoomLevel] = React.useState(1);
+
+  const resetZoom = () => {
+    scale.value = 1;
+    savedScale.value = 1;
+    translateX.value = 0;
+    translateY.value = 0;
+    savedX.value = 0;
+    savedY.value = 0;
+    setZoomLevel(1);
+  };
+
+  const pinch = Gesture.Pinch()
+    .onUpdate(event => {
+      scale.value = Math.max(1, Math.min(savedScale.value * event.scale, 5));
+    })
+    .onEnd(() => {
+      savedScale.value = scale.value;
+      if (scale.value <= 1) {
+        translateX.value = 0;
+        translateY.value = 0;
+        savedX.value = 0;
+        savedY.value = 0;
+      }
+    });
+
+  const pan = Gesture.Pan()
+    .onUpdate(event => {
+      if (scale.value > 1) {
+        translateX.value = savedX.value + event.translationX;
+        translateY.value = savedY.value + event.translationY;
+      }
+    })
+    .onEnd(() => {
+      savedX.value = translateX.value;
+      savedY.value = translateY.value;
+    });
+
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .onEnd(() => {
+      if (scale.value > 1) {
+        resetZoom();
+      } else {
+        scale.value = 2.5;
+        savedScale.value = 2.5;
+        setZoomLevel(2.5);
+      }
+    });
+
+  const gesture = Gesture.Simultaneous(pinch, pan, doubleTap);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  const setZoom = value => {
+    const next = Math.max(1, Math.min(Number(value) || 1, 5));
+    scale.value = next;
+    savedScale.value = next;
+    setZoomLevel(next);
+    if (next === 1) {
+      translateX.value = 0;
+      translateY.value = 0;
+      savedX.value = 0;
+      savedY.value = 0;
+    }
+  };
+
+  return (
+    <View style={[{ width: '100%', alignItems: 'center' }, style]}>
+      <GestureDetector gesture={gesture}>
+        <Animated.Image
+          source={{ uri }}
+          style={[{ width: '100%', height: '82%' }, animatedStyle]}
+          resizeMode={fitMode === 'fit' ? 'contain' : 'cover'}
+        />
+      </GestureDetector>
+      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', paddingVertical: 6 }}>
+        <TouchableOpacity onPress={resetZoom} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 12 }}>Reset Zoom</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setFitMode('fit')} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 12 }}>Fit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setFitMode('fill')} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 12 }}>Fill</Text>
+        </TouchableOpacity>
+        <Text style={{ color: '#FFFFFF', fontSize: 12, marginHorizontal: 6 }}>{zoomLevel.toFixed(1)}×</Text>
+        <TouchableOpacity onPress={() => setZoom(zoomLevel - 0.5)} style={{ paddingHorizontal: 8, paddingVertical: 5 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 16 }}>−</Text>
+        </TouchableOpacity>
+        <View style={{ width: 90, justifyContent: 'center' }}>
+          <View style={{ height: 4, backgroundColor: '#777777', borderRadius: 2 }}>
+            <View style={{ width: `${((zoomLevel - 1) / 4) * 100}%`, height: 4, backgroundColor: '#1685D9', borderRadius: 2 }} />
+          </View>
+          <View style={{ position: 'absolute', left: 0, right: 0, top: -9, bottom: -9, flexDirection: 'row', justifyContent: 'space-between' }}>
+            {[1, 2, 3, 4, 5].map(value => (
+              <TouchableOpacity key={value} onPress={() => setZoom(value)} style={{ width: 16, alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: zoomLevel >= value ? '#1685D9' : '#BBBBBB' }} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+        <TouchableOpacity onPress={() => setZoom(zoomLevel + 0.5)} style={{ paddingHorizontal: 8, paddingVertical: 5 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 16 }}>＋</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+
+function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const savedX = useSharedValue(0);
+  const savedY = useSharedValue(0);
+
+  const pinch = Gesture.Pinch()
+    .onUpdate(event => {
+      scale.value = Math.max(1, Math.min(savedScale.value * event.scale, 5));
+    })
+    .onEnd(() => {
+      savedScale.value = scale.value;
+    });
+
+  const pan = Gesture.Pan()
+    .onUpdate(event => {
+      if (scale.value > 1) {
+        translateX.value = savedX.value + event.translationX;
+        translateY.value = savedY.value + event.translationY;
+      }
+    })
+    .onEnd(() => {
+      savedX.value = translateX.value;
+      savedY.value = translateY.value;
+    });
+
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .onEnd(() => {
+      if (scale.value > 1) {
+        scale.value = 1;
+        savedScale.value = 1;
+        translateX.value = 0;
+        translateY.value = 0;
+        savedX.value = 0;
+        savedY.value = 0;
+      } else {
+        scale.value = 2.5;
+        savedScale.value = 2.5;
+      }
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  return (
+    <View style={[style, { overflow: 'hidden' }]}>
+      <GestureDetector gesture={Gesture.Simultaneous(pinch, pan, doubleTap)}>
+        <Animated.Image
+          source={{ uri }}
+          style={[{ width: '100%', height: '100%' }, animatedStyle]}
+          resizeMode={resizeMode}
+        />
+      </GestureDetector>
+    </View>
+  );
+}
+
+function ReelVideo({ uri, zoomControls = false }) {
   const player = useVideoPlayer(uri, p => { p.loop = true; });
-  return <VideoView player={player} style={{ width: '100%', height: 420, backgroundColor: '#000' }} />;
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const savedX = useSharedValue(0);
+  const savedY = useSharedValue(0);
+  const [zoomLevel, setZoomLevel] = React.useState(1);
+
+  const pinch = Gesture.Pinch()
+    .onUpdate(event => {
+      scale.value = Math.max(1, Math.min(savedScale.value * event.scale, 5));
+    })
+    .onEnd(() => {
+      savedScale.value = scale.value;
+    });
+
+  const pan = Gesture.Pan()
+    .onUpdate(event => {
+      if (scale.value > 1) {
+        translateX.value = savedX.value + event.translationX;
+        translateY.value = savedY.value + event.translationY;
+      }
+    })
+    .onEnd(() => {
+      savedX.value = translateX.value;
+      savedY.value = translateY.value;
+    });
+
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .onEnd(() => {
+      if (scale.value > 1) {
+        scale.value = 1;
+        savedScale.value = 1;
+        translateX.value = 0;
+        translateY.value = 0;
+        savedX.value = 0;
+        savedY.value = 0;
+      } else {
+        scale.value = 2.5;
+        savedScale.value = 2.5;
+      }
+    });
+
+  const gesture = Gesture.Simultaneous(pinch, pan, doubleTap);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  const setZoom = value => {
+    const next = Math.max(1, Math.min(Number(value) || 1, 5));
+    scale.value = next;
+    savedScale.value = next;
+    setZoomLevel(next);
+    if (next === 1) {
+      translateX.value = 0;
+      translateY.value = 0;
+      savedX.value = 0;
+      savedY.value = 0;
+    }
+  };
+
+  return (
+    <View style={{ width: '100%', alignItems: 'center' }}>
+      <View style={{ width: '100%', height: 420, backgroundColor: '#000', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+      <GestureDetector gesture={gesture}>
+        <Animated.View style={[{ width: '100%', height: '100%', backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }, animatedStyle]}>
+          <VideoView player={player} style={{ width: '100%', height: '100%' }} />
+        </Animated.View>
+      </GestureDetector>
+    </View>
+      {zoomControls && (
+        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 6 }}>
+          <TouchableOpacity onPress={() => setZoom(1)} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 12 }}>Reset Zoom</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setZoom(zoomLevel - 0.5)} style={{ paddingHorizontal: 8, paddingVertical: 5 }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 16 }}>−</Text>
+          </TouchableOpacity>
+          <Text style={{ color: '#FFFFFF', fontSize: 12, marginHorizontal: 6 }}>{zoomLevel.toFixed(1)}×</Text>
+          <TouchableOpacity onPress={() => setZoom(zoomLevel + 0.5)} style={{ paddingHorizontal: 8, paddingVertical: 5 }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 16 }}>＋</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
 }
 
 function formatPostTime(createdAt) {
@@ -95,7 +379,36 @@ function formatPostTime(createdAt) {
   })}`;
 }
 
+function groupPostItems(items) {
+  const result = [];
+  const groups = new Map();
+
+  for (const item of items) {
+    if (item.type !== 'posts' || !item.groupId) {
+      result.push({ ...item, mediaItems: [item] });
+      continue;
+    }
+
+    let grouped = groups.get(item.groupId);
+    if (!grouped) {
+      grouped = { ...item, mediaItems: [] };
+      groups.set(item.groupId, grouped);
+      result.push(grouped);
+    }
+    grouped.mediaItems.push(item);
+  }
+
+  for (const item of result) {
+    if (item.groupId && item.mediaItems?.length > 1) {
+      item.mediaItems.sort((a, b) => Number(a.id) - Number(b.id));
+    }
+  }
+  return result;
+}
+
 function PostCard({ post, onOpen = () => {} }) {
+  const [mediaWidth, setMediaWidth] = React.useState(0);
+  const [mediaIndex, setMediaIndex] = React.useState(0);
   const [liked, setLiked] = React.useState(false);
   const [likeCount, setLikeCount] = React.useState(
     Number(String(post.likes || '0').replace(/,/g, '')) || 0
@@ -182,17 +495,65 @@ function PostCard({ post, onOpen = () => {} }) {
         <TouchableOpacity><Text style={styles.more}>•••</Text></TouchableOpacity>
       </View>
 
-      <TouchableOpacity activeOpacity={0.95} onPress={onOpen}>
-        {post.uri && post.mediaType === 'video' ? (
-          <ReelVideo uri={post.uri} />
-        ) : post.uri ? (
-          <Image source={{ uri: post.uri }} style={styles.postImage} resizeMode="cover" />
+      <View
+        onLayout={event => setMediaWidth(event.nativeEvent.layout.width)}
+        style={{ width: '100%' }}
+      >
+        {(post.mediaItems?.length > 1) ? (
+          <ScrollView
+            horizontal
+            pagingEnabled
+            nestedScrollEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={event => {
+              const width = mediaWidth || event.nativeEvent.layoutMeasurement.width;
+              if (width > 0) {
+                setMediaIndex(Math.round(event.nativeEvent.contentOffset.x / width));
+              }
+            }}
+          >
+            {(post.mediaItems || []).map((media, index) => (
+              <TouchableOpacity
+                key={String(media.id || index)}
+                activeOpacity={0.95}
+                onPress={onOpen}
+                style={{ width: mediaWidth || 320 }}
+              >
+                {media.uri && media.mediaType === 'video' ? (
+                  <ReelVideo uri={media.uri} />
+                ) : media.uri ? (
+                  <PinchZoomImage
+                    uri={media.uri}
+                    style={[styles.postImage, mediaWidth ? { width: mediaWidth } : null]}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={[styles.postImage, { backgroundColor: post.color || '#D8E7DF' }]}>
+                    <Text style={styles.postEmoji}>{post.emoji || '🌿'}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         ) : (
-          <View style={[styles.postImage, { backgroundColor: post.color || '#D8E7DF' }]}>
-            <Text style={styles.postEmoji}>{post.emoji || '🌿'}</Text>
-          </View>
+          <TouchableOpacity activeOpacity={0.95} onPress={onOpen}>
+            {post.uri && post.mediaType === 'video' ? (
+              <ReelVideo uri={post.uri} />
+            ) : post.uri ? (
+              <PinchZoomImage uri={post.uri} style={styles.postImage} resizeMode="cover" />
+            ) : (
+              <View style={[styles.postImage, { backgroundColor: post.color || '#D8E7DF' }]}>
+                <Text style={styles.postEmoji}>{post.emoji || '🌿'}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         )}
-      </TouchableOpacity>
+        {(post.mediaItems?.length > 1) && (
+          <Text style={{ textAlign: 'center', paddingVertical: 5, color: '#777777', fontSize: 12 }}>
+            {mediaIndex + 1} / {post.mediaItems.length}
+          </Text>
+        )}
+      </View>
 
       <View style={styles.actions}>
         <TouchableOpacity onPress={handleLike} disabled={interactionBusy}>
@@ -279,23 +640,65 @@ export default function App() {
   const [reels, setReels] = React.useState([]);
   const [serverOnline, setServerOnline] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
+  const [mediaDraft, setMediaDraft] = React.useState(null);
+  const [mediaDraftIndex, setMediaDraftIndex] = React.useState(0);
+  const [mediaDraftCaption, setMediaDraftCaption] = React.useState('');
+  const [zoomEffectEnabled, setZoomEffectEnabled] = React.useState(false);
+  const [zoomEffectLevel, setZoomEffectLevel] = React.useState(1.5);
+  const [zoomEffectDuration, setZoomEffectDuration] = React.useState(3);
+
 
   // SOCIALAPP_AUTH_SCREEN_V1
   const [authReady, setAuthReady] = React.useState(false);
   const [authSession, setAuthSession] = React.useState(null);
   const [authMode, setAuthMode] = React.useState('login');
   const [authUsername, setAuthUsername] = React.useState('');
+  const [authFullName, setAuthFullName] = React.useState('');
+  const [authEmail, setAuthEmail] = React.useState('');
   const [authPassword, setAuthPassword] = React.useState('');
   const [authPhoneNumber, setAuthPhoneNumber] = React.useState('');
   const [authConfirmPassword, setAuthConfirmPassword] = React.useState('');
   const [authBusy, setAuthBusy] = React.useState(false);
+  const [forgotStep, setForgotStep] = React.useState('email');
+  const [forgotEmail, setForgotEmail] = React.useState('');
+  const [forgotOtp, setForgotOtp] = React.useState('');
+  const [forgotResetToken, setForgotResetToken] = React.useState('');
+  const [forgotNewPassword, setForgotNewPassword] = React.useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = React.useState('');
+
 
   React.useEffect(() => {
     let mounted = true;
-    getAuthSession()
-      .then(session => { if (mounted) setAuthSession(session); })
-      .catch(error => console.error('Auth session load failed:', error))
-      .finally(() => { if (mounted) setAuthReady(true); });
+    (async () => {
+      try {
+        const session = await getAuthSession();
+        if (!mounted) return;
+
+        if (session?.token) {
+          const result = await verifyAuthSession();
+          console.log('Auth session verification:', JSON.stringify(result));
+          if (!mounted) return;
+
+          if (result.valid) {
+            setAuthSession({
+              token: session.token,
+              username: result.username || session.username,
+            });
+          } else {
+            await clearAuthSession();
+            if (mounted) setAuthSession(null);
+          }
+        } else {
+          setAuthSession(null);
+        }
+      } catch (error) {
+        console.error('Auth session verification failed:', error?.message || error);
+        await clearAuthSession();
+        if (mounted) setAuthSession(null);
+      } finally {
+        if (mounted) setAuthReady(true);
+      }
+    })();
     return () => { mounted = false; };
   }, []);
 
@@ -366,13 +769,19 @@ export default function App() {
     showActivity: true,
     allowMessages: true,
   });
+  const [passwordOpen, setPasswordOpen] = React.useState(false);
+  const [passwordBusy, setPasswordBusy] = React.useState(false);
+  const [oldPassword, setOldPassword] = React.useState('');
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = React.useState('');
+
 
 
   
   const openPrivacySettings = async () => {
     setPrivacyBusy(true);
     try {
-      const settings = await loadPrivacySettings('you');
+      const settings = await loadPrivacySettings(authSession.username);
       setPrivacySettings({
         isPrivate: settings.isPrivate,
         showActivity: settings.showActivity,
@@ -389,7 +798,7 @@ export default function App() {
   const persistPrivacySettings = async () => {
     setPrivacyBusy(true);
     try {
-      const settings = await savePrivacySettings(privacySettings, 'you');
+      const settings = await savePrivacySettings(privacySettings, authSession.username);
       setPrivacySettings(settings);
       setPrivacyOpen(false);
       Alert.alert('Saved', 'Privacy settings have been saved.');
@@ -423,7 +832,7 @@ const refreshProfile = React.useCallback(async () => {
     if (profileBusy) return;
     setProfileBusy(true);
     try {
-      const result = await updateProfile('you', {
+      const result = await updateProfile(authSession.username, {
         displayName: profileDraft.displayName.trim(),
         bio: profileDraft.bio.trim(),
       });
@@ -458,7 +867,7 @@ const refreshProfile = React.useCallback(async () => {
       if (result.canceled || !result.assets?.length) return;
 
       setProfileBusy(true);
-      await uploadProfileAvatar(result.assets[0], 'you');
+      await uploadProfileAvatar(result.assets[0], authSession.username);
       await refreshProfile();
       Alert.alert('सफल', 'प्रोफ़ाइल फ़ोटो अपडेट हो गई।');
     } catch (e) {
@@ -477,7 +886,7 @@ const refreshProfile = React.useCallback(async () => {
         onPress: async () => {
           setProfileBusy(true);
           try {
-            await deleteProfileAvatar('you');
+            await deleteProfileAvatar(authSession.username);
             await refreshProfile();
           } catch (e) {
             Alert.alert('फ़ोटो नहीं हटी', e.message || 'फिर से कोशिश करें।');
@@ -491,7 +900,7 @@ const refreshProfile = React.useCallback(async () => {
 
   const showProfileConnections = async (type) => {
     try {
-      const result = await loadProfileConnections('you', type);
+      const result = await loadProfileConnections(authSession.username, type);
       const items = result.items || result.users || result[type] || [];
       const names = items.map(x => '@' + (x.username || x.user || x)).join('\n');
       Alert.alert(type === 'followers' ? 'Followers' : 'Following',
@@ -523,39 +932,84 @@ const refreshProfile = React.useCallback(async () => {
   React.useEffect(() => { refreshContent(); }, [refreshContent]);
 
   const chooseMedia = async (kind) => {
-    if (busy) return;
+    if (busy || mediaDraft) return;
     try {
       const video = kind === 'reels';
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: video ? ['videos'] : ['images'],
-        allowsEditing: !video,
-        quality: 0.8,
-        ...(video ? { videoMaxDuration: 180 } : {}),
+        mediaTypes: video ? ['videos'] : ['images', 'videos'],
+        allowsMultipleSelection: kind === 'posts',
+        selectionLimit: kind === 'posts' ? 10 : 1,
+        allowsEditing: false,
+        quality: 1,
+        ...(kind === 'reels' ? { videoMaxDuration: 1200 } : kind === 'stories' ? { videoMaxDuration: 1200 } : kind === 'posts' ? { videoMaxDuration: 7200 } : {}),
       });
       if (result.canceled || !result.assets?.length) return;
+      const maxBytes = kind === 'posts' ? 1024 * 1024 * 1024 : 500 * 1024 * 1024;
+      const oversizedAsset = result.assets.find(asset => Number(asset.fileSize || 0) > maxBytes);
+      if (oversizedAsset) {
+        const limitMB = Math.floor(maxBytes / (1024 * 1024));
+        Alert.alert('फ़ाइल बहुत बड़ी है', `इस अपलोड की अधिकतम सीमा ${limitMB} MB है। छोटी फ़ाइल चुनें।`);
+        return;
+      }
+      setMediaDraft({ kind, assets: result.assets });
+      setMediaDraftIndex(0);
+      setMediaDraftCaption('');
+    } catch (e) {
+      console.error('Media selection failed:', e);
+      Alert.alert('मीडिया नहीं खुला', e.message || 'कृपया फिर कोशिश करें।');
+    }
+  };
 
-      setBusy(true);
-      const item = await uploadContent(kind, result.assets[0]);
+  const uploadDraftMedia = async () => {
+    if (!mediaDraft || busy) return;
+    const { kind, assets } = mediaDraft;
+    setBusy(true);
+    try {
+      const uploadedItems = [];
+      const groupId = kind === 'posts' && assets.length > 1
+        ? `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+        : '';
+      for (const asset of assets) {
+        let uploadAsset = asset;
+        const assetIsVideo = asset.type === 'video' || /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || '');
 
+        if (kind === 'reels' && assetIsVideo && zoomEffectEnabled) {
+          uploadAsset = await applyZoomEffect(asset.uri, {
+            zoom: zoomEffectLevel,
+            duration: zoomEffectDuration,
+          });
+        }
+
+        uploadedItems.push(
+          await uploadContent(kind, uploadAsset, mediaDraftCaption.trim(), groupId)
+        );
+      }
+      const item = uploadedItems[0];
+      setMediaDraft(null);
+      setMediaDraftIndex(0);
+      setMediaDraftCaption('');
       if (kind === 'posts') {
-        setFeedPosts(current => [item, ...current]);
+        await refreshContent();
         setActiveTab('Home');
       } else if (kind === 'stories') {
-        setServerStories(current => [{
-          ...item, name: item.user || 'you', own: true, color: '#DDE7F5'
-        }, ...current]);
+        setServerStories(current => [{ ...item, name: item.user || 'you', own: true, color: '#DDE7F5' }, ...current]);
         setActiveTab('Home');
       } else {
         setReels(current => [item, ...current]);
         setActiveTab('Reels');
       }
-
     } catch (e) {
       console.error('Upload failed:', e);
       Alert.alert('अपलोड विफल', e.message || 'सर्वर कनेक्शन जाँचें।');
     } finally {
       setBusy(false);
     }
+  };
+
+  const cancelDraftMedia = () => {
+    setMediaDraft(null);
+    setMediaDraftIndex(0);
+    setMediaDraftCaption('');
   };
 
   const pickImage = () => chooseMedia('posts');
@@ -586,11 +1040,26 @@ const refreshProfile = React.useCallback(async () => {
   const submitAuth = async () => {
     if (authBusy) return;
     const username = authUsername.trim();
+    console.log('Registration username check:', JSON.stringify({length: username.length, value: username, valid: /^[a-zA-Z0-9_.]{3,30}$/.test(username)}));
+    const fullName = authFullName.trim();
+    const email = authEmail.trim().toLowerCase();
     if (!username || !authPassword) {
       Alert.alert('Required', 'Enter your username and password.');
       return;
     }
     if (authMode === 'register') {
+      if (!fullName || !email) {
+        Alert.alert('Required', 'Enter your full name and email address.');
+        return;
+      }
+      if (!/^[a-zA-Z0-9_.]{3,30}$/.test(username)) {
+        Alert.alert('Invalid username', 'Use 3 to 30 letters, numbers, dots, or underscores.');
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        Alert.alert('Invalid email', 'Enter a valid email address.');
+        return;
+      }
       const phoneDigits = authPhoneNumber.replace(/\D/g, '');
       if (phoneDigits.length < 10 || phoneDigits.length > 15) {
         Alert.alert('Invalid mobile number', 'Enter a valid mobile number.');
@@ -608,7 +1077,7 @@ const refreshProfile = React.useCallback(async () => {
     setAuthBusy(true);
     try {
       const result = authMode === 'register'
-        ? await registerAccount(username, authPassword, authPhoneNumber)
+        ? await registerAccount(username, authPassword, authPhoneNumber, email, fullName)
         : await loginAccount(username, authPassword);
       setAuthSession({ token: result.token, username: result.username });
       setAuthPassword('');
@@ -631,6 +1100,181 @@ const refreshProfile = React.useCallback(async () => {
     );
   }
 
+  // SOCIALAPP_FORGOT_PASSWORD_SCREEN_V1
+  if (authReady && !authSession && authMode === 'forgot') {
+    const fieldStyle = {
+      borderWidth: 1,
+      borderColor: '#DDDDDD',
+      borderRadius: 8,
+      padding: 13,
+      marginBottom: 12,
+      color: '#222222',
+    };
+
+    const forgotAction = async (action) => {
+      if (authBusy) return;
+
+      if (action === 'request' && !forgotEmail.trim().includes('@')) {
+        Alert.alert('Email required', 'Enter your registered email address.');
+        return;
+      }
+
+      if (action === 'reset') {
+        if (forgotNewPassword.length < 4 || forgotNewPassword.length > 24) {
+          Alert.alert('Invalid password', 'Password must be 4 to 24 characters.');
+          return;
+        }
+        if (forgotNewPassword !== forgotConfirmPassword) {
+          Alert.alert('Password mismatch', 'The passwords do not match.');
+          return;
+        }
+      }
+
+      setAuthBusy(true);
+      try {
+        if (action === 'request') {
+          await requestPasswordReset(forgotEmail);
+          setForgotStep('otp');
+          Alert.alert('Check your email', 'If the account exists, a reset code has been sent.');
+        } else if (action === 'verify') {
+          const result = await verifyPasswordReset(forgotEmail, forgotOtp);
+          const token = result.reset_token || result.resetToken;
+          if (!token) throw new Error('The server did not return a reset token.');
+          setForgotResetToken(token);
+          setForgotStep('reset');
+        } else if (action === 'reset') {
+          await resetPasswordWithToken(
+            forgotEmail,
+            forgotResetToken,
+            forgotNewPassword,
+            forgotConfirmPassword
+          );
+          setForgotStep('email');
+          setForgotOtp('');
+          setForgotResetToken('');
+          setForgotNewPassword('');
+          setForgotConfirmPassword('');
+          setAuthPassword('');
+          setAuthMode('login');
+          Alert.alert('Password updated', 'Log in with your new password.');
+        }
+      } catch (error) {
+        Alert.alert('Password reset', error.message || 'Could not complete the password reset.');
+      } finally {
+        setAuthBusy(false);
+      }
+    };
+
+    return (
+      <SafeAreaView style={styles.screen}>
+        <StatusBar style="dark" />
+        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
+          <Text style={{ fontSize: 30, fontWeight: '800', color: '#171717', marginBottom: 8 }}>SocialApp</Text>
+          <Text style={{ color: '#777777', marginBottom: 22 }}>Forgot password</Text>
+
+          <View style={{ flexDirection: 'row', marginBottom: 18 }}>
+            <View style={{ flex: 1, backgroundColor: '#0095F6', borderRadius: 8, padding: 12, alignItems: 'center', marginRight: 8 }}>
+              <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Email</Text>
+            </View>
+            <View style={{ flex: 1, backgroundColor: '#EEEEEE', borderRadius: 8, padding: 12, alignItems: 'center' }}>
+              <Text style={{ color: '#888888', fontWeight: '600' }}>Mobile (SMS unavailable)</Text>
+            </View>
+          </View>
+
+          {forgotStep === 'email' && (
+            <>
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Registered email</Text>
+              <TextInput
+                value={forgotEmail}
+                onChangeText={setForgotEmail}
+                placeholder="Email address"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!authBusy}
+                style={fieldStyle}
+              />
+              <TouchableOpacity
+                onPress={() => forgotAction('request')}
+                disabled={authBusy}
+                style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center' }}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{authBusy ? 'Please wait...' : 'Send email code'}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {forgotStep === 'otp' && (
+            <>
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Email verification code</Text>
+              <TextInput
+                value={forgotOtp}
+                onChangeText={setForgotOtp}
+                placeholder="Enter OTP"
+                keyboardType="number-pad"
+                editable={!authBusy}
+                style={fieldStyle}
+              />
+              <TouchableOpacity
+                onPress={() => forgotAction('verify')}
+                disabled={authBusy}
+                style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center', marginBottom: 8 }}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{authBusy ? 'Please wait...' : 'Verify code'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => forgotAction('request')}
+                disabled={authBusy}
+                style={{ padding: 12, alignItems: 'center' }}
+              >
+                <Text style={{ color: '#1685D9' }}>Resend code</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {forgotStep === 'reset' && (
+            <>
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>New password (4 to 24 characters)</Text>
+              <TextInput
+                value={forgotNewPassword}
+                onChangeText={setForgotNewPassword}
+                placeholder="New password"
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!authBusy}
+                style={fieldStyle}
+              />
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Confirm new password</Text>
+              <TextInput
+                value={forgotConfirmPassword}
+                onChangeText={setForgotConfirmPassword}
+                placeholder="Confirm new password"
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!authBusy}
+                style={fieldStyle}
+              />
+              <TouchableOpacity
+                onPress={() => forgotAction('reset')}
+                disabled={authBusy}
+                style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center' }}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{authBusy ? 'Please wait...' : 'Set new password'}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          <TouchableOpacity
+            onPress={() => { setAuthMode('login'); setForgotStep('email'); }}
+            disabled={authBusy}
+            style={{ padding: 16, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#1685D9' }}>Back to login</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (!authSession) {
     return (
       <SafeAreaView style={styles.screen}>
@@ -640,18 +1284,53 @@ const refreshProfile = React.useCallback(async () => {
           <Text style={{ color: '#777777', marginBottom: 26 }}>
             {authMode === 'register' ? 'Create your account' : 'Sign in to your account'}
           </Text>
-          <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>
-            {authMode === 'register' ? 'Email address' : 'Email or username'}
-          </Text>
-          <TextInput
-            value={authUsername}
-            onChangeText={setAuthUsername}
-            placeholder="Username"
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!authBusy}
-            style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
-          />
+          {authMode === 'register' ? (
+            <>
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Full Name</Text>
+              <TextInput
+                value={authFullName}
+                onChangeText={setAuthFullName}
+                placeholder="Full Name"
+                autoCapitalize="words"
+                editable={!authBusy}
+                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+              />
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Username</Text>
+              <TextInput
+                value={authUsername}
+                onChangeText={setAuthUsername}
+                placeholder="Choose a username"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!authBusy}
+                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+              />
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Email address</Text>
+              <TextInput
+                value={authEmail}
+                onChangeText={setAuthEmail}
+                placeholder="Email address"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!authBusy}
+                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+              />
+            </>
+          ) : (
+            <>
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Email or username</Text>
+              <TextInput
+                value={authUsername}
+                onChangeText={setAuthUsername}
+                placeholder="Email or username"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!authBusy}
+                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+              />
+            </>
+          )}
           {authMode === 'register' && (
             <>
             <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Mobile number</Text>
@@ -704,6 +1383,19 @@ const refreshProfile = React.useCallback(async () => {
             disabled={authBusy}
             style={{ padding: 16, alignItems: 'center' }}
           >
+            {authMode === 'login' && (
+              <TouchableOpacity
+                onPress={() => {
+                  setForgotEmail(authEmail);
+                  setForgotStep('email');
+                  setAuthMode('forgot');
+                }}
+                disabled={authBusy}
+                style={{ padding: 8, alignItems: 'center' }}
+              >
+                <Text style={{ color: '#1685D9' }}>Forgot password?</Text>
+              </TouchableOpacity>
+            )}
             <Text style={{ color: '#1685D9' }}>
               {authMode === 'login' ? 'Create a new account' : 'Already have an account? Log in'}
             </Text>
@@ -716,6 +1408,115 @@ const refreshProfile = React.useCallback(async () => {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="dark" />
+
+      <Modal
+        visible={Boolean(mediaDraft)}
+        animationType="slide"
+        onRequestClose={cancelDraftMedia}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
+            <TouchableOpacity onPress={cancelDraftMedia}>
+              <Text style={{ color: '#1685D9', fontSize: 16 }}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={{ color: '#222222', fontSize: 17, fontWeight: '700' }}>Preview</Text>
+            <TouchableOpacity
+              disabled={busy}
+              onPress={() => Alert.alert('Upload media?', 'क्या आप चुनी हुई मीडिया अपलोड करना चाहते हैं?', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Upload', onPress: uploadDraftMedia },
+              ])}
+            >
+              <Text style={{ color: '#0095F6', fontSize: 16, fontWeight: '700' }}>Done</Text>
+            </TouchableOpacity>
+          </View>
+
+          {mediaDraft && (() => {
+            const assets = mediaDraft.assets || [];
+            const asset = assets[mediaDraftIndex];
+            if (!asset) return null;
+            const isVideo = asset.type === 'video' || /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || '');
+            return (
+              <View style={{ flex: 1, padding: 12 }}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111111', borderRadius: 8, overflow: 'hidden' }}>
+                  {isVideo ? (
+                    <ReelVideo uri={asset.uri} />
+                  ) : (
+                    <Image source={{ uri: asset.uri }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                  )}
+                </View>
+
+                {assets.length > 1 && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 }}>
+                    <TouchableOpacity
+                      disabled={mediaDraftIndex === 0}
+                      onPress={() => setMediaDraftIndex(index => Math.max(0, index - 1))}
+                      style={{ padding: 10 }}
+                    >
+                      <Text style={{ color: '#1685D9', fontSize: 16 }}>Previous</Text>
+                    </TouchableOpacity>
+                    <Text style={{ color: '#555555' }}>{mediaDraftIndex + 1} / {assets.length}</Text>
+                    <TouchableOpacity
+                      disabled={mediaDraftIndex >= assets.length - 1}
+                      onPress={() => setMediaDraftIndex(index => Math.min(assets.length - 1, index + 1))}
+                      style={{ padding: 10 }}
+                    >
+                      <Text style={{ color: '#1685D9', fontSize: 16 }}>Next</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                <TextInput
+                  value={mediaDraftCaption}
+                  onChangeText={setMediaDraftCaption}
+                  placeholder="Write a caption..."
+                  multiline
+                  maxLength={2200}
+                  style={{ minHeight: 48, maxHeight: 110, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 10, padding: 12, marginTop: 8, color: '#222222' }}
+                />
+                {mediaDraft.kind === 'reels' && isVideo && (
+                  <View style={{ paddingTop: 12 }}>
+                    <TouchableOpacity
+                      onPress={() => setZoomEffectEnabled(v => !v)}
+                      style={{ padding: 10, borderRadius: 8, borderWidth: 1, borderColor: zoomEffectEnabled ? '#0095F6' : '#DDDDDD' }}
+                    >
+                      <Text style={{ color: zoomEffectEnabled ? '#0095F6' : '#333333', fontWeight: '600' }}>
+                        {zoomEffectEnabled ? 'Zoom Effect ON' : 'Enable Zoom Effect'}
+                      </Text>
+                    </TouchableOpacity>
+                    {zoomEffectEnabled && (
+                      <View style={{ paddingTop: 8 }}>
+                        <Text style={{ color: '#333333' }}>Zoom level: {zoomEffectLevel.toFixed(1)}x</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 6 }}>
+                          <TouchableOpacity onPress={() => setZoomEffectLevel(v => Math.max(1.2, Number((v - 0.1).toFixed(1))))} style={{ padding: 10, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
+                            <Text style={{ color: '#1685D9' }}>−</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => setZoomEffectLevel(v => Math.min(2.5, Number((v + 0.1).toFixed(1))))} style={{ padding: 10, marginLeft: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
+                            <Text style={{ color: '#1685D9' }}>＋</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Text style={{ color: '#333333', paddingTop: 8 }}>Effect duration: {zoomEffectDuration}s</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 6 }}>
+                          <TouchableOpacity onPress={() => setZoomEffectDuration(v => Math.max(1, v - 1))} style={{ padding: 10, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
+                            <Text style={{ color: '#1685D9' }}>−</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => setZoomEffectDuration(v => Math.min(15, v + 1))} style={{ padding: 10, marginLeft: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
+                            <Text style={{ color: '#1685D9' }}>＋</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Text style={{ color: '#777777', fontSize: 12, paddingTop: 6 }}>
+                          The effect is processed before upload.
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </View>
+            );
+          })()}
+        </SafeAreaView>
+      </Modal>
+
       <View style={styles.header}>
         <Text style={styles.brand}>SocialApp</Text>
         <View style={styles.headerActions}>
@@ -733,10 +1534,10 @@ const refreshProfile = React.useCallback(async () => {
       {busy && <Text style={{ padding: 5, color: '#1685D9' }}>मीडिया अपलोड हो रहा है…</Text>}
 
       {activeTab === 'Reels' ? (
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false} pagingEnabled decelerationRate="fast">
           {reels.length ? reels.map((r, i) => (
             <View key={r.id || r.uri || i} style={styles.post}>
-              {r.uri ? <ReelVideo uri={r.uri} /> : null}
+              {r.uri ? <ReelVideo uri={r.uri} zoomControls /> : null}
               {!!r.caption && <Text style={styles.caption}>{r.caption}</Text>}
               <Text style={styles.location}>@{r.user || 'you'}</Text>
             </View>
@@ -781,7 +1582,7 @@ const refreshProfile = React.useCallback(async () => {
             ))}
           </ScrollView>
           <View style={styles.feedDivider} />
-          {feedPosts.map((p, i) => <PostCard key={p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} onOpen={() => setSelectedPost(p)} />)}
+          {groupPostItems(feedPosts).map((p, i) => <PostCard key={p.groupId || p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} onOpen={() => setSelectedPost(p)} />)}
         </ScrollView>
       ) : activeTab === 'Profile' ? (
         <ScrollView style={styles.content} contentContainerStyle={{ padding: 20, paddingBottom: 36 }}>
@@ -902,6 +1703,8 @@ const refreshProfile = React.useCallback(async () => {
                     onPress={() => {
                       if (item.title === 'Privacy') {
                         openPrivacySettings();
+                      } else if (item.title === 'Account Security') {
+                        setPasswordOpen(true);
                       } else {
                         Alert.alert(item.title, 'This setting will be added in a later step.');
                       }
@@ -926,9 +1729,9 @@ const refreshProfile = React.useCallback(async () => {
               </View>
 
               <Text style={{ color: '#555', fontWeight: '700', marginBottom: 12 }}>आपकी पोस्ट</Text>
-              {feedPosts.filter(p => (p.user || 'you') === 'you').length ? (
-                feedPosts.filter(p => (p.user || 'you') === 'you').map((p, i) =>
-                  <PostCard key={p.id || `my-post-${i}`} post={p} onOpen={() => setSelectedPost(p)} />)
+              {groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).length ? (
+                groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).map((p, i) =>
+                  <PostCard key={p.groupId || p.id || `my-post-${i}`} post={p} onOpen={() => setSelectedPost(p)} />)
               ) : (
                 <Text style={{ color: '#888', paddingVertical: 12 }}>अभी आपकी कोई पोस्ट नहीं है।</Text>
               )}
@@ -971,12 +1774,11 @@ const refreshProfile = React.useCallback(async () => {
           </TouchableOpacity>
           {selectedStory?.uri ? (
             selectedStory.mediaType === 'video' ? (
-              <ReelVideo uri={selectedStory.uri} />
+              <ReelVideo uri={selectedStory.uri} zoomControls />
             ) : (
-              <Image
-                source={{ uri: selectedStory.uri }}
+              <ZoomableImage
+                uri={selectedStory.uri}
                 style={{ width: '100%', height: '78%' }}
-                resizeMode="contain"
               />
             )
           ) : (
@@ -1027,12 +1829,11 @@ const refreshProfile = React.useCallback(async () => {
             <Text style={{ color: '#FFFFFF', fontSize: 30 }}>×</Text>
           </TouchableOpacity>
           {selectedPost?.uri && selectedPost.mediaType === 'video' ? (
-            <ReelVideo uri={selectedPost.uri} />
+            <ReelVideo uri={selectedPost.uri} zoomControls />
           ) : selectedPost?.uri ? (
-            <Image
-              source={{ uri: selectedPost.uri }}
+            <ZoomableImage
+              uri={selectedPost.uri}
               style={{ width: '100%', height: '72%' }}
-              resizeMode="contain"
             />
           ) : (
             <View style={{ padding: 24, alignItems: 'center' }}>
@@ -1097,6 +1898,98 @@ const refreshProfile = React.useCallback(async () => {
               >
                 <Text style={{ color: '#333333', fontWeight: '700' }}>
                   {privacyBusy ? 'Saving...' : 'Save'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+
+      {/* SOCIALAPP_CHANGE_PASSWORD_SCREEN_V1 */}
+      <Modal
+        visible={passwordOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          if (!passwordBusy) setPasswordOpen(false);
+        }}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20 }}>
+            <Text style={{ color: '#333333', fontSize: 20, fontWeight: '700', marginBottom: 18 }}>
+              Change Password
+            </Text>
+
+            {[
+              { label: 'Old Password', value: oldPassword, setter: setOldPassword },
+              { label: 'New Password', value: newPassword, setter: setNewPassword },
+              { label: 'Confirm New Password', value: confirmNewPassword, setter: setConfirmNewPassword },
+            ].map(field => (
+              <TextInput
+                key={field.label}
+                value={field.value}
+                onChangeText={field.setter}
+                placeholder={field.label}
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!passwordBusy}
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5E5E5',
+                  borderRadius: 8,
+                  padding: 12,
+                  marginBottom: 12,
+                  color: '#333333',
+                }}
+              />
+            ))}
+
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+              <TouchableOpacity
+                onPress={() => setPasswordOpen(false)}
+                disabled={passwordBusy}
+                style={{ padding: 12, marginRight: 8 }}
+              >
+                <Text style={{ color: '#555555' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={async () => {
+                  if (!oldPassword || !newPassword || !confirmNewPassword) {
+                    Alert.alert('Missing information', 'Fill in all three password fields.');
+                    return;
+                  }
+                  if (newPassword !== confirmNewPassword) {
+                    Alert.alert('Passwords do not match', 'Enter the same new password twice.');
+                    return;
+                  }
+                  if (newPassword.length < 4 || newPassword.length > 24) {
+                    Alert.alert('Invalid password', 'The new password must be 4 to 24 characters.');
+                    return;
+                  }
+                  setPasswordBusy(true);
+                  try {
+                    const result = await changeAccountPassword(
+                      oldPassword,
+                      newPassword,
+                      confirmNewPassword
+                    );
+                    setOldPassword('');
+                    setNewPassword('');
+                    setConfirmNewPassword('');
+                    setPasswordOpen(false);
+                    Alert.alert('Success', result.message || 'Password changed successfully.');
+                  } catch (e) {
+                    Alert.alert('Password change failed', e.message || 'Please try again.');
+                  } finally {
+                    setPasswordBusy(false);
+                  }
+                }}
+                disabled={passwordBusy}
+                style={{ padding: 12, backgroundColor: '#E5E5E5', borderRadius: 8 }}
+              >
+                <Text style={{ color: '#333333', fontWeight: '700' }}>
+                  {passwordBusy ? 'Saving...' : 'Change Password'}
                 </Text>
               </TouchableOpacity>
             </View>

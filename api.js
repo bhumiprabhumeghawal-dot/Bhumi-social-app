@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
-const API_BASE_URL = 'https://bhumi-social-app-1.onrender.com';
+const API_BASE_URL = 'http://127.0.0.1:5000';
 
 const AUTH_TOKEN_KEY = 'socialapp_auth_token';
 const AUTH_USERNAME_KEY = 'socialapp_auth_username';
@@ -22,18 +22,20 @@ export async function getAuthSession() {
 }
 
 
-export async function registerAccount(username, password, phoneNumber) {
+export async function registerAccount(username, password, phoneNumber, email, fullName) {
   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: username.trim(),
+      username: username.trim(),
+      full_name: fullName.trim(),
+      email: email.trim().toLowerCase(),
       password,
       phone_number: phoneNumber.trim(),
     }),
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'रजिस्ट्रेशन नहीं हुआ।');
+  if (!response.ok) throw new Error(data.error || 'Registration failed.');
   await saveAuthSession(data.token, data.username);
   return data;
 }
@@ -50,6 +52,27 @@ export async function loginAccount(username, password) {
   return data;
 }
 
+export async function verifyAuthSession() {
+  const session = await getAuthSession();
+  if (!session?.token) {
+    return { valid: false, reason: 'missing_token' };
+  }
+
+  const response = await originalFetch(`${API_BASE_URL}/api/auth/me`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${session.token}` },
+  });
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch (_) {}
+
+  return response.ok
+    ? { valid: true, username: data.username }
+    : { valid: false, status: response.status, reason: data.error || 'Token rejected' };
+}
+
 export async function logoutAccount() {
   try {
     await fetch(`${API_BASE_URL}/api/auth/logout`, { method: 'POST' });
@@ -60,10 +83,19 @@ export async function logoutAccount() {
 
 const originalFetch = globalThis.fetch.bind(globalThis);
 globalThis.fetch = async (input, init = {}) => {
-  const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
   const headers = new Headers(init.headers || {});
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-  return originalFetch(input, { ...init, headers });
+  const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  } else {
+    headers.delete('Authorization');
+  }
+  const url = typeof input === 'string' ? input : input.url;
+  const response = await originalFetch(input, { ...init, headers });
+  if (String(url).includes('/api/')) {
+    console.log('[AUTH DEBUG]', response.status, String(init.method || 'GET').toUpperCase(), String(url).split('?')[0], 'tokenSent=' + headers.has('Authorization'));
+  }
+  return response;
 };
 
 
@@ -92,7 +124,7 @@ export async function loadContent(type) {
   }));
 }
 
-export async function uploadContent(type, asset, caption = '') {
+export async function uploadContent(type, asset, caption = '', groupId = '') {
   const extension = (
     asset.fileName || asset.uri || ''
   ).split('.').pop().split('?')[0].toLowerCase();
@@ -119,7 +151,10 @@ export async function uploadContent(type, asset, caption = '') {
     asset.uri,
     {
       httpMethod: 'POST',
-      headers: authSession ? { Authorization: `Bearer ${authSession.token}` } : {},
+      headers: {
+        ...(authSession ? { Authorization: `Bearer ${authSession.token}` } : {}),
+        ...(groupId ? { 'X-Post-Group-Id': groupId } : {}),
+      },
 
       uploadType: FileSystem.FileSystemUploadType.MULTIPART,
       fieldName: 'file',
@@ -128,6 +163,7 @@ export async function uploadContent(type, asset, caption = '') {
       parameters: {
         caption,
         username: authSession?.username || 'you',
+        group_id: groupId,
       },
     }
   );
@@ -191,11 +227,17 @@ export async function uploadProfileAvatar(asset, username = 'you') {
     webp: 'image/webp', gif: 'image/gif',
   }[ext] || 'image/jpeg';
 
+  const authSession = await getAuthSession();
+  if (!authSession?.token) {
+    throw new Error('कृपया पहले लॉगिन करें।');
+  }
+
   const result = await FileSystem.uploadAsync(
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/avatar`,
     asset.uri,
     {
       httpMethod: 'POST',
+      headers: { Authorization: `Bearer ${authSession.token}` },
       uploadType: FileSystem.FileSystemUploadType.MULTIPART,
       fieldName: 'file',
       mimeType: mime,
@@ -283,6 +325,68 @@ export async function savePrivacySettings(changes, username = 'you') {
     throw new Error(data.error || 'Could not save privacy settings.');
   }
   return data.settings;
+}
+
+
+export async function requestPasswordReset(email) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim().toLowerCase() }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not request a password reset.');
+  }
+  return data;
+}
+
+export async function verifyPasswordReset(email, otp) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim().toLowerCase(), otp: otp.trim() }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not verify the reset code.');
+  }
+  return data;
+}
+
+export async function resetPasswordWithToken(email, resetToken, newPassword, confirmPassword) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: email.trim().toLowerCase(),
+      reset_token: resetToken,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not reset the password.');
+  }
+  return data;
+}
+
+export async function changeAccountPassword(oldPassword, newPassword, confirmPassword) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      old_password: oldPassword,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not change password.');
+  }
+  return data;
 }
 
 
