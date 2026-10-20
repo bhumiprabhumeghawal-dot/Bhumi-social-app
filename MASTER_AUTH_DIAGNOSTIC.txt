@@ -1,0 +1,930 @@
+SOCIALAPP MASTER AUTH DIAGNOSTICS
+Time: 2026-10-18T18:11:53
+Project: /data/data/com.termux/files/home/SocialApp
+========================================================================
+
+
+### FILE: App.js
+
+[TOKEN / SESSION]
+   10:   loadPrivacySettings, savePrivacySettings, changeAccountPassword,
+   11:   togglePostLike, loadPostComments, createPostComment,
+   12:   registerAccount, loginAccount, getAuthSession,
+   13:   requestPasswordReset, verifyPasswordReset, resetPasswordWithToken,
+   14: } from './api';
+-----
+  284:   // SOCIALAPP_AUTH_SCREEN_V1
+  285:   const [authReady, setAuthReady] = React.useState(false);
+  286:   const [authSession, setAuthSession] = React.useState(null);
+  287:   const [authMode, setAuthMode] = React.useState('login');
+  288:   const [authUsername, setAuthUsername] = React.useState('');
+-----
+  303:   React.useEffect(() => {
+  304:     let mounted = true;
+  305:     getAuthSession()
+  306:       .then(session => { if (mounted) setAuthSession(session); })
+  307:       .catch(error => console.error('Auth session load failed:', error))
+-----
+  308:       .finally(() => { if (mounted) setAuthReady(true); });
+-----
+  418: 
+  419: const refreshProfile = React.useCallback(async () => {
+  420:     if (!authSession?.username) return;
+  421:     try {
+  422:       const result = await loadProfile(authSession.username, authSession.username);
+-----
+  423:       const item = result.profile || result;
+  424:       setProfile(item);
+-----
+  430:       Alert.alert('प्रोफ़ाइल लोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+  431:     }
+  432:   }, [authSession]);
+  433: 
+  434:   React.useEffect(() => {
+-----
+  435:     if (authSession) refreshProfile();
+  436:   }, [refreshProfile, authSession]);
+  437: 
+-----
+  438:   const saveProfile = async () => {
+-----
+  641:         ? await registerAccount(username, authPassword, authPhoneNumber, email, fullName)
+  642:         : await loginAccount(username, authPassword);
+  643:       setAuthSession({ token: result.token, username: result.username });
+  644:       setAuthPassword('');
+  645:       Alert.alert('Success', authMode === 'register' ? 'Account created.' : 'Login successful.');
+-----
+  663: 
+  664:   // SOCIALAPP_FORGOT_PASSWORD_SCREEN_V1
+  665:   if (authReady && !authSession && authMode === 'forgot') {
+  666:     const fieldStyle = {
+  667:       borderWidth: 1,
+-----
+  837:   }
+  838: 
+  839:   if (!authSession) {
+  840:     return (
+  841:       <SafeAreaView style={styles.screen}>
+-----
+
+[401 / ERROR HANDLING]
+  124:       setLiked(Boolean(result.liked));
+  125:       setLikeCount(Number(result.likes) || 0);
+  126:     } catch (error) {
+  127:       Alert.alert('Like failed', error.message || 'Could not update like.');
+  128:     } finally {
+-----
+  129:       setInteractionBusy(false);
+-----
+  141:       const result = await loadPostComments(post.id);
+  142:       setComments(result);
+  143:     } catch (error) {
+  144:       Alert.alert('Comments', error.message || 'Could not load comments.');
+  145:     }
+-----
+  146:   };
+-----
+  160:       setComments(previous => [...previous, comment]);
+  161:       setCommentDraft('');
+  162:     } catch (error) {
+  163:       Alert.alert('Comment failed', error.message || 'Could not post comment.');
+  164:     } finally {
+-----
+  165:       setInteractionBusy(false);
+-----
+  305:     getAuthSession()
+  306:       .then(session => { if (mounted) setAuthSession(session); })
+  307:       .catch(error => console.error('Auth session load failed:', error))
+  308:       .finally(() => { if (mounted) setAuthReady(true); });
+  309:     return () => { mounted = false; };
+-----
+  396:       });
+  397:       setPrivacyOpen(true);
+  398:     } catch (e) {
+  399:       Alert.alert('Privacy settings unavailable', e.message || 'Check the server connection.');
+  400:     } finally {
+-----
+  401:       setPrivacyBusy(false);
+-----
+  410:       setPrivacyOpen(false);
+  411:       Alert.alert('Saved', 'Privacy settings have been saved.');
+  412:     } catch (e) {
+  413:       Alert.alert('Save failed', e.message || 'Check the server connection.');
+  414:     } finally {
+-----
+  415:       setPrivacyBusy(false);
+-----
+  427:         bio: item.bio || '',
+  428:       });
+  429:     } catch (e) {
+  430:       Alert.alert('प्रोफ़ाइल लोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+  431:     }
+-----
+  432:   }, [authSession]);
+-----
+  452:       setProfileEditing(false);
+  453:       Alert.alert('सफल', 'प्रोफ़ाइल सेव हो गई।');
+  454:     } catch (e) {
+  455:       Alert.alert('सेव नहीं हुआ', e.message || 'सर्वर कनेक्शन जाँचें।');
+  456:     } finally {
+-----
+  457:       setProfileBusy(false);
+-----
+  478:       await refreshProfile();
+  479:       Alert.alert('सफल', 'प्रोफ़ाइल फ़ोटो अपडेट हो गई।');
+  480:     } catch (e) {
+  481:       Alert.alert('फ़ोटो अपलोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+  482:     } finally {
+-----
+  483:       setProfileBusy(false);
+-----
+  496:             await deleteProfileAvatar('you');
+  497:             await refreshProfile();
+  498:           } catch (e) {
+  499:             Alert.alert('फ़ोटो नहीं हटी', e.message || 'फिर से कोशिश करें।');
+  500:           } finally {
+-----
+  501:             setProfileBusy(false);
+-----
+  513:       Alert.alert(type === 'followers' ? 'Followers' : 'Following',
+  514:         names || 'अभी सूची खाली है।');
+  515:     } catch (e) {
+  516:       Alert.alert('सूची लोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+  517:     }
+-----
+  518:   };
+-----
+  531:       })));
+  532:       setReels(r);
+  533:     } catch (e) {
+  534:       setServerOnline(false);
+  535:       console.error('Server load failed:', e);
+-----
+  567:       }
+  568: 
+  569:     } catch (e) {
+  570:       console.error('Upload failed:', e);
+  571:       Alert.alert('अपलोड विफल', e.message || 'सर्वर कनेक्शन जाँचें।');
+-----
+  572:     } finally {
+  573:       setBusy(false);
+-----
+  644:       setAuthPassword('');
+  645:       Alert.alert('Success', authMode === 'register' ? 'Account created.' : 'Login successful.');
+  646:     } catch (error) {
+  647:       Alert.alert('Authentication failed', error.message || 'Please check the server connection.');
+  648:     } finally {
+-----
+  649:       setAuthBusy(false);
+-----
+  720:           Alert.alert('Password updated', 'Log in with your new password.');
+  721:         }
+  722:       } catch (error) {
+  723:         Alert.alert('Password reset', error.message || 'Could not complete the password reset.');
+  724:       } finally {
+-----
+  725:         setAuthBusy(false);
+-----
+ 1433:                     setConfirmNewPassword('');
+ 1434:                     setPasswordOpen(false);
+ 1435:                     Alert.alert('Success', result.message || 'Password changed successfully.');
+ 1436:                   } catch (e) {
+ 1437:                     Alert.alert('Password change failed', e.message || 'Please try again.');
+-----
+ 1438:                   } finally {
+-----
+ 1439:                     setPasswordBusy(false);
+-----
+
+
+### FILE: api.js
+
+[LOGIN ERROR TEXT]
+  198:   const authSession = await getAuthSession();
+  199:   if (!authSession?.token) {
+  200:     throw new Error('कृपया पहले लॉगिन करें।');
+  201:   }
+  202: 
+-----
+
+[TOKEN / SESSION]
+    1: import * as FileSystem from 'expo-file-system/legacy';
+    2: import * as SecureStore from 'expo-secure-store';
+    3: const API_BASE_URL = 'http://127.0.0.1:5000';
+    4: 
+-----
+    5: const AUTH_TOKEN_KEY = 'socialapp_auth_token';
+    6: const AUTH_USERNAME_KEY = 'socialapp_auth_username';
+    7: 
+-----
+    8: export async function saveAuthSession(token, username) {
+    9:   await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
+   10:   await SecureStore.setItemAsync(AUTH_USERNAME_KEY, username);
+-----
+   11: }
+-----
+   12: 
+-----
+   13: export async function clearAuthSession() {
+   14:   await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+   15:   await SecureStore.deleteItemAsync(AUTH_USERNAME_KEY);
+-----
+   16: }
+-----
+   17: 
+-----
+   18: export async function getAuthSession() {
+   19:   const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+   20:   const username = await SecureStore.getItemAsync(AUTH_USERNAME_KEY);
+-----
+   21:   return token && username ? { token, username } : null;
+-----
+   22: }
+-----
+   37:   const data = await response.json();
+   38:   if (!response.ok) throw new Error(data.error || 'Registration failed.');
+   39:   await saveAuthSession(data.token, data.username);
+   40:   return data;
+   41: }
+-----
+   49:   const data = await response.json();
+   50:   if (!response.ok) throw new Error(data.error || 'लॉगिन नहीं हुआ।');
+   51:   await saveAuthSession(data.token, data.username);
+   52:   return data;
+   53: }
+-----
+   57:     await fetch(`${API_BASE_URL}/api/auth/logout`, { method: 'POST' });
+   58:   } finally {
+   59:     await clearAuthSession();
+   60:   }
+   61: }
+-----
+   65:   const headers = new Headers(init.headers || {});
+   66:   if (!headers.has('Authorization')) {
+   67:     const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+   68:     if (token) headers.set('Authorization', `Bearer ${token}`);
+   69:   }
+-----
+  118:   };
+  119: 
+  120:   const authSession = await getAuthSession();
+  121:   const result = await FileSystem.uploadAsync(
+  122:     `${API_BASE_URL}/api/${type}`,
+-----
+  124:     {
+  125:       httpMethod: 'POST',
+  126:       headers: authSession ? { Authorization: `Bearer ${authSession.token}` } : {},
+  127: 
+  128:       uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+-----
+  132:       parameters: {
+  133:         caption,
+  134:         username: authSession?.username || 'you',
+  135:       },
+  136:     }
+-----
+  196:   }[ext] || 'image/jpeg';
+  197: 
+  198:   const authSession = await getAuthSession();
+  199:   if (!authSession?.token) {
+  200:     throw new Error('कृपया पहले लॉगिन करें।');
+-----
+  201:   }
+-----
+  206:     {
+  207:       httpMethod: 'POST',
+  208:       headers: { Authorization: `Bearer ${authSession.token}` },
+  209:       uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+  210:       fieldName: 'file',
+-----
+
+[AUTH HEADER / REQUEST]
+    1: import * as FileSystem from 'expo-file-system/legacy';
+    2: import * as SecureStore from 'expo-secure-store';
+    3: const API_BASE_URL = 'http://127.0.0.1:5000';
+    4: 
+    5: const AUTH_TOKEN_KEY = 'socialapp_auth_token';
+-----
+   24: 
+   25: export async function registerAccount(username, password, phoneNumber, email, fullName) {
+   26:   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+   27:     method: 'POST',
+   28:     headers: { 'Content-Type': 'application/json' },
+-----
+   29:     body: JSON.stringify({
+   30:       username: username.trim(),
+-----
+   42: 
+   43: export async function loginAccount(username, password) {
+   44:   const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+   45:     method: 'POST',
+   46:     headers: { 'Content-Type': 'application/json' },
+-----
+   47:     body: JSON.stringify({ username: username.trim(), password }),
+   48:   });
+-----
+   55: export async function logoutAccount() {
+   56:   try {
+   57:     await fetch(`${API_BASE_URL}/api/auth/logout`, { method: 'POST' });
+   58:   } finally {
+   59:     await clearAuthSession();
+-----
+   61: }
+   62: 
+   63: const originalFetch = globalThis.fetch.bind(globalThis);
+   64: globalThis.fetch = async (input, init = {}) => {
+   65:   const headers = new Headers(init.headers || {});
+-----
+   66:   if (!headers.has('Authorization')) {
+-----
+   67:     const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+   68:     if (token) headers.set('Authorization', `Bearer ${token}`);
+-----
+   69:   }
+   70:   return originalFetch(input, { ...init, headers });
+-----
+   71: };
+   72: 
+-----
+   73: 
+   74: export async function checkServer() {
+   75:   const response = await fetch(`${API_BASE_URL}/api/health`);
+   76:   if (!response.ok) {
+   77:     throw new Error(`Server status: ${response.status}`);
+-----
+   81: 
+   82: export async function loadContent(type) {
+   83:   const response = await fetch(`${API_BASE_URL}/api/${type}`);
+   84:   if (!response.ok) {
+   85:     throw new Error(`Could not load ${type}`);
+-----
+   91:     ...item,
+   92:     uri: item.mediaUrl
+   93:       ? `${API_BASE_URL}${item.mediaUrl}`
+   94:       : null,
+   95:     likes: '0',
+-----
+  119: 
+  120:   const authSession = await getAuthSession();
+  121:   const result = await FileSystem.uploadAsync(
+  122:     `${API_BASE_URL}/api/${type}`,
+  123:     asset.uri,
+-----
+  124:     {
+-----
+  125:       httpMethod: 'POST',
+  126:       headers: authSession ? { Authorization: `Bearer ${authSession.token}` } : {},
+  127: 
+  128:       uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+-----
+  155:   return {
+  156:     ...item,
+  157:     uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
+  158:     likes: '0',
+  159:   };
+-----
+  163: // SOCIALAPP_PROFILE_CLIENT_API_V1
+  164: export async function loadProfile(username = 'you', viewer = 'you') {
+  165:   const response = await fetch(
+  166:     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}?viewer=${encodeURIComponent(viewer)}`
+  167:   );
+-----
+  168:   const data = await response.json();
+-----
+  169:   if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल लोड नहीं हुई।');
+  170:   if (data.profile?.avatarUrl && !data.profile.avatarUrl.startsWith('http')) {
+  171:     data.profile.avatarUrl = `${API_BASE_URL}${data.profile.avatarUrl}`;
+  172:   }
+  173:   return data;
+-----
+  175: 
+  176: export async function updateProfile(username = 'you', changes = {}) {
+  177:   const response = await fetch(
+  178:     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}`,
+  179:     {
+-----
+  180:       method: 'PATCH',
+-----
+  181:       headers: { 'Content-Type': 'application/json' },
+  182:       body: JSON.stringify(changes),
+  183:     }
+-----
+  201:   }
+  202: 
+  203:   const result = await FileSystem.uploadAsync(
+  204:     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/avatar`,
+  205:     asset.uri,
+-----
+  206:     {
+-----
+  207:       httpMethod: 'POST',
+  208:       headers: { Authorization: `Bearer ${authSession.token}` },
+  209:       uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+  210:       fieldName: 'file',
+-----
+  224: 
+  225: export async function deleteProfileAvatar(username = 'you') {
+  226:   const response = await fetch(
+  227:     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/avatar`,
+  228:     { method: 'DELETE' }
+-----
+  229:   );
+-----
+  234: 
+  235: export async function followProfile(username, viewer = 'you') {
+  236:   const response = await fetch(
+  237:     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow`,
+  238:     {
+-----
+  239:       method: 'POST',
+-----
+  240:       headers: { 'Content-Type': 'application/json' },
+  241:       body: JSON.stringify({ viewer }),
+  242:     }
+-----
+  248: 
+  249: export async function unfollowProfile(username, viewer = 'you') {
+  250:   const response = await fetch(
+  251:     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow?viewer=${encodeURIComponent(viewer)}`,
+  252:     { method: 'DELETE' }
+-----
+  253:   );
+-----
+  261:     throw new Error('अमान्य प्रोफ़ाइल सूची।');
+  262:   }
+  263:   const response = await fetch(
+  264:     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/${type}`
+  265:   );
+-----
+  266:   const data = await response.json();
+-----
+  270: 
+  271: export async function loadPrivacySettings(username = 'you') {
+  272:   const response = await fetch(
+  273:     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`
+  274:   );
+-----
+  275:   const data = await response.json();
+-----
+  281: 
+  282: export async function savePrivacySettings(changes, username = 'you') {
+  283:   const response = await fetch(
+  284:     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`,
+  285:     {
+-----
+  286:       method: 'PATCH',
+-----
+  287:       headers: { 'Content-Type': 'application/json' },
+  288:       body: JSON.stringify(changes),
+  289:     }
+-----
+  298: 
+  299: export async function requestPasswordReset(email) {
+  300:   const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/request`, {
+  301:     method: 'POST',
+  302:     headers: { 'Content-Type': 'application/json' },
+-----
+  303:     body: JSON.stringify({ email: email.trim().toLowerCase() }),
+  304:   });
+-----
+  311: 
+  312: export async function verifyPasswordReset(email, otp) {
+  313:   const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/verify`, {
+  314:     method: 'POST',
+  315:     headers: { 'Content-Type': 'application/json' },
+-----
+  316:     body: JSON.stringify({ email: email.trim().toLowerCase(), otp: otp.trim() }),
+  317:   });
+-----
+  324: 
+  325: export async function resetPasswordWithToken(email, resetToken, newPassword, confirmPassword) {
+  326:   const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/reset`, {
+  327:     method: 'POST',
+  328:     headers: { 'Content-Type': 'application/json' },
+-----
+  329:     body: JSON.stringify({
+  330:       email: email.trim().toLowerCase(),
+-----
+  342: 
+  343: export async function changeAccountPassword(oldPassword, newPassword, confirmPassword) {
+  344:   const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+  345:     method: 'POST',
+  346:     headers: { 'Content-Type': 'application/json' },
+-----
+  347:     body: JSON.stringify({
+  348:       old_password: oldPassword,
+-----
+  360: 
+  361: export async function togglePostLike(postId, username = 'you') {
+  362:   const response = await fetch(
+  363:     `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/like`,
+  364:     {
+-----
+  365:       method: 'POST',
+-----
+  366:       headers: { 'Content-Type': 'application/json' },
+  367:       body: JSON.stringify({ username }),
+  368:     }
+-----
+  376: 
+  377: export async function loadPostComments(postId) {
+  378:   const response = await fetch(
+  379:     `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`
+  380:   );
+-----
+  381:   const data = await response.json();
+-----
+  387: 
+  388: export async function createPostComment(postId, text, username = 'you') {
+  389:   const response = await fetch(
+  390:     `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`,
+  391:     {
+-----
+  392:       method: 'POST',
+-----
+  393:       headers: { 'Content-Type': 'application/json' },
+  394:       body: JSON.stringify({ username, text }),
+  395:     }
+-----
+
+[401 / ERROR HANDLING]
+   36:   });
+   37:   const data = await response.json();
+   38:   if (!response.ok) throw new Error(data.error || 'Registration failed.');
+   39:   await saveAuthSession(data.token, data.username);
+   40:   return data;
+-----
+   48:   });
+   49:   const data = await response.json();
+   50:   if (!response.ok) throw new Error(data.error || 'लॉगिन नहीं हुआ।');
+   51:   await saveAuthSession(data.token, data.username);
+   52:   return data;
+-----
+   74: export async function checkServer() {
+   75:   const response = await fetch(`${API_BASE_URL}/api/health`);
+   76:   if (!response.ok) {
+   77:     throw new Error(`Server status: ${response.status}`);
+   78:   }
+-----
+   79:   return response.json();
+-----
+   82: export async function loadContent(type) {
+   83:   const response = await fetch(`${API_BASE_URL}/api/${type}`);
+   84:   if (!response.ok) {
+   85:     throw new Error(`Could not load ${type}`);
+   86:   }
+-----
+  167:   );
+  168:   const data = await response.json();
+  169:   if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल लोड नहीं हुई।');
+  170:   if (data.profile?.avatarUrl && !data.profile.avatarUrl.startsWith('http')) {
+  171:     data.profile.avatarUrl = `${API_BASE_URL}${data.profile.avatarUrl}`;
+-----
+  184:   );
+  185:   const data = await response.json();
+  186:   if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल सेव नहीं हुई।');
+  187:   return data;
+  188: }
+-----
+  229:   );
+  230:   const data = await response.json();
+  231:   if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल फ़ोटो हट नहीं सकी।');
+  232:   return data;
+  233: }
+-----
+  243:   );
+  244:   const data = await response.json();
+  245:   if (!response.ok) throw new Error(data.error || 'Follow नहीं हो सका।');
+  246:   return data;
+  247: }
+-----
+  253:   );
+  254:   const data = await response.json();
+  255:   if (!response.ok) throw new Error(data.error || 'Unfollow नहीं हो सका।');
+  256:   return data;
+  257: }
+-----
+  265:   );
+  266:   const data = await response.json();
+  267:   if (!response.ok) throw new Error(data.error || 'सूची लोड नहीं हुई।');
+  268:   return data;
+  269: }
+-----
+  274:   );
+  275:   const data = await response.json();
+  276:   if (!response.ok) {
+  277:     throw new Error(data.error || 'Could not load privacy settings.');
+  278:   }
+-----
+  290:   );
+  291:   const data = await response.json();
+  292:   if (!response.ok) {
+  293:     throw new Error(data.error || 'Could not save privacy settings.');
+  294:   }
+-----
+  304:   });
+  305:   const data = await response.json();
+  306:   if (!response.ok) {
+  307:     throw new Error(data.error || 'Could not request a password reset.');
+  308:   }
+-----
+  317:   });
+  318:   const data = await response.json();
+  319:   if (!response.ok) {
+  320:     throw new Error(data.error || 'Could not verify the reset code.');
+  321:   }
+-----
+  335:   });
+  336:   const data = await response.json();
+  337:   if (!response.ok) {
+  338:     throw new Error(data.error || 'Could not reset the password.');
+  339:   }
+-----
+  352:   });
+  353:   const data = await response.json();
+  354:   if (!response.ok) {
+  355:     throw new Error(data.error || 'Could not change password.');
+  356:   }
+-----
+  369:   );
+  370:   const data = await response.json();
+  371:   if (!response.ok) {
+  372:     throw new Error(data.error || 'Could not update post like.');
+  373:   }
+-----
+  380:   );
+  381:   const data = await response.json();
+  382:   if (!response.ok) {
+  383:     throw new Error(data.error || 'Could not load comments.');
+  384:   }
+-----
+  396:   );
+  397:   const data = await response.json();
+  398:   if (!response.ok) {
+  399:     throw new Error(data.error || 'Could not create comment.');
+  400:   }
+-----
+
+
+### FILE: server/app.py
+
+[LOGIN ERROR TEXT]
+  749:     username = _auth_user()
+  750:     if not username:
+  751:         return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+  752: 
+  753:     g.auth_username = username
+-----
+  877:     username = getattr(g, "auth_username", None)
+  878:     if not username:
+  879:         return jsonify({"error": "Please log in again."}), 401
+  880: 
+  881:     data = request.get_json(silent=True) or {}
+-----
+ 1124:         )
+ 1125: 
+ 1126:     return jsonify({"ok": True, "message": "Password reset successfully. Please log in again."}), 200
+ 1127: 
+ 1128: 
+-----
+
+[TOKEN / SESSION]
+  695:         db.execute("""
+  696:             CREATE TABLE IF NOT EXISTS auth_sessions (
+  697:                 token_hash TEXT PRIMARY KEY,
+  698:                 username TEXT NOT NULL,
+  699:                 created_at TEXT NOT NULL,
+-----
+  709:                 last_sent_at TEXT NOT NULL,
+  710:                 attempts INTEGER NOT NULL DEFAULT 0,
+  711:                 reset_token_hash TEXT,
+  712:                 reset_expires_at TEXT
+  713:             )
+-----
+  728:             SELECT s.username FROM auth_sessions s
+  729:             JOIN users u ON u.username=s.username
+  730:             WHERE s.token_hash=? AND s.expires_at>?
+  731:         """, (digest, now)).fetchone()
+  732:     return row["username"] if row else None
+-----
+  812:             )
+  813:             db.execute(
+  814:                 "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+  815:                 (digest, username, now.isoformat(), expires)
+  816:             )
+-----
+  848:         expires = (now + timedelta(days=30)).isoformat()
+  849:         db.execute(
+  850:             "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+  851:             (digest, row["username"], now.isoformat(), expires)
+  852:         )
+-----
+  868:         digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+  869:         with get_db() as db:
+  870:             db.execute("DELETE FROM auth_sessions WHERE token_hash=?", (digest,))
+  871:     return jsonify({"ok": True})
+  872: 
+-----
+  911:         current_digest = hashlib.sha256(token.encode("utf-8")).hexdigest() if token else ""
+  912:         db.execute(
+  913:             "DELETE FROM auth_sessions WHERE username=? AND token_hash!=?",
+  914:             (username, current_digest)
+  915:         )
+-----
+ 1006:         db.execute("""
+ 1007:             INSERT INTO password_reset_otps
+ 1008:                 (email, otp_hash, expires_at, last_sent_at, attempts, reset_token_hash, reset_expires_at)
+ 1009:             VALUES (?, ?, ?, ?, 0, NULL, NULL)
+ 1010:             ON CONFLICT(email) DO UPDATE SET
+-----
+ 1013:                 last_sent_at=excluded.last_sent_at,
+ 1014:                 attempts=0,
+ 1015:                 reset_token_hash=NULL,
+ 1016:                 reset_expires_at=NULL
+ 1017:         """, (email, otp_hash, expires, now_iso))
+-----
+ 1068:         db.execute("""
+ 1069:             UPDATE password_reset_otps
+ 1070:             SET reset_token_hash=?, reset_expires_at=?
+ 1071:             WHERE email=? COLLATE NOCASE
+ 1072:         """, (reset_digest, reset_expires, email))
+-----
+ 1094:     with get_db() as db:
+ 1095:         row = db.execute(
+ 1096:             "SELECT reset_token_hash, reset_expires_at FROM password_reset_otps WHERE email=? COLLATE NOCASE",
+ 1097:             (email,),
+ 1098:         ).fetchone()
+-----
+ 1099:         if not row or not row["reset_token_hash"] or not hmac.compare_digest(
+ 1100:             reset_digest, row["reset_token_hash"]
+ 1101:         ):
+-----
+ 1102:             return jsonify({"error": "The reset session is invalid. Verify the code again."}), 400
+-----
+
+[AUTH HEADER / REQUEST]
+  103: def add_headers(response):
+  104:     response.headers["Access-Control-Allow-Origin"] = "*"
+  105:     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+  106:     response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE, OPTIONS"
+  107:     return response
+-----
+  716: 
+  717: def _auth_user():
+  718:     header = request.headers.get("Authorization", "")
+  719:     if not header.startswith("Bearer "):
+  720:         return None
+-----
+  721:     token = header[7:].strip()
+-----
+  863: @app.post("/api/auth/logout")
+  864: def auth_logout():
+  865:     header = request.headers.get("Authorization", "")
+  866:     token = header[7:].strip() if header.startswith("Bearer ") else ""
+  867:     if token:
+-----
+  868:         digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+-----
+  907:         )
+  908: 
+  909:         header = request.headers.get("Authorization", "")
+  910:         token = header[7:].strip() if header.startswith("Bearer ") else ""
+  911:         current_digest = hashlib.sha256(token.encode("utf-8")).hexdigest() if token else ""
+-----
+  912:         db.execute(
+-----
+  940:         data=json.dumps(payload).encode("utf-8"),
+  941:         headers={
+  942:             "Authorization": f"Bearer {api_key}",
+  943:             "Content-Type": "application/json",
+  944:         },
+-----
+
+[SERVER AUTH CHECK]
+  694: 
+  695:         db.execute("""
+  696:             CREATE TABLE IF NOT EXISTS auth_sessions (
+  697:                 token_hash TEXT PRIMARY KEY,
+  698:                 username TEXT NOT NULL,
+-----
+  715: 
+  716: 
+  717: def _auth_user():
+  718:     header = request.headers.get("Authorization", "")
+  719:     if not header.startswith("Bearer "):
+-----
+  720:         return None
+-----
+  726:     with get_db() as db:
+  727:         row = db.execute("""
+  728:             SELECT s.username FROM auth_sessions s
+  729:             JOIN users u ON u.username=s.username
+  730:             WHERE s.token_hash=? AND s.expires_at>?
+-----
+  732:     return row["username"] if row else None
+  733: 
+  734: @app.before_request
+  735: def enforce_authenticated_mutations():
+  736:     if request.method in ("GET", "HEAD", "OPTIONS"):
+-----
+  737:         return None
+-----
+  812:             )
+  813:             db.execute(
+  814:                 "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+  815:                 (digest, username, now.isoformat(), expires)
+  816:             )
+-----
+  848:         expires = (now + timedelta(days=30)).isoformat()
+  849:         db.execute(
+  850:             "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+  851:             (digest, row["username"], now.isoformat(), expires)
+  852:         )
+-----
+  863: @app.post("/api/auth/logout")
+  864: def auth_logout():
+  865:     header = request.headers.get("Authorization", "")
+  866:     token = header[7:].strip() if header.startswith("Bearer ") else ""
+  867:     if token:
+-----
+  868:         digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+  869:         with get_db() as db:
+  870:             db.execute("DELETE FROM auth_sessions WHERE token_hash=?", (digest,))
+  871:     return jsonify({"ok": True})
+  872: 
+-----
+  907:         )
+  908: 
+  909:         header = request.headers.get("Authorization", "")
+  910:         token = header[7:].strip() if header.startswith("Bearer ") else ""
+  911:         current_digest = hashlib.sha256(token.encode("utf-8")).hexdigest() if token else ""
+-----
+  912:         db.execute(
+  913:             "DELETE FROM auth_sessions WHERE username=? AND token_hash!=?",
+  914:             (username, current_digest)
+  915:         )
+-----
+ 1118:         )
+ 1119:         db.execute(
+ 1120:             "DELETE FROM auth_sessions WHERE username=?", (user["username"],)
+ 1121:         )
+ 1122:         db.execute(
+-----
+
+[401 / ERROR HANDLING]
+  749:     username = _auth_user()
+  750:     if not username:
+  751:         return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+  752: 
+  753:     g.auth_username = username
+-----
+  841:         ).fetchone()
+  842:         if not row or not check_password_hash(row["password_hash"], password):
+  843:             return jsonify({"error": "ईमेल/यूज़रनेम या पासवर्ड गलत है।"}), 401
+  844: 
+  845:         now = datetime.now(timezone.utc)
+-----
+  858:     username = _auth_user()
+  859:     if not username:
+  860:         return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+  861:     return jsonify({"ok": True, "username": username})
+  862: 
+-----
+  877:     username = getattr(g, "auth_username", None)
+  878:     if not username:
+  879:         return jsonify({"error": "Please log in again."}), 401
+  880: 
+  881:     data = request.get_json(silent=True) or {}
+-----
+  900: 
+  901:         if not row or not check_password_hash(row["password_hash"], old_password):
+  902:             return jsonify({"error": "Old password is incorrect."}), 401
+  903: 
+  904:         db.execute(
+-----
+  946:     )
+  947:     with urllib.request.urlopen(req, timeout=15) as response:
+  948:         if response.status < 200 or response.status >= 300:
+  949:             raise RuntimeError("Email provider rejected the request.")
+  950: 
+-----
+
+
+### OTHER AUTH-RELATED SOURCE FILES
+
+FILE: server/app.py
+  696:             CREATE TABLE IF NOT EXISTS auth_sessions (
+  717: def _auth_user():
+  728:             SELECT s.username FROM auth_sessions s
+  749:     username = _auth_user()
+  751:         return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+  814:                 "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+  850:             "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+  858:     username = _auth_user()
+  870:             db.execute("DELETE FROM auth_sessions WHERE token_hash=?", (digest,))
+  913:             "DELETE FROM auth_sessions WHERE username=? AND token_hash!=?",
+  942:             "Authorization": f"Bearer {api_key}",
+ 1120:             "DELETE FROM auth_sessions WHERE username=?", (user["username"],)
+
+FILE: dist/_expo/static/js/android/index-87f0c20b94d2d68cad8fc01cabedc2e8.js
+  644: __d(function(g,r,i,a,m,_e,_d){"use strict";function e(e){if(e&&e.__esModule)return e;var t={};return e&&Object.keys(e).forEach(function(o){var n=Object.getOwnPropertyDescriptor(e,o);Object.defineProperty(t,o,n.get?n:{enumerable:!0,get:funct

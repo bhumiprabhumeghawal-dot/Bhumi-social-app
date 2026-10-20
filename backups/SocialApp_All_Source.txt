@@ -1,0 +1,3178 @@
+
+======================================================================
+FILE: App.js
+======================================================================
+
+import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import { Alert } from 'react-native';
+import { VideoView, useVideoPlayer } from 'expo-video';
+import {
+  loadContent, uploadContent, checkServer,
+  loadProfile, updateProfile, uploadProfileAvatar,
+  deleteProfileAvatar, loadProfileConnections,
+  loadPrivacySettings, savePrivacySettings, changeAccountPassword,
+  togglePostLike, loadPostComments, createPostComment,
+  registerAccount, loginAccount, getAuthSession, clearAuthSession,
+  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession} from './api';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  Image,
+  TouchableOpacity,
+  Switch,
+  Modal,
+} from 'react-native';
+
+
+const stories = [
+  { name: 'Your story', color: '#DDE7F5', own: true },
+  { name: 'alex', color: '#F3C6B8' },
+  { name: 'sophia', color: '#D7C4F1' },
+  { name: 'mike', color: '#B8DCCB' },
+  { name: 'emma', color: '#F1D69B' },
+  { name: 'noah', color: '#B9D8EF' },
+];
+
+const posts = [
+  {
+    user: 'alex.morgan',
+    location: 'San Francisco, CA',
+    color: '#D8E7DF',
+    emoji: '🌿',
+    caption: 'Finding beauty in the little things.',
+    likes: '1,284',
+  },
+  {
+    user: 'sophia.lee',
+    location: 'At the coast',
+    color: '#D5E5F4',
+    emoji: '🌊',
+    caption: 'A little escape from the everyday.',
+    likes: '856',
+  },
+];
+
+
+function Story({ item, onPress }) {
+  return (
+    <TouchableOpacity style={styles.story} activeOpacity={0.8} onPress={onPress}>
+      <View style={[styles.storyRing, item.own && styles.ownRing]}>
+        <View style={[styles.storyAvatar, { backgroundColor: item.color || '#DDE7F5' }]}>
+          {item.uri ? (
+            <Image source={{ uri: item.uri }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+          ) : item.own ? (
+            <Text style={styles.plus}>＋</Text>
+          ) : (
+            <Text style={styles.avatarLetter}>{(item.name || 'U').charAt(0).toUpperCase()}</Text>
+          )}
+        </View>
+      </View>
+      <Text style={styles.storyName} numberOfLines={1}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function ReelVideo({ uri }) {
+  const player = useVideoPlayer(uri, p => { p.loop = true; });
+  return <VideoView player={player} style={{ width: '100%', height: 420, backgroundColor: '#000' }} />;
+}
+
+function formatPostTime(createdAt) {
+  if (!createdAt) return '';
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return 'Just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+  if (seconds < 172800) return 'Yesterday';
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+  return `${date.toLocaleDateString()} · ${date.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  })}`;
+}
+
+function PostCard({ post, onOpen = () => {} }) {
+  const [liked, setLiked] = React.useState(false);
+  const [likeCount, setLikeCount] = React.useState(
+    Number(String(post.likes || '0').replace(/,/g, '')) || 0
+  );
+  const [saved, setSaved] = React.useState(false);
+  const [commentsOpen, setCommentsOpen] = React.useState(false);
+  const [comments, setComments] = React.useState([]);
+  const [commentDraft, setCommentDraft] = React.useState('');
+  const [interactionBusy, setInteractionBusy] = React.useState(false);
+
+  const handleLike = async () => {
+    if (interactionBusy) return;
+
+    if (!post.id) {
+      setLiked(previous => {
+        setLikeCount(count => Math.max(0, count + (previous ? -1 : 1)));
+        return !previous;
+      });
+      return;
+    }
+
+    setInteractionBusy(true);
+    try {
+      const result = await togglePostLike(post.id);
+      setLiked(Boolean(result.liked));
+      setLikeCount(Number(result.likes) || 0);
+    } catch (error) {
+      Alert.alert('Like failed', error.message || 'Could not update like.');
+    } finally {
+      setInteractionBusy(false);
+    }
+  };
+
+  const openComments = async () => {
+    setCommentsOpen(true);
+    if (!post.id) {
+      setComments([]);
+      return;
+    }
+
+    try {
+      const result = await loadPostComments(post.id);
+      setComments(result);
+    } catch (error) {
+      Alert.alert('Comments', error.message || 'Could not load comments.');
+    }
+  };
+
+  const submitComment = async () => {
+    const text = commentDraft.trim();
+    if (!text || interactionBusy) return;
+
+    if (!post.id) {
+      Alert.alert('Comments', 'Save this post to the server before commenting.');
+      return;
+    }
+
+    setInteractionBusy(true);
+    try {
+      const comment = await createPostComment(post.id, text);
+      setComments(previous => [...previous, comment]);
+      setCommentDraft('');
+    } catch (error) {
+      Alert.alert('Comment failed', error.message || 'Could not post comment.');
+    } finally {
+      setInteractionBusy(false);
+    }
+  };
+
+  return (
+    <View style={styles.post}>
+      <View style={styles.postHeader}>
+        <View style={styles.smallAvatar}>
+          {post.avatarUrl ? (
+            <Image source={{ uri: post.avatarUrl }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+          ) : (
+            <Text style={styles.smallAvatarText}>{(post.user || 'U').charAt(0).toUpperCase()}</Text>
+          )}
+        </View>
+        <View style={styles.postUserInfo}>
+          <Text style={styles.username}>{post.user || 'you'}</Text>
+          {!!post.location && <Text style={styles.location}>{post.location}</Text>}
+        </View>
+        <TouchableOpacity><Text style={styles.more}>•••</Text></TouchableOpacity>
+      </View>
+
+      <TouchableOpacity activeOpacity={0.95} onPress={onOpen}>
+        {post.uri && post.mediaType === 'video' ? (
+          <ReelVideo uri={post.uri} />
+        ) : post.uri ? (
+          <Image source={{ uri: post.uri }} style={styles.postImage} resizeMode="cover" />
+        ) : (
+          <View style={[styles.postImage, { backgroundColor: post.color || '#D8E7DF' }]}>
+            <Text style={styles.postEmoji}>{post.emoji || '🌿'}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      <View style={styles.actions}>
+        <TouchableOpacity onPress={handleLike} disabled={interactionBusy}>
+          <Text style={[styles.actionIcon, liked && styles.liked]}>{liked ? '♥' : '♡'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={openComments}>
+          <Text style={styles.actionIcon}>▢</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => Alert.alert('Share', 'Sharing will be added next.')}>
+          <Text style={styles.actionIcon}>➤</Text>
+        </TouchableOpacity>
+        <View style={styles.actionSpacer} />
+        <TouchableOpacity onPress={() => setSaved(!saved)}>
+          <Text style={styles.actionIcon}>{saved ? '▣' : '♧'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.likes}>{likeCount.toLocaleString()} likes</Text>
+      {!!post.caption && (
+        <Text style={styles.caption}>
+          <Text style={styles.username}>{post.user || 'you'} </Text>{post.caption}
+        </Text>
+      )}
+      <TouchableOpacity onPress={openComments}>
+        <Text style={styles.comments}>View all comments</Text>
+      </TouchableOpacity>
+      {!!post.createdAt && <Text style={styles.time}>{formatPostTime(post.createdAt)}</Text>}
+
+      <Modal
+        visible={commentsOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setCommentsOpen(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' }}>
+          <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 18, maxHeight: '75%' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: '#222222' }}>Comments</Text>
+              <TouchableOpacity onPress={() => setCommentsOpen(false)}>
+                <Text style={{ fontSize: 22, color: '#222222' }}>×</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ flexGrow: 0, maxHeight: 360 }}>
+              {comments.length === 0 ? (
+                <Text style={{ color: '#777777', paddingVertical: 12 }}>No comments yet.</Text>
+              ) : comments.map(comment => (
+                <View key={String(comment.id)} style={{ paddingVertical: 8 }}>
+                  <Text style={{ color: '#222222' }}>
+                    <Text style={{ fontWeight: '600' }}>{comment.username || 'you'} </Text>
+                    {comment.text}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
+              <TextInput
+                value={commentDraft}
+                onChangeText={setCommentDraft}
+                placeholder="Write a comment..."
+                maxLength={2000}
+                editable={!interactionBusy}
+                style={{ flex: 1, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9, color: '#222222' }}
+              />
+              <TouchableOpacity onPress={submitComment} disabled={interactionBusy || !commentDraft.trim()} style={{ padding: 10 }}>
+                <Text style={{ color: '#0095F6', fontWeight: '600' }}>Post</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+export default function App() {
+  const [activeTab, setActiveTab] = React.useState('Home');
+  const [feedPosts, setFeedPosts] = React.useState(posts);
+  const [serverStories, setServerStories] = React.useState([]);
+  const [selectedStory, setSelectedStory] = React.useState(null);
+  const [storyQueue, setStoryQueue] = React.useState([]);
+  const [storyIndex, setStoryIndex] = React.useState(0);
+  const [selectedPost, setSelectedPost] = React.useState(null);
+  const [reels, setReels] = React.useState([]);
+  const [serverOnline, setServerOnline] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+
+  // SOCIALAPP_AUTH_SCREEN_V1
+  const [authReady, setAuthReady] = React.useState(false);
+  const [authSession, setAuthSession] = React.useState(null);
+  const [authMode, setAuthMode] = React.useState('login');
+  const [authUsername, setAuthUsername] = React.useState('');
+  const [authFullName, setAuthFullName] = React.useState('');
+  const [authEmail, setAuthEmail] = React.useState('');
+  const [authPassword, setAuthPassword] = React.useState('');
+  const [authPhoneNumber, setAuthPhoneNumber] = React.useState('');
+  const [authConfirmPassword, setAuthConfirmPassword] = React.useState('');
+  const [authBusy, setAuthBusy] = React.useState(false);
+  const [forgotStep, setForgotStep] = React.useState('email');
+  const [forgotEmail, setForgotEmail] = React.useState('');
+  const [forgotOtp, setForgotOtp] = React.useState('');
+  const [forgotResetToken, setForgotResetToken] = React.useState('');
+  const [forgotNewPassword, setForgotNewPassword] = React.useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = React.useState('');
+
+
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const session = await getAuthSession();
+        if (!mounted) return;
+
+        if (session?.token) {
+          const result = await verifyAuthSession();
+          console.log('Auth session verification:', JSON.stringify(result));
+          if (!mounted) return;
+
+          if (result.valid) {
+            setAuthSession({
+              token: session.token,
+              username: result.username || session.username,
+            });
+          } else {
+            await clearAuthSession();
+            if (mounted) setAuthSession(null);
+          }
+        } else {
+          setAuthSession(null);
+        }
+      } catch (error) {
+        console.error('Auth session verification failed:', error?.message || error);
+        await clearAuthSession();
+        if (mounted) setAuthSession(null);
+      } finally {
+        if (mounted) setAuthReady(true);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // SOCIALAPP_PROFILE_SCREEN_V1
+  const [profile, setProfile] = React.useState(null);
+  const [profileEditing, setProfileEditing] = React.useState(false);
+  const [profileDraft, setProfileDraft] = React.useState({ displayName: '', bio: '' });
+  const [profileBusy, setProfileBusy] = React.useState(false);
+
+  const groupedStories = React.useMemo(() => {
+    const groups = new Map();
+    const currentUsername = String(
+      profile?.username || profile?.user?.username || ''
+    ).trim().toLowerCase();
+
+    serverStories.forEach((item, index) => {
+      const username = String(item.user || item.name || `story${index + 1}`).trim();
+      const normalizedUsername = username.toLowerCase();
+      const own = !!item.own ||
+        normalizedUsername === 'you' ||
+        (!!currentUsername && normalizedUsername === currentUsername);
+      const key = own ? '__own__' : normalizedUsername;
+
+      if (!groups.has(key)) {
+        groups.set(key, {
+          key,
+          name: own ? 'Your story' : username,
+          own,
+          items: []
+        });
+      }
+
+      const group = groups.get(key);
+      group.items.push({ ...item, name: group.name, own });
+    });
+
+    return Array.from(groups.values());
+  }, [serverStories, profile]);
+
+  const openStoryGroup = (items) => {
+    if (!items || items.length === 0) return;
+    setStoryQueue(items);
+    setStoryIndex(0);
+    setSelectedStory(items[0]);
+  };
+
+  const moveStory = (direction) => {
+    const nextIndex = storyIndex + direction;
+
+    if (nextIndex < 0) return;
+
+    if (nextIndex >= storyQueue.length) {
+      setSelectedStory(null);
+      setStoryQueue([]);
+      setStoryIndex(0);
+      return;
+    }
+
+    setStoryIndex(nextIndex);
+    setSelectedStory(storyQueue[nextIndex]);
+  };
+
+  // SOCIALAPP_PRIVACY_SCREEN_V1
+  const [privacyOpen, setPrivacyOpen] = React.useState(false);
+  const [privacyBusy, setPrivacyBusy] = React.useState(false);
+  const [privacySettings, setPrivacySettings] = React.useState({
+    isPrivate: false,
+    showActivity: true,
+    allowMessages: true,
+  });
+  const [passwordOpen, setPasswordOpen] = React.useState(false);
+  const [passwordBusy, setPasswordBusy] = React.useState(false);
+  const [oldPassword, setOldPassword] = React.useState('');
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = React.useState('');
+
+
+
+  
+  const openPrivacySettings = async () => {
+    setPrivacyBusy(true);
+    try {
+      const settings = await loadPrivacySettings(authSession.username);
+      setPrivacySettings({
+        isPrivate: settings.isPrivate,
+        showActivity: settings.showActivity,
+        allowMessages: settings.allowMessages,
+      });
+      setPrivacyOpen(true);
+    } catch (e) {
+      Alert.alert('Privacy settings unavailable', e.message || 'Check the server connection.');
+    } finally {
+      setPrivacyBusy(false);
+    }
+  };
+
+  const persistPrivacySettings = async () => {
+    setPrivacyBusy(true);
+    try {
+      const settings = await savePrivacySettings(privacySettings, authSession.username);
+      setPrivacySettings(settings);
+      setPrivacyOpen(false);
+      Alert.alert('Saved', 'Privacy settings have been saved.');
+    } catch (e) {
+      Alert.alert('Save failed', e.message || 'Check the server connection.');
+    } finally {
+      setPrivacyBusy(false);
+    }
+  };
+
+const refreshProfile = React.useCallback(async () => {
+    if (!authSession?.username) return;
+    try {
+      const result = await loadProfile(authSession.username, authSession.username);
+      const item = result.profile || result;
+      setProfile(item);
+      setProfileDraft({
+        displayName: item.displayName || 'you',
+        bio: item.bio || '',
+      });
+    } catch (e) {
+      Alert.alert('प्रोफ़ाइल लोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+    }
+  }, [authSession]);
+
+  React.useEffect(() => {
+    if (authSession) refreshProfile();
+  }, [refreshProfile, authSession]);
+
+  const saveProfile = async () => {
+    if (profileBusy) return;
+    setProfileBusy(true);
+    try {
+      const result = await updateProfile(authSession.username, {
+        displayName: profileDraft.displayName.trim(),
+        bio: profileDraft.bio.trim(),
+      });
+      const item = result.profile || result;
+      setProfile(item);
+      setProfileDraft({
+        displayName: item.displayName || 'you',
+        bio: item.bio || '',
+      });
+      setProfileEditing(false);
+      Alert.alert('सफल', 'प्रोफ़ाइल सेव हो गई।');
+    } catch (e) {
+      Alert.alert('सेव नहीं हुआ', e.message || 'सर्वर कनेक्शन जाँचें।');
+    } finally {
+      setProfileBusy(false);
+    }
+  };
+
+  const chooseProfilePhoto = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('अनुमति चाहिए', 'Gallery की अनुमति दें।');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (result.canceled || !result.assets?.length) return;
+
+      setProfileBusy(true);
+      await uploadProfileAvatar(result.assets[0], authSession.username);
+      await refreshProfile();
+      Alert.alert('सफल', 'प्रोफ़ाइल फ़ोटो अपडेट हो गई।');
+    } catch (e) {
+      Alert.alert('फ़ोटो अपलोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+    } finally {
+      setProfileBusy(false);
+    }
+  };
+
+  const removeProfilePhoto = () => {
+    Alert.alert('फ़ोटो हटाएँ?', 'क्या प्रोफ़ाइल फ़ोटो हटानी है?', [
+      { text: 'रद्द करें', style: 'cancel' },
+      {
+        text: 'हटाएँ',
+        style: 'destructive',
+        onPress: async () => {
+          setProfileBusy(true);
+          try {
+            await deleteProfileAvatar(authSession.username);
+            await refreshProfile();
+          } catch (e) {
+            Alert.alert('फ़ोटो नहीं हटी', e.message || 'फिर से कोशिश करें।');
+          } finally {
+            setProfileBusy(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  const showProfileConnections = async (type) => {
+    try {
+      const result = await loadProfileConnections(authSession.username, type);
+      const items = result.items || result.users || result[type] || [];
+      const names = items.map(x => '@' + (x.username || x.user || x)).join('\n');
+      Alert.alert(type === 'followers' ? 'Followers' : 'Following',
+        names || 'अभी सूची खाली है।');
+    } catch (e) {
+      Alert.alert('सूची लोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+    }
+  };
+
+
+  const refreshContent = React.useCallback(async () => {
+    try {
+      await checkServer();
+      const [p, s, r] = await Promise.all([
+        loadContent('posts'), loadContent('stories'), loadContent('reels')
+      ]);
+      setServerOnline(true);
+      setFeedPosts([...p, ...posts]);
+      setServerStories(s.map((item, i) => ({
+        ...item, name: item.user || `story${i + 1}`, color: '#DDE7F5'
+      })));
+      setReels(r);
+    } catch (e) {
+      setServerOnline(false);
+      console.error('Server load failed:', e);
+    }
+  }, []);
+
+  React.useEffect(() => { refreshContent(); }, [refreshContent]);
+
+  const chooseMedia = async (kind) => {
+    if (busy) return;
+    try {
+      const video = kind === 'reels';
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: video ? ['videos'] : kind === 'stories' ? ['images', 'videos'] : ['images', 'videos'],
+      allowsMultipleSelection: kind === 'posts',
+      selectionLimit: kind === 'posts' ? 10 : 1,
+      allowsEditing: false,
+      quality: 1,
+      ...(kind === 'reels' ? { videoMaxDuration: 1200 } : kind === 'stories' ? { videoMaxDuration: 1200 } : kind === 'posts' ? { videoMaxDuration: 7200 } : {}),
+    });
+      if (result.canceled || !result.assets?.length) return;
+
+      setBusy(true);
+      const uploadedItems = [];
+    for (const asset of result.assets) {
+      uploadedItems.push(await uploadContent(kind, asset));
+    }
+    const item = uploadedItems[0];
+
+      if (kind === 'posts') {
+        setFeedPosts(current => [item, ...current]);
+        setActiveTab('Home');
+      } else if (kind === 'stories') {
+        setServerStories(current => [{
+          ...item, name: item.user || 'you', own: true, color: '#DDE7F5'
+        }, ...current]);
+        setActiveTab('Home');
+      } else {
+        setReels(current => [item, ...current]);
+        setActiveTab('Reels');
+      }
+
+    } catch (e) {
+      console.error('Upload failed:', e);
+      Alert.alert('अपलोड विफल', e.message || 'सर्वर कनेक्शन जाँचें।');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const pickImage = () => chooseMedia('posts');
+  const createStory = () => chooseMedia('stories');
+  const createReel = () => chooseMedia('reels');
+
+  const handleTab = (name) => {
+    if (name === 'Create') {
+      Alert.alert('Create', 'क्या अपलोड करना है?', [
+        { text: 'पोस्ट', onPress: pickImage },
+        { text: 'स्टोरी', onPress: createStory },
+        { text: 'रील', onPress: createReel },
+        { text: 'रद्द करें', style: 'cancel' },
+      ]);
+    } else {
+      setActiveTab(name);
+      if (name === 'Home') refreshContent();
+      if (name === 'Reels' && reels.length === 0) {
+        Alert.alert('Reels', 'अभी कोई रील नहीं है।', [
+          { text: 'रील अपलोड करें', onPress: createReel },
+          { text: 'ठीक है', style: 'cancel' },
+        ]);
+      }
+    }
+  };
+
+
+  const submitAuth = async () => {
+    if (authBusy) return;
+    const username = authUsername.trim();
+    console.log('Registration username check:', JSON.stringify({length: username.length, value: username, valid: /^[a-zA-Z0-9_.]{3,30}$/.test(username)}));
+    const fullName = authFullName.trim();
+    const email = authEmail.trim().toLowerCase();
+    if (!username || !authPassword) {
+      Alert.alert('Required', 'Enter your username and password.');
+      return;
+    }
+    if (authMode === 'register') {
+      if (!fullName || !email) {
+        Alert.alert('Required', 'Enter your full name and email address.');
+        return;
+      }
+      if (!/^[a-zA-Z0-9_.]{3,30}$/.test(username)) {
+        Alert.alert('Invalid username', 'Use 3 to 30 letters, numbers, dots, or underscores.');
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        Alert.alert('Invalid email', 'Enter a valid email address.');
+        return;
+      }
+      const phoneDigits = authPhoneNumber.replace(/\D/g, '');
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+        Alert.alert('Invalid mobile number', 'Enter a valid mobile number.');
+        return;
+      }
+      if (authPassword.length < 4 || authPassword.length > 24) {
+        Alert.alert('Invalid password', 'Password must be 4 to 24 characters.');
+        return;
+      }
+      if (authPassword !== authConfirmPassword) {
+        Alert.alert('Password mismatch', 'Password and confirm password do not match.');
+        return;
+      }
+    }
+    setAuthBusy(true);
+    try {
+      const result = authMode === 'register'
+        ? await registerAccount(username, authPassword, authPhoneNumber, email, fullName)
+        : await loginAccount(username, authPassword);
+      setAuthSession({ token: result.token, username: result.username });
+      setAuthPassword('');
+      Alert.alert('Success', authMode === 'register' ? 'Account created.' : 'Login successful.');
+    } catch (error) {
+      Alert.alert('Authentication failed', error.message || 'Please check the server connection.');
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  if (!authReady) {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <StatusBar style="dark" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#555555' }}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // SOCIALAPP_FORGOT_PASSWORD_SCREEN_V1
+  if (authReady && !authSession && authMode === 'forgot') {
+    const fieldStyle = {
+      borderWidth: 1,
+      borderColor: '#DDDDDD',
+      borderRadius: 8,
+      padding: 13,
+      marginBottom: 12,
+      color: '#222222',
+    };
+
+    const forgotAction = async (action) => {
+      if (authBusy) return;
+
+      if (action === 'request' && !forgotEmail.trim().includes('@')) {
+        Alert.alert('Email required', 'Enter your registered email address.');
+        return;
+      }
+
+      if (action === 'reset') {
+        if (forgotNewPassword.length < 4 || forgotNewPassword.length > 24) {
+          Alert.alert('Invalid password', 'Password must be 4 to 24 characters.');
+          return;
+        }
+        if (forgotNewPassword !== forgotConfirmPassword) {
+          Alert.alert('Password mismatch', 'The passwords do not match.');
+          return;
+        }
+      }
+
+      setAuthBusy(true);
+      try {
+        if (action === 'request') {
+          await requestPasswordReset(forgotEmail);
+          setForgotStep('otp');
+          Alert.alert('Check your email', 'If the account exists, a reset code has been sent.');
+        } else if (action === 'verify') {
+          const result = await verifyPasswordReset(forgotEmail, forgotOtp);
+          const token = result.reset_token || result.resetToken;
+          if (!token) throw new Error('The server did not return a reset token.');
+          setForgotResetToken(token);
+          setForgotStep('reset');
+        } else if (action === 'reset') {
+          await resetPasswordWithToken(
+            forgotEmail,
+            forgotResetToken,
+            forgotNewPassword,
+            forgotConfirmPassword
+          );
+          setForgotStep('email');
+          setForgotOtp('');
+          setForgotResetToken('');
+          setForgotNewPassword('');
+          setForgotConfirmPassword('');
+          setAuthPassword('');
+          setAuthMode('login');
+          Alert.alert('Password updated', 'Log in with your new password.');
+        }
+      } catch (error) {
+        Alert.alert('Password reset', error.message || 'Could not complete the password reset.');
+      } finally {
+        setAuthBusy(false);
+      }
+    };
+
+    return (
+      <SafeAreaView style={styles.screen}>
+        <StatusBar style="dark" />
+        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
+          <Text style={{ fontSize: 30, fontWeight: '800', color: '#171717', marginBottom: 8 }}>SocialApp</Text>
+          <Text style={{ color: '#777777', marginBottom: 22 }}>Forgot password</Text>
+
+          <View style={{ flexDirection: 'row', marginBottom: 18 }}>
+            <View style={{ flex: 1, backgroundColor: '#0095F6', borderRadius: 8, padding: 12, alignItems: 'center', marginRight: 8 }}>
+              <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Email</Text>
+            </View>
+            <View style={{ flex: 1, backgroundColor: '#EEEEEE', borderRadius: 8, padding: 12, alignItems: 'center' }}>
+              <Text style={{ color: '#888888', fontWeight: '600' }}>Mobile (SMS unavailable)</Text>
+            </View>
+          </View>
+
+          {forgotStep === 'email' && (
+            <>
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Registered email</Text>
+              <TextInput
+                value={forgotEmail}
+                onChangeText={setForgotEmail}
+                placeholder="Email address"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!authBusy}
+                style={fieldStyle}
+              />
+              <TouchableOpacity
+                onPress={() => forgotAction('request')}
+                disabled={authBusy}
+                style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center' }}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{authBusy ? 'Please wait...' : 'Send email code'}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {forgotStep === 'otp' && (
+            <>
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Email verification code</Text>
+              <TextInput
+                value={forgotOtp}
+                onChangeText={setForgotOtp}
+                placeholder="Enter OTP"
+                keyboardType="number-pad"
+                editable={!authBusy}
+                style={fieldStyle}
+              />
+              <TouchableOpacity
+                onPress={() => forgotAction('verify')}
+                disabled={authBusy}
+                style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center', marginBottom: 8 }}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{authBusy ? 'Please wait...' : 'Verify code'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => forgotAction('request')}
+                disabled={authBusy}
+                style={{ padding: 12, alignItems: 'center' }}
+              >
+                <Text style={{ color: '#1685D9' }}>Resend code</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {forgotStep === 'reset' && (
+            <>
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>New password (4 to 24 characters)</Text>
+              <TextInput
+                value={forgotNewPassword}
+                onChangeText={setForgotNewPassword}
+                placeholder="New password"
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!authBusy}
+                style={fieldStyle}
+              />
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Confirm new password</Text>
+              <TextInput
+                value={forgotConfirmPassword}
+                onChangeText={setForgotConfirmPassword}
+                placeholder="Confirm new password"
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!authBusy}
+                style={fieldStyle}
+              />
+              <TouchableOpacity
+                onPress={() => forgotAction('reset')}
+                disabled={authBusy}
+                style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center' }}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{authBusy ? 'Please wait...' : 'Set new password'}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          <TouchableOpacity
+            onPress={() => { setAuthMode('login'); setForgotStep('email'); }}
+            disabled={authBusy}
+            style={{ padding: 16, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#1685D9' }}>Back to login</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!authSession) {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <StatusBar style="dark" />
+        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
+          <Text style={{ fontSize: 30, fontWeight: '800', color: '#171717', marginBottom: 8 }}>SocialApp</Text>
+          <Text style={{ color: '#777777', marginBottom: 26 }}>
+            {authMode === 'register' ? 'Create your account' : 'Sign in to your account'}
+          </Text>
+          {authMode === 'register' ? (
+            <>
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Full Name</Text>
+              <TextInput
+                value={authFullName}
+                onChangeText={setAuthFullName}
+                placeholder="Full Name"
+                autoCapitalize="words"
+                editable={!authBusy}
+                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+              />
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Username</Text>
+              <TextInput
+                value={authUsername}
+                onChangeText={setAuthUsername}
+                placeholder="Choose a username"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!authBusy}
+                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+              />
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Email address</Text>
+              <TextInput
+                value={authEmail}
+                onChangeText={setAuthEmail}
+                placeholder="Email address"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!authBusy}
+                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+              />
+            </>
+          ) : (
+            <>
+              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Email or username</Text>
+              <TextInput
+                value={authUsername}
+                onChangeText={setAuthUsername}
+                placeholder="Email or username"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!authBusy}
+                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+              />
+            </>
+          )}
+          {authMode === 'register' && (
+            <>
+            <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Mobile number</Text>
+            <TextInput
+              value={authPhoneNumber}
+              onChangeText={setAuthPhoneNumber}
+              placeholder="Mobile number"
+              keyboardType="phone-pad"
+              editable={!authBusy}
+              style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+            />
+            </>
+          )}
+          <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Password (4 to 24 characters)</Text>
+          <TextInput
+            value={authPassword}
+            onChangeText={setAuthPassword}
+            placeholder="Password (4 to 24 characters)"
+            secureTextEntry
+            autoCapitalize="none"
+            editable={!authBusy}
+            onSubmitEditing={submitAuth}
+            style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 16, color: '#222222' }}
+          />
+          {authMode === 'register' && (
+            <>
+            <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Confirm password</Text>
+            <TextInput
+              value={authConfirmPassword}
+              onChangeText={setAuthConfirmPassword}
+              placeholder="Confirm password"
+              secureTextEntry
+              autoCapitalize="none"
+              editable={!authBusy}
+              style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 16, color: '#222222' }}
+            />
+            </>
+          )}
+          <TouchableOpacity
+            onPress={submitAuth}
+            disabled={authBusy}
+            style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>
+              {authBusy ? 'Please wait...' : authMode === 'register' ? 'Create account' : 'Log in'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+            disabled={authBusy}
+            style={{ padding: 16, alignItems: 'center' }}
+          >
+            {authMode === 'login' && (
+              <TouchableOpacity
+                onPress={() => {
+                  setForgotEmail(authEmail);
+                  setForgotStep('email');
+                  setAuthMode('forgot');
+                }}
+                disabled={authBusy}
+                style={{ padding: 8, alignItems: 'center' }}
+              >
+                <Text style={{ color: '#1685D9' }}>Forgot password?</Text>
+              </TouchableOpacity>
+            )}
+            <Text style={{ color: '#1685D9' }}>
+              {authMode === 'login' ? 'Create a new account' : 'Already have an account? Log in'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.screen}>
+      <StatusBar style="dark" />
+      <View style={styles.header}>
+        <Text style={styles.brand}>SocialApp</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity onPress={pickImage}><Text style={styles.headerIcon}>＋</Text></TouchableOpacity>
+          <TouchableOpacity><Text style={styles.headerIcon}>♡</Text></TouchableOpacity>
+          <TouchableOpacity><Text style={styles.headerIcon}>➤</Text></TouchableOpacity>
+        </View>
+      </View>
+
+      {!serverOnline && (
+        <Text style={{ paddingHorizontal: 12, paddingVertical: 4, color: '#888', fontSize: 11 }}>
+          सर्वर से कनेक्शन नहीं है
+        </Text>
+      )}
+      {busy && <Text style={{ padding: 5, color: '#1685D9' }}>मीडिया अपलोड हो रहा है…</Text>}
+
+      {activeTab === 'Reels' ? (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {reels.length ? reels.map((r, i) => (
+            <View key={r.id || r.uri || i} style={styles.post}>
+              {r.uri ? <ReelVideo uri={r.uri} /> : null}
+              {!!r.caption && <Text style={styles.caption}>{r.caption}</Text>}
+              <Text style={styles.location}>@{r.user || 'you'}</Text>
+            </View>
+          )) : (
+            <View style={{ padding: 24, alignItems: 'center' }}>
+              <Text style={{ color: '#555' }}>अभी कोई रील नहीं है।</Text>
+              <TouchableOpacity onPress={createReel} style={{ padding: 14 }}>
+                <Text style={{ color: '#1685D9', fontWeight: '700' }}>＋ रील अपलोड करें</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </ScrollView>
+      ) : activeTab === 'Home' ? (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stories}>
+            {(() => {
+              const ownGroup = groupedStories.find(group => group.own);
+              return (
+                <Story
+                  item={{
+                    name: 'Your story',
+                    color: '#DDE7F5',
+                    own: true,
+                    uri: profile?.avatarUrl
+                  }}
+                  onPress={() => {
+                    if (ownGroup) openStoryGroup(ownGroup.items);
+                    else createStory();
+                  }}
+                />
+              );
+            })()}
+            {groupedStories.filter(group => !group.own).map(group => (
+              <Story
+                key={group.key}
+                item={{ ...group.items[0], name: group.name, own: false }}
+                onPress={() => openStoryGroup(group.items)}
+              />
+            ))}
+            {stories.filter(s => !s.own).map(s => (
+              <Story key={s.name} item={s} onPress={() => openStoryGroup([s])} />
+            ))}
+          </ScrollView>
+          <View style={styles.feedDivider} />
+          {feedPosts.map((p, i) => <PostCard key={p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} onOpen={() => setSelectedPost(p)} />)}
+        </ScrollView>
+      ) : activeTab === 'Profile' ? (
+        <ScrollView style={styles.content} contentContainerStyle={{ padding: 20, paddingBottom: 36 }}>
+          {!profile ? (
+            <Text style={{ color: '#777', textAlign: 'center', padding: 24 }}>
+              प्रोफ़ाइल लोड हो रही है…
+            </Text>
+          ) : (
+            <View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 22 }}>
+                <TouchableOpacity onPress={chooseProfilePhoto} disabled={profileBusy}>
+                  {profile.avatarUrl ? (
+                    <Image source={{ uri: profile.avatarUrl }}
+                      onError={(e) => console.log('PROFILE_AVATAR_IMAGE_ERROR:', profile.avatarUrl, e.nativeEvent?.error)}
+                      onLoad={() => console.log('PROFILE_AVATAR_IMAGE_LOADED:', profile.avatarUrl)}
+                      style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: '#DDE7F5' }} />
+                  ) : (
+                    <View style={{ width: 88, height: 88, borderRadius: 44,
+                      backgroundColor: '#DDE7F5', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ color: '#4F83CC', fontSize: 32, fontWeight: '700' }}>
+                        {(profile.displayName || 'Y').charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={{ color: '#1685D9', fontSize: 12, textAlign: 'center', marginTop: 5 }}>
+                    फ़ोटो बदलें
+                  </Text>
+                </TouchableOpacity>
+
+                <View style={{ flex: 1, marginLeft: 22 }}>
+                  <Text style={{ color: '#222', fontSize: 18, fontWeight: '700' }}>
+                    {profile.displayName || 'you'}
+                  </Text>
+                  <Text style={{ color: '#777', marginTop: 3 }}>@{profile.username || 'you'}</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 15 }}>
+                    <View style={{ alignItems: 'center' }}>
+                      <Text style={{ color: '#222', fontWeight: '700' }}>{profile.postsCount ?? 0}</Text>
+                      <Text style={{ color: '#777', fontSize: 12 }}>Posts</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => showProfileConnections('followers')} style={{ alignItems: 'center' }}>
+                      <Text style={{ color: '#222', fontWeight: '700' }}>{profile.followersCount ?? 0}</Text>
+                      <Text style={{ color: '#777', fontSize: 12 }}>Followers</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => showProfileConnections('following')} style={{ alignItems: 'center' }}>
+                      <Text style={{ color: '#222', fontWeight: '700' }}>{profile.followingCount ?? 0}</Text>
+                      <Text style={{ color: '#777', fontSize: 12 }}>Following</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {!!profile.bio && !profileEditing &&
+                <Text style={{ color: '#444', marginBottom: 16 }}>{profile.bio}</Text>}
+
+              {profileEditing ? (
+                <View>
+                  <Text style={{ color: '#555', marginBottom: 5 }}>Display Name</Text>
+                  <TextInput value={profileDraft.displayName}
+                    onChangeText={v => setProfileDraft(d => ({ ...d, displayName: v }))}
+                    maxLength={60} placeholder="Display Name"
+                    style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
+                      padding: 11, color: '#222', marginBottom: 12 }} />
+                  <Text style={{ color: '#555', marginBottom: 5 }}>Username (स्थायी)</Text>
+                  <Text style={{ color: '#888', paddingVertical: 10 }}>@{profile.username || 'you'}</Text>
+                  <Text style={{ color: '#555', marginBottom: 5 }}>Bio</Text>
+                  <TextInput value={profileDraft.bio}
+                    onChangeText={v => setProfileDraft(d => ({ ...d, bio: v }))}
+                    maxLength={300} multiline placeholder="अपने बारे में लिखें"
+                    style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
+                      padding: 11, minHeight: 80, color: '#222', marginBottom: 12,
+                      textAlignVertical: 'top' }} />
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={saveProfile} disabled={profileBusy}
+                      style={{ backgroundColor: '#1685D9', padding: 12, borderRadius: 8, marginRight: 10 }}>
+                      <Text style={{ color: '#FFF', fontWeight: '700' }}>
+                        {profileBusy ? 'सेव हो रहा है…' : 'Save'}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => {
+                      setProfileDraft({ displayName: profile.displayName || 'you', bio: profile.bio || '' });
+                      setProfileEditing(false);
+                    }} style={{ padding: 12 }}>
+                      <Text style={{ color: '#555' }}>Back</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <TouchableOpacity onPress={() => setProfileEditing(true)}
+                    style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
+                      paddingVertical: 10, paddingHorizontal: 18, marginRight: 8, marginBottom: 8 }}>
+                    <Text style={{ color: '#333', fontWeight: '600' }}>Edit Profile</Text>
+                  </TouchableOpacity>
+                  {!!profile.avatarUrl && (
+                    <TouchableOpacity onPress={removeProfilePhoto} disabled={profileBusy}
+                      style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
+                        paddingVertical: 10, paddingHorizontal: 14, marginBottom: 8 }}>
+                      <Text style={{ color: '#555' }}>फ़ोटो हटाएँ</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+
+              <View style={{ height: 1, backgroundColor: '#E5E5E5', marginTop: 18, marginBottom: 14 }} />
+              {/* SOCIALAPP_PROFILE_SETTINGS_V1 */}
+              <View style={{ marginTop: 20, marginBottom: 16 }}>
+                <Text style={{ color: '#555', fontWeight: '700', marginBottom: 10 }}>
+                  Profile Settings
+                </Text>
+                {[
+                  { title: 'Account Security', subtitle: 'Password and sign-in security' },
+                  { title: 'Privacy', subtitle: 'Control your privacy' },
+                  { title: 'Notifications', subtitle: 'Notification preferences' },
+                  { title: 'Account Settings', subtitle: 'Manage your account' },
+                ].map(item => (
+                  <TouchableOpacity
+                    key={item.title}
+                    onPress={() => {
+                      if (item.title === 'Privacy') {
+                        openPrivacySettings();
+                      } else if (item.title === 'Account Security') {
+                        setPasswordOpen(true);
+                      } else {
+                        Alert.alert(item.title, 'This setting will be added in a later step.');
+                      }
+                    }}
+                    style={{
+                      paddingVertical: 13,
+                      paddingHorizontal: 12,
+                      borderWidth: 1,
+                      borderColor: '#E5E5E5',
+                      borderRadius: 8,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Text style={{ color: '#333', fontWeight: '600', fontSize: 15 }}>
+                      {item.title}
+                    </Text>
+                    <Text style={{ color: '#777', fontSize: 12, marginTop: 4 }}>
+                      {item.subtitle}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={{ color: '#555', fontWeight: '700', marginBottom: 12 }}>आपकी पोस्ट</Text>
+              {feedPosts.filter(p => (p.user || 'you') === 'you').length ? (
+                feedPosts.filter(p => (p.user || 'you') === 'you').map((p, i) =>
+                  <PostCard key={p.id || `my-post-${i}`} post={p} onOpen={() => setSelectedPost(p)} />)
+              ) : (
+                <Text style={{ color: '#888', paddingVertical: 12 }}>अभी आपकी कोई पोस्ट नहीं है।</Text>
+              )}
+            </View>
+          )}
+        </ScrollView>
+      ) : (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: '#555' }}>{activeTab}</Text>
+        </View>
+      )}
+
+      <View style={styles.bottomNav}>
+        {[
+          { name: 'Home', icon: '⌂', color: '#4F83CC' },
+          { name: 'Search', icon: '⌕', color: '#9274CC' },
+          { name: 'Create', icon: '＋', color: '#4A9D83' },
+          { name: 'Reels', icon: '▻', color: '#D879A0' },
+          { name: 'Profile', icon: '○', color: '#C69255' }
+        ].map(tab => (
+          <TouchableOpacity key={tab.name} style={styles.navItem} onPress={() => handleTab(tab.name)}>
+            <Text style={[styles.navIcon, { color: tab.color }, activeTab === tab.name && { fontWeight: '800' }]}>{tab.icon}</Text>
+            <Text style={[styles.navLabel, activeTab === tab.name && styles.activeNavLabel]}>{tab.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Modal
+        visible={!!selectedStory}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedStory(null)}
+      >
+        <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center' }}>
+          <TouchableOpacity
+            onPress={() => setSelectedStory(null)}
+            style={{ position: 'absolute', top: 38, right: 18, zIndex: 2, padding: 12 }}
+          >
+            <Text style={{ color: '#FFFFFF', fontSize: 30 }}>×</Text>
+          </TouchableOpacity>
+          {selectedStory?.uri ? (
+            selectedStory.mediaType === 'video' ? (
+              <ReelVideo uri={selectedStory.uri} />
+            ) : (
+              <Image
+                source={{ uri: selectedStory.uri }}
+                style={{ width: '100%', height: '78%' }}
+                resizeMode="contain"
+              />
+            )
+          ) : (
+            <Text style={{ color: '#FFFFFF', textAlign: 'center', padding: 24 }}>
+              Story media is unavailable.
+            </Text>
+          )}
+          {!!selectedStory?.caption && (
+            <Text style={{ color: '#FFFFFF', textAlign: 'center', padding: 16 }}>
+              {selectedStory.caption}
+            </Text>
+          )}
+          <Text style={{ color: '#BBBBBB', textAlign: 'center', paddingBottom: 24 }}>
+            {selectedStory?.name || selectedStory?.user || 'Story'}
+          </Text>
+          {!!selectedStory?.createdAt && (
+            <Text style={{ color: '#BBBBBB', textAlign: 'center', paddingBottom: 12 }}>
+              {formatPostTime(selectedStory.createdAt)}
+            </Text>
+          )}
+          <TouchableOpacity
+            accessibilityLabel="Previous story"
+            onPress={() => moveStory(-1)}
+            style={{ position: 'absolute', left: 0, top: 75, bottom: 65, width: '35%', zIndex: 1 }}
+            activeOpacity={1}
+          />
+          <TouchableOpacity
+            accessibilityLabel="Next story"
+            onPress={() => moveStory(1)}
+            style={{ position: 'absolute', right: 0, top: 75, bottom: 65, width: '65%', zIndex: 1 }}
+            activeOpacity={1}
+          />
+        </View>
+      </Modal>
+
+
+      <Modal
+        visible={!!selectedPost}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedPost(null)}
+      >
+        <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center' }}>
+          <TouchableOpacity
+            onPress={() => setSelectedPost(null)}
+            style={{ position: 'absolute', top: 38, right: 18, zIndex: 2, padding: 12 }}
+          >
+            <Text style={{ color: '#FFFFFF', fontSize: 30 }}>×</Text>
+          </TouchableOpacity>
+          {selectedPost?.uri && selectedPost.mediaType === 'video' ? (
+            <ReelVideo uri={selectedPost.uri} />
+          ) : selectedPost?.uri ? (
+            <Image
+              source={{ uri: selectedPost.uri }}
+              style={{ width: '100%', height: '72%' }}
+              resizeMode="contain"
+            />
+          ) : (
+            <View style={{ padding: 24, alignItems: 'center' }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 48 }}>
+                {selectedPost?.emoji || '🌿'}
+              </Text>
+            </View>
+          )}
+          {!!selectedPost?.caption && (
+            <Text style={{ color: '#FFFFFF', textAlign: 'center', padding: 16 }}>
+              {selectedPost.caption}
+            </Text>
+          )}
+          <Text style={{ color: '#BBBBBB', textAlign: 'center', paddingBottom: 24 }}>
+            {selectedPost?.user || 'you'}
+          </Text>
+        </View>
+      </Modal>
+
+    
+      {/* SOCIALAPP_PRIVACY_SCREEN_V1 */}
+      <Modal
+        visible={privacyOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPrivacyOpen(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20 }}>
+            <Text style={{ color: '#333333', fontSize: 20, fontWeight: '700', marginBottom: 18 }}>
+              Privacy Settings
+            </Text>
+            {[
+              { key: 'isPrivate', title: 'Private Account', subtitle: 'Set your account as private' },
+              { key: 'showActivity', title: 'Show Activity', subtitle: 'Allow your activity to be visible' },
+              { key: 'allowMessages', title: 'Allow Messages', subtitle: 'Allow other users to message you' },
+            ].map(item => (
+              <View key={item.key} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text style={{ color: '#333333', fontWeight: '600' }}>{item.title}</Text>
+                  <Text style={{ color: '#777777', fontSize: 12, marginTop: 3 }}>{item.subtitle}</Text>
+                </View>
+                <Switch
+                  value={privacySettings[item.key]}
+                  onValueChange={value => setPrivacySettings(current => ({ ...current, [item.key]: value }))}
+                  disabled={privacyBusy}
+                />
+              </View>
+            ))}
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 18 }}>
+              <TouchableOpacity
+                onPress={() => setPrivacyOpen(false)}
+                disabled={privacyBusy}
+                style={{ padding: 12, marginRight: 8 }}
+              >
+                <Text style={{ color: '#555555' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={persistPrivacySettings}
+                disabled={privacyBusy}
+                style={{ padding: 12, backgroundColor: '#E5E5E5', borderRadius: 8 }}
+              >
+                <Text style={{ color: '#333333', fontWeight: '700' }}>
+                  {privacyBusy ? 'Saving...' : 'Save'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+
+      {/* SOCIALAPP_CHANGE_PASSWORD_SCREEN_V1 */}
+      <Modal
+        visible={passwordOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          if (!passwordBusy) setPasswordOpen(false);
+        }}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20 }}>
+            <Text style={{ color: '#333333', fontSize: 20, fontWeight: '700', marginBottom: 18 }}>
+              Change Password
+            </Text>
+
+            {[
+              { label: 'Old Password', value: oldPassword, setter: setOldPassword },
+              { label: 'New Password', value: newPassword, setter: setNewPassword },
+              { label: 'Confirm New Password', value: confirmNewPassword, setter: setConfirmNewPassword },
+            ].map(field => (
+              <TextInput
+                key={field.label}
+                value={field.value}
+                onChangeText={field.setter}
+                placeholder={field.label}
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!passwordBusy}
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5E5E5',
+                  borderRadius: 8,
+                  padding: 12,
+                  marginBottom: 12,
+                  color: '#333333',
+                }}
+              />
+            ))}
+
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+              <TouchableOpacity
+                onPress={() => setPasswordOpen(false)}
+                disabled={passwordBusy}
+                style={{ padding: 12, marginRight: 8 }}
+              >
+                <Text style={{ color: '#555555' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={async () => {
+                  if (!oldPassword || !newPassword || !confirmNewPassword) {
+                    Alert.alert('Missing information', 'Fill in all three password fields.');
+                    return;
+                  }
+                  if (newPassword !== confirmNewPassword) {
+                    Alert.alert('Passwords do not match', 'Enter the same new password twice.');
+                    return;
+                  }
+                  if (newPassword.length < 4 || newPassword.length > 24) {
+                    Alert.alert('Invalid password', 'The new password must be 4 to 24 characters.');
+                    return;
+                  }
+                  setPasswordBusy(true);
+                  try {
+                    const result = await changeAccountPassword(
+                      oldPassword,
+                      newPassword,
+                      confirmNewPassword
+                    );
+                    setOldPassword('');
+                    setNewPassword('');
+                    setConfirmNewPassword('');
+                    setPasswordOpen(false);
+                    Alert.alert('Success', result.message || 'Password changed successfully.');
+                  } catch (e) {
+                    Alert.alert('Password change failed', e.message || 'Please try again.');
+                  } finally {
+                    setPasswordBusy(false);
+                  }
+                }}
+                disabled={passwordBusy}
+                style={{ padding: 12, backgroundColor: '#E5E5E5', borderRadius: 8 }}
+              >
+                <Text style={{ color: '#333333', fontWeight: '700' }}>
+                  {passwordBusy ? 'Saving...' : 'Change Password'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+</SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#FFFFFF' },
+  content: { flex: 1 },
+  header: {
+    height: 56,
+    transform: [{ translateY: 24 }],
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E7E7E7',
+  },
+  brand: { fontSize: 27, fontWeight: '800', color: '#171717', letterSpacing: -1 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 19 },
+  headerIcon: { fontSize: 27, color: '#171717' },
+  stories: { paddingHorizontal: 10, paddingVertical: 13, gap: 14 },
+  story: { width: 68, alignItems: 'center' },
+  storyRing: {
+    width: 62, height: 62, borderRadius: 31, padding: 3,
+    borderWidth: 2, borderColor: '#D62976',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  ownRing: { borderColor: '#D9D9D9' },
+  storyAvatar: {
+    width: 52, height: 52, borderRadius: 26,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  plus: { fontSize: 30, color: '#1685D9' },
+  avatarLetter: { fontSize: 22, fontWeight: '700', color: '#343434' },
+  storyName: { marginTop: 5, fontSize: 11, color: '#252525' },
+  feedDivider: { height: 1, backgroundColor: '#EEEEEE' },
+  post: { marginBottom: 18 },
+  postHeader: {
+    height: 58, paddingHorizontal: 12,
+    flexDirection: 'row', alignItems: 'center',
+  },
+  smallAvatar: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: '#E4EAF4', alignItems: 'center', justifyContent: 'center',
+  },
+  smallAvatarText: { fontSize: 16, fontWeight: '700', color: '#34415A' },
+  postUserInfo: { flex: 1, marginLeft: 10 },
+  username: { fontSize: 13, fontWeight: '700', color: '#171717' },
+  location: { marginTop: 2, fontSize: 11, color: '#555555' },
+  more: { fontSize: 19, fontWeight: '700', color: '#222222', paddingHorizontal: 5 },
+  postImage: { width: '100%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
+  postEmoji: { fontSize: 112 },
+  actions: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 13, paddingTop: 8, gap: 16,
+  },
+  actionIcon: { fontSize: 28, color: '#202020' },
+  liked: { color: '#E1306C' },
+  actionSpacer: { flex: 1 },
+  likes: { marginHorizontal: 13, marginTop: 4, fontSize: 13, fontWeight: '700', color: '#171717' },
+  caption: { marginHorizontal: 13, marginTop: 5, fontSize: 13, color: '#242424', lineHeight: 19 },
+  comments: { marginHorizontal: 13, marginTop: 5, color: '#888888', fontSize: 12 },
+  time: { marginHorizontal: 13, marginTop: 6, fontSize: 9, color: '#888888', letterSpacing: 0.6 },
+  bottomNav: {
+    height: 58,
+    transform: [{ translateY: -28 }],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#DDDDDD', flexDirection: 'row',
+    alignItems: 'center', justifyContent: 'space-around',
+    backgroundColor: '#FFFFFF',
+  },
+  navItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  navIcon: { fontSize: 24, color: '#333333' },
+  activeNavIcon: { color: '#1685D9', fontWeight: '800' },
+  navLabel: { fontSize: 9, color: '#666666', marginTop: 1 },
+  activeNavLabel: { color: '#1685D9', fontWeight: '700' },
+});
+
+
+======================================================================
+FILE: api.js
+======================================================================
+
+import * as FileSystem from 'expo-file-system/legacy';
+import * as SecureStore from 'expo-secure-store';
+const API_BASE_URL = 'http://127.0.0.1:5000';
+
+const AUTH_TOKEN_KEY = 'socialapp_auth_token';
+const AUTH_USERNAME_KEY = 'socialapp_auth_username';
+
+export async function saveAuthSession(token, username) {
+  await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
+  await SecureStore.setItemAsync(AUTH_USERNAME_KEY, username);
+}
+
+export async function clearAuthSession() {
+  await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+  await SecureStore.deleteItemAsync(AUTH_USERNAME_KEY);
+}
+
+export async function getAuthSession() {
+  const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+  const username = await SecureStore.getItemAsync(AUTH_USERNAME_KEY);
+  return token && username ? { token, username } : null;
+}
+
+
+export async function registerAccount(username, password, phoneNumber, email, fullName) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: username.trim(),
+      full_name: fullName.trim(),
+      email: email.trim().toLowerCase(),
+      password,
+      phone_number: phoneNumber.trim(),
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Registration failed.');
+  await saveAuthSession(data.token, data.username);
+  return data;
+}
+
+export async function loginAccount(username, password) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: username.trim(), password }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'लॉगिन नहीं हुआ।');
+  await saveAuthSession(data.token, data.username);
+  return data;
+}
+
+export async function verifyAuthSession() {
+  const session = await getAuthSession();
+  if (!session?.token) {
+    return { valid: false, reason: 'missing_token' };
+  }
+
+  const response = await originalFetch(`${API_BASE_URL}/api/auth/me`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${session.token}` },
+  });
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch (_) {}
+
+  return response.ok
+    ? { valid: true, username: data.username }
+    : { valid: false, status: response.status, reason: data.error || 'Token rejected' };
+}
+
+export async function logoutAccount() {
+  try {
+    await fetch(`${API_BASE_URL}/api/auth/logout`, { method: 'POST' });
+  } finally {
+    await clearAuthSession();
+  }
+}
+
+const originalFetch = globalThis.fetch.bind(globalThis);
+globalThis.fetch = async (input, init = {}) => {
+  const headers = new Headers(init.headers || {});
+  const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  } else {
+    headers.delete('Authorization');
+  }
+  const url = typeof input === 'string' ? input : input.url;
+  const response = await originalFetch(input, { ...init, headers });
+  if (String(url).includes('/api/')) {
+    console.log('[AUTH DEBUG]', response.status, String(init.method || 'GET').toUpperCase(), String(url).split('?')[0], 'tokenSent=' + headers.has('Authorization'));
+  }
+  return response;
+};
+
+
+export async function checkServer() {
+  const response = await fetch(`${API_BASE_URL}/api/health`);
+  if (!response.ok) {
+    throw new Error(`Server status: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function loadContent(type) {
+  const response = await fetch(`${API_BASE_URL}/api/${type}`);
+  if (!response.ok) {
+    throw new Error(`Could not load ${type}`);
+  }
+
+  const data = await response.json();
+
+  return (data.items || []).map(item => ({
+    ...item,
+    uri: item.mediaUrl
+      ? `${API_BASE_URL}${item.mediaUrl}`
+      : null,
+    likes: '0',
+  }));
+}
+
+export async function uploadContent(type, asset, caption = '') {
+  const extension = (
+    asset.fileName || asset.uri || ''
+  ).split('.').pop().split('?')[0].toLowerCase();
+
+  const fallbackExtension = type === 'reels' ? 'mp4' : 'jpg';
+  const fileExtension = /^[a-z0-9]+$/.test(extension)
+    ? extension
+    : fallbackExtension;
+
+  const mimeTypes = {
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    webp: 'image/webp',
+    gif: 'image/gif',
+    mp4: 'video/mp4',
+    mov: 'video/quicktime',
+    webm: 'video/webm',
+  };
+
+  const authSession = await getAuthSession();
+  const result = await FileSystem.uploadAsync(
+    `${API_BASE_URL}/api/${type}`,
+    asset.uri,
+    {
+      httpMethod: 'POST',
+      headers: authSession ? { Authorization: `Bearer ${authSession.token}` } : {},
+
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: 'file',
+      mimeType: mimeTypes[fileExtension] ||
+        (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
+      parameters: {
+        caption,
+        username: authSession?.username || 'you',
+      },
+    }
+  );
+
+  let data;
+  try {
+    data = JSON.parse(result.body);
+  } catch {
+    throw new Error(`सर्वर का जवाब पढ़ा नहीं जा सका (HTTP ${result.status})`);
+  }
+
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(data.error || `Upload failed: ${result.status}`);
+  }
+
+  const item = data.item;
+  if (!item) {
+    throw new Error('सर्वर ने अपलोड की जानकारी नहीं लौटाई।');
+  }
+
+  return {
+    ...item,
+    uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
+    likes: '0',
+  };
+}
+
+
+// SOCIALAPP_PROFILE_CLIENT_API_V1
+export async function loadProfile(username = 'you', viewer = 'you') {
+  const response = await fetch(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}?viewer=${encodeURIComponent(viewer)}`
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल लोड नहीं हुई।');
+  if (data.profile?.avatarUrl && !data.profile.avatarUrl.startsWith('http')) {
+    data.profile.avatarUrl = `${API_BASE_URL}${data.profile.avatarUrl}`;
+  }
+  return data;
+}
+
+export async function updateProfile(username = 'you', changes = {}) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(changes),
+    }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल सेव नहीं हुई।');
+  return data;
+}
+
+export async function uploadProfileAvatar(asset, username = 'you') {
+  const extension = (asset.fileName || asset.uri || '').split('.').pop().split('?')[0].toLowerCase();
+  const ext = /^[a-z0-9]+$/.test(extension) ? extension : 'jpg';
+  const mime = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+    webp: 'image/webp', gif: 'image/gif',
+  }[ext] || 'image/jpeg';
+
+  const authSession = await getAuthSession();
+  if (!authSession?.token) {
+    throw new Error('कृपया पहले लॉगिन करें।');
+  }
+
+  const result = await FileSystem.uploadAsync(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/avatar`,
+    asset.uri,
+    {
+      httpMethod: 'POST',
+      headers: { Authorization: `Bearer ${authSession.token}` },
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: 'file',
+      mimeType: mime,
+    }
+  );
+
+  let data;
+  try { data = JSON.parse(result.body); }
+  catch { throw new Error(`फ़ोटो अपलोड का जवाब पढ़ा नहीं जा सका (HTTP ${result.status})`); }
+
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(data.error || `फ़ोटो अपलोड नहीं हुई (HTTP ${result.status})`);
+  }
+  return data;
+}
+
+export async function deleteProfileAvatar(username = 'you') {
+  const response = await fetch(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/avatar`,
+    { method: 'DELETE' }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल फ़ोटो हट नहीं सकी।');
+  return data;
+}
+
+export async function followProfile(username, viewer = 'you') {
+  const response = await fetch(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ viewer }),
+    }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Follow नहीं हो सका।');
+  return data;
+}
+
+export async function unfollowProfile(username, viewer = 'you') {
+  const response = await fetch(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow?viewer=${encodeURIComponent(viewer)}`,
+    { method: 'DELETE' }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Unfollow नहीं हो सका।');
+  return data;
+}
+
+export async function loadProfileConnections(username, type = 'followers') {
+  if (!['followers', 'following'].includes(type)) {
+    throw new Error('अमान्य प्रोफ़ाइल सूची।');
+  }
+  const response = await fetch(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/${type}`
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'सूची लोड नहीं हुई।');
+  return data;
+}
+
+export async function loadPrivacySettings(username = 'you') {
+  const response = await fetch(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not load privacy settings.');
+  }
+  return data.settings;
+}
+
+export async function savePrivacySettings(changes, username = 'you') {
+  const response = await fetch(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(changes),
+    }
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not save privacy settings.');
+  }
+  return data.settings;
+}
+
+
+export async function requestPasswordReset(email) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim().toLowerCase() }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not request a password reset.');
+  }
+  return data;
+}
+
+export async function verifyPasswordReset(email, otp) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim().toLowerCase(), otp: otp.trim() }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not verify the reset code.');
+  }
+  return data;
+}
+
+export async function resetPasswordWithToken(email, resetToken, newPassword, confirmPassword) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: email.trim().toLowerCase(),
+      reset_token: resetToken,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not reset the password.');
+  }
+  return data;
+}
+
+export async function changeAccountPassword(oldPassword, newPassword, confirmPassword) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      old_password: oldPassword,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not change password.');
+  }
+  return data;
+}
+
+
+export async function togglePostLike(postId, username = 'you') {
+  const response = await fetch(
+    `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/like`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    }
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not update post like.');
+  }
+  return data;
+}
+
+export async function loadPostComments(postId) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not load comments.');
+  }
+  return data.comments || [];
+}
+
+export async function createPostComment(postId, text, username = 'you') {
+  const response = await fetch(
+    `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, text }),
+    }
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not create comment.');
+  }
+  return data.comment;
+}
+
+
+======================================================================
+FILE: package.json
+======================================================================
+
+{
+  "name": "socialapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "expo": "~57.0.30",
+    "expo-file-system": "~57.0.7",
+    "expo-image-picker": "~57.0.20",
+    "expo-secure-store": "~57.0.4",
+    "expo-status-bar": "~57.0.1",
+    "expo-video": "~57.0.5",
+    "react": "19.2.3",
+    "react-native": "0.86.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "private": true
+}
+
+
+======================================================================
+FILE: server/app.py
+======================================================================
+
+import os
+import json
+import urllib.request
+import urllib.error
+import sqlite3
+import uuid
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from dotenv import load_dotenv
+
+from flask import Flask, jsonify, request, send_from_directory
+from werkzeug.utils import secure_filename
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / '.env')
+load_dotenv(BASE_DIR.parent / '.env')
+DATA_DIR = BASE_DIR / "data"
+UPLOAD_DIR = BASE_DIR / "uploads"
+DB_PATH = DATA_DIR / "socialapp.db"
+
+UPLOAD_LIMITS = {
+    "posts": 1024 * 1024 * 1024,
+    "stories": 500 * 1024 * 1024,
+    "reels": 500 * 1024 * 1024,
+}
+MAX_UPLOAD_BYTES = max(UPLOAD_LIMITS.values())
+
+ALLOWED_EXTENSIONS = {
+    "posts": {"jpg", "jpeg", "png", "webp", "gif", "mp4", "mov", "webm"},
+    "stories": {"jpg", "jpeg", "png", "webp", "mp4", "mov", "webm"},
+    "reels": {"mp4", "mov", "webm"},
+}
+
+app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES
+
+
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db():
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    for kind in ALLOWED_EXTENSIONS:
+        (UPLOAD_DIR / kind).mkdir(parents=True, exist_ok=True)
+
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS content (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                kind TEXT NOT NULL,
+                username TEXT NOT NULL DEFAULT 'you',
+                caption TEXT NOT NULL DEFAULT '',
+                media_url TEXT NOT NULL,
+                media_type TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_content_kind_id
+            ON content(kind, id DESC)
+        """)
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS post_likes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content_id INTEGER NOT NULL,
+                username TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(content_id, username)
+            )
+        """)
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS post_comments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content_id INTEGER NOT NULL,
+                username TEXT NOT NULL,
+                text TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_post_comments_content
+            ON post_comments(content_id, id DESC)
+        """)
+
+
+def content_json(row):
+    return {
+        "id": row["id"],
+        "type": row["kind"],
+        "user": row["username"],
+        "caption": row["caption"],
+        "mediaUrl": row["media_url"],
+        "mediaType": row["media_type"],
+        "createdAt": row["created_at"],
+        "expiresAt": row["expires_at"],
+    }
+
+
+@app.after_request
+def add_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE, OPTIONS"
+    return response
+
+
+@app.route("/api/<path:unused>", methods=["OPTIONS"])
+def options_handler(unused):
+    return "", 204
+
+
+@app.get("/api/health")
+def health():
+    return jsonify({
+        "ok": True,
+        "service": "SocialApp Server",
+        "time": datetime.now(timezone.utc).isoformat(),
+    })
+
+
+@app.get("/api/<kind>")
+def list_content(kind):
+    if kind not in ALLOWED_EXTENSIONS:
+        return jsonify({"error": "Unknown content type"}), 404
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    with get_db() as db:
+        if kind == "stories":
+            db.execute(
+                "DELETE FROM content WHERE kind='stories' AND expires_at <= ?",
+                (now,),
+            )
+
+        rows = db.execute(
+            "SELECT * FROM content WHERE kind=? ORDER BY id DESC LIMIT 100",
+            (kind,),
+        ).fetchall()
+
+    return jsonify({"items": [content_json(row) for row in rows]})
+
+
+@app.post("/api/<kind>")
+def create_content(kind):
+    if kind not in ALLOWED_EXTENSIONS:
+        return jsonify({"error": "Unknown content type"}), 404
+
+    media = request.files.get("file")
+    if media is None or not media.filename:
+        return jsonify({"error": "Media file is required"}), 400
+
+    original_name = secure_filename(media.filename)
+    if "." not in original_name:
+        return jsonify({"error": "File extension is missing"}), 400
+
+    extension = original_name.rsplit(".", 1)[1].lower()
+    if extension not in ALLOWED_EXTENSIONS[kind]:
+        return jsonify({"error": "This file type is not allowed"}), 415
+
+    caption = request.form.get("caption", "").strip()
+    username = request.form.get("username", "you").strip() or "you"
+
+    folder = UPLOAD_DIR / kind
+    stored_name = f"{uuid.uuid4().hex}.{extension}"
+    destination = folder / stored_name
+
+    try:
+        media.save(destination)
+
+        if destination.stat().st_size == 0:
+            destination.unlink(missing_ok=True)
+            return jsonify({"error": "The uploaded file is empty"}), 400
+
+        now = datetime.now(timezone.utc)
+        created_at = now.isoformat()
+        expires_at = (
+            (now + timedelta(hours=24)).isoformat()
+            if kind == "stories" else None
+        )
+        media_type = (
+            "video" if extension in {"mp4", "mov", "webm"} else "image"
+        )
+        media_url = f"/uploads/{kind}/{stored_name}"
+
+        with get_db() as db:
+            cursor = db.execute(
+                """
+                INSERT INTO content
+                    (kind, username, caption, media_url, media_type,
+                     created_at, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    kind, username, caption, media_url, media_type,
+                    created_at, expires_at,
+                ),
+            )
+            row = db.execute(
+                "SELECT * FROM content WHERE id=?",
+                (cursor.lastrowid,),
+            ).fetchone()
+
+        return jsonify({"ok": True, "item": content_json(row)}), 201
+
+    except Exception:
+        destination.unlink(missing_ok=True)
+        app.logger.exception("Could not save uploaded media")
+        return jsonify({"error": "Could not save media"}), 500
+
+
+@app.get("/uploads/<kind>/<filename>")
+def uploaded_file(kind, filename):
+    if kind not in ALLOWED_EXTENSIONS and kind != "profiles":
+        return jsonify({"error": "Unknown media type"}), 404
+
+    return send_from_directory(UPLOAD_DIR / kind, filename)
+
+
+@app.errorhandler(413)
+def file_too_large(error):
+    return jsonify({"error": "File exceeds the upload limit for this media type"}), 413
+
+
+@app.get("/")
+def index():
+    return jsonify({
+        "service": "SocialApp Server",
+        "health": "/api/health",
+        "endpoints": ["/api/posts", "/api/stories", "/api/reels"],
+    })
+
+
+# SOCIALAPP_PROFILE_API_V1
+def profile_api_routes_marker():
+    pass
+
+
+def init_profile_tables():
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS profiles (
+                username TEXT PRIMARY KEY,
+                display_name TEXT NOT NULL DEFAULT '',
+                bio TEXT NOT NULL DEFAULT '',
+                avatar_url TEXT,
+                name_changed_at TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS follows (
+                follower TEXT NOT NULL,
+                following TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (follower, following),
+                CHECK (follower <> following)
+            )
+        """)
+
+
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS user_settings (
+                username TEXT PRIMARY KEY,
+                is_private INTEGER NOT NULL DEFAULT 0,
+                show_activity INTEGER NOT NULL DEFAULT 1,
+                allow_messages INTEGER NOT NULL DEFAULT 1,
+                updated_at TEXT NOT NULL
+            )
+        """)
+
+
+def profile_json(db, username):
+    row = db.execute(
+        "SELECT * FROM profiles WHERE username=?", (username,)
+    ).fetchone()
+    if row is None:
+        now = datetime.now(timezone.utc).isoformat()
+        db.execute(
+            """INSERT OR IGNORE INTO profiles
+               (username, display_name, bio, avatar_url, name_changed_at, created_at)
+               VALUES (?, ?, '', NULL, NULL, ?)""",
+            (username, username, now),
+        )
+        row = db.execute(
+            "SELECT * FROM profiles WHERE username=?", (username,)
+        ).fetchone()
+
+    posts = db.execute(
+        "SELECT COUNT(*) FROM content WHERE kind='posts' AND username=?",
+        (username,),
+    ).fetchone()[0]
+    followers = db.execute(
+        "SELECT COUNT(*) FROM follows WHERE following=?", (username,)
+    ).fetchone()[0]
+    following = db.execute(
+        "SELECT COUNT(*) FROM follows WHERE follower=?", (username,)
+    ).fetchone()[0]
+    return {
+        "username": row["username"],
+        "displayName": row["display_name"],
+        "bio": row["bio"],
+        "avatarUrl": row["avatar_url"],
+        "postsCount": posts,
+        "followersCount": followers,
+        "followingCount": following,
+    }
+
+
+@app.get("/api/profile/<username>")
+def get_profile(username):
+    username = username.strip().lstrip("@")
+    if not username or len(username) > 30:
+        return jsonify({"error": "Invalid username"}), 400
+    with get_db() as db:
+        result = profile_json(db, username)
+        viewer = request.args.get("viewer", "you").strip().lstrip("@") or "you"
+        result["isFollowing"] = bool(db.execute(
+            "SELECT 1 FROM follows WHERE follower=? AND following=?",
+            (viewer, username),
+        ).fetchone())
+    return jsonify({"profile": result})
+
+
+@app.patch("/api/profile/<username>")
+def update_profile(username):
+    username = username.strip().lstrip("@")
+    data = request.get_json(silent=True) or {}
+    # This basic API uses the supplied username as identity. Add authenticated
+    # sessions before exposing it to untrusted users.
+    display_name = str(data.get("displayName", "")).strip()
+    bio = str(data.get("bio", "")).strip()
+    if len(display_name) > 60 or len(bio) > 300:
+        return jsonify({"error": "Name max 60 and bio max 300 characters"}), 400
+    now = datetime.now(timezone.utc)
+    with get_db() as db:
+        profile_json(db, username)
+        row = db.execute(
+            "SELECT * FROM profiles WHERE username=?", (username,)
+        ).fetchone()
+        if "displayName" in data and display_name != row["display_name"]:
+            previous = row["name_changed_at"]
+            if previous:
+                try:
+                    last = datetime.fromisoformat(previous)
+                    if now - last < timedelta(days=90):
+                        next_date = (last + timedelta(days=90)).date().isoformat()
+                        return jsonify({
+                            "error": f"Display name अगली बार {next_date} से बदल सकते हैं।"
+                        }), 429
+                except ValueError:
+                    pass
+            db.execute(
+                "UPDATE profiles SET display_name=?, name_changed_at=? WHERE username=?",
+                (display_name or username, now.isoformat(), username),
+            )
+        if "bio" in data:
+            db.execute("UPDATE profiles SET bio=? WHERE username=?", (bio, username))
+        # Username is intentionally never accepted as an editable field.
+        result = profile_json(db, username)
+    return jsonify({"ok": True, "profile": result})
+
+
+@app.post("/api/profile/<username>/avatar")
+def upload_profile_avatar(username):
+    username = username.strip().lstrip("@")
+    media = request.files.get("file")
+    if media is None or not media.filename:
+        return jsonify({"error": "Profile photo file is required"}), 400
+    filename = secure_filename(media.filename)
+    if "." not in filename:
+        return jsonify({"error": "File extension is missing"}), 400
+    ext = filename.rsplit(".", 1)[1].lower()
+    if ext not in {"jpg", "jpeg", "png", "webp", "gif"}:
+        return jsonify({"error": "Only image files are allowed"}), 415
+    folder = UPLOAD_DIR / "profiles"
+    folder.mkdir(parents=True, exist_ok=True)
+    stored = f"{uuid.uuid4().hex}.{ext}"
+    destination = folder / stored
+    try:
+        media.save(destination)
+        if destination.stat().st_size == 0:
+            destination.unlink(missing_ok=True)
+            return jsonify({"error": "Empty image"}), 400
+        avatar_url = f"/uploads/profiles/{stored}"
+        with get_db() as db:
+            profile_json(db, username)
+            old = db.execute(
+                "SELECT avatar_url FROM profiles WHERE username=?", (username,)
+            ).fetchone()["avatar_url"]
+            db.execute("UPDATE profiles SET avatar_url=? WHERE username=?",
+                       (avatar_url, username))
+        if old and old.startswith("/uploads/profiles/"):
+            (folder / old.rsplit("/", 1)[1]).unlink(missing_ok=True)
+        with get_db() as db:
+            return jsonify({"ok": True, "profile": profile_json(db, username)}), 201
+    except Exception:
+        destination.unlink(missing_ok=True)
+        app.logger.exception("Profile photo upload failed")
+        return jsonify({"error": "Could not save profile photo"}), 500
+
+
+@app.delete("/api/profile/<username>/avatar")
+def delete_profile_avatar(username):
+    username = username.strip().lstrip("@")
+    with get_db() as db:
+        profile_json(db, username)
+        row = db.execute(
+            "SELECT avatar_url FROM profiles WHERE username=?", (username,)
+        ).fetchone()
+        old = row["avatar_url"]
+        db.execute("UPDATE profiles SET avatar_url=NULL WHERE username=?", (username,))
+        result = profile_json(db, username)
+    if old and old.startswith("/uploads/profiles/"):
+        (UPLOAD_DIR / "profiles" / old.rsplit("/", 1)[1]).unlink(missing_ok=True)
+    return jsonify({"ok": True, "profile": result})
+
+
+@app.post("/api/profile/<username>/follow")
+def follow_profile(username):
+    username = username.strip().lstrip("@")
+    data = request.get_json(silent=True) or {}
+    viewer = str(data.get("viewer", "you")).strip().lstrip("@") or "you"
+    if username == viewer:
+        return jsonify({"error": "You cannot follow yourself"}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        profile_json(db, username)
+        profile_json(db, viewer)
+        db.execute(
+            "INSERT OR IGNORE INTO follows (follower, following, created_at) VALUES (?, ?, ?)",
+            (viewer, username, now),
+        )
+        result = profile_json(db, username)
+    return jsonify({"ok": True, "profile": result})
+
+
+@app.delete("/api/profile/<username>/follow")
+def unfollow_profile(username):
+    username = username.strip().lstrip("@")
+    viewer = request.args.get("viewer", "you").strip().lstrip("@") or "you"
+    with get_db() as db:
+        db.execute("DELETE FROM follows WHERE follower=? AND following=?",
+                   (viewer, username))
+        result = profile_json(db, username)
+    return jsonify({"ok": True, "profile": result})
+
+
+@app.get("/api/profile/<username>/followers")
+def list_followers(username):
+    username = username.strip().lstrip("@")
+    with get_db() as db:
+        rows = db.execute(
+            "SELECT follower FROM follows WHERE following=? ORDER BY created_at DESC",
+            (username,),
+        ).fetchall()
+    return jsonify({"users": [r["follower"] for r in rows]})
+
+
+@app.get("/api/profile/<username>/following")
+def list_following(username):
+    username = username.strip().lstrip("@")
+    with get_db() as db:
+        rows = db.execute(
+            "SELECT following FROM follows WHERE follower=? ORDER BY created_at DESC",
+            (username,),
+        ).fetchall()
+    return jsonify({"users": [r["following"] for r in rows]})
+
+
+# SOCIALAPP_PRIVACY_SETTINGS_V1
+@app.get("/api/profile/<username>/settings")
+def get_user_settings(username):
+    username = username.strip().lstrip("@")
+    if not username:
+        return jsonify({"error": "Username is required"}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        db.execute(
+            """INSERT OR IGNORE INTO user_settings
+               (username, updated_at) VALUES (?, ?)""",
+            (username, now),
+        )
+        row = db.execute(
+            "SELECT is_private, show_activity, allow_messages FROM user_settings WHERE username=?",
+            (username,),
+        ).fetchone()
+
+    return jsonify({
+        "settings": {
+            "isPrivate": bool(row["is_private"]),
+            "showActivity": bool(row["show_activity"]),
+            "allowMessages": bool(row["allow_messages"]),
+        }
+    })
+
+
+@app.patch("/api/profile/<username>/settings")
+def update_user_settings(username):
+    username = username.strip().lstrip("@")
+    if not username:
+        return jsonify({"error": "Username is required"}), 400
+
+    data = request.get_json(silent=True) or {}
+    fields = {
+        "isPrivate": "is_private",
+        "showActivity": "show_activity",
+        "allowMessages": "allow_messages",
+    }
+
+    if not data or any(key not in fields for key in data):
+        return jsonify({"error": "Provide valid settings"}), 400
+
+    if any(not isinstance(value, bool) for value in data.values()):
+        return jsonify({"error": "Setting values must be true or false"}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        db.execute(
+            "INSERT OR IGNORE INTO user_settings (username, updated_at) VALUES (?, ?)",
+            (username, now),
+        )
+        for key, value in data.items():
+            db.execute(
+                f"UPDATE user_settings SET {fields[key]}=?, updated_at=? WHERE username=?",
+                (int(value), now, username),
+            )
+        row = db.execute(
+            "SELECT is_private, show_activity, allow_messages FROM user_settings WHERE username=?",
+            (username,),
+        ).fetchone()
+
+    return jsonify({
+        "ok": True,
+        "settings": {
+            "isPrivate": bool(row["is_private"]),
+            "showActivity": bool(row["show_activity"]),
+            "allowMessages": bool(row["allow_messages"]),
+        }
+    })
+
+# SOCIALAPP_POST_INTERACTIONS_V1
+@app.post("/api/posts/<int:content_id>/like")
+def toggle_post_like(content_id):
+    data = request.get_json(silent=True) or {}
+    username = str(data.get("username", "you")).strip() or "you"
+    now = datetime.now(timezone.utc).isoformat()
+
+    with get_db() as db:
+        post = db.execute(
+            "SELECT id FROM content WHERE id=? AND kind='posts'",
+            (content_id,),
+        ).fetchone()
+        if post is None:
+            return jsonify({"error": "Post not found"}), 404
+
+        existing = db.execute(
+            "SELECT id FROM post_likes WHERE content_id=? AND username=?",
+            (content_id, username),
+        ).fetchone()
+
+        if existing:
+            db.execute(
+                "DELETE FROM post_likes WHERE content_id=? AND username=?",
+                (content_id, username),
+            )
+            liked = False
+        else:
+            db.execute(
+                "INSERT INTO post_likes (content_id, username, created_at) VALUES (?, ?, ?)",
+                (content_id, username, now),
+            )
+            liked = True
+
+        count = db.execute(
+            "SELECT COUNT(*) AS total FROM post_likes WHERE content_id=?",
+            (content_id,),
+        ).fetchone()["total"]
+
+    return jsonify({"ok": True, "liked": liked, "likes": count})
+
+
+@app.get("/api/posts/<int:content_id>/comments")
+def list_post_comments(content_id):
+    with get_db() as db:
+        post = db.execute(
+            "SELECT id FROM content WHERE id=? AND kind='posts'",
+            (content_id,),
+        ).fetchone()
+        if post is None:
+            return jsonify({"error": "Post not found"}), 404
+
+        rows = db.execute(
+            """SELECT id, username, text, created_at
+               FROM post_comments WHERE content_id=?
+               ORDER BY id ASC""",
+            (content_id,),
+        ).fetchall()
+
+    return jsonify({
+        "ok": True,
+        "comments": [
+            {
+                "id": row["id"],
+                "username": row["username"],
+                "text": row["text"],
+                "createdAt": row["created_at"],
+            }
+            for row in rows
+        ],
+    })
+
+
+@app.post("/api/posts/<int:content_id>/comments")
+def create_post_comment(content_id):
+    data = request.get_json(silent=True) or {}
+    username = str(data.get("username", "you")).strip() or "you"
+    text = str(data.get("text", "")).strip()
+
+    if not text:
+        return jsonify({"error": "Comment cannot be empty"}), 400
+    if len(text) > 2000:
+        return jsonify({"error": "Comment is too long"}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    with get_db() as db:
+        post = db.execute(
+            "SELECT id FROM content WHERE id=? AND kind='posts'",
+            (content_id,),
+        ).fetchone()
+        if post is None:
+            return jsonify({"error": "Post not found"}), 404
+
+        cursor = db.execute(
+            """INSERT INTO post_comments
+               (content_id, username, text, created_at)
+               VALUES (?, ?, ?, ?)""",
+            (content_id, username, text, now),
+        )
+        row = db.execute(
+            "SELECT id, username, text, created_at FROM post_comments WHERE id=?",
+            (cursor.lastrowid,),
+        ).fetchone()
+
+    return jsonify({
+        "ok": True,
+        "comment": {
+            "id": row["id"],
+            "username": row["username"],
+            "text": row["text"],
+            "createdAt": row["created_at"],
+        },
+    }), 201
+
+
+
+# SOCIALAPP_AUTH_FOUNDATION_V1
+import secrets
+import hashlib
+import hmac
+from functools import wraps
+from flask import g
+from werkzeug.security import generate_password_hash, check_password_hash
+
+def init_auth_tables():
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                username TEXT PRIMARY KEY COLLATE NOCASE,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                phone_number TEXT
+            )
+        """)
+
+        columns = {
+            row["name"] for row in db.execute("PRAGMA table_info(users)")
+        }
+        if "phone_number" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN phone_number TEXT")
+        if "email" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN email TEXT")
+
+        db.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
+            ON users(email COLLATE NOCASE)
+            WHERE email IS NOT NULL AND email != ''
+        """)
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS auth_sessions (
+                token_hash TEXT PRIMARY KEY,
+                username TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL
+            )
+        """)
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS password_reset_otps (
+                email TEXT PRIMARY KEY COLLATE NOCASE,
+                otp_hash TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                last_sent_at TEXT NOT NULL,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                reset_token_hash TEXT,
+                reset_expires_at TEXT
+            )
+        """)
+
+
+def _auth_user():
+    header = request.headers.get("Authorization", "")
+    if not header.startswith("Bearer "):
+        return None
+    token = header[7:].strip()
+    if len(token) < 32:
+        return None
+    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        row = db.execute("""
+            SELECT s.username FROM auth_sessions s
+            JOIN users u ON u.username=s.username
+            WHERE s.token_hash=? AND s.expires_at>?
+        """, (digest, now)).fetchone()
+    return row["username"] if row else None
+
+@app.before_request
+def enforce_authenticated_mutations():
+    if request.method in ("GET", "HEAD", "OPTIONS"):
+        return None
+    if request.path in (
+        "/api/auth/register",
+        "/api/auth/login",
+        "/api/auth/forgot-password/request",
+        "/api/auth/forgot-password/verify",
+        "/api/auth/forgot-password/reset",
+    ):
+        return None
+    if not request.path.startswith("/api/"):
+        return None
+
+    username = _auth_user()
+    if not username:
+        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+
+    g.auth_username = username
+    supplied = request.form.get("username")
+    if supplied and supplied.strip().lstrip("@").lower() != username.lower():
+        return jsonify({"error": "लॉगिन अकाउंट से ही पोस्ट करें।"}), 403
+
+    if request.path.startswith("/api/profile/"):
+        parts = request.path.split("/")
+        if len(parts) >= 4:
+            target = parts[3].strip().lstrip("@")
+            if target and target.lower() != username.lower():
+                return jsonify({"error": "दूसरे अकाउंट में बदलाव की अनुमति नहीं है।"}), 403
+
+    data = request.get_json(silent=True) or {}
+    supplied_json = data.get("username") or data.get("viewer")
+    if supplied_json and str(supplied_json).strip().lstrip("@").lower() != username.lower():
+        return jsonify({"error": "लॉगिन अकाउंट से ही यह काम करें।"}), 403
+    return None
+
+@app.post("/api/auth/register")
+def auth_register():
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email", "")).strip().lower()
+    password = str(data.get("password", ""))
+    phone_number = str(data.get("phone_number", "")).strip()
+    phone_digits = "".join(ch for ch in phone_number if ch.isdigit())
+
+    if "@" not in email or "." not in email.rsplit("@", 1)[-1] or len(email) > 254:
+        return jsonify({"error": "कृपया सही ईमेल आईडी दर्ज करें।"}), 400
+    if len(phone_digits) < 10 or len(phone_digits) > 15:
+        return jsonify({"error": "कृपया सही मोबाइल नंबर दर्ज करें।"}), 400
+    if len(password) < 4 or len(password) > 24:
+        return jsonify({"error": "पासवर्ड 4 से 24 अक्षरों का रखें।"}), 400
+
+    username = str(data.get("username", "")).strip().lstrip("@")
+    full_name = str(data.get("full_name", "")).strip()
+
+    if not (3 <= len(username) <= 30) or any(
+        not (ch.isascii() and (ch.isalnum() or ch in "_."))
+        for ch in username
+    ):
+        return jsonify({"error": "Username must be 3 to 30 letters, numbers, dots, or underscores."}), 400
+    if not full_name or len(full_name) > 60:
+        return jsonify({"error": "Full name is required and must be at most 60 characters."}), 400
+
+    now = datetime.now(timezone.utc)
+    token = secrets.token_urlsafe(32)
+    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    expires = (now + timedelta(days=30)).isoformat()
+
+    try:
+        with get_db() as db:
+            if db.execute(
+                "SELECT 1 FROM users WHERE username=? COLLATE NOCASE", (username,)
+            ).fetchone():
+                return jsonify({"error": "यह username पहले से इस्तेमाल हो रहा है।"}), 409
+
+            db.execute(
+                "INSERT INTO users(username,password_hash,created_at,phone_number,email) VALUES(?,?,?,?,?)",
+                (username, generate_password_hash(password), now.isoformat(), phone_number, email)
+            )
+            db.execute(
+                "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+                (digest, username, now.isoformat(), expires)
+            )
+            profile_json(db, username)
+            db.execute(
+                "UPDATE profiles SET display_name=? WHERE username=?",
+                (full_name, username)
+            )
+            db.execute(
+                "INSERT OR IGNORE INTO user_settings(username,updated_at) VALUES(?,?)",
+                (username, now.isoformat())
+            )
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "यह ईमेल पहले से किसी अकाउंट में इस्तेमाल हो रहा है।"}), 409
+
+    return jsonify({"ok": True, "username": username, "token": token}), 201
+
+@app.post("/api/auth/login")
+def auth_login():
+    data = request.get_json(silent=True) or {}
+    identifier = str(data.get("username", data.get("email", ""))).strip().lstrip("@")
+    password = str(data.get("password", ""))
+
+    with get_db() as db:
+        row = db.execute(
+            "SELECT username,password_hash FROM users WHERE username=? COLLATE NOCASE OR email=? COLLATE NOCASE",
+            (identifier, identifier)
+        ).fetchone()
+        if not row or not check_password_hash(row["password_hash"], password):
+            return jsonify({"error": "ईमेल/यूज़रनेम या पासवर्ड गलत है।"}), 401
+
+        now = datetime.now(timezone.utc)
+        token = secrets.token_urlsafe(32)
+        digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        expires = (now + timedelta(days=30)).isoformat()
+        db.execute(
+            "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+            (digest, row["username"], now.isoformat(), expires)
+        )
+
+    return jsonify({"ok": True, "username": row["username"], "token": token})
+
+@app.get("/api/auth/me")
+def auth_me():
+    username = _auth_user()
+    if not username:
+        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+    return jsonify({"ok": True, "username": username})
+
+@app.post("/api/auth/logout")
+def auth_logout():
+    header = request.headers.get("Authorization", "")
+    token = header[7:].strip() if header.startswith("Bearer ") else ""
+    if token:
+        digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        with get_db() as db:
+            db.execute("DELETE FROM auth_sessions WHERE token_hash=?", (digest,))
+    return jsonify({"ok": True})
+
+
+
+@app.post("/api/auth/change-password")
+def auth_change_password():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in again."}), 401
+
+    data = request.get_json(silent=True) or {}
+    old_password = str(data.get("old_password", ""))
+    new_password = str(data.get("new_password", ""))
+    confirm_password = str(data.get("confirm_password", ""))
+
+    if not old_password or not new_password or not confirm_password:
+        return jsonify({"error": "All password fields are required."}), 400
+    if new_password != confirm_password:
+        return jsonify({"error": "New password and confirmation do not match."}), 400
+    if len(new_password) < 4 or len(new_password) > 24:
+        return jsonify({"error": "New password must be 4 to 24 characters."}), 400
+    if new_password == old_password:
+        return jsonify({"error": "Choose a password different from the old password."}), 400
+
+    with get_db() as db:
+        row = db.execute(
+            "SELECT password_hash FROM users WHERE username=?",
+            (username,)
+        ).fetchone()
+
+        if not row or not check_password_hash(row["password_hash"], old_password):
+            return jsonify({"error": "Old password is incorrect."}), 401
+
+        db.execute(
+            "UPDATE users SET password_hash=? WHERE username=?",
+            (generate_password_hash(new_password), username)
+        )
+
+        header = request.headers.get("Authorization", "")
+        token = header[7:].strip() if header.startswith("Bearer ") else ""
+        current_digest = hashlib.sha256(token.encode("utf-8")).hexdigest() if token else ""
+        db.execute(
+            "DELETE FROM auth_sessions WHERE username=? AND token_hash!=?",
+            (username, current_digest)
+        )
+
+    return jsonify({"ok": True, "message": "Password changed successfully."})
+
+
+
+
+def _send_password_reset_email(email, otp):
+    api_key = os.environ.get("RESEND_API_KEY", "").strip()
+    sender = os.environ.get("RESEND_FROM_EMAIL", "").strip()
+    if not api_key or not sender:
+        raise RuntimeError("Email provider is not configured.")
+
+    payload = {
+        "from": sender,
+        "to": [email],
+        "subject": "Your SocialApp password reset code",
+        "text": (
+            f"Your SocialApp password reset code is {otp}.\n\n"
+            "This code expires in 10 minutes. If you did not request this, "
+            "you can ignore this email."
+        ),
+    }
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=15) as response:
+        if response.status < 200 or response.status >= 300:
+            raise RuntimeError("Email provider rejected the request.")
+
+
+@app.post("/api/auth/forgot-password/request")
+def auth_forgot_password_request():
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email", "")).strip().lower()
+    if len(email) > 254 or "@" not in email or "." not in email.rsplit("@", 1)[-1]:
+        return jsonify({"error": "Enter a valid email address."}), 400
+
+    api_key = os.environ.get("RESEND_API_KEY", "").strip()
+    sender = os.environ.get("RESEND_FROM_EMAIL", "").strip()
+    if not api_key or not sender:
+        return jsonify({"error": "Password recovery email is not configured on the server yet."}), 503
+
+    now = datetime.now(timezone.utc)
+    now_iso = now.isoformat()
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE email=? COLLATE NOCASE", (email,)
+        ).fetchone()
+        if not user:
+            return jsonify({
+                "ok": True,
+                "message": "If an account uses that email, a reset code will be sent."
+            }), 200
+
+        previous = db.execute(
+            "SELECT last_sent_at FROM password_reset_otps WHERE email=? COLLATE NOCASE",
+            (email,),
+        ).fetchone()
+        if previous:
+            try:
+                last_sent = datetime.fromisoformat(previous["last_sent_at"])
+                if (now - last_sent).total_seconds() < 60:
+                    return jsonify({
+                        "ok": True,
+                        "message": "If an account uses that email, a reset code will be sent."
+                    }), 200
+            except (TypeError, ValueError):
+                pass
+
+    otp = f"{secrets.randbelow(1000000):06d}"
+    otp_hash = hmac.new(
+        api_key.encode("utf-8"),
+        f"{email}:{otp}".encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    expires = (now + timedelta(minutes=10)).isoformat()
+
+    try:
+        _send_password_reset_email(email, otp)
+    except (urllib.error.URLError, TimeoutError, RuntimeError, ValueError):
+        app.logger.warning("Password reset email delivery failed.")
+        return jsonify({"error": "Could not send the reset email. Check the server email configuration."}), 503
+
+    with get_db() as db:
+        db.execute("""
+            INSERT INTO password_reset_otps
+                (email, otp_hash, expires_at, last_sent_at, attempts, reset_token_hash, reset_expires_at)
+            VALUES (?, ?, ?, ?, 0, NULL, NULL)
+            ON CONFLICT(email) DO UPDATE SET
+                otp_hash=excluded.otp_hash,
+                expires_at=excluded.expires_at,
+                last_sent_at=excluded.last_sent_at,
+                attempts=0,
+                reset_token_hash=NULL,
+                reset_expires_at=NULL
+        """, (email, otp_hash, expires, now_iso))
+
+    return jsonify({
+        "ok": True,
+        "message": "If an account uses that email, a reset code will be sent."
+    }), 200
+
+
+@app.post("/api/auth/forgot-password/verify")
+def auth_forgot_password_verify():
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email", "")).strip().lower()
+    otp = str(data.get("otp", "")).strip()
+    api_key = os.environ.get("RESEND_API_KEY", "").strip()
+
+    if not api_key:
+        return jsonify({"error": "Password recovery email is not configured on the server yet."}), 503
+    if not email or not re.fullmatch(r"[0-9]{6}", otp):
+        return jsonify({"error": "Enter the email address and 6-digit code."}), 400
+
+    now = datetime.now(timezone.utc)
+    with get_db() as db:
+        row = db.execute(
+            "SELECT * FROM password_reset_otps WHERE email=? COLLATE NOCASE", (email,)
+        ).fetchone()
+        if not row:
+            return jsonify({"error": "The code is invalid or expired."}), 400
+        if row["attempts"] >= 5:
+            return jsonify({"error": "Too many attempts. Request a new code."}), 429
+        try:
+            expired = datetime.fromisoformat(row["expires_at"]) <= now
+        except (TypeError, ValueError):
+            expired = True
+        if expired:
+            return jsonify({"error": "The code is invalid or expired. Request a new code."}), 400
+
+        submitted_hash = hmac.new(
+            api_key.encode("utf-8"),
+            f"{email}:{otp}".encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(submitted_hash, row["otp_hash"]):
+            db.execute(
+                "UPDATE password_reset_otps SET attempts=attempts+1 WHERE email=? COLLATE NOCASE",
+                (email,),
+            )
+            return jsonify({"error": "The code is invalid or expired."}), 400
+
+        reset_token = secrets.token_urlsafe(32)
+        reset_digest = hashlib.sha256(reset_token.encode("utf-8")).hexdigest()
+        reset_expires = (now + timedelta(minutes=10)).isoformat()
+        db.execute("""
+            UPDATE password_reset_otps
+            SET reset_token_hash=?, reset_expires_at=?
+            WHERE email=? COLLATE NOCASE
+        """, (reset_digest, reset_expires, email))
+
+    return jsonify({"ok": True, "reset_token": reset_token}), 200
+
+
+@app.post("/api/auth/forgot-password/reset")
+def auth_forgot_password_reset():
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email", "")).strip().lower()
+    reset_token = str(data.get("reset_token", ""))
+    new_password = str(data.get("new_password", ""))
+    confirm_password = str(data.get("confirm_password", ""))
+
+    if not email or not reset_token:
+        return jsonify({"error": "Verify the email code first."}), 400
+    if new_password != confirm_password:
+        return jsonify({"error": "Passwords do not match."}), 400
+    if len(new_password) < 4 or len(new_password) > 24:
+        return jsonify({"error": "Password must be 4 to 24 characters long."}), 400
+
+    reset_digest = hashlib.sha256(reset_token.encode("utf-8")).hexdigest()
+    now = datetime.now(timezone.utc)
+    with get_db() as db:
+        row = db.execute(
+            "SELECT reset_token_hash, reset_expires_at FROM password_reset_otps WHERE email=? COLLATE NOCASE",
+            (email,),
+        ).fetchone()
+        if not row or not row["reset_token_hash"] or not hmac.compare_digest(
+            reset_digest, row["reset_token_hash"]
+        ):
+            return jsonify({"error": "The reset session is invalid. Verify the code again."}), 400
+        try:
+            if not row["reset_expires_at"] or datetime.fromisoformat(row["reset_expires_at"]) <= now:
+                return jsonify({"error": "The reset session expired. Verify the code again."}), 400
+        except (TypeError, ValueError):
+            return jsonify({"error": "The reset session expired. Verify the code again."}), 400
+
+        user = db.execute(
+            "SELECT username FROM users WHERE email=? COLLATE NOCASE", (email,)
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "The account could not be found."}), 400
+
+        db.execute(
+            "UPDATE users SET password_hash=? WHERE username=?",
+            (generate_password_hash(new_password), user["username"]),
+        )
+        db.execute(
+            "DELETE FROM auth_sessions WHERE username=?", (user["username"],)
+        )
+        db.execute(
+            "DELETE FROM password_reset_otps WHERE email=? COLLATE NOCASE", (email,)
+        )
+
+    return jsonify({"ok": True, "message": "Password reset successfully. Please log in again."}), 200
+
+
+# Initialize database only after all functions and routes are defined.
+init_db()
+init_profile_tables()
+init_auth_tables()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)
+

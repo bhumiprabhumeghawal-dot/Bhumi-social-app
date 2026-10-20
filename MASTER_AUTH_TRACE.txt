@@ -1,0 +1,126 @@
+SOCIALAPP MASTER AUTH TRACE
+Purpose: Trace shared login-session handling across the project.
+This report does not modify project files except this report.
+==============================================================================
+
+FILE: App.js
+12: [SESSION_READ_WRITE] registerAccount, loginAccount, getAuthSession,
+286: [SESSION_READ_WRITE] const [authSession, setAuthSession] = React.useState(null);
+305: [SESSION_READ_WRITE] getAuthSession()
+306: [SESSION_READ_WRITE] .then(session => { if (mounted) setAuthSession(session); })
+643: [SESSION_READ_WRITE] setAuthSession({ token: result.token, username: result.username });
+
+FILE: api.js
+3: [API_CALLS] const API_BASE_URL = 'http://127.0.0.1:5000';
+6: [AUTH_GATES] const AUTH_USERNAME_KEY = 'socialapp_auth_username';
+8: [SESSION_READ_WRITE] export async function saveAuthSession(token, username) {
+9: [SESSION_READ_WRITE] await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
+10: [SESSION_READ_WRITE] await SecureStore.setItemAsync(AUTH_USERNAME_KEY, username);
+13: [SESSION_READ_WRITE,SESSION_RESET_OR_LOGOUT] export async function clearAuthSession() {
+14: [SESSION_READ_WRITE,SESSION_RESET_OR_LOGOUT] await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+15: [SESSION_READ_WRITE,SESSION_RESET_OR_LOGOUT] await SecureStore.deleteItemAsync(AUTH_USERNAME_KEY);
+18: [SESSION_READ_WRITE] export async function getAuthSession() {
+19: [SESSION_READ_WRITE] const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+20: [SESSION_READ_WRITE] const username = await SecureStore.getItemAsync(AUTH_USERNAME_KEY);
+26: [API_CALLS] const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+39: [SESSION_READ_WRITE] await saveAuthSession(data.token, data.username);
+44: [API_CALLS] const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+51: [SESSION_READ_WRITE] await saveAuthSession(data.token, data.username);
+55: [SESSION_RESET_OR_LOGOUT] export async function logoutAccount() {
+57: [API_CALLS] await fetch(`${API_BASE_URL}/api/auth/logout`, { method: 'POST' });
+59: [SESSION_READ_WRITE,SESSION_RESET_OR_LOGOUT] await clearAuthSession();
+63: [AUTH_HEADER] const originalFetch = globalThis.fetch.bind(globalThis);
+64: [AUTH_HEADER] globalThis.fetch = async (input, init = {}) => {
+66: [AUTH_HEADER] if (!headers.has('Authorization')) {
+67: [SESSION_READ_WRITE] const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+68: [AUTH_HEADER] if (token) headers.set('Authorization', `Bearer ${token}`);
+70: [API_CALLS] return originalFetch(input, { ...init, headers });
+75: [API_CALLS] const response = await fetch(`${API_BASE_URL}/api/health`);
+83: [API_CALLS] const response = await fetch(`${API_BASE_URL}/api/${type}`);
+93: [API_CALLS] ? `${API_BASE_URL}${item.mediaUrl}`
+120: [SESSION_READ_WRITE] const authSession = await getAuthSession();
+121: [API_CALLS] const result = await FileSystem.uploadAsync(
+122: [API_CALLS] `${API_BASE_URL}/api/${type}`,
+126: [AUTH_HEADER] headers: authSession ? { Authorization: `Bearer ${authSession.token}` } : {},
+157: [API_CALLS] uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
+165: [API_CALLS] const response = await fetch(
+166: [API_CALLS] `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}?viewer=${encodeURIComponent(viewer)}`
+171: [API_CALLS] data.profile.avatarUrl = `${API_BASE_URL}${data.profile.avatarUrl}`;
+177: [API_CALLS] const response = await fetch(
+178: [API_CALLS] `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}`,
+198: [SESSION_READ_WRITE] const authSession = await getAuthSession();
+200: [LOGIN_ERROR] throw new Error('कृपया पहले लॉगिन करें।');
+203: [API_CALLS] const result = await FileSystem.uploadAsync(
+204: [API_CALLS] `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/avatar`,
+208: [AUTH_HEADER] headers: { Authorization: `Bearer ${authSession.token}` },
+226: [API_CALLS] const response = await fetch(
+227: [API_CALLS] `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/avatar`,
+236: [API_CALLS] const response = await fetch(
+237: [API_CALLS] `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow`,
+250: [API_CALLS] const response = await fetch(
+251: [API_CALLS] `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow?viewer=${encodeURIComponent(viewer)}`,
+263: [API_CALLS] const response = await fetch(
+264: [API_CALLS] `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/${type}`
+272: [API_CALLS] const response = await fetch(
+273: [API_CALLS] `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`
+283: [API_CALLS] const response = await fetch(
+284: [API_CALLS] `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`,
+300: [API_CALLS] const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/request`, {
+313: [API_CALLS] const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/verify`, {
+326: [API_CALLS] const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/reset`, {
+344: [API_CALLS] const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+362: [API_CALLS] const response = await fetch(
+363: [API_CALLS] `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/like`,
+378: [API_CALLS] const response = await fetch(
+379: [API_CALLS] `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`
+389: [API_CALLS] const response = await fetch(
+390: [API_CALLS] `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`,
+
+FILE: server/app.py
+105: [AUTH_HEADER] response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+696: [AUTH_GATES] CREATE TABLE IF NOT EXISTS auth_sessions (
+717: [AUTH_GATES] def _auth_user():
+718: [AUTH_HEADER,AUTH_GATES] header = request.headers.get("Authorization", "")
+719: [AUTH_HEADER] if not header.startswith("Bearer "):
+728: [AUTH_GATES] SELECT s.username FROM auth_sessions s
+735: [AUTH_GATES] def enforce_authenticated_mutations():
+749: [AUTH_GATES] username = _auth_user()
+751: [LOGIN_ERROR] return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+814: [AUTH_GATES] "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+850: [AUTH_GATES] "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+858: [AUTH_GATES] username = _auth_user()
+865: [AUTH_HEADER,AUTH_GATES] header = request.headers.get("Authorization", "")
+866: [AUTH_HEADER] token = header[7:].strip() if header.startswith("Bearer ") else ""
+870: [AUTH_GATES] db.execute("DELETE FROM auth_sessions WHERE token_hash=?", (digest,))
+879: [LOGIN_ERROR] return jsonify({"error": "Please log in again."}), 401
+909: [AUTH_HEADER,AUTH_GATES] header = request.headers.get("Authorization", "")
+910: [AUTH_HEADER] token = header[7:].strip() if header.startswith("Bearer ") else ""
+913: [AUTH_GATES] "DELETE FROM auth_sessions WHERE username=? AND token_hash!=?",
+942: [AUTH_HEADER] "Authorization": f"Bearer {api_key}",
+1120: [AUTH_GATES] "DELETE FROM auth_sessions WHERE username=?", (user["username"],)
+1126: [LOGIN_ERROR] return jsonify({"ok": True, "message": "Password reset successfully. Please log in again."}), 200
+
+FILE: profile_feature_backup_20261016_201259/app.py
+74: [AUTH_HEADER] response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+
+FILE: profile_feature_backup_20261016_201259/api.js
+2: [API_CALLS] const API_BASE_URL = 'http://192.0.0.8:5000';
+5: [API_CALLS] const response = await fetch(`${API_BASE_URL}/api/health`);
+13: [API_CALLS] const response = await fetch(`${API_BASE_URL}/api/${type}`);
+23: [API_CALLS] ? `${API_BASE_URL}${item.mediaUrl}`
+51: [API_CALLS] const result = await FileSystem.uploadAsync(
+52: [API_CALLS] `${API_BASE_URL}/api/${type}`,
+85: [API_CALLS] uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
+
+FILE: server/backups/app_before_auth_20261017_132823.py
+99: [AUTH_HEADER] response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+
+FILE: dist/_expo/static/js/android/index-87f0c20b94d2d68cad8fc01cabedc2e8.js
+548: [AUTH_HEADER] __d(function(g,r,i,a,m,_e,d){"use strict";function t(t){return t&&t.__esModule?t:{default:t}}Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return u}});var e=t(r(d[0]));r(d[1]);var o=t(r(d[2])),n=t(r(d[3])),l=new e.default(null),s=n
+629: [SESSION_READ_WRITE] __d(function(g,_r,_i,a,m,_e,_d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return f}});var e,t=_r(_d[0]),r=_r(_d[1]),o=(e=r)&&e.__esModule?e:{default:e},i=(function(e){if(e&&e.__esModule)return e;var t={};return e&&
+644: [SESSION_READ_WRITE,AUTH_HEADER,API_CALLS,AUTH_GATES,SESSION_RESET_OR_LOGOUT] __d(function(g,r,i,a,m,_e,_d){"use strict";function e(e){if(e&&e.__esModule)return e;var t={};return e&&Object.keys(e).forEach(function(o){var n=Object.getOwnPropertyDescriptor(e,o);Object.defineProperty(t,o,n.get?n:{enumerable:!0,get:function(){return e[o]}})}),t.default=e,t}Object.defineProperty(_
+646: [API_CALLS] __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"documentDirectory",{enumerable:!0,get:function(){return c}}),Object.defineProperty(_e,"cacheDirectory",{enumerable:!0,get:function(){return u}}),Object.defineProperty(_e,"bundleDirec
+650: [SESSION_RESET_OR_LOGOUT] __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"AFTER_FIRST_UNLOCK",{enumerable:!0,get:function(){return u}}),Object.defineProperty(_e,"AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY",{enumerable:!0,get:function(){return c}}),Object.definePr
+
+==============================================================================
+Source files scanned: 12

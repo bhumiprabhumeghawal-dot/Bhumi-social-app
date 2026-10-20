@@ -1,0 +1,685 @@
+
+================== App.js ==================
+1: import { StatusBar } from 'expo-status-bar';
+2: import React from 'react';
+3: import * as ImagePicker from 'expo-image-picker';
+4: import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+5: import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
+6: import { Alert } from 'react-native';
+7: import { VideoView, useVideoPlayer } from 'expo-video';
+8: import {
+---
+9:   loadContent, uploadContent, checkServer,
+10:   loadProfile, updateProfile, uploadProfileAvatar,
+11:   deleteProfileAvatar, loadProfileConnections,
+12:   loadPrivacySettings, savePrivacySettings, changeAccountPassword,
+13:   togglePostLike, loadPostComments, createPostComment,
+---
+56: ];
+57: 
+58: 
+59: function Story({ item, onPress }) {
+60:   return (
+61:     <TouchableOpacity style={styles.story} activeOpacity={0.8} onPress={onPress}>
+62:       <View style={[styles.storyRing, item.own && styles.ownRing]}>
+63:         <View style={[styles.storyAvatar, { backgroundColor: item.color || '#DDE7F5' }]}>
+---
+79: function ZoomableImage({ uri, style }) {
+80:   const scale = useSharedValue(1);
+81: 
+82:   const pinch = Gesture.Pinch()
+83:     .onUpdate(event => {
+84:       scale.value = Math.max(1, Math.min(event.scale, 5));
+85:     })
+86:     .onEnd(() => {
+---
+92:   }));
+93: 
+94:   return (
+95:     <GestureDetector gesture={pinch}>
+96:       <Animated.Image
+97:         source={{ uri }}
+98:         style={[style, animatedStyle]}
+99:         resizeMode="contain"
+---
+100:       />
+101:     </GestureDetector>
+102:   );
+103: }
+104: 
+105: function ReelVideo({ uri }) {
+---
+106:   const player = useVideoPlayer(uri, p => { p.loop = true; });
+107:   return <VideoView player={player} style={{ width: '100%', height: 420, backgroundColor: '#000' }} />;
+108: }
+109: 
+---
+124:   })}`;
+125: }
+126: 
+127: function groupPostItems(items) {
+128:   const result = [];
+129:   const groups = new Map();
+130: 
+131:   for (const item of items) {
+---
+151:   return result;
+152: }
+153: 
+154: function PostCard({ post, onOpen = () => {} }) {
+155:   const [mediaWidth, setMediaWidth] = React.useState(0);
+156:   const [mediaIndex, setMediaIndex] = React.useState(0);
+157:   const [liked, setLiked] = React.useState(false);
+158:   const [likeCount, setLikeCount] = React.useState(
+---
+378:   const [activeTab, setActiveTab] = React.useState('Home');
+379:   const [feedPosts, setFeedPosts] = React.useState(posts);
+380:   const [serverStories, setServerStories] = React.useState([]);
+381:   const [selectedStory, setSelectedStory] = React.useState(null);
+382:   const [storyQueue, setStoryQueue] = React.useState([]);
+383:   const [storyIndex, setStoryIndex] = React.useState(0);
+384:   const [selectedPost, setSelectedPost] = React.useState(null);
+385:   const [reels, setReels] = React.useState([]);
+---
+386:   const [serverOnline, setServerOnline] = React.useState(false);
+---
+387:   const [busy, setBusy] = React.useState(false);
+388: 
+---
+442: 
+443:   // SOCIALAPP_PROFILE_SCREEN_V1
+444:   const [profile, setProfile] = React.useState(null);
+445:   const [profileEditing, setProfileEditing] = React.useState(false);
+446:   const [profileDraft, setProfileDraft] = React.useState({ displayName: '', bio: '' });
+447:   const [profileBusy, setProfileBusy] = React.useState(false);
+448: 
+449:   const groupedStories = React.useMemo(() => {
+---
+478: 
+479:   const openStoryGroup = (items) => {
+480:     if (!items || items.length === 0) return;
+481:     setStoryQueue(items);
+482:     setStoryIndex(0);
+483:     setSelectedStory(items[0]);
+484:   };
+485: 
+---
+486:   const moveStory = (direction) => {
+487:     const nextIndex = storyIndex + direction;
+---
+488: 
+489:     if (nextIndex < 0) return;
+490: 
+491:     if (nextIndex >= storyQueue.length) {
+492:       setSelectedStory(null);
+493:       setStoryQueue([]);
+494:       setStoryIndex(0);
+495:       return;
+---
+496:     }
+---
+497: 
+---
+498:     setStoryIndex(nextIndex);
+499:     setSelectedStory(storyQueue[nextIndex]);
+500:   };
+501: 
+502:   // SOCIALAPP_PRIVACY_SCREEN_V1
+503:   const [privacyOpen, setPrivacyOpen] = React.useState(false);
+---
+566:     if (authSession) refreshProfile();
+567:   }, [refreshProfile, authSession]);
+568: 
+569:   const saveProfile = async () => {
+570:     if (profileBusy) return;
+571:     setProfileBusy(true);
+572:     try {
+573:       const result = await updateProfile(authSession.username, {
+---
+580:         displayName: item.displayName || 'you',
+581:         bio: item.bio || '',
+582:       });
+583:       setProfileEditing(false);
+584:       Alert.alert('सफल', 'प्रोफ़ाइल सेव हो गई।');
+585:     } catch (e) {
+586:       Alert.alert('सेव नहीं हुआ', e.message || 'सर्वर कनेक्शन जाँचें।');
+587:     } finally {
+---
+596:         Alert.alert('अनुमति चाहिए', 'Gallery की अनुमति दें।');
+597:         return;
+598:       }
+599:       const result = await ImagePicker.launchImageLibraryAsync({
+600:         mediaTypes: ['images'],
+601:         allowsEditing: true,
+602:         aspect: [1, 1],
+603:         quality: 0.8,
+---
+669: 
+670:   React.useEffect(() => { refreshContent(); }, [refreshContent]);
+671: 
+672:   const chooseMedia = async (kind) => {
+673:     if (busy) return;
+674:     try {
+675:       const video = kind === 'reels';
+676:     const result = await ImagePicker.launchImageLibraryAsync({
+---
+677:       mediaTypes: video ? ['videos'] : kind === 'stories' ? ['images', 'videos'] : ['images', 'videos'],
+678:       allowsMultipleSelection: kind === 'posts',
+679:       selectionLimit: kind === 'posts' ? 10 : 1,
+680:       allowsEditing: kind === 'stories',
+---
+694:       groupId: groupId || null,
+695:     }));
+696:     for (const asset of result.assets) {
+697:       const uploaded = await uploadContent(kind, asset, '', groupId);
+698:       console.log('[POST_UPLOAD_DEBUG]', JSON.stringify({
+699:         id: uploaded.id,
+700:         type: uploaded.type,
+701:         groupId: uploaded.groupId ?? null,
+---
+1186:             ))}
+1187:           </ScrollView>
+1188:           <View style={styles.feedDivider} />
+1189:           {groupPostItems(feedPosts).map((p, i) => <PostCard key={p.groupId || p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} onOpen={() => setSelectedPost(p)} />)}
+1190:         </ScrollView>
+1191:       ) : activeTab === 'Profile' ? (
+1192:         <ScrollView style={styles.content} contentContainerStyle={{ padding: 20, paddingBottom: 36 }}>
+1193:           {!profile ? (
+---
+1238:                 </View>
+1239:               </View>
+1240: 
+1241:               {!!profile.bio && !profileEditing &&
+1242:                 <Text style={{ color: '#444', marginBottom: 16 }}>{profile.bio}</Text>}
+1243: 
+1244:               {profileEditing ? (
+1245:                 <View>
+---
+1246:                   <Text style={{ color: '#555', marginBottom: 5 }}>Display Name</Text>
+1247:                   <TextInput value={profileDraft.displayName}
+1248:                     onChangeText={v => setProfileDraft(d => ({ ...d, displayName: v }))}
+---
+1259:                       padding: 11, minHeight: 80, color: '#222', marginBottom: 12,
+1260:                       textAlignVertical: 'top' }} />
+1261:                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+1262:                     <TouchableOpacity onPress={saveProfile} disabled={profileBusy}
+1263:                       style={{ backgroundColor: '#1685D9', padding: 12, borderRadius: 8, marginRight: 10 }}>
+1264:                       <Text style={{ color: '#FFF', fontWeight: '700' }}>
+1265:                         {profileBusy ? 'सेव हो रहा है…' : 'Save'}
+1266:                       </Text>
+---
+1267:                     </TouchableOpacity>
+1268:                     <TouchableOpacity onPress={() => {
+1269:                       setProfileDraft({ displayName: profile.displayName || 'you', bio: profile.bio || '' });
+1270:                       setProfileEditing(false);
+1271:                     }} style={{ padding: 12 }}>
+1272:                       <Text style={{ color: '#555' }}>Back</Text>
+1273:                     </TouchableOpacity>
+1274:                   </View>
+---
+1275:                 </View>
+1276:               ) : (
+1277:                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+1278:                   <TouchableOpacity onPress={() => setProfileEditing(true)}
+1279:                     style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
+1280:                       paddingVertical: 10, paddingHorizontal: 18, marginRight: 8, marginBottom: 8 }}>
+1281:                     <Text style={{ color: '#333', fontWeight: '600' }}>Edit Profile</Text>
+1282:                   </TouchableOpacity>
+---
+1335:               <Text style={{ color: '#555', fontWeight: '700', marginBottom: 12 }}>आपकी पोस्ट</Text>
+1336:               {groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).length ? (
+1337:                 groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).map((p, i) =>
+1338:                   <PostCard key={p.groupId || p.id || `my-post-${i}`} post={p} onOpen={() => setSelectedPost(p)} />)
+1339:               ) : (
+1340:                 <Text style={{ color: '#888', paddingVertical: 12 }}>अभी आपकी कोई पोस्ट नहीं है।</Text>
+1341:               )}
+1342:             </View>
+---
+1364:       </View>
+1365: 
+1366:       <Modal
+1367:         visible={!!selectedStory}
+1368:         transparent
+1369:         animationType="fade"
+1370:         onRequestClose={() => setSelectedStory(null)}
+1371:       >
+---
+1372:         <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center' }}>
+1373:           <TouchableOpacity
+1374:             onPress={() => setSelectedStory(null)}
+---
+1375:             style={{ position: 'absolute', top: 38, right: 18, zIndex: 2, padding: 12 }}
+1376:           >
+1377:             <Text style={{ color: '#FFFFFF', fontSize: 30 }}>×</Text>
+1378:           </TouchableOpacity>
+---
+1379:           {selectedStory?.uri ? (
+1380:             selectedStory.mediaType === 'video' ? (
+1381:               <ReelVideo uri={selectedStory.uri} />
+1382:             ) : (
+1383:               <ZoomableImage
+---
+1384:                 uri={selectedStory.uri}
+---
+1385:                 style={{ width: '100%', height: '78%' }}
+---
+1386:               />
+1387:             )
+1388:           ) : (
+---
+1390:               Story media is unavailable.
+1391:             </Text>
+1392:           )}
+1393:           {!!selectedStory?.caption && (
+1394:             <Text style={{ color: '#FFFFFF', textAlign: 'center', padding: 16 }}>
+1395:               {selectedStory.caption}
+1396:             </Text>
+1397:           )}
+---
+1398:           <Text style={{ color: '#BBBBBB', textAlign: 'center', paddingBottom: 24 }}>
+1399:             {selectedStory?.name || selectedStory?.user || 'Story'}
+---
+1400:           </Text>
+1401:           {!!selectedStory?.createdAt && (
+1402:             <Text style={{ color: '#BBBBBB', textAlign: 'center', paddingBottom: 12 }}>
+1403:               {formatPostTime(selectedStory.createdAt)}
+---
+1404:             </Text>
+1405:           )}
+---
+1406:           <TouchableOpacity
+1407:             accessibilityLabel="Previous story"
+---
+1420: 
+1421: 
+1422:       <Modal
+1423:         visible={!!selectedPost}
+1424:         transparent
+1425:         animationType="fade"
+1426:         onRequestClose={() => setSelectedPost(null)}
+1427:       >
+---
+1428:         <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center' }}>
+1429:           <TouchableOpacity
+1430:             onPress={() => setSelectedPost(null)}
+---
+1431:             style={{ position: 'absolute', top: 38, right: 18, zIndex: 2, padding: 12 }}
+1432:           >
+1433:             <Text style={{ color: '#FFFFFF', fontSize: 30 }}>×</Text>
+1434:           </TouchableOpacity>
+---
+1435:           {selectedPost?.uri && selectedPost.mediaType === 'video' ? (
+1436:             <ReelVideo uri={selectedPost.uri} />
+1437:           ) : selectedPost?.uri ? (
+1438:             <ZoomableImage
+1439:               uri={selectedPost.uri}
+---
+1440:               style={{ width: '100%', height: '72%' }}
+---
+1441:             />
+---
+1442:           ) : (
+1443:             <View style={{ padding: 24, alignItems: 'center' }}>
+---
+1444:               <Text style={{ color: '#FFFFFF', fontSize: 48 }}>
+1445:                 {selectedPost?.emoji || '🌿'}
+1446:               </Text>
+1447:             </View>
+1448:           )}
+1449:           {!!selectedPost?.caption && (
+---
+1450:             <Text style={{ color: '#FFFFFF', textAlign: 'center', padding: 16 }}>
+1451:               {selectedPost.caption}
+1452:             </Text>
+1453:           )}
+---
+1454:           <Text style={{ color: '#BBBBBB', textAlign: 'center', paddingBottom: 24 }}>
+1455:             {selectedPost?.user || 'you'}
+---
+1456:           </Text>
+1457:         </View>
+1458:       </Modal>
+1459: 
+---
+
+================== api.js ==================
+124:   }));
+125: }
+126: 
+127: export async function uploadContent(type, asset, caption = '', groupId = '') {
+128:   const extension = (
+129:     asset.fileName || asset.uri || ''
+130:   ).split('.').pop().split('?')[0].toLowerCase();
+131: 
+---
+163:       parameters: {
+164:         caption,
+165:         username: authSession?.username || 'you',
+166:         group_id: groupId,
+167:       },
+168:     }
+169:   );
+170: 
+---
+
+================== server/app.py ==================
+18: UPLOAD_DIR = BASE_DIR / "uploads"
+19: DB_PATH = DATA_DIR / "socialapp.db"
+20: 
+21: UPLOAD_LIMITS = {
+22:     "posts": 1024 * 1024 * 1024,
+23:     "stories": 500 * 1024 * 1024,
+24:     "reels": 500 * 1024 * 1024,
+25: }
+---
+26: MAX_UPLOAD_BYTES = 1024 * 1024 * 1024
+27: 
+28: ALLOWED_EXTENSIONS = {
+29:     "posts": {"jpg", "jpeg", "png", "webp", "gif", "mp4", "mov", "webm"},
+30:     "stories": {"jpg", "jpeg", "png", "webp", "mp4", "mov", "webm"},
+---
+31:     "reels": {"mp4", "mov", "webm"},
+32: }
+---
+33: 
+34: app = Flask(__name__)
+35: app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES + 2 * 1024 * 1024
+36: 
+37: 
+38: def get_db():
+39:     conn = sqlite3.connect(DB_PATH)
+---
+44: def init_db():
+45:     DATA_DIR.mkdir(parents=True, exist_ok=True)
+46: 
+47:     for kind in ALLOWED_EXTENSIONS:
+48:         (UPLOAD_DIR / kind).mkdir(parents=True, exist_ok=True)
+49: 
+50:     with get_db() as db:
+51:         db.execute("""
+---
+56:                 caption TEXT NOT NULL DEFAULT '',
+57:                 media_url TEXT NOT NULL,
+58:                 media_type TEXT NOT NULL,
+59:                 group_id TEXT,
+60:                 created_at TEXT NOT NULL,
+61:                 expires_at TEXT
+62:             )
+63:         """)
+---
+64:         columns = {row["name"] for row in db.execute("PRAGMA table_info(content)").fetchall()}
+---
+65:         if "group_id" not in columns:
+66:             db.execute("ALTER TABLE content ADD COLUMN group_id TEXT")
+67: 
+68:         db.execute("""
+69:             CREATE INDEX IF NOT EXISTS idx_content_group_id
+---
+70:             ON content(group_id)
+---
+71:         """)
+72: 
+73:         db.execute("""
+---
+74:             CREATE INDEX IF NOT EXISTS idx_content_kind_id
+---
+80:                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+81:                 content_id INTEGER NOT NULL,
+82:                 username TEXT NOT NULL,
+83:                 created_at TEXT NOT NULL,
+84:                 UNIQUE(content_id, username)
+85:             )
+86:         """)
+87: 
+---
+91:                 content_id INTEGER NOT NULL,
+92:                 username TEXT NOT NULL,
+93:                 text TEXT NOT NULL,
+94:                 created_at TEXT NOT NULL
+95:             )
+96:         """)
+97: 
+98:         db.execute("""
+---
+101:         """)
+102: 
+103: 
+104: def content_json(row):
+105:     return {
+106:         "id": row["id"],
+107:         "type": row["kind"],
+108:         "user": row["username"],
+---
+109:         "caption": row["caption"],
+110:         "mediaUrl": row["media_url"],
+111:         "mediaType": row["media_type"],
+112:         "groupId": row["group_id"],
+113:         "createdAt": row["created_at"],
+114:         "expiresAt": row["expires_at"],
+115:     }
+116: 
+---
+117: 
+---
+138: 
+139: 
+140: @app.get("/api/<kind>")
+141: def list_content(kind):
+142:     if kind not in ALLOWED_EXTENSIONS:
+143:         return jsonify({"error": "Unknown content type"}), 404
+144: 
+145:     now = datetime.now(timezone.utc).isoformat()
+---
+146: 
+---
+160: 
+161: 
+162: @app.post("/api/<kind>")
+163: def create_content(kind):
+164:     if kind not in ALLOWED_EXTENSIONS:
+165:         return jsonify({"error": "Unknown content type"}), 404
+166: 
+167:     media = request.files.get("file")
+---
+168:     if media is None or not media.filename:
+---
+173:         return jsonify({"error": "File extension is missing"}), 400
+174: 
+175:     extension = original_name.rsplit(".", 1)[1].lower()
+176:     if extension not in ALLOWED_EXTENSIONS[kind]:
+177:         return jsonify({"error": "This file type is not allowed"}), 415
+178: 
+179:     caption = request.form.get("caption", "").strip()
+180:     username = request.form.get("username", "you").strip() or "you"
+---
+187:         media.save(destination)
+188: 
+189:         uploaded_size = destination.stat().st_size
+190:         size_limit = UPLOAD_LIMITS.get(kind, MAX_UPLOAD_BYTES)
+191:         if uploaded_size > size_limit:
+192:             destination.unlink(missing_ok=True)
+193:             return jsonify({
+194:                 "error": f"File exceeds the {size_limit // (1024 * 1024)} MB limit for {kind}"
+---
+199:             return jsonify({"error": "The uploaded file is empty"}), 400
+200: 
+201:         now = datetime.now(timezone.utc)
+202:         created_at = now.isoformat()
+203:         expires_at = (
+204:             (now + timedelta(hours=24)).isoformat()
+205:             if kind == "stories" else None
+206:         )
+---
+214:                 """
+215:                 INSERT INTO content
+216:                     (kind, username, caption, media_url, media_type,
+217:                      group_id, created_at, expires_at)
+218:                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+219:                 """,
+220:                 (
+221:                     kind, username, caption, media_url, media_type,
+---
+222:                     (request.form.get("group_id") or request.headers.get("X-Post-Group-Id") or None),
+223:                     created_at, expires_at,
+224:                 ),
+225:             )
+226:             row = db.execute(
+---
+227:                 "SELECT * FROM content WHERE id=?",
+---
+238: 
+239: @app.get("/uploads/<kind>/<filename>")
+240: def uploaded_file(kind, filename):
+241:     if kind not in ALLOWED_EXTENSIONS and kind != "profiles":
+242:         return jsonify({"error": "Unknown media type"}), 404
+243: 
+244:     return send_from_directory(UPLOAD_DIR / kind, filename)
+245: 
+---
+272:                 bio TEXT NOT NULL DEFAULT '',
+273:                 avatar_url TEXT,
+274:                 name_changed_at TEXT,
+275:                 created_at TEXT NOT NULL
+276:             )
+277:         """)
+278:         db.execute("""
+279:             CREATE TABLE IF NOT EXISTS follows (
+---
+280:                 follower TEXT NOT NULL,
+281:                 following TEXT NOT NULL,
+282:                 created_at TEXT NOT NULL,
+283:                 PRIMARY KEY (follower, following),
+284:                 CHECK (follower <> following)
+285:             )
+286:         """)
+---
+306:         now = datetime.now(timezone.utc).isoformat()
+307:         db.execute(
+308:             """INSERT OR IGNORE INTO profiles
+309:                (username, display_name, bio, avatar_url, name_changed_at, created_at)
+310:                VALUES (?, ?, '', NULL, NULL, ?)""",
+311:             (username, username, now),
+312:         )
+313:         row = db.execute(
+---
+456:         profile_json(db, username)
+457:         profile_json(db, viewer)
+458:         db.execute(
+459:             "INSERT OR IGNORE INTO follows (follower, following, created_at) VALUES (?, ?, ?)",
+460:             (viewer, username, now),
+461:         )
+462:         result = profile_json(db, username)
+463:     return jsonify({"ok": True, "profile": result})
+---
+479:     username = username.strip().lstrip("@")
+480:     with get_db() as db:
+481:         rows = db.execute(
+482:             "SELECT follower FROM follows WHERE following=? ORDER BY created_at DESC",
+483:             (username,),
+484:         ).fetchall()
+485:     return jsonify({"users": [r["follower"] for r in rows]})
+486: 
+---
+490:     username = username.strip().lstrip("@")
+491:     with get_db() as db:
+492:         rows = db.execute(
+493:             "SELECT following FROM follows WHERE follower=? ORDER BY created_at DESC",
+494:             (username,),
+495:         ).fetchall()
+496:     return jsonify({"users": [r["following"] for r in rows]})
+497: 
+---
+596:             liked = False
+597:         else:
+598:             db.execute(
+599:                 "INSERT INTO post_likes (content_id, username, created_at) VALUES (?, ?, ?)",
+600:                 (content_id, username, now),
+601:             )
+602:             liked = True
+603: 
+---
+620:             return jsonify({"error": "Post not found"}), 404
+621: 
+622:         rows = db.execute(
+623:             """SELECT id, username, text, created_at
+624:                FROM post_comments WHERE content_id=?
+625:                ORDER BY id ASC""",
+626:             (content_id,),
+627:         ).fetchall()
+---
+633:                 "id": row["id"],
+634:                 "username": row["username"],
+635:                 "text": row["text"],
+636:                 "createdAt": row["created_at"],
+637:             }
+638:             for row in rows
+639:         ],
+640:     })
+---
+663: 
+664:         cursor = db.execute(
+665:             """INSERT INTO post_comments
+666:                (content_id, username, text, created_at)
+667:                VALUES (?, ?, ?, ?)""",
+668:             (content_id, username, text, now),
+669:         )
+670:         row = db.execute(
+---
+671:             "SELECT id, username, text, created_at FROM post_comments WHERE id=?",
+672:             (cursor.lastrowid,),
+673:         ).fetchone()
+674: 
+675:     return jsonify({
+---
+678:             "id": row["id"],
+679:             "username": row["username"],
+680:             "text": row["text"],
+681:             "createdAt": row["created_at"],
+682:         },
+683:     }), 201
+684: 
+685: 
+---
+698:             CREATE TABLE IF NOT EXISTS users (
+699:                 username TEXT PRIMARY KEY COLLATE NOCASE,
+700:                 password_hash TEXT NOT NULL,
+701:                 created_at TEXT NOT NULL,
+702:                 phone_number TEXT
+703:             )
+704:         """)
+705: 
+---
+721:             CREATE TABLE IF NOT EXISTS auth_sessions (
+722:                 token_hash TEXT PRIMARY KEY,
+723:                 username TEXT NOT NULL,
+724:                 created_at TEXT NOT NULL,
+725:                 expires_at TEXT NOT NULL
+726:             )
+727:         """)
+728: 
+---
+832:                 return jsonify({"error": "यह username पहले से इस्तेमाल हो रहा है।"}), 409
+833: 
+834:             db.execute(
+835:                 "INSERT INTO users(username,password_hash,created_at,phone_number,email) VALUES(?,?,?,?,?)",
+836:                 (username, generate_password_hash(password), now.isoformat(), phone_number, email)
+837:             )
+838:             db.execute(
+839:                 "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+---
+840:                 (digest, username, now.isoformat(), expires)
+841:             )
+842:             profile_json(db, username)
+843:             db.execute(
+---
+872:         digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+873:         expires = (now + timedelta(days=30)).isoformat()
+874:         db.execute(
+875:             "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+876:             (digest, row["username"], now.isoformat(), expires)
+877:         )
+878: 
+879:     return jsonify({"ok": True, "username": row["username"], "token": token})
+---
+
+================== package.json ==================

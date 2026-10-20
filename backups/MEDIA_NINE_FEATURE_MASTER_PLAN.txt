@@ -1,0 +1,55 @@
+SOCIALAPP MEDIA MASTER PLAN
+
+Preserve existing UI, navigation, authentication, and current account data.
+
+1. Multi-image/video posts:
+   - Extend content schema with backward-compatible media_items JSON.
+   - Keep media_url/media_type as legacy fields.
+   - Upload selected assets and associate them with one content record.
+   - Render a swipeable media gallery in feed and profile.
+
+2. Pinch zoom:
+   - Add a maintained gesture/pinch library compatible with the installed Expo SDK.
+   - Use pinch zoom for photos and a supported video zoom approach.
+   - Keep the existing viewer layout.
+
+3. Vertical reels:
+   - Replace the reels feed container with a vertically snapping list.
+   - Pause off-screen videos and load more items at the end.
+   - Add pull-to-refresh using the existing refreshContent function.
+
+4. Video editor:
+   - Add a pre-post preview.
+   - Implement trim and volume controls using compatible media tooling.
+   - Provide text/emoji overlays with drag and resize controls.
+   - Do not claim native video rendering unless an actual rendering pipeline is installed.
+
+5. Story editing:
+   - Support image/video preview and overlays.
+   - Preserve story grouping and sequential navigation.
+   - Enforce the intended 20-minute duration.
+
+6. Upload limits:
+   - Posts: intended maximum 1 GB and 2 hours.
+   - Stories and reels: intended maximum 500 MB and 20 minutes.
+   - Enforce limits in client and server, but verify hosting/proxy limits.
+
+7. Resumable upload:
+   - Add authenticated upload-session creation, chunk transfer, status, completion,
+     validation, expiry, cleanup, and ownership checks.
+   - Use temporary files and atomic finalization.
+   - Never bypass authentication.
+
+8. Quality:
+   - Avoid unnecessary recompression.
+   - Preserve original media when feasible and validate MIME/type and file size.
+   - Do not promise quality above the source.
+
+9. Final verification:
+   - Check migration compatibility and Python/JavaScript syntax.
+   - Run Expo bundling and upload tests for success, failure, and interrupted uploads.
+   - Keep backups and roll back on failure.
+
+This plan intentionally does not overwrite source files: implementing all nine features
+requires coordinated changes across the current frontend, database, upload API, and
+dependencies. Blind text replacement would risk corrupting the app.

@@ -1,0 +1,438 @@
+SOCIALAPP ALL-FEATURE AUTH CHECK
+========================================================================
+
+FILE: App.js
+7: loadContent, uploadContent, checkServer,
+8: loadProfile, updateProfile, uploadProfileAvatar,
+9: deleteProfileAvatar, loadProfileConnections,
+10: loadPrivacySettings, savePrivacySettings, changeAccountPassword,
+11: togglePostLike, loadPostComments, createPostComment,
+12: registerAccount, loginAccount, getAuthSession,
+105: const [commentsOpen, setCommentsOpen] = React.useState(false);
+106: const [comments, setComments] = React.useState([]);
+107: const [commentDraft, setCommentDraft] = React.useState('');
+127: Alert.alert('Like failed', error.message || 'Could not update like.');
+133: const openComments = async () => {
+134: setCommentsOpen(true);
+136: setComments([]);
+141: const result = await loadPostComments(post.id);
+142: setComments(result);
+144: Alert.alert('Comments', error.message || 'Could not load comments.');
+148: const submitComment = async () => {
+149: const text = commentDraft.trim();
+153: Alert.alert('Comments', 'Save this post to the server before commenting.');
+159: const comment = await createPostComment(post.id, text);
+160: setComments(previous => [...previous, comment]);
+161: setCommentDraft('');
+163: Alert.alert('Comment failed', error.message || 'Could not post comment.');
+202: <TouchableOpacity onPress={openComments}>
+220: <TouchableOpacity onPress={openComments}>
+221: <Text style={styles.comments}>View all comments</Text>
+226: visible={commentsOpen}
+229: onRequestClose={() => setCommentsOpen(false)}
+234: <Text style={{ fontSize: 18, fontWeight: '600', color: '#222222' }}>Comments</Text>
+235: <TouchableOpacity onPress={() => setCommentsOpen(false)}>
+241: {comments.length === 0 ? (
+242: <Text style={{ color: '#777777', paddingVertical: 12 }}>No comments yet.</Text>
+243: ) : comments.map(comment => (
+244: <View key={String(comment.id)} style={{ paddingVertical: 8 }}>
+246: <Text style={{ fontWeight: '600' }}>{comment.username || 'you'} </Text>
+247: {comment.text}
+255: value={commentDraft}
+256: onChangeText={setCommentDraft}
+257: placeholder="Write a comment..."
+262: <TouchableOpacity onPress={submitComment} disabled={interactionBusy || !commentDraft.trim()} style={{ padding: 10 }}>
+305: getAuthSession()
+371: // SOCIALAPP_PRIVACY_SCREEN_V1
+372: const [privacyOpen, setPrivacyOpen] = React.useState(false);
+373: const [privacyBusy, setPrivacyBusy] = React.useState(false);
+374: const [privacySettings, setPrivacySettings] = React.useState({
+377: allowMessages: true,
+388: const openPrivacySettings = async () => {
+389: setPrivacyBusy(true);
+391: const settings = await loadPrivacySettings('you');
+392: setPrivacySettings({
+393: isPrivate: settings.isPrivate,
+394: showActivity: settings.showActivity,
+395: allowMessages: settings.allowMessages,
+397: setPrivacyOpen(true);
+399: Alert.alert('Privacy settings unavailable', e.message || 'Check the server connection.');
+401: setPrivacyBusy(false);
+405: const persistPrivacySettings = async () => {
+406: setPrivacyBusy(true);
+408: const settings = await savePrivacySettings(privacySettings, 'you');
+409: setPrivacySettings(settings);
+410: setPrivacyOpen(false);
+411: Alert.alert('Saved', 'Privacy settings have been saved.');
+413: Alert.alert('Save failed', e.message || 'Check the server connection.');
+415: setPrivacyBusy(false);
+422: const result = await loadProfile(authSession.username, authSession.username);
+430: Alert.alert('प्रोफ़ाइल लोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+438: const saveProfile = async () => {
+455: Alert.alert('सेव नहीं हुआ', e.message || 'सर्वर कनेक्शन जाँचें।');
+477: await uploadProfileAvatar(result.assets[0], 'you');
+481: Alert.alert('फ़ोटो अपलोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+499: Alert.alert('फ़ोटो नहीं हटी', e.message || 'फिर से कोशिश करें।');
+510: const result = await loadProfileConnections('you', type);
+513: Alert.alert(type === 'followers' ? 'Followers' : 'Following',
+516: Alert.alert('सूची लोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+525: loadContent('posts'), loadContent('stories'), loadContent('reels')
+554: const item = await uploadContent(kind, result.assets[0]);
+571: Alert.alert('अपलोड विफल', e.message || 'सर्वर कनेक्शन जाँचें।');
+578: const createStory = () => chooseMedia('stories');
+585: { text: 'स्टोरी', onPress: createStory },
+647: Alert.alert('Authentication failed', error.message || 'Please check the server connection.');
+723: Alert.alert('Password reset', error.message || 'Could not complete the password reset.');
+1020: else createStory();
+1077: <TouchableOpacity onPress={() => showProfileConnections('followers')} style={{ alignItems: 'center' }}>
+1078: <Text style={{ color: '#222', fontWeight: '700' }}>{profile.followersCount ?? 0}</Text>
+1079: <Text style={{ color: '#777', fontSize: 12 }}>Followers</Text>
+1081: <TouchableOpacity onPress={() => showProfileConnections('following')} style={{ alignItems: 'center' }}>
+1082: <Text style={{ color: '#222', fontWeight: '700' }}>{profile.followingCount ?? 0}</Text>
+1083: <Text style={{ color: '#777', fontSize: 12 }}>Following</Text>
+1110: <TouchableOpacity onPress={saveProfile} disabled={profileBusy}
+1142: {/* SOCIALAPP_PROFILE_SETTINGS_V1 */}
+1145: Profile Settings
+1149: { title: 'Privacy', subtitle: 'Control your privacy' },
+1150: { title: 'Notifications', subtitle: 'Notification preferences' },
+1151: { title: 'Account Settings', subtitle: 'Manage your account' },
+1156: if (item.title === 'Privacy') {
+1157: openPrivacySettings();
+1202: { name: 'Search', icon: '⌕', color: '#9274CC' },
+1311: {/* SOCIALAPP_PRIVACY_SCREEN_V1 */}
+1313: visible={privacyOpen}
+1316: onRequestClose={() => setPrivacyOpen(false)}
+1321: Privacy Settings
+1326: { key: 'allowMessages', title: 'Allow Messages', subtitle: 'Allow other users to message you' },
+1334: value={privacySettings[item.key]}
+1335: onValueChange={value => setPrivacySettings(current => ({ ...current, [item.key]: value }))}
+1336: disabled={privacyBusy}
+1342: onPress={() => setPrivacyOpen(false)}
+1343: disabled={privacyBusy}
+1349: onPress={persistPrivacySettings}
+1350: disabled={privacyBusy}
+1354: {privacyBusy ? 'Saving...' : 'Save'}
+1435: Alert.alert('Success', result.message || 'Password changed successfully.');
+1437: Alert.alert('Password change failed', e.message || 'Please try again.');
+1515: comments: { marginHorizontal: 13, marginTop: 5, color: '#888888', fontSize: 12 },
+
+FILE: api.js
+3: const API_BASE_URL = 'http://127.0.0.1:5000';
+8: export async function saveAuthSession(token, username) {
+13: export async function clearAuthSession() {
+18: export async function getAuthSession() {
+26: const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+39: await saveAuthSession(data.token, data.username);
+44: const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+51: await saveAuthSession(data.token, data.username);
+57: await fetch(`${API_BASE_URL}/api/auth/logout`, { method: 'POST' });
+59: await clearAuthSession();
+66: if (!headers.has('Authorization')) {
+68: if (token) headers.set('Authorization', `Bearer ${token}`);
+70: return originalFetch(input, { ...init, headers });
+75: const response = await fetch(`${API_BASE_URL}/api/health`);
+82: export async function loadContent(type) {
+83: const response = await fetch(`${API_BASE_URL}/api/${type}`);
+93: ? `${API_BASE_URL}${item.mediaUrl}`
+99: export async function uploadContent(type, asset, caption = '') {
+120: const authSession = await getAuthSession();
+121: const result = await FileSystem.uploadAsync(
+122: `${API_BASE_URL}/api/${type}`,
+126: headers: authSession ? { Authorization: `Bearer ${authSession.token}` } : {},
+157: uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
+164: export async function loadProfile(username = 'you', viewer = 'you') {
+165: const response = await fetch(
+166: `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}?viewer=${encodeURIComponent(viewer)}`
+171: data.profile.avatarUrl = `${API_BASE_URL}${data.profile.avatarUrl}`;
+177: const response = await fetch(
+178: `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}`,
+190: export async function uploadProfileAvatar(asset, username = 'you') {
+198: const authSession = await getAuthSession();
+200: throw new Error('कृपया पहले लॉगिन करें।');
+203: const result = await FileSystem.uploadAsync(
+204: `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/avatar`,
+208: headers: { Authorization: `Bearer ${authSession.token}` },
+226: const response = await fetch(
+227: `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/avatar`,
+235: export async function followProfile(username, viewer = 'you') {
+236: const response = await fetch(
+237: `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow`,
+245: if (!response.ok) throw new Error(data.error || 'Follow नहीं हो सका।');
+249: export async function unfollowProfile(username, viewer = 'you') {
+250: const response = await fetch(
+251: `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow?viewer=${encodeURIComponent(viewer)}`,
+255: if (!response.ok) throw new Error(data.error || 'Unfollow नहीं हो सका।');
+259: export async function loadProfileConnections(username, type = 'followers') {
+260: if (!['followers', 'following'].includes(type)) {
+263: const response = await fetch(
+264: `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/${type}`
+271: export async function loadPrivacySettings(username = 'you') {
+272: const response = await fetch(
+273: `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`
+277: throw new Error(data.error || 'Could not load privacy settings.');
+279: return data.settings;
+282: export async function savePrivacySettings(changes, username = 'you') {
+283: const response = await fetch(
+284: `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`,
+293: throw new Error(data.error || 'Could not save privacy settings.');
+295: return data.settings;
+300: const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/request`, {
+313: const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/verify`, {
+326: const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/reset`, {
+344: const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+362: const response = await fetch(
+363: `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/like`,
+377: export async function loadPostComments(postId) {
+378: const response = await fetch(
+379: `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`
+383: throw new Error(data.error || 'Could not load comments.');
+385: return data.comments || [];
+388: export async function createPostComment(postId, text, username = 'you') {
+389: const response = await fetch(
+390: `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`,
+399: throw new Error(data.error || 'Could not create comment.');
+401: return data.comment;
+
+FILE: update_socialapp.py
+19: import { loadContent, uploadContent, checkServer } from './api';
+116: <TouchableOpacity><Text style={styles.comments}>View all comments</Text></TouchableOpacity>
+134: loadContent('posts'), loadContent('stories'), loadContent('reels')
+163: const item = await uploadContent(kind, result.assets[0]);
+180: Alert.alert('अपलोड विफल', e.message || 'सर्वर कनेक्शन जाँचें।');
+187: const createStory = () => chooseMedia('stories');
+194: { text: 'स्टोरी', onPress: createStory },
+249: <Story item={{ name: 'Your story', color: '#DDE7F5', own: true }} onPress={createStory} />
+270: { name: 'Search', icon: '⌕', color: '#9274CC' },
+
+FILE: server/app.py
+74: CREATE TABLE IF NOT EXISTS post_comments (
+84: CREATE INDEX IF NOT EXISTS idx_post_comments_content
+85: ON post_comments(content_id, id DESC)
+105: response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+254: CREATE TABLE IF NOT EXISTS follows (
+255: follower TEXT NOT NULL,
+256: following TEXT NOT NULL,
+258: PRIMARY KEY (follower, following),
+259: CHECK (follower <> following)
+266: CREATE TABLE IF NOT EXISTS user_settings (
+270: allow_messages INTEGER NOT NULL DEFAULT 1,
+296: followers = db.execute(
+297: "SELECT COUNT(*) FROM follows WHERE following=?", (username,)
+299: following = db.execute(
+300: "SELECT COUNT(*) FROM follows WHERE follower=?", (username,)
+308: "followersCount": followers,
+309: "followingCount": following,
+321: result["isFollowing"] = bool(db.execute(
+322: "SELECT 1 FROM follows WHERE follower=? AND following=?",
+422: @app.post("/api/profile/<username>/follow")
+423: def follow_profile(username):
+428: return jsonify({"error": "You cannot follow yourself"}), 400
+434: "INSERT OR IGNORE INTO follows (follower, following, created_at) VALUES (?, ?, ?)",
+441: @app.delete("/api/profile/<username>/follow")
+442: def unfollow_profile(username):
+446: db.execute("DELETE FROM follows WHERE follower=? AND following=?",
+452: @app.get("/api/profile/<username>/followers")
+453: def list_followers(username):
+457: "SELECT follower FROM follows WHERE following=? ORDER BY created_at DESC",
+460: return jsonify({"users": [r["follower"] for r in rows]})
+463: @app.get("/api/profile/<username>/following")
+464: def list_following(username):
+468: "SELECT following FROM follows WHERE follower=? ORDER BY created_at DESC",
+471: return jsonify({"users": [r["following"] for r in rows]})
+474: # SOCIALAPP_PRIVACY_SETTINGS_V1
+475: @app.get("/api/profile/<username>/settings")
+476: def get_user_settings(username):
+484: """INSERT OR IGNORE INTO user_settings
+489: "SELECT is_private, show_activity, allow_messages FROM user_settings WHERE username=?",
+494: "settings": {
+497: "allowMessages": bool(row["allow_messages"]),
+502: @app.patch("/api/profile/<username>/settings")
+503: def update_user_settings(username):
+512: "allowMessages": "allow_messages",
+516: return jsonify({"error": "Provide valid settings"}), 400
+524: "INSERT OR IGNORE INTO user_settings (username, updated_at) VALUES (?, ?)",
+529: f"UPDATE user_settings SET {fields[key]}=?, updated_at=? WHERE username=?",
+533: "SELECT is_private, show_activity, allow_messages FROM user_settings WHERE username=?",
+539: "settings": {
+542: "allowMessages": bool(row["allow_messages"]),
+587: @app.get("/api/posts/<int:content_id>/comments")
+588: def list_post_comments(content_id):
+599: FROM post_comments WHERE content_id=?
+606: "comments": [
+618: @app.post("/api/posts/<int:content_id>/comments")
+619: def create_post_comment(content_id):
+625: return jsonify({"error": "Comment cannot be empty"}), 400
+627: return jsonify({"error": "Comment is too long"}), 400
+640: """INSERT INTO post_comments
+646: "SELECT id, username, text, created_at FROM post_comments WHERE id=?",
+652: "comment": {
+696: CREATE TABLE IF NOT EXISTS auth_sessions (
+717: def _auth_user():
+718: header = request.headers.get("Authorization", "")
+719: if not header.startswith("Bearer "):
+728: SELECT s.username FROM auth_sessions s
+734: @app.before_request
+735: def enforce_authenticated_mutations():
+751: return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+814: "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+823: "INSERT OR IGNORE INTO user_settings(username,updated_at) VALUES(?,?)",
+850: "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
+865: header = request.headers.get("Authorization", "")
+866: token = header[7:].strip() if header.startswith("Bearer ") else ""
+870: db.execute("DELETE FROM auth_sessions WHERE token_hash=?", (digest,))
+909: header = request.headers.get("Authorization", "")
+910: token = header[7:].strip() if header.startswith("Bearer ") else ""
+913: "DELETE FROM auth_sessions WHERE username=? AND token_hash!=?",
+917: return jsonify({"ok": True, "message": "Password changed successfully."})
+942: "Authorization": f"Bearer {api_key}",
+973: "message": "If an account uses that email, a reset code will be sent."
+986: "message": "If an account uses that email, a reset code will be sent."
+1021: "message": "If an account uses that email, a reset code will be sent."
+1120: "DELETE FROM auth_sessions WHERE username=?", (user["username"],)
+1126: return jsonify({"ok": True, "message": "Password reset successfully. Please log in again."}), 200
+
+FILE: profile_feature_backup_20261016_201259/app.py
+74: response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+
+FILE: profile_feature_backup_20261016_201259/App.js
+6: import { loadContent, uploadContent, checkServer } from './api';
+116: <TouchableOpacity><Text style={styles.comments}>View all comments</Text></TouchableOpacity>
+134: loadContent('posts'), loadContent('stories'), loadContent('reels')
+163: const item = await uploadContent(kind, result.assets[0]);
+180: Alert.alert('अपलोड विफल', e.message || 'सर्वर कनेक्शन जाँचें।');
+187: const createStory = () => chooseMedia('stories');
+194: { text: 'स्टोरी', onPress: createStory },
+249: <Story item={{ name: 'Your story', color: '#DDE7F5', own: true }} onPress={createStory} />
+270: { name: 'Search', icon: '⌕', color: '#9274CC' },
+342: comments: { marginHorizontal: 13, marginTop: 5, color: '#888888', fontSize: 12 },
+
+FILE: profile_feature_backup_20261016_201259/api.js
+2: const API_BASE_URL = 'http://192.0.0.8:5000';
+5: const response = await fetch(`${API_BASE_URL}/api/health`);
+12: export async function loadContent(type) {
+13: const response = await fetch(`${API_BASE_URL}/api/${type}`);
+23: ? `${API_BASE_URL}${item.mediaUrl}`
+30: export async function uploadContent(type, asset, caption = '') {
+51: const result = await FileSystem.uploadAsync(
+52: `${API_BASE_URL}/api/${type}`,
+85: uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
+
+FILE: server/backups/app_before_auth_20261017_132823.py
+68: CREATE TABLE IF NOT EXISTS post_comments (
+78: CREATE INDEX IF NOT EXISTS idx_post_comments_content
+79: ON post_comments(content_id, id DESC)
+99: response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+248: CREATE TABLE IF NOT EXISTS follows (
+249: follower TEXT NOT NULL,
+250: following TEXT NOT NULL,
+252: PRIMARY KEY (follower, following),
+253: CHECK (follower <> following)
+260: CREATE TABLE IF NOT EXISTS user_settings (
+264: allow_messages INTEGER NOT NULL DEFAULT 1,
+290: followers = db.execute(
+291: "SELECT COUNT(*) FROM follows WHERE following=?", (username,)
+293: following = db.execute(
+294: "SELECT COUNT(*) FROM follows WHERE follower=?", (username,)
+302: "followersCount": followers,
+303: "followingCount": following,
+315: result["isFollowing"] = bool(db.execute(
+316: "SELECT 1 FROM follows WHERE follower=? AND following=?",
+416: @app.post("/api/profile/<username>/follow")
+417: def follow_profile(username):
+422: return jsonify({"error": "You cannot follow yourself"}), 400
+428: "INSERT OR IGNORE INTO follows (follower, following, created_at) VALUES (?, ?, ?)",
+435: @app.delete("/api/profile/<username>/follow")
+436: def unfollow_profile(username):
+440: db.execute("DELETE FROM follows WHERE follower=? AND following=?",
+446: @app.get("/api/profile/<username>/followers")
+447: def list_followers(username):
+451: "SELECT follower FROM follows WHERE following=? ORDER BY created_at DESC",
+454: return jsonify({"users": [r["follower"] for r in rows]})
+457: @app.get("/api/profile/<username>/following")
+458: def list_following(username):
+462: "SELECT following FROM follows WHERE follower=? ORDER BY created_at DESC",
+465: return jsonify({"users": [r["following"] for r in rows]})
+468: # SOCIALAPP_PRIVACY_SETTINGS_V1
+469: @app.get("/api/profile/<username>/settings")
+470: def get_user_settings(username):
+478: """INSERT OR IGNORE INTO user_settings
+483: "SELECT is_private, show_activity, allow_messages FROM user_settings WHERE username=?",
+488: "settings": {
+491: "allowMessages": bool(row["allow_messages"]),
+496: @app.patch("/api/profile/<username>/settings")
+497: def update_user_settings(username):
+506: "allowMessages": "allow_messages",
+510: return jsonify({"error": "Provide valid settings"}), 400
+518: "INSERT OR IGNORE INTO user_settings (username, updated_at) VALUES (?, ?)",
+523: f"UPDATE user_settings SET {fields[key]}=?, updated_at=? WHERE username=?",
+527: "SELECT is_private, show_activity, allow_messages FROM user_settings WHERE username=?",
+533: "settings": {
+536: "allowMessages": bool(row["allow_messages"]),
+581: @app.get("/api/posts/<int:content_id>/comments")
+582: def list_post_comments(content_id):
+593: FROM post_comments WHERE content_id=?
+600: "comments": [
+612: @app.post("/api/posts/<int:content_id>/comments")
+613: def create_post_comment(content_id):
+619: return jsonify({"error": "Comment cannot be empty"}), 400
+621: return jsonify({"error": "Comment is too long"}), 400
+634: """INSERT INTO post_comments
+640: "SELECT id, username, text, created_at FROM post_comments WHERE id=?",
+646: "comment": {
+
+FILE: dist/_expo/static/js/android/index-87f0c20b94d2d68cad8fc01cabedc2e8.js
+3: !(function(e){var n=(function(){function e(e,n){return e}function n(e){var n={};return e.forEach(function(e,r){n[e]=!0}),n}function r(e,r,u){if(e.formatValueCalls++,e.formatValueCalls>200)return`[TOO BIG formatValueCalls ${e.formatValueCalls} exceeded limit of
+15: function r(e,r){if(!(e instanceof r))throw new TypeError("Cannot call a class as a function")}function t(e,r){for(var t=0;t<r.length;t++){var o=r[t];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,n(o.key),o
+20: __d(function(g,r,i,a,m,e,d){"use strict";r(d[0]),r(d[1]);var l=r(d[2]),t=r(d[3]),o=r(d[4]);if((0,o.installGlobal)('TextDecoder',()=>r(d[5]).TextDecoder),(0,o.installGlobal)('TextDecoderStream',()=>r(d[6]).TextDecoderStream),(0,o.installGlobal)('TextEncoderStre
+34: __d(function(g,r,i,a,m,_e,_d){"use strict";function e(e){return e&&e.__esModule?e:{default:e}}Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return O}}),_e.getChildNodes=E;var t=(function(e){i
+35: __d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"jsOnlyTestFlag",{enumerable:!0,get:function(){return n}}),Object.defineProperty(e,"animatedShouldDebounceQueueFlush",{enumerable:!0,get:function(
+39: __d(function(g,r,i,_a,m,_e,_d){'use strict';m.exports=function(e,n,o,t,a,f,s,d){if(!e){var u;if(void 0===n)u=new Error("Minified exception occurred; use the non-minified dev environment for the full error message and additional helpful warnings.");else{var c=[
+45: __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return f}}),_e.createStringifySafeWithLimits=u;var t,e=r(d[0]),n=(t=e)&&t.__esModule?t:{default:t};func
+58: __d(function(g,r,i,a,m,_e,d){'use strict';Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return p}}),Object.defineProperty(_e,"SyntheticError",{enumerable:!0,get:function(){return e}});class e
+60: __d(function(g,r,_i,a,m,e,d){'use strict';Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return i}});var t=/^ {4}at (.+?)(?: \((native)\)?| \((address at )?(.*?):(\d+):(\d+)\))$/,n=/^ {4}... ski
+63: __d(function(g,r,i,a,m,_e,_d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return n}});var e=(function(e){if(e&&e.__esModule)return e;var t={};return e&&Object.keys(e).forEach(f
+78: "use strict";var t=Symbol.for("react.transitional.element"),n=Symbol.for("react.portal"),o=Symbol.for("react.fragment"),u=Symbol.for("react.strict_mode"),c=Symbol.for("react.profiler"),i=Symbol.for("react.consumer"),s=Symbol.for("react.context"),f=Symbol.for("
+133: __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return l}});var e,t=r(d[0]),o=(e=t)&&e.__esModule?e:{default:e},n=r(d[1]),l={directEventTypes:{topAcces
+161: __d(function(e,n,t,l,r,a,i){"use strict";n(i[0]);var u,o,s=n(i[1]),c=n(i[2]),d=n(i[3]),f=Array.isArray,p=c.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE,h=Object.assign;function m(e){if(void 0===u)try{throw Error()}catch(e){var n=e.stack.trim
+174: "use strict";function n(n,t){var u=n.length;n.push(t);e:for(;0<u;){var a=u-1>>>1,o=n[a];if(!(0<l(o,t)))break e;n[a]=t,n[u]=o,u=a}}function t(n){return 0===n.length?null:n[0]}function u(n){if(0===n.length)return null;var t=n[0],u=n.pop();if(u!==t){n[0]=u;e:for(
+178: __d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return t}});var E=r(d[0]),R={IndexSizeError:1,HierarchyRequestError:3,WrongDocumentError:4,InvalidCharacte
+179: __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return b}});var e,t=r(d[0]),n=(e=t)&&e.__esModule?e:{default:e},o=r(d[1]),f=new Set(['Error','EvalError
+205: __d(function(g,r,i,a,m,_e,d){'use strict';if(!0!==g.RN$useAlwaysAvailableJSErrorHandling){var e=r(d[0]).default,l=r(d[1]).default;if(e.installConsoleErrorReporter(),!g.__fbDisableExceptionsManager){r(d[2]).default.setGlobalHandler((t,o)=>{try{e.handleException
+209: __d(function(g,r,i,a,m,e,d){'use strict';var{polyfillGlobal:t}=r(d[0]);t('XMLHttpRequest',()=>r(d[1]).default),t('FormData',()=>r(d[2]).default),t('fetch',()=>r(d[3]).fetch),t('Headers',()=>r(d[3]).Headers),t('Request',()=>r(d[3]).Request),t('Response',()=>r(d
+227: __d(function(_g,r,_i,a,m,_e,d){var t,e;t=this,e=function(t){'use strict';var e='undefined'!=typeof globalThis&&globalThis||'undefined'!=typeof self&&self||void 0!==_g&&_g||{},o='URLSearchParams'in e,n='Symbol'in e&&'iterator'in Symbol,i='FileReader'in e&&'Blob
+228: __d(function(g,r,i,a,m,_e,d){"use strict";function e(e){return e&&e.__esModule?e:{default:e}}Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return v}});var t=e(r(d[0])),s=r(d[1]),n=e(r(d[2])),
+237: __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"URLSearchParams",{enumerable:!0,get:function(){return h.URLSearchParams}}),Object.defineProperty(_e,"URL",{enumerable:!0,get:function(){return
+238: __d(function(g,r,i,_a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"URLSearchParams",{enumerable:!0,get:function(){return a}});class a{_searchParams=new Map;get size(){return this._searchParams.size}constructor(a
+248: __d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return t}}),r(d[0]),r(d[1]);var t=class{static alert(t,s,n,o){var l=r(d[2]).default;if(l){var c=l.getConst
+258: __d(function(g,r,i,a,m,e,d){'use strict';g.__fetchSegment=function(t,n,c){r(d[0]).default.fetchSegment(t,n,t=>{if(t){var n=new Error(t.message);return n.code=t.code,void c(n)}c(null)})}},216,[217]);
+310: __d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"URL",{enumerable:!0,get:function(){return o.URL}}),Object.defineProperty(e,"URLSearchParams",{enumerable:!0,get:function(){return o.URLSearchPara
+311: __d(function(g,_r14,_i4,_a2,m,_e1,d){"use strict";function r(r){return"string"==typeof r?r:String(r)}function e(r,e){if("object"!=typeof r||null==r){throw new TypeError("The provided value is not an object")}return r}function t(r){if(null!=r&&"object"==typeof 
+316: __d(function(g,r,i,a,m,e,d){'use strict';var{VOID:t,PRIMITIVE:n,ARRAY:s,OBJECT:c,DATE:u,REGEXP:o,MAP:f,SET:v,ERROR:w,BIGINT:l}=r(d[0]),{defineProperty:b}=Object,E='object'==typeof self?self:globalThis,I=(t,n)=>{switch(t){case'Function':case'SharedWorker':case'
+318: __d(function(g,r,i,a,m,e,d){'use strict';var{VOID:t,PRIMITIVE:n,ARRAY:s,OBJECT:u,DATE:c,REGEXP:o,MAP:f,SET:v,ERROR:l,BIGINT:b}=r(d[0]),h='',{toString:p}={},{keys:w,is:y}=Object,E=t=>{var b=typeof t;if('object'!==b||!t)return[n,b];var w=p.call(t).slice(8,-1);sw
+320: __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),_e.fetch=async function(u,h){var v=s(u),b=v?u.url:u,y=l(h)??(v?l(u):null),f=h?.signal??(v?u.signal:void 0),w=h?.redirect??(v?u.redirect:void 0),E=h?.method??(v?u.method
+330: __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),_e.requireNativeModule=function(e){var o=s(e);if(!o)throw new Error(`Cannot find native module '${e}'`);return o},_e.requireOptionalNativeModule=s;var e,o=r(d[0]),u=r(d
+331: __d(function(g,r,i,a,m,e,d){'use strict';var t=r(d[0]).default;r(d[1]);m.exports={get ActivityIndicator(){return r(d[2]).default},get Button(){return r(d[3]).default},get DrawerLayoutAndroid(){return r(d[4]).default},get EventEmitter(){return r(d[5]).default},
+400: __d(function(g,r,_i2,a,m,_e,_d){"use strict";function e(e){return e&&e.__esModule?e:{default:e}}function t(e){if(e&&e.__esModule)return e;var t={};return e&&Object.keys(e).forEach(function(s){var i=Object.getOwnPropertyDescriptor(e,s);Object.defineProperty(t,s
+491: __d(function(g,r,i,a,m,_e,_d){"use strict";function e(e){return e&&e.__esModule?e:{default:e}}Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return A}});var t,n,l=e(r(_d[0])),u=e(r(_d[1])),o=e
+522: __d(function(g,r,i,a,m,e,d){'use strict';Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return n}});var n=function(...n){if(1===n.length&&n[0]instanceof Error){var o=n[0];console.error('Error: "
+533: __d(function(g,r,i,a,m,_e,_d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return e}});var e=(function(e){if(e&&e.__esModule)return e;var t={};return e&&Object.keys(e).forEach(f
+536: __d(function(g,r,i,a,m,_e,d){"use strict";function e(e){return e&&e.__esModule?e:{default:e}}Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return f}});var t=e(r(d[0]));r(d[1]);var n=e(r(d[2])
+545: __d(function(g,r,i,a,m,_e,d){"use strict";function e(e){return e&&e.__esModule?e:{default:e}}Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return _}});var E=e(r(d[0])),s=e(r(d[1])),n=e(r(d[2]
+548: __d(function(g,r,i,a,m,_e,d){"use strict";function t(t){return t&&t.__esModule?t:{default:t}}Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return u}});var e=t(r(d[0]));r(d[1]);var o=t(r(d[2])
+550: __d(function(g,r,i,a,m,_e,_d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return e}});var e=(function(e){if(e&&e.__esModule)return e;var t={};return e&&Object.keys(e).forEach(f
+553: __d(function(g,r,i,a,m,e,d){'use strict';Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return t}});var t={get:t=>(console.warn('Settings is not yet supported on this platform.'),null),set(t){co
+554: __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return o}}),r(d[0]);var e,t=r(d[1]),s=(e=t)&&e.__esModule?e:{default:e},l=(r(d[2]).default,r(d[3]).defa
+593: __d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"FetchError",{enumerable:!0,get:function(){return t}});class t extends Error{constructor(t,{cause:s,stack:c}={}){super(`fetch failed: ${t}`),this.
+594: __d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"FetchResponse",{enumerable:!0,get:function(){return l}});var t=r(d[0]),s=r(d[1]),o=t.ExpoFetchModule.NativeResponse,n=Symbol('FetchResponse.state
+596: __d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),e.convertReadableStreamToUint8ArrayAsync=o,e.normalizeBodyInitAsync=async function(u){if(null==u)return{body:null};if('string'==typeof u){return{body:(new TextEncoder).en
+605: __d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),e.fetchThenEvalAsync=fetchThenEvalAsync,r(d[0]);var _fetchAsync=r(d[1]);function fetchThenEvalAsync(url){return(0,_fetchAsync.fetchAsync)(url).then(({body:body,status:sta
+606: __d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"MetroServerError",{enumerable:!0,get:function(){return t}});class t extends Error{code='METRO_SERVER_ERROR';constructor(t,o){for(var s in super(t
+611: __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),_e.selectAssetSource=function(e){var s=n.default.pickScale(e.scales,t.PixelRatio.get()),l=e.scales.findIndex(e=>e===s),u=e.fileHashes?.[l]??e.fileHashes?.[0]??e.hash,f=
+617: __d(function(g,r,i,a,m,e,d){"use strict";function t(t){var{pathname:s,searchParams:o}=new URL(t,'https://e');return n(s)}function n(t){return t.substring(t.lastIndexOf('/')+1)}Object.defineProperty(e,'__esModule',{value:!0}),e.getFilename=t,e.getFileExtension=
+626: __d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),e.createErrorHandler=function(n){return(t,u)=>{o?c(n,t,u):n(t,u)}},e.disableErrorHandling=function(){o=!1};var o=!0,n="If you're trying to use a module that is not suppor
+629: __d(function(g,_r,_i,a,m,_e,_d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"default",{enumerable:!0,get:function(){return f}});var e,t=_r(_d[0]),r=_r(_d[1]),o=(e=r)&&e.__esModule?e:{default:e},i=(function(e){if(e&&e
+644: __d(function(g,r,i,a,m,_e,_d){"use strict";function e(e){if(e&&e.__esModule)return e;var t={};return e&&Object.keys(e).forEach(function(o){var n=Object.getOwnPropertyDescriptor(e,o);Object.defineProperty(t,o,n.get?n:{enumerable:!0,get:function(){return e[o]}})
+646: __d(function(g,r,i,a,m,_e,d){"use strict";Object.defineProperty(_e,'__esModule',{value:!0}),Object.defineProperty(_e,"documentDirectory",{enumerable:!0,get:function(){return c}}),Object.defineProperty(_e,"cacheDirectory",{enumerable:!0,get:function(){return u}
+
+========================================================================
+Total matching lines: 415
