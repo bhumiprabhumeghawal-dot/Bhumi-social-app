@@ -128,6 +128,37 @@ def options_handler(unused):
     return "", 204
 
 
+
+@app.get("/api/app-version")
+def app_version():
+    return jsonify({
+        "version": os.environ.get("SOCIALAPP_LATEST_VERSION", "1.0.0"),
+        "download_url": request.host_url.rstrip("/") + "/download",
+        "force_update": os.environ.get("SOCIALAPP_FORCE_UPDATE", "false").lower() == "true",
+        "message": "A new version of SocialApp is available."
+    })
+
+
+@app.get("/download")
+def download_page():
+    apk_url = "https://github.com/bhumiprabhumeghawal-dot/Bhumi-social-app/releases/latest/download/SocialApp.apk"
+    html = (
+        '<!doctype html><html lang="en"><head>'
+        '<meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        '<title>Download SocialApp</title>'
+        '<style>body{font-family:Arial,sans-serif;max-width:520px;margin:60px auto;padding:24px;text-align:center;color:#222}'
+        'a{display:inline-block;background:#1685D9;color:white;padding:14px 24px;border-radius:10px;text-decoration:none;font-weight:bold}'
+        'p{line-height:1.6;color:#555}</style></head><body>'
+        '<h1>SocialApp</h1>'
+        '<p>Download the latest version of SocialApp for Android.</p>'
+        '<a href="' + apk_url + '">Download SocialApp APK</a>'
+        '<p>Only install APK files from a source you trust.</p>'
+        '</body></html>'
+    )
+    return html
+
+
 @app.get("/api/health")
 def health():
     return jsonify({
