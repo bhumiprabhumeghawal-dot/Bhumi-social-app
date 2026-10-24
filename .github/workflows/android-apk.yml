@@ -38,8 +38,10 @@ jobs:
 
       - name: Install Android NDK
         run: |
-          yes | "/data/data/com.termux/files/home/android-sdk/cmdline-tools/latest/bin/sdkmanager" --licenses || true
-          "/data/data/com.termux/files/home/android-sdk/cmdline-tools/latest/bin/sdkmanager" "ndk;27.1.12297006"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "ndk;27.1.12297006"
 
       - name: Install dependencies
         run: npm ci
