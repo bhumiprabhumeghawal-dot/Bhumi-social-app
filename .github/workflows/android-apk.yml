@@ -37,7 +37,9 @@ jobs:
           echo "ANDROID_SDK_ROOT=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> "$GITHUB_ENV"
 
       - name: Install Android NDK
-        run: sdkmanager "ndk;27.1.12297006"
+        run: |
+          yes | "/data/data/com.termux/files/home/android-sdk/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "/data/data/com.termux/files/home/android-sdk/cmdline-tools/latest/bin/sdkmanager" "ndk;27.1.12297006"
 
       - name: Install dependencies
         run: npm ci
