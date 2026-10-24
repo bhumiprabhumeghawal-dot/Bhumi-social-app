@@ -1,11 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
+import appConfig from './app.json';
 import React from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as DocumentPicker from 'expo-document-picker';
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { Alert } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { applyZoomEffect } from './videoEditor';
+import { applyZoomEffect, createVideoFromPhotos, addMusicToVideo } from './videoEditor';
 import { editPhotoAsset } from './photoEditor';
 import {
   loadContent, uploadContent, checkServer,
@@ -26,8 +30,22 @@ import {
   TouchableOpacity,
   Switch,
   Modal,
+  Linking,
 } from 'react-native';
 
+
+
+function isVersionNewer(latest, current) {
+  const a = String(latest || '0').split('.').map(n => parseInt(n, 10) || 0);
+  const b = String(current || '0').split('.').map(n => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const x = a[i] || 0;
+    const y = b[i] || 0;
+    if (x > y) return true;
+    if (x < y) return false;
+  }
+  return false;
+}
 
 const stories = [
   { name: 'Your story', color: '#DDE7F5', own: true },
@@ -632,6 +650,33 @@ function PostCard({ post, onOpen = () => {} }) {
 }
 export default function App() {
   const [activeTab, setActiveTab] = React.useState('Home');
+  const [cameraOpen, setCameraOpen] = React.useState(false);
+  const [cameraFacing, setCameraFacing] = React.useState('back');
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [recordedVideo, setRecordedVideo] = React.useState(null);
+  const cameraRef = React.useRef(null);
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+
+  const [updateInfo, setUpdateInfo] = React.useState(null);
+  const [updatePromptVisible, setUpdatePromptVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    let active = true;
+    fetch('https://bhumi-social-app-fresh.onrender.com/api/app-version')
+      .then(response => {
+        if (!response.ok) throw new Error('Version check failed');
+        return response.json();
+      })
+      .then(info => {
+        if (!active || !isVersionNewer(info.version, appConfig.expo?.version || '1.0.0')) return;
+        setUpdateInfo(info);
+        setUpdatePromptVisible(true);
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+
   const [feedPosts, setFeedPosts] = React.useState(posts);
   const [serverStories, setServerStories] = React.useState([]);
   const [selectedStory, setSelectedStory] = React.useState(null);
@@ -647,6 +692,12 @@ export default function App() {
   const [zoomEffectEnabled, setZoomEffectEnabled] = React.useState(false);
   const [zoomEffectLevel, setZoomEffectLevel] = React.useState(1.5);
   const [zoomEffectDuration, setZoomEffectDuration] = React.useState(3);
+  const [musicAsset, setMusicAsset] = React.useState(null);
+  const [musicVolume, setMusicVolume] = React.useState(0.8);
+  const [musicStart, setMusicStart] = React.useState(0);
+  const [keepOriginalAudio, setKeepOriginalAudio] = React.useState(true);
+  const musicPlayer = useAudioPlayer(null);
+  const musicPlayerStatus = useAudioPlayerStatus(musicPlayer);
 
 
   // SOCIALAPP_AUTH_SCREEN_V1
@@ -670,37 +721,48 @@ export default function App() {
 
   React.useEffect(() => {
     let mounted = true;
+
     (async () => {
+      let savedSession = null;
       try {
-        const session = await getAuthSession();
+        savedSession = await getAuthSession();
         if (!mounted) return;
 
-        if (session?.token) {
+        setAuthSession(savedSession?.token ? savedSession : null);
+        setAuthReady(true);
+
+        if (!savedSession?.token) return;
+
+        try {
           const result = await verifyAuthSession();
-          console.log('Auth session verification:', JSON.stringify(result));
           if (!mounted) return;
 
           if (result.valid) {
             setAuthSession({
-              token: session.token,
-              username: result.username || session.username,
+              token: savedSession.token,
+              username: result.username || savedSession.username,
             });
-          } else {
+          } else if (result.status === 401) {
             await clearAuthSession();
             if (mounted) setAuthSession(null);
+          } else {
+            console.warn('Session retained because verification did not return 401.');
           }
-        } else {
-          setAuthSession(null);
+        } catch (error) {
+          console.warn('Session retained after a temporary verification failure:', error?.message || error);
         }
       } catch (error) {
-        console.error('Auth session verification failed:', error?.message || error);
-        await clearAuthSession();
-        if (mounted) setAuthSession(null);
-      } finally {
-        if (mounted) setAuthReady(true);
+        console.error('Could not restore saved auth session:', error?.message || error);
+        if (mounted) {
+          setAuthSession(null);
+          setAuthReady(true);
+        }
       }
     })();
-    return () => { mounted = false; };
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // SOCIALAPP_PROFILE_SCREEN_V1
@@ -932,8 +994,71 @@ const refreshProfile = React.useCallback(async () => {
 
   React.useEffect(() => { refreshContent(); }, [refreshContent]);
 
-  const chooseMedia = async (kind) => {
+  const openReelCamera = async () => {
+    try {
+      let permission = cameraPermission;
+      if (!permission?.granted) {
+        permission = await requestCameraPermission();
+      }
+      if (!permission?.granted) {
+        Alert.alert('Camera permission required', 'Allow camera access to record a Reel.');
+        return;
+      }
+      setRecordedVideo(null);
+      setCameraOpen(true);
+    } catch (e) {
+      Alert.alert('Camera unavailable', e.message || 'Please try again.');
+    }
+  };
+
+  const startCameraRecording = async () => {
+    if (!cameraRef.current || isRecording) return;
+    setRecordedVideo(null);
+    setIsRecording(true);
+    try {
+      const result = await cameraRef.current.recordAsync({ maxDuration: 1200 });
+      if (result?.uri) setRecordedVideo(result.uri);
+    } catch (e) {
+      Alert.alert('Recording failed', e.message || 'Please try again.');
+    } finally {
+      setIsRecording(false);
+    }
+  };
+
+  const stopCameraRecording = () => {
+    if (isRecording) cameraRef.current?.stopRecording();
+  };
+
+  const useRecordedVideo = () => {
+    if (!recordedVideo) return;
+    setMediaDraft({
+      kind: 'reels',
+      assets: [{
+        uri: recordedVideo,
+        type: 'video',
+        fileName: 'recorded-reel.mp4',
+        mimeType: 'video/mp4',
+      }],
+    });
+    setMediaDraftIndex(0);
+    setMediaDraftCaption('');
+    setMusicAsset(null);
+    setMusicStart(0);
+    setCameraOpen(false);
+    setRecordedVideo(null);
+  };
+
+  const chooseMedia = async (kind, mediaMode = 'default') => {
     if (busy || mediaDraft) return;
+    if (kind === 'reels' && mediaMode === 'default') {
+      Alert.alert('Create Reel', 'Choose your media', [
+        { text: 'Record with Camera', onPress: openReelCamera },
+        { text: 'Select Video', onPress: () => chooseMedia('reels', 'video') },
+        { text: 'Create Video from Photos', onPress: createReelFromPhotos },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+      return;
+    }
     try {
       const video = kind === 'reels';
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -958,6 +1083,53 @@ const refreshProfile = React.useCallback(async () => {
     } catch (e) {
       console.error('Media selection failed:', e);
       Alert.alert('मीडिया नहीं खुला', e.message || 'कृपया फिर कोशिश करें।');
+    }
+  };
+
+  const chooseMusicFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'audio/*',
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (result.canceled || !result.assets?.length) return;
+      setMusicAsset(result.assets[0]);
+      musicPlayer.replace({ uri: result.assets[0].uri });
+      Alert.alert('Music selected', result.assets[0].name || 'Audio file selected');
+    } catch (e) {
+      Alert.alert('Music selection failed', e.message || 'Please try again.');
+    }
+  };
+
+  const createReelFromPhotos = async () => {
+    if (busy || mediaDraft) return;
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        selectionLimit: 20,
+        orderedSelection: true,
+        allowsEditing: false,
+        quality: 1,
+      });
+      if (result.canceled || !result.assets?.length) return;
+      if (result.assets.length < 2) {
+        Alert.alert('Select photos', 'Please select at least 2 photos to create a video.');
+        return;
+      }
+      setBusy(true);
+      const videoAsset = await createVideoFromPhotos(result.assets, { secondsPerPhoto: 3 });
+      setMediaDraft({ kind: 'reels', assets: [videoAsset] });
+      setMediaDraftIndex(0);
+      setMediaDraftCaption('');
+      setMusicAsset(null);
+      setMusicStart(0);
+    } catch (e) {
+      console.error('Photo video creation failed:', e);
+      Alert.alert('Video creation failed', e.message || 'Please try again.');
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -1004,6 +1176,13 @@ const refreshProfile = React.useCallback(async () => {
           });
         }
 
+        if (kind === 'reels' && assetIsVideo && musicAsset?.uri) {
+          uploadAsset = await addMusicToVideo(uploadAsset.uri, musicAsset.uri, {
+            musicVolume,
+            musicStart,
+            keepOriginalAudio,
+          });
+        }
         uploadedItems.push(
           await uploadContent(kind, uploadAsset, mediaDraftCaption.trim(), groupId)
         );
@@ -1012,6 +1191,8 @@ const refreshProfile = React.useCallback(async () => {
       setMediaDraft(null);
       setMediaDraftIndex(0);
       setMediaDraftCaption('');
+      setMusicAsset(null);
+      setMusicStart(0);
       if (kind === 'posts') {
         await refreshContent();
         setActiveTab('Home');
@@ -1434,6 +1615,70 @@ const refreshProfile = React.useCallback(async () => {
       <StatusBar style="dark" />
 
       <Modal
+        visible={cameraOpen}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => {
+          if (isRecording) cameraRef.current?.stopRecording();
+          setCameraOpen(false);
+          setRecordedVideo(null);
+        }}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#090909' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 }}>
+            <TouchableOpacity onPress={() => {
+              if (isRecording) cameraRef.current?.stopRecording();
+              setCameraOpen(false);
+              setRecordedVideo(null);
+            }} style={{ padding: 8 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 16 }}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '700' }}>Create Reel</Text>
+            <TouchableOpacity
+              onPress={() => setCameraFacing(current => current === 'back' ? 'front' : 'back')}
+              disabled={isRecording || !!recordedVideo}
+              style={{ padding: 8 }}
+            >
+              <Text style={{ color: '#FFFFFF', fontSize: 15 }}>Flip</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ flex: 1, backgroundColor: '#000000', overflow: 'hidden' }}>
+            {recordedVideo ? (
+              <ReelVideo key={recordedVideo} uri={recordedVideo} />
+            ) : (
+              <CameraView
+                ref={cameraRef}
+                style={{ flex: 1 }}
+                facing={cameraFacing}
+                mode="video"
+              />
+            )}
+          </View>
+
+          <View style={{ minHeight: 100, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', paddingHorizontal: 16, paddingVertical: 18 }}>
+            {recordedVideo ? (
+              <>
+                <TouchableOpacity onPress={() => setRecordedVideo(null)} style={{ padding: 14 }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: 16 }}>Retake</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={useRecordedVideo} style={{ backgroundColor: '#1685D9', borderRadius: 24, paddingHorizontal: 26, paddingVertical: 13 }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>Use Video</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity
+                onPress={isRecording ? stopCameraRecording : startCameraRecording}
+                style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 5, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <View style={{ width: isRecording ? 27 : 48, height: isRecording ? 27 : 48, borderRadius: isRecording ? 6 : 24, backgroundColor: '#E53945' }} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </SafeAreaView>
+      </Modal>
+
+      <Modal
         visible={Boolean(mediaDraft)}
         presentationStyle="fullScreen"
         animationType="slide"
@@ -1454,7 +1699,7 @@ const refreshProfile = React.useCallback(async () => {
             if (!asset) return null;
             const isVideo = asset.type === 'video' || /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || '');
             return (
-              <View style={{ flex: 1, padding: 6 }}>
+              <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 6 }} keyboardShouldPersistTaps="handled">
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111111', borderRadius: 0, overflow: 'hidden' }}>
                   {isVideo ? (
                     <ReelVideo uri={asset.uri} />
@@ -1525,6 +1770,66 @@ const refreshProfile = React.useCallback(async () => {
                   style={{ minHeight: 48, maxHeight: 110, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 10, padding: 12, marginTop: 8, color: '#222222' }}
                 />
                 {mediaDraft.kind === 'reels' && isVideo && (
+                  <View style={{ paddingTop: 10, paddingBottom: 8 }}>
+                    <TouchableOpacity
+                      disabled={busy}
+                      onPress={chooseMusicFile}
+                      style={{ padding: 11, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}
+                    >
+                      <Text style={{ color: '#1685D9', fontWeight: '600' }}>
+                        {musicAsset ? `Music: ${musicAsset.name || 'Selected'} · Change Music` : '♫ Choose Music File'}
+                      </Text>
+                    </TouchableOpacity>
+                    {musicAsset && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (musicPlayerStatus.playing) {
+                            musicPlayer.pause();
+                          } else {
+                            musicPlayer.play();
+                          }
+                        }}
+                        style={{ marginTop: 8, padding: 10, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}
+                      >
+                        <Text style={{ color: '#1685D9', fontWeight: '600' }}>
+                          {musicPlayerStatus.playing ? 'Ⅱ Pause Music Preview' : '▶ Preview Music'}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                    {musicAsset && (
+                      <View style={{ paddingTop: 8 }}>
+                        <Text style={{ color: '#333333' }}>Music volume: {Math.round(musicVolume * 100)}%</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <TouchableOpacity onPress={() => setMusicVolume(v => Math.max(0, Number((v - 0.1).toFixed(1))))} style={{ padding: 10, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
+                            <Text style={{ color: '#1685D9' }}>−</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => setMusicVolume(v => Math.min(1, Number((v + 0.1).toFixed(1))))} style={{ padding: 10, marginLeft: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
+                            <Text style={{ color: '#1685D9' }}>＋</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => { setMusicAsset(null); setMusicStart(0); }} style={{ padding: 10, marginLeft: 8 }}>
+                            <Text style={{ color: '#D93025' }}>Remove Music</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Text style={{ color: '#333333', paddingTop: 6 }}>Music start: {musicStart}s</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <TouchableOpacity onPress={() => setMusicStart(v => Math.max(0, v - 5))} style={{ padding: 10, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
+                            <Text style={{ color: '#1685D9' }}>−5s</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => setMusicStart(v => v + 5)} style={{ padding: 10, marginLeft: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
+                            <Text style={{ color: '#1685D9' }}>＋5s</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity onPress={() => setKeepOriginalAudio(v => !v)} style={{ paddingVertical: 9 }}>
+                          <Text style={{ color: '#1685D9', fontWeight: '600' }}>
+                            Original video audio: {keepOriginalAudio ? 'ON' : 'OFF'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {mediaDraft.kind === 'reels' && isVideo && (
                   <View style={{ paddingTop: 12 }}>
                     <TouchableOpacity
                       onPress={() => setZoomEffectEnabled(v => !v)}
@@ -1561,10 +1866,10 @@ const refreshProfile = React.useCallback(async () => {
                     )}
                   </View>
                 )}
-              </View>
+              </ScrollView>
             );
           })()}
-          <View style={{ flexDirection: 'row', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 12, borderTopWidth: 1, borderTopColor: '#EEEEEE', backgroundColor: '#FFFFFF' }}>
+          <View style={{ flexDirection: 'row', paddingHorizontal: 12, paddingTop: 0, paddingBottom: 0, borderTopWidth: 1, borderTopColor: '#EEEEEE', backgroundColor: '#FFFFFF' }}>
             <TouchableOpacity onPress={cancelDraftMedia} disabled={busy} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 13, marginRight: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 10 }}>
               <Text style={{ color: '#1685D9', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
             </TouchableOpacity>
@@ -1964,6 +2269,39 @@ const refreshProfile = React.useCallback(async () => {
         </View>
       </Modal>
 
+
+      {/* SOCIALAPP_VERSION_UPDATE_MODAL_V1 */}
+      <Modal
+        visible={updatePromptVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (!updateInfo?.force_update) setUpdatePromptVisible(false);
+        }}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 24, alignItems: 'center' }}>
+            <Text style={{ fontSize: 22, fontWeight: '700', color: '#171717', marginBottom: 12 }}>Update Available</Text>
+            <Text style={{ fontSize: 15, color: '#555555', textAlign: 'center', lineHeight: 22, marginBottom: 22 }}>
+              {updateInfo?.message || 'A new version of SocialApp is available.'}
+            </Text>
+            <TouchableOpacity
+              onPress={() => Linking.openURL(updateInfo?.download_url || 'https://bhumi-social-app-fresh.onrender.com/download')}
+              style={{ backgroundColor: '#1685D9', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, width: '100%', alignItems: 'center' }}
+            >
+              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>Update Now</Text>
+            </TouchableOpacity>
+            {!updateInfo?.force_update && (
+              <TouchableOpacity
+                onPress={() => setUpdatePromptVisible(false)}
+                style={{ paddingVertical: 14, paddingHorizontal: 24, marginTop: 6 }}
+              >
+                <Text style={{ color: '#555555', fontWeight: '600', fontSize: 15 }}>Later</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* SOCIALAPP_CHANGE_PASSWORD_SCREEN_V1 */}
       <Modal

@@ -92,3 +92,142 @@ export async function applyZoomEffect(inputUri, options = {}) {
     duration,
   };
 }
+
+export async function createVideoFromPhotos(photoAssets, options = {}) {
+  if (!Array.isArray(photoAssets) || photoAssets.length === 0) {
+    throw new Error('Please select at least one photo.');
+  }
+
+  const secondsPerPhoto = clamp(options.secondsPerPhoto || 3, 1, 10);
+  const width = 1080;
+  const height = 1920;
+  const fps = 30;
+  const outputPath = `${FileSystem.cacheDirectory}photo_video_${Date.now()}.mp4`;
+  const encoder = await pickEncoder([
+    'h264_mediacodec',
+    'libopenh264',
+    'libx264',
+  ]);
+
+  if (!encoder) {
+    throw new Error('No supported MP4 video encoder was found.');
+  }
+
+  const args = ['-y'];
+  for (const photo of photoAssets) {
+    if (!photo?.uri) {
+      throw new Error('A selected photo has no file URI.');
+    }
+    args.push('-loop', '1', '-t', String(secondsPerPhoto), '-i', normalizePath(photo.uri));
+  }
+
+  const filters = photoAssets.map((_, index) =>
+    `[${index}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,` +
+    `pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1,` +
+    `fps=${fps},format=yuv420p,trim=duration=${secondsPerPhoto},` +
+    `setpts=PTS-STARTPTS[v${index}]`
+  );
+
+  filters.push(
+    `${photoAssets.map((_, index) => `[v${index}]`).join('')}` +
+    `concat=n=${photoAssets.length}:v=1:a=0[outv]`
+  );
+
+  args.push(
+    '-filter_complex', filters.join(';'),
+    '-map', '[outv]',
+    '-an',
+    '-c:v', encoder,
+    '-pix_fmt', 'yuv420p',
+    '-r', String(fps),
+    '-movflags', '+faststart',
+    outputPath
+  );
+
+  const result = await execute(args);
+  if (!result.success || result.returnCode !== 0) {
+    throw new Error(`Photo video creation failed: ${result.output || 'FFmpeg error'}`);
+  }
+
+  const info = await FileSystem.getInfoAsync(outputPath);
+  if (!info.exists || !info.size) {
+    throw new Error('The photo video file was not created.');
+  }
+
+  return {
+    uri: outputPath,
+    fileName: `photo_video_${Date.now()}.mp4`,
+    type: 'video',
+    mimeType: 'video/mp4',
+    fileSize: info.size,
+    duration: photoAssets.length * secondsPerPhoto,
+  };
+}
+
+export async function addMusicToVideo(videoUri, audioUri, options = {}) {
+  if (!videoUri || !audioUri) {
+    throw new Error('Please select both a video and an audio file.');
+  }
+
+  const videoPath = normalizePath(videoUri);
+  const audioPath = normalizePath(audioUri);
+  const outputPath = `${FileSystem.cacheDirectory}music_video_${Date.now()}.mp4`;
+  const musicVolume = clamp(options.musicVolume ?? 1, 0, 2);
+  const musicStart = clamp(options.musicStart ?? 0, 0, 3600);
+  const keepOriginalAudio = options.keepOriginalAudio !== false;
+  const media = await getMediaInformation(videoPath);
+  const hasOriginalAudio = (media?.streams || []).some(
+    stream => stream.codec_type === 'audio'
+  );
+
+  const args = [
+    '-y',
+    '-i', videoPath,
+    '-ss', String(musicStart),
+    '-i', audioPath,
+  ];
+
+  if (keepOriginalAudio && hasOriginalAudio) {
+    args.push(
+      '-filter_complex',
+      `[1:a]volume=${musicVolume}[music];` +
+      '[0:a]volume=1[original];' +
+      '[original][music]amix=inputs=2:duration=first:dropout_transition=2[aout]',
+      '-map', '0:v:0',
+      '-map', '[aout]'
+    );
+  } else {
+    args.push(
+      '-map', '0:v:0',
+      '-map', '1:a:0',
+      '-filter:a', `volume=${musicVolume}`
+    );
+  }
+
+  args.push(
+    '-c:v', 'copy',
+    '-c:a', 'aac',
+    '-b:a', '192k',
+    '-shortest',
+    '-movflags', '+faststart',
+    outputPath
+  );
+
+  const result = await execute(args);
+  if (!result.success || result.returnCode !== 0) {
+    throw new Error(`Adding music failed: ${result.output || 'FFmpeg error'}`);
+  }
+
+  const info = await FileSystem.getInfoAsync(outputPath);
+  if (!info.exists || !info.size) {
+    throw new Error('The music video file was not created.');
+  }
+
+  return {
+    uri: outputPath,
+    fileName: `music_video_${Date.now()}.mp4`,
+    type: 'video',
+    mimeType: 'video/mp4',
+    fileSize: info.size,
+  };
+}

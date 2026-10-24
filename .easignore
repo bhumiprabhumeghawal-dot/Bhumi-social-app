@@ -1,0 +1,10 @@
+node_modules/
+.android/
+.git/
+.expo/
+dist/
+web-build/
+*.log
+metro.config.js.enospc_backup
+nitro-check.txt
+eas-build-details.json
