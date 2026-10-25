@@ -853,7 +853,7 @@ def auth_register():
     now = datetime.now(timezone.utc)
     token = secrets.token_urlsafe(32)
     digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
-    expires = (now + timedelta(days=30)).isoformat()
+    expires = "9999-12-31T23:59:59+00:00"
 
     try:
         with get_db() as db:
@@ -901,7 +901,7 @@ def auth_login():
         now = datetime.now(timezone.utc)
         token = secrets.token_urlsafe(32)
         digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
-        expires = (now + timedelta(days=30)).isoformat()
+        expires = "9999-12-31T23:59:59+00:00"
         db.execute(
             "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
             (digest, row["username"], now.isoformat(), expires)
