@@ -36,9 +36,8 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES + 2 * 1024 * 1024
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    from server.db_compat import connect_database
+    return connect_database(DB_PATH)
 
 
 def init_db():
@@ -161,11 +160,29 @@ def download_page():
 
 @app.get("/api/health")
 def health():
-    return jsonify({
-        "ok": True,
-        "service": "SocialApp Server",
-        "time": datetime.now(timezone.utc).isoformat(),
-    })
+    from server.db_compat import postgres_enabled
+
+    db = None
+    try:
+        db = get_db()
+        db.execute("SELECT 1").fetchone()
+        return jsonify({
+            "ok": True,
+            "service": "SocialApp Server",
+            "database": "postgresql" if postgres_enabled() else "sqlite",
+            "time": datetime.now(timezone.utc).isoformat(),
+        })
+    except Exception:
+        app.logger.exception("Health database check failed")
+        return jsonify({
+            "ok": False,
+            "service": "SocialApp Server",
+            "database": "error",
+            "time": datetime.now(timezone.utc).isoformat(),
+        }), 503
+    finally:
+        if db is not None:
+            db.close()
 
 
 @app.get("/api/<kind>")
@@ -749,6 +766,11 @@ def init_auth_tables():
         """)
 
         db.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_lower
+            ON users(LOWER(username))
+        """)
+
+        db.execute("""
             CREATE TABLE IF NOT EXISTS auth_sessions (
                 token_hash TEXT PRIMARY KEY,
                 username TEXT NOT NULL,
@@ -767,6 +789,11 @@ def init_auth_tables():
                 reset_token_hash TEXT,
                 reset_expires_at TEXT
             )
+        """)
+
+        db.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_password_reset_email_lower
+            ON password_reset_otps(LOWER(email))
         """)
 
 
