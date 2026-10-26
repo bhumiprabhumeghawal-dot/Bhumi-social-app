@@ -7,7 +7,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
-import { Alert } from 'react-native';
+import { Alert, Share   Dimensions,
+} from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { applyZoomEffect, createVideoFromPhotos, addMusicToVideo } from './videoEditor';
 import { editPhotoAsset } from './photoEditor';
@@ -16,6 +17,8 @@ import {
   loadProfile, updateProfile, uploadProfileAvatar,
   deleteProfileAvatar, loadProfileConnections,
   loadPrivacySettings, savePrivacySettings, changeAccountPassword,
+  loadAccountSettings, saveAccountSettings,
+  loadNotificationPreference, saveNotificationPreference,
   togglePostLike, loadPostComments, createPostComment,
   registerAccount, loginAccount, getAuthSession, clearAuthSession,
   requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession} from './api';
@@ -837,10 +840,68 @@ export default function App() {
   const [oldPassword, setOldPassword] = React.useState('');
   const [newPassword, setNewPassword] = React.useState('');
   const [confirmNewPassword, setConfirmNewPassword] = React.useState('');
+  const [accountSettingsOpen, setAccountSettingsOpen] = React.useState(false);
+  const [accountSettingsBusy, setAccountSettingsBusy] = React.useState(false);
+  const [accountEmail, setAccountEmail] = React.useState('');
+  const [accountPhone, setAccountPhone] = React.useState('');
+  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const [notificationsBusy, setNotificationsBusy] = React.useState(false);
+
 
 
 
   
+  const openAccountSettings = async () => {
+    setAccountSettingsBusy(true);
+    try {
+      const data = await loadAccountSettings();
+      setAccountEmail(data.email || '');
+      setAccountPhone(data.phone_number || '');
+      setAccountSettingsOpen(true);
+    } catch (e) {
+      Alert.alert('Account Settings', e.message || 'Could not load account settings.');
+    } finally {
+      setAccountSettingsBusy(false);
+    }
+  };
+
+  const saveAccountSettingsChanges = async () => {
+    setAccountSettingsBusy(true);
+    try {
+      await saveAccountSettings(accountEmail, accountPhone);
+      setAccountSettingsOpen(false);
+      Alert.alert('Success', 'Account details saved.');
+    } catch (e) {
+      Alert.alert('Save failed', e.message || 'Could not save account details.');
+    } finally {
+      setAccountSettingsBusy(false);
+    }
+  };
+
+  const changeNotificationPreference = async (enabled) => {
+    setNotificationsBusy(true);
+    try {
+      const saved = await saveNotificationPreference(enabled);
+      setNotificationsEnabled(saved);
+    } catch (e) {
+      Alert.alert('Notifications', e.message || 'Could not save notification preference.');
+    } finally {
+      setNotificationsBusy(false);
+    }
+  };
+
+  const openNotificationSettings = async () => {
+    setNotificationsBusy(true);
+    try {
+      const enabled = await loadNotificationPreference();
+      setNotificationsEnabled(enabled);
+    } catch (e) {
+      Alert.alert('Notifications', e.message || 'Could not load notification preference.');
+    } finally {
+      setNotificationsBusy(false);
+    }
+  };
+
   const openPrivacySettings = async () => {
     setPrivacyBusy(true);
     try {
@@ -1253,21 +1314,21 @@ const refreshProfile = React.useCallback(async () => {
       return;
     }
     if (authMode === 'register') {
-      if (!fullName || !email) {
-        Alert.alert('Required', 'Enter your full name and email address.');
+      if (!fullName) {
+        Alert.alert('Required', 'Enter your full name.');
         return;
       }
       if (!/^[a-zA-Z0-9_.]{3,30}$/.test(username)) {
         Alert.alert('Invalid username', 'Use 3 to 30 letters, numbers, dots, or underscores.');
         return;
       }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        Alert.alert('Invalid email', 'Enter a valid email address.');
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        Alert.alert('Invalid email', 'Enter a valid email address or leave it blank.');
         return;
       }
       const phoneDigits = authPhoneNumber.replace(/\D/g, '');
-      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
-        Alert.alert('Invalid mobile number', 'Enter a valid mobile number.');
+      if (authPhoneNumber.trim() && (phoneDigits.length < 10 || phoneDigits.length > 15)) {
+        Alert.alert('Invalid mobile number', 'Enter a valid mobile number or leave it blank.');
         return;
       }
       if (authPassword.length < 4 || authPassword.length > 24) {
@@ -1700,47 +1761,70 @@ const refreshProfile = React.useCallback(async () => {
             const isVideo = asset.type === 'video' || /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || '');
             return (
               <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 6 }} keyboardShouldPersistTaps="handled">
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111111', borderRadius: 0, overflow: 'hidden' }}>
+                <View style={{
+                  height: Math.max(360, Dimensions.get('window').height - 190),
+                  width: '100%',
+                  backgroundColor: '#080808',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  overflow: 'hidden',
+                  position: 'relative',
+                }}>
                   {isVideo ? (
                     <ReelVideo uri={asset.uri} />
                   ) : (
-                    <Image source={{ uri: asset.uri }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                    <Image
+                      source={{ uri: asset.uri }}
+                      style={{ width: '100%', height: '100%' }}
+                      resizeMode="contain"
+                    />
                   )}
+                  <View style={{
+                    position: 'absolute',
+                    top: 12,
+                    left: 8,
+                    right: 8,
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    flexWrap: 'wrap',
+                  }}>
+                    {!isVideo ? (
+                      [
+                        { label: 'Crop', action: 'crop' },
+                        { label: 'Rotate', action: 'rotate' },
+                        { label: 'Flip', action: 'flip' },
+                        { label: 'Filter', action: 'filter' },
+                        { label: 'Brightness +', action: 'brightness' },
+                      ].map(tool => (
+                        <TouchableOpacity
+                          key={tool.action}
+                          disabled={busy}
+                          onPress={() => handlePhotoEdit(tool.action)}
+                          style={{ backgroundColor: 'rgba(0,0,0,0.78)', paddingVertical: 10, paddingHorizontal: 11, margin: 3, borderRadius: 20, opacity: busy ? 0.5 : 1 }}
+                        >
+                          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 12 }}>{tool.label}</Text>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <>
+                        <TouchableOpacity
+                          disabled={busy}
+                          onPress={() => setZoomEffectEnabled(v => !v)}
+                          style={{ backgroundColor: 'rgba(0,0,0,0.78)', paddingVertical: 10, paddingHorizontal: 13, margin: 3, borderRadius: 20 }}
+                        >
+                          <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>{zoomEffectEnabled ? 'Zoom ON' : 'Zoom Effect'}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          disabled={busy}
+                          onPress={chooseMusicFile}
+                          style={{ backgroundColor: 'rgba(0,0,0,0.78)', paddingVertical: 10, paddingHorizontal: 13, margin: 3, borderRadius: 20 }}
+                        >
+                          <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>{musicAsset ? 'Change Music' : 'Choose Music'}</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
                 </View>
-
-                {!isVideo && (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8 }}
-                  >
-                    {[
-                      { label: '▣ Crop', action: 'crop' },
-                      { label: '↻ Rotate', action: 'rotate' },
-                      { label: '⇋ Flip', action: 'flip' },
-                      { label: '◐ Filter', action: 'filter' },
-                      { label: '☀ Brightness +', action: 'brightness' },
-                    ].map(tool => (
-                      <TouchableOpacity
-                        key={tool.action}
-                        disabled={busy}
-                        onPress={() => handlePhotoEdit(tool.action)}
-                        style={{
-                          paddingVertical: 9,
-                          paddingHorizontal: 13,
-                          marginRight: 8,
-                          borderWidth: 1,
-                          borderColor: '#DDDDDD',
-                          borderRadius: 8,
-                          opacity: busy ? 0.5 : 1,
-                        }}
-                      >
-                        <Text style={{ color: '#1685D9', fontWeight: '600' }}>{tool.label}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                )}
-
                 {assets.length > 1 && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 }}>
                     <TouchableOpacity
@@ -1869,7 +1953,7 @@ const refreshProfile = React.useCallback(async () => {
               </ScrollView>
             );
           })()}
-          <View style={{ flexDirection: 'row', paddingHorizontal: 12, paddingTop: 0, paddingBottom: 0, borderTopWidth: 1, borderTopColor: '#EEEEEE', backgroundColor: '#FFFFFF' }}>
+          <View style={{ flexDirection: 'row', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 22, borderTopWidth: 1, borderTopColor: '#EEEEEE', backgroundColor: '#FFFFFF' }}>
             <TouchableOpacity onPress={cancelDraftMedia} disabled={busy} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 13, marginRight: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 10 }}>
               <Text style={{ color: '#1685D9', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
             </TouchableOpacity>
@@ -2056,10 +2140,26 @@ const refreshProfile = React.useCallback(async () => {
                 <Text style={{ color: '#555', fontWeight: '700', marginBottom: 10 }}>
                   Profile Settings
                 </Text>
+                <View style={{ borderWidth: 1, borderColor: '#E1E8F3', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <View style={{ flex: 1, paddingRight: 12 }}>
+                      <Text style={{ color: '#26344D', fontWeight: '700', fontSize: 15 }}>Notifications</Text>
+                      <Text style={{ color: '#7A879B', fontSize: 12, marginTop: 4 }}>
+                        {notificationsEnabled ? 'Preference enabled' : 'Preference disabled'}
+                      </Text>
+                    </View>
+                    <Switch
+                      value={notificationsEnabled}
+                      onValueChange={changeNotificationPreference}
+                      disabled={notificationsBusy}
+                      trackColor={{ false: '#CBD5E1', true: '#93C5FD' }}
+                      thumbColor={notificationsEnabled ? '#2563EB' : '#F8FAFC'}
+                    />
+                  </View>
+                </View>
                 {[
                   { title: 'Account Security', subtitle: 'Password and sign-in security' },
                   { title: 'Privacy', subtitle: 'Control your privacy' },
-                  { title: 'Notifications', subtitle: 'Notification preferences' },
                   { title: 'Account Settings', subtitle: 'Manage your account' },
                 ].map(item => (
                   <TouchableOpacity
@@ -2069,6 +2169,10 @@ const refreshProfile = React.useCallback(async () => {
                         openPrivacySettings();
                       } else if (item.title === 'Account Security') {
                         setPasswordOpen(true);
+                      } else if (item.title === 'Account Settings') {
+                        openAccountSettings();
+                      } else if (item.title === 'Notifications') {
+                        openNotificationSettings();
                       } else {
                         Alert.alert(item.title, 'This setting will be added in a later step.');
                       }
@@ -2291,6 +2395,14 @@ const refreshProfile = React.useCallback(async () => {
             >
               <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>Update Now</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => Share.share({
+                message: 'Download Bhoomi Social: https://bhumi-social-app-fresh.onrender.com/download',
+              })}
+              style={{ backgroundColor: '#1685D9', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, width: '100%', alignItems: 'center', marginTop: 10 }}
+            >
+              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>Share App Link</Text>
+            </TouchableOpacity>
             {!updateInfo?.force_update && (
               <TouchableOpacity
                 onPress={() => setUpdatePromptVisible(false)}
@@ -2299,6 +2411,62 @@ const refreshProfile = React.useCallback(async () => {
                 <Text style={{ color: '#555555', fontWeight: '600', fontSize: 15 }}>Later</Text>
               </TouchableOpacity>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* SOCIALAPP_ACCOUNT_SETTINGS_V1 */}
+      <Modal
+        visible={accountSettingsOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          if (!accountSettingsBusy) setAccountSettingsOpen(false);
+        }}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 22 }}>
+            <Text style={{ fontSize: 22, fontWeight: '800', color: '#26344D', marginBottom: 6 }}>
+              Account Settings
+            </Text>
+            <Text style={{ color: '#7A879B', marginBottom: 18 }}>
+              Email and mobile number are optional.
+            </Text>
+            <Text style={{ color: '#26344D', fontWeight: '700', marginBottom: 6 }}>Email address</Text>
+            <TextInput
+              value={accountEmail}
+              onChangeText={setAccountEmail}
+              placeholder="Email address (optional)"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              editable={!accountSettingsBusy}
+              style={{ borderWidth: 1, borderColor: '#D8E0EC', borderRadius: 12, padding: 13, marginBottom: 14, color: '#26344D' }}
+            />
+            <Text style={{ color: '#26344D', fontWeight: '700', marginBottom: 6 }}>Mobile number</Text>
+            <TextInput
+              value={accountPhone}
+              onChangeText={setAccountPhone}
+              placeholder="Mobile number (optional)"
+              keyboardType="phone-pad"
+              editable={!accountSettingsBusy}
+              style={{ borderWidth: 1, borderColor: '#D8E0EC', borderRadius: 12, padding: 13, marginBottom: 18, color: '#26344D' }}
+            />
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
+              <TouchableOpacity
+                disabled={accountSettingsBusy}
+                onPress={() => setAccountSettingsOpen(false)}
+                style={{ padding: 13, marginRight: 8 }}
+              >
+                <Text style={{ color: '#64748B', fontWeight: '700' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={accountSettingsBusy}
+                onPress={saveAccountSettingsChanges}
+                style={{ backgroundColor: '#2563EB', paddingVertical: 13, paddingHorizontal: 20, borderRadius: 12, opacity: accountSettingsBusy ? 0.6 : 1 }}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>{accountSettingsBusy ? 'Saving...' : 'Save changes'}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>

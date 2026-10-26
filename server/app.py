@@ -859,10 +859,12 @@ def auth_register():
     phone_number = str(data.get("phone_number", "")).strip()
     phone_digits = "".join(ch for ch in phone_number if ch.isdigit())
 
-    if "@" not in email or "." not in email.rsplit("@", 1)[-1] or len(email) > 254:
-        return jsonify({"error": "कृपया सही ईमेल आईडी दर्ज करें।"}), 400
-    if len(phone_digits) < 10 or len(phone_digits) > 15:
-        return jsonify({"error": "कृपया सही मोबाइल नंबर दर्ज करें।"}), 400
+    if email and ("@" not in email or "." not in email.rsplit("@", 1)[-1] or len(email) > 254):
+        return jsonify({"error": "Enter a valid email address or leave it blank."}), 400
+    if phone_number and (len(phone_digits) < 10 or len(phone_digits) > 15):
+        return jsonify({"error": "Enter a valid mobile number or leave it blank."}), 400
+    email = email or None
+    phone_number = phone_number or None
     if len(password) < 4 or len(password) > 24:
         return jsonify({"error": "पासवर्ड 4 से 24 अक्षरों का रखें।"}), 400
 
@@ -910,6 +912,97 @@ def auth_register():
         return jsonify({"error": "यह ईमेल पहले से किसी अकाउंट में इस्तेमाल हो रहा है।"}), 409
 
     return jsonify({"ok": True, "username": username, "token": token}), 201
+
+@app.get("/api/account/settings")
+def load_account_settings():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        row = db.execute(
+            "SELECT email, phone_number FROM users WHERE username=? COLLATE NOCASE",
+            (username,),
+        ).fetchone()
+    if not row:
+        return jsonify({"error": "Account not found."}), 404
+    return jsonify({"email": row["email"] or "", "phone_number": row["phone_number"] or ""})
+
+
+@app.patch("/api/account/settings")
+def save_account_settings():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email", "")).strip().lower()
+    phone_number = str(data.get("phone_number", "")).strip()
+    phone_digits = "".join(ch for ch in phone_number if ch.isdigit())
+    if email and ("@" not in email or "." not in email.rsplit("@", 1)[-1] or len(email) > 254):
+        return jsonify({"error": "Enter a valid email address or leave it blank."}), 400
+    if phone_number and not 10 <= len(phone_digits) <= 15:
+        return jsonify({"error": "Enter a valid mobile number or leave it blank."}), 400
+    try:
+        with get_db() as db:
+            db.execute(
+                "UPDATE users SET email=?, phone_number=? WHERE username=? COLLATE NOCASE",
+                (email or None, phone_number or None, username),
+            )
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "This email address is already used by another account."}), 409
+    return jsonify({"ok": True, "email": email, "phone_number": phone_number})
+
+
+@app.get("/api/settings/notifications")
+def load_notification_preference():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS notification_preferences (
+                username TEXT PRIMARY KEY,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        now = datetime.now(timezone.utc).isoformat()
+        db.execute(
+            "INSERT OR IGNORE INTO notification_preferences(username, enabled, updated_at) VALUES(?, 1, ?)",
+            (username, now),
+        )
+        row = db.execute(
+            "SELECT enabled FROM notification_preferences WHERE username=?",
+            (username,),
+        ).fetchone()
+    return jsonify({"enabled": bool(row["enabled"])})
+
+
+@app.patch("/api/settings/notifications")
+def save_notification_preference():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    data = request.get_json(silent=True) or {}
+    enabled = data.get("enabled")
+    if not isinstance(enabled, bool):
+        return jsonify({"error": "enabled must be true or false."}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS notification_preferences (
+                username TEXT PRIMARY KEY,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            INSERT INTO notification_preferences(username, enabled, updated_at)
+            VALUES(?, ?, ?)
+            ON CONFLICT(username) DO UPDATE SET
+                enabled=excluded.enabled, updated_at=excluded.updated_at
+        """, (username, int(enabled), now))
+    return jsonify({"ok": True, "enabled": enabled})
+
 
 @app.post("/api/auth/login")
 def auth_login():

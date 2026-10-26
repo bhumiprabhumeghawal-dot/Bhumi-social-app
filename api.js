@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
-const API_BASE_URL = 'https://bhumi-social-app-fresh.onrender.com';
+const API_BASE_URL = 'https://bhumi-social-app-1.onrender.com';
 
 const AUTH_TOKEN_KEY = 'socialapp_auth_token';
 const AUTH_USERNAME_KEY = 'socialapp_auth_username';
@@ -98,6 +98,42 @@ globalThis.fetch = async (input, init = {}) => {
   return response;
 };
 
+
+export async function loadAccountSettings() {
+  const response = await fetch(`${API_BASE_URL}/api/account/settings`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load account settings.');
+  return data;
+}
+
+export async function saveAccountSettings(email, phoneNumber) {
+  const response = await fetch(`${API_BASE_URL}/api/account/settings`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim().toLowerCase(), phone_number: phoneNumber.trim() }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not save account settings.');
+  return data;
+}
+
+export async function loadNotificationPreference() {
+  const response = await fetch(`${API_BASE_URL}/api/settings/notifications`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load notification settings.');
+  return data.enabled;
+}
+
+export async function saveNotificationPreference(enabled) {
+  const response = await fetch(`${API_BASE_URL}/api/settings/notifications`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not save notification settings.');
+  return data.enabled;
+}
 
 export async function checkServer() {
   const response = await fetch(`${API_BASE_URL}/api/health`);
