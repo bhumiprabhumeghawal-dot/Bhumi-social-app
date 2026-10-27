@@ -7,7 +7,7 @@ on:
       - master
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-android:
@@ -64,3 +64,13 @@ jobs:
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 7
+
+      - name: Publish APK to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: socialapp-latest
+          name: Bhoomi Social Latest APK
+          body: Latest Android APK built by GitHub Actions.
+          files: android/app/build/outputs/apk/release/*.apk
+          overwrite_files: true
+          make_latest: true
