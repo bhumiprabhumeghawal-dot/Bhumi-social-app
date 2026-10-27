@@ -829,6 +829,7 @@ export default function App() {
 
   // SOCIALAPP_PRIVACY_SCREEN_V1
   const [privacyOpen, setPrivacyOpen] = React.useState(false);
+  const [settingsHubOpen, setSettingsHubOpen] = React.useState(false);
   const [privacyBusy, setPrivacyBusy] = React.useState(false);
   const [privacySettings, setPrivacySettings] = React.useState({
     isPrivate: false,
@@ -854,7 +855,7 @@ export default function App() {
 
 
 
-  
+
   const openAccountSettings = async () => {
     setAccountSettingsBusy(true);
     try {
@@ -2159,10 +2160,13 @@ const refreshProfile = React.useCallback(async () => {
 
               <View style={{ height: 1, backgroundColor: '#E5E5E5', marginTop: 18, marginBottom: 14 }} />
               {/* SOCIALAPP_PROFILE_SETTINGS_V1 */}
-              <View style={{ marginTop: 20, marginBottom: 16 }}>
-                <Text style={{ color: '#555', fontWeight: '700', marginBottom: 10 }}>
-                  Profile Settings
-                </Text>
+              <View style={{ marginTop: 20, marginBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+  <Text style={{ color: '#26344D', fontWeight: '800', fontSize: 18 }}>Profile Settings</Text>
+  <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open Settings" onPress={() => setSettingsHubOpen(true)} style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#172554', alignItems: 'center', justifyContent: 'center', elevation: 3 }}>
+    <Text style={{ color: '#FFFFFF', fontSize: 23 }}>⚙</Text>
+  </TouchableOpacity>
+</View>
+                <View>
                 <View style={{ borderWidth: 1, borderColor: '#E1E8F3', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <View style={{ flex: 1, paddingRight: 12 }}>
@@ -2249,9 +2253,10 @@ const refreshProfile = React.useCallback(async () => {
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </View>
 
-              <Text style={{ color: '#555', fontWeight: '700', marginBottom: 12 }}>आपकी पोस्ट</Text>
+
+                              </View>
+                <Text style={{ color: '#555', fontWeight: '700', marginBottom: 12 }}>आपकी पोस्ट</Text>
               {groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).length ? (
                 groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).map((p, i) =>
                   <PostCard key={p.groupId || p.id || `my-post-${i}`} post={p} onOpen={() => setSelectedPost(p)} />)
@@ -2376,7 +2381,55 @@ const refreshProfile = React.useCallback(async () => {
         </View>
       </Modal>
 
-    
+
+      {/* SOCIALAPP_PREMIUM_SETTINGS_HUB_V1 */}
+      <Modal
+        visible={settingsHubOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSettingsHubOpen(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.55)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: '#F7F9FD', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 28, maxHeight: '92%' }}>
+            <View style={{ alignSelf: 'center', width: 42, height: 5, borderRadius: 4, backgroundColor: '#CBD5E1', marginBottom: 18 }} />
+            <View style={{ backgroundColor: '#172554', borderRadius: 22, padding: 20, marginBottom: 20 }}>
+              <Text style={{ color: '#BFDBFE', fontSize: 12, fontWeight: '800', letterSpacing: 1.4 }}>BHOOMI SOCIAL</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: 25, fontWeight: '900', marginTop: 7 }}>Settings</Text>
+              <Text style={{ color: '#D8E3F8', fontSize: 13, marginTop: 5 }}>Manage your account and preferences</Text>
+            </View>
+            {[
+              { title: 'Notifications', subtitle: 'Choose which alerts you receive', icon: '♧', color: '#DBEAFE', action: () => { setSettingsHubOpen(false); openNotificationSettings(); } },
+              { title: 'Account Security', subtitle: 'Change your password', icon: '▣', color: '#F3E8FF', action: () => { setSettingsHubOpen(false); setPasswordOpen(true); } },
+              { title: 'Privacy', subtitle: 'Manage account visibility and messages', icon: '◈', color: '#D1FAE5', action: () => { setSettingsHubOpen(false); openPrivacySettings(); } },
+              { title: 'Account Settings', subtitle: 'Update your email and phone number', icon: '◎', color: '#FEF3C7', action: () => { setSettingsHubOpen(false); openAccountSettings(); } },
+              { title: 'About Bhoomi Social', subtitle: 'App information', icon: 'ⓘ', color: '#E0E7FF', action: () => Alert.alert('About Bhoomi Social', 'Bhoomi Social is your social community app.') },
+            ].map(item => (
+              <TouchableOpacity
+                key={item.title}
+                onPress={item.action}
+                accessibilityRole="button"
+                style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 17, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E7ECF5' }}
+              >
+                <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: item.color, alignItems: 'center', justifyContent: 'center', marginRight: 13 }}>
+                  <Text style={{ color: '#172554', fontSize: 23, fontWeight: '800' }}>{item.icon}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: '#1E293B', fontWeight: '800', fontSize: 15 }}>{item.title}</Text>
+                  <Text style={{ color: '#64748B', fontSize: 12, marginTop: 4 }}>{item.subtitle}</Text>
+                </View>
+                <Text style={{ color: '#94A3B8', fontSize: 23 }}>›</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              onPress={() => setSettingsHubOpen(false)}
+              style={{ alignItems: 'center', paddingVertical: 14, marginTop: 2 }}
+            >
+              <Text style={{ color: '#475569', fontWeight: '800', fontSize: 14 }}>Close Settings</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* SOCIALAPP_PRIVACY_SCREEN_V1 */}
       <Modal
         visible={privacyOpen}
