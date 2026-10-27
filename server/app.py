@@ -1004,6 +1004,88 @@ def save_notification_preference():
     return jsonify({"ok": True, "enabled": enabled})
 
 
+
+@app.get("/api/settings/notifications/details")
+def load_notification_details():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+
+    defaults = {
+        "likes": 1, "comments": 1, "follows": 1,
+        "messages": 1, "system_alerts": 1,
+    }
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS notification_detail_preferences (
+                username TEXT PRIMARY KEY,
+                likes INTEGER NOT NULL DEFAULT 1,
+                comments INTEGER NOT NULL DEFAULT 1,
+                follows INTEGER NOT NULL DEFAULT 1,
+                messages INTEGER NOT NULL DEFAULT 1,
+                system_alerts INTEGER NOT NULL DEFAULT 1,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            INSERT OR IGNORE INTO notification_detail_preferences
+            (username, likes, comments, follows, messages, system_alerts, updated_at)
+            VALUES (?, 1, 1, 1, 1, 1, ?)
+        """, (username, datetime.now(timezone.utc).isoformat()))
+        row = db.execute("""
+            SELECT likes, comments, follows, messages, system_alerts
+            FROM notification_detail_preferences WHERE username=?
+        """, (username,)).fetchone()
+
+    return jsonify({key: bool(row[key]) for key in defaults})
+
+
+@app.patch("/api/settings/notifications/details")
+def save_notification_details():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or not data:
+        return jsonify({"error": "Provide notification preferences to update."}), 400
+
+    allowed = {"likes", "comments", "follows", "messages", "system_alerts"}
+    if any(key not in allowed or not isinstance(value, bool)
+           for key, value in data.items()):
+        return jsonify({"error": "Use valid notification keys with true or false values."}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS notification_detail_preferences (
+                username TEXT PRIMARY KEY,
+                likes INTEGER NOT NULL DEFAULT 1,
+                comments INTEGER NOT NULL DEFAULT 1,
+                follows INTEGER NOT NULL DEFAULT 1,
+                messages INTEGER NOT NULL DEFAULT 1,
+                system_alerts INTEGER NOT NULL DEFAULT 1,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            INSERT OR IGNORE INTO notification_detail_preferences
+            (username, likes, comments, follows, messages, system_alerts, updated_at)
+            VALUES (?, 1, 1, 1, 1, 1, ?)
+        """, (username, now))
+        for key, value in data.items():
+            db.execute(
+                f"UPDATE notification_detail_preferences SET {key}=?, updated_at=? WHERE username=?",
+                (int(value), now, username),
+            )
+        row = db.execute("""
+            SELECT likes, comments, follows, messages, system_alerts
+            FROM notification_detail_preferences WHERE username=?
+        """, (username,)).fetchone()
+
+    return jsonify({"ok": True, **{key: bool(row[key]) for key in allowed}})
+
+
 @app.post("/api/auth/login")
 def auth_login():
     data = request.get_json(silent=True) or {}

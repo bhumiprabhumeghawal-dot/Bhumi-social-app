@@ -135,6 +135,24 @@ export async function saveNotificationPreference(enabled) {
   return data.enabled;
 }
 
+export async function loadNotificationDetails() {
+  const response = await fetch(`${API_BASE_URL}/api/settings/notifications/details`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load notification details.');
+  return data;
+}
+
+export async function saveNotificationDetails(preferences) {
+  const response = await fetch(`${API_BASE_URL}/api/settings/notifications/details`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(preferences),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not save notification details.');
+  return data;
+}
+
 export async function checkServer() {
   const response = await fetch(`${API_BASE_URL}/api/health`);
   if (!response.ok) {

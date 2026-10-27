@@ -18,7 +18,7 @@ import {
   deleteProfileAvatar, loadProfileConnections,
   loadPrivacySettings, savePrivacySettings, changeAccountPassword,
   loadAccountSettings, saveAccountSettings,
-  loadNotificationPreference, saveNotificationPreference,
+  loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails,
   togglePostLike, loadPostComments, createPostComment,
   registerAccount, loginAccount, getAuthSession, clearAuthSession,
   requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession} from './api';
@@ -846,6 +846,10 @@ export default function App() {
   const [accountPhone, setAccountPhone] = React.useState('');
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [notificationsBusy, setNotificationsBusy] = React.useState(false);
+  const [notificationDetailsOpen, setNotificationDetailsOpen] = React.useState(false);
+  const [notificationDetails, setNotificationDetails] = React.useState({
+    likes: true, comments: true, follows: true, messages: true, system_alerts: true,
+  });
 
 
 
@@ -894,9 +898,28 @@ export default function App() {
     setNotificationsBusy(true);
     try {
       const enabled = await loadNotificationPreference();
+      const details = await loadNotificationDetails();
       setNotificationsEnabled(enabled);
+      setNotificationDetails(current => ({ ...current, ...details }));
+      setNotificationDetailsOpen(value => !value);
     } catch (e) {
-      Alert.alert('Notifications', e.message || 'Could not load notification preference.');
+      Alert.alert('Notifications', e.message || 'Could not load notification settings.');
+    } finally {
+      setNotificationsBusy(false);
+    }
+  };
+
+  const changeNotificationDetail = async (key, value) => {
+    const previous = notificationDetails;
+    const updated = { ...previous, [key]: value };
+    setNotificationDetails(updated);
+    setNotificationsBusy(true);
+    try {
+      const saved = await saveNotificationDetails({ [key]: value });
+      setNotificationDetails(current => ({ ...current, ...saved }));
+    } catch (e) {
+      setNotificationDetails(previous);
+      Alert.alert('Notifications', e.message || 'Could not save notification settings.');
     } finally {
       setNotificationsBusy(false);
     }
@@ -2157,6 +2180,38 @@ const refreshProfile = React.useCallback(async () => {
                     />
                   </View>
                 </View>
+                <TouchableOpacity
+                  onPress={openNotificationSettings}
+                  disabled={notificationsBusy}
+                  style={{ borderWidth: 1, borderColor: '#E1E8F3', borderRadius: 10, padding: 12, marginBottom: 10 }}
+                >
+                  <Text style={{ color: '#26344D', fontWeight: '700' }}>
+                    {notificationDetailsOpen ? 'Hide notification options' : 'Manage notification options'}
+                  </Text>
+                  <Text style={{ color: '#7A879B', fontSize: 12, marginTop: 4 }}>
+                    Likes, comments, follows, messages and system alerts
+                  </Text>
+                </TouchableOpacity>
+                {notificationDetailsOpen && (
+                  <View style={{ borderWidth: 1, borderColor: '#E1E8F3', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+                    {[
+                      { key: 'likes', label: 'Likes' },
+                      { key: 'comments', label: 'Comments' },
+                      { key: 'follows', label: 'Follows' },
+                      { key: 'messages', label: 'Messages' },
+                      { key: 'system_alerts', label: 'System Alerts' },
+                    ].map(item => (
+                      <View key={item.key} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 }}>
+                        <Text style={{ color: '#26344D', fontWeight: '600' }}>{item.label}</Text>
+                        <Switch
+                          value={!!notificationDetails[item.key]}
+                          onValueChange={value => changeNotificationDetail(item.key, value)}
+                          disabled={notificationsBusy || !notificationsEnabled}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                )}
                 {[
                   { title: 'Account Security', subtitle: 'Password and sign-in security' },
                   { title: 'Privacy', subtitle: 'Control your privacy' },
