@@ -1459,7 +1459,7 @@ const refreshProfile = React.useCallback(async () => {
       <SafeAreaView style={styles.screen}>
         <StatusBar style="dark" />
         <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
-          <Text style={{ fontSize: 30, fontWeight: '800', color: '#171717', marginBottom: 8 }}>SocialApp</Text>
+          <Text style={{ fontSize: 30, fontWeight: '800', color: '#171717', marginBottom: 8 }}>Bhumi Social AI</Text>
           <Text style={{ color: '#777777', marginBottom: 22 }}>Forgot password</Text>
 
           <View style={{ flexDirection: 'row', marginBottom: 18 }}>
@@ -1570,7 +1570,7 @@ const refreshProfile = React.useCallback(async () => {
       <SafeAreaView style={styles.screen}>
         <StatusBar style="dark" />
         <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
-          <Text style={{ fontSize: 30, fontWeight: '800', color: '#171717', marginBottom: 8 }}>SocialApp</Text>
+          <Text style={{ fontSize: 30, fontWeight: '800', color: '#171717', marginBottom: 8 }}>Bhumi Social AI</Text>
           <Text style={{ color: '#777777', marginBottom: 26 }}>
             {authMode === 'register' ? 'Create your account' : 'Sign in to your account'}
           </Text>
@@ -1990,7 +1990,7 @@ const refreshProfile = React.useCallback(async () => {
       </Modal>
 
       <View style={styles.header}>
-        <Text style={styles.brand}>SocialApp</Text>
+        <Text style={styles.brand}>Bhumi Social AI</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={pickImage}><Text style={styles.headerIcon}>＋</Text></TouchableOpacity>
           <TouchableOpacity><Text style={styles.headerIcon}>♡</Text></TouchableOpacity>
@@ -2495,7 +2495,7 @@ const refreshProfile = React.useCallback(async () => {
           <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 24, alignItems: 'center' }}>
             <Text style={{ fontSize: 22, fontWeight: '700', color: '#171717', marginBottom: 12 }}>Update Available</Text>
             <Text style={{ fontSize: 15, color: '#555555', textAlign: 'center', lineHeight: 22, marginBottom: 22 }}>
-              {updateInfo?.message || 'A new version of SocialApp is available.'}
+              {updateInfo?.message || 'A new version of Bhumi Social AI is available.'}
             </Text>
             <TouchableOpacity
               onPress={() => Linking.openURL(updateInfo?.download_url || 'https://bhumi-social-app-fresh.onrender.com/download')}
@@ -2505,7 +2505,7 @@ const refreshProfile = React.useCallback(async () => {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => Share.share({
-                message: 'Download Bhoomi Social: https://bhumi-social-app-fresh.onrender.com/download',
+                message: 'Download Bhumi Social AI: https://bhumi-social-app-fresh.onrender.com/download',
               })}
               style={{ backgroundColor: '#1685D9', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, width: '100%', alignItems: 'center', marginTop: 10 }}
             >
