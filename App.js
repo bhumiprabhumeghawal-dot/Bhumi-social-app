@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import appConfig from './app.json';
 import React from 'react';
@@ -21,7 +22,7 @@ import {
   loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails,
   togglePostLike, loadPostComments, createPostComment,
   registerAccount, loginAccount, getAuthSession, clearAuthSession,
-  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession} from './api';
+  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers} from './api';
 import {
   SafeAreaView,
   ScrollView,
@@ -289,8 +290,8 @@ function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
   );
 }
 
-function ReelVideo({ uri, zoomControls = false }) {
-  const player = useVideoPlayer(uri, p => { p.loop = true; });
+function ReelVideo({ uri, zoomControls = false, height = 420 }) {
+  const player = useVideoPlayer(uri, p => { p.loop = true; p.play(); });
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -359,7 +360,7 @@ function ReelVideo({ uri, zoomControls = false }) {
 
   return (
     <View style={{ width: '100%', alignItems: 'center' }}>
-      <View style={{ width: '100%', height: 420, backgroundColor: '#000', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: '100%', height, backgroundColor: '#000', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
       <GestureDetector gesture={gesture}>
         <Animated.View style={[{ width: '100%', height: '100%', backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }, animatedStyle]}>
           <VideoView player={player} style={{ width: '100%', height: '100%' }} />
@@ -655,8 +656,11 @@ export default function App() {
   const [activeTab, setActiveTab] = React.useState('Home');
   const [cameraOpen, setCameraOpen] = React.useState(false);
   const [cameraFacing, setCameraFacing] = React.useState('back');
+  const [cameraMode, setCameraMode] = React.useState('video');
+  const [cameraTargetKind, setCameraTargetKind] = React.useState('reels');
   const [isRecording, setIsRecording] = React.useState(false);
   const [recordedVideo, setRecordedVideo] = React.useState(null);
+  const [recordedPhoto, setRecordedPhoto] = React.useState(null);
   const cameraRef = React.useRef(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
@@ -769,10 +773,48 @@ export default function App() {
   }, []);
 
   // SOCIALAPP_PROFILE_SCREEN_V1
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchResults, setSearchResults] = React.useState([]);
+  const [searchLoading, setSearchLoading] = React.useState(false);
+  const [searchError, setSearchError] = React.useState('');
+
   const [profile, setProfile] = React.useState(null);
   const [profileEditing, setProfileEditing] = React.useState(false);
   const [profileDraft, setProfileDraft] = React.useState({ displayName: '', bio: '' });
   const [profileBusy, setProfileBusy] = React.useState(false);
+
+  // SEARCH_USERS_EFFECT_V1
+  React.useEffect(() => {
+    const term = searchQuery.trim();
+    if (activeTab !== 'Search' || term.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      setSearchError('');
+      return undefined;
+    }
+
+    let active = true;
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
+      setSearchError('');
+      try {
+        const results = await searchUsers(term);
+        if (active) setSearchResults(results);
+      } catch (error) {
+        if (active) {
+          setSearchResults([]);
+          setSearchError(error?.message || 'Search failed.');
+        }
+      } finally {
+        if (active) setSearchLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [searchQuery, activeTab]);
 
   const groupedStories = React.useMemo(() => {
     const groups = new Map();
@@ -1026,7 +1068,7 @@ const refreshProfile = React.useCallback(async () => {
   };
 
   const removeProfilePhoto = () => {
-    Alert.alert('फ़ोटो हटाएँ?', 'क्या प्रोफ़ाइल फ़ोटो हटानी है?', [
+    Alert.alert('Remove Photo?', 'क्या प्रोफ़ाइल फ़ोटो हटानी है?', [
       { text: 'रद्द करें', style: 'cancel' },
       {
         text: 'हटाएँ',
@@ -1090,6 +1132,9 @@ const refreshProfile = React.useCallback(async () => {
         return;
       }
       setRecordedVideo(null);
+      setRecordedPhoto(null);
+      setCameraMode('video');
+      setCameraTargetKind('reels');
       setCameraOpen(true);
     } catch (e) {
       Alert.alert('Camera unavailable', e.message || 'Please try again.');
@@ -1114,10 +1159,56 @@ const refreshProfile = React.useCallback(async () => {
     if (isRecording) cameraRef.current?.stopRecording();
   };
 
+  const takeCameraPhoto = async () => {
+    if (!cameraRef.current || isRecording || recordedPhoto) return;
+    try {
+      const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
+      if (photo?.uri) setRecordedPhoto(photo.uri);
+    } catch (e) {
+      Alert.alert('Photo capture failed', e.message || 'Please try again.');
+    }
+  };
+
+  const useRecordedPhoto = () => {
+    if (!recordedPhoto) return;
+    const kind = cameraTargetKind === 'stories' ? 'stories' : 'posts';
+    setMediaDraft({
+      kind,
+      assets: [{
+        uri: recordedPhoto,
+        type: 'image',
+        fileName: `camera-photo-${Date.now()}.jpg`,
+        mimeType: 'image/jpeg',
+      }],
+    });
+    setMediaDraftIndex(0);
+    setMediaDraftCaption('');
+    setCameraOpen(false);
+    setRecordedPhoto(null);
+  };
+
+  const openCaptureCamera = async (kind, mode) => {
+    try {
+      let permission = cameraPermission;
+      if (!permission?.granted) permission = await requestCameraPermission();
+      if (!permission?.granted) {
+        Alert.alert('Camera permission required', 'Allow camera access to capture media.');
+        return;
+      }
+      setCameraTargetKind(kind);
+      setCameraMode(mode);
+      setRecordedPhoto(null);
+      setRecordedVideo(null);
+      setCameraOpen(true);
+    } catch (e) {
+      Alert.alert('Camera unavailable', e.message || 'Please try again.');
+    }
+  };
+
   const useRecordedVideo = () => {
     if (!recordedVideo) return;
     setMediaDraft({
-      kind: 'reels',
+      kind: cameraTargetKind,
       assets: [{
         uri: recordedVideo,
         type: 'video',
@@ -1155,14 +1246,23 @@ const refreshProfile = React.useCallback(async () => {
         ...(kind === 'reels' ? { videoMaxDuration: 1200 } : kind === 'stories' ? { videoMaxDuration: 1200 } : kind === 'posts' ? { videoMaxDuration: 7200 } : {}),
       });
       if (result.canceled || !result.assets?.length) return;
+      const normalizedAssets = result.assets.map(asset => {
+        const uri = asset.uri || '';
+        const videoByType = asset.type === 'video';
+        const videoByName = /\.(mp4|mov|webm|m4v|3gp|mkv)(?:[?#].*)?$/i.test(asset.fileName || uri);
+        return {
+          ...asset,
+          type: videoByType || videoByName ? 'video' : (asset.type || 'image'),
+        };
+      });
       const maxBytes = kind === 'posts' ? 1024 * 1024 * 1024 : 500 * 1024 * 1024;
-      const oversizedAsset = result.assets.find(asset => Number(asset.fileSize || 0) > maxBytes);
+      const oversizedAsset = normalizedAssets.find(asset => Number(asset.fileSize || 0) > maxBytes);
       if (oversizedAsset) {
         const limitMB = Math.floor(maxBytes / (1024 * 1024));
         Alert.alert('फ़ाइल बहुत बड़ी है', `इस अपलोड की अधिकतम सीमा ${limitMB} MB है। छोटी फ़ाइल चुनें।`);
         return;
       }
-      setMediaDraft({ kind, assets: result.assets });
+      setMediaDraft({ kind, assets: normalizedAssets });
       setMediaDraftIndex(0);
       setMediaDraftCaption('');
     } catch (e) {
@@ -1274,10 +1374,16 @@ const refreshProfile = React.useCallback(async () => {
       }
       const item = uploadedItems[0];
       setMediaDraft(null);
+      musicPlayer.pause();
       setMediaDraftIndex(0);
       setMediaDraftCaption('');
+      setZoomEffectEnabled(false);
+      setZoomEffectLevel(1.5);
+      setZoomEffectDuration(3);
       setMusicAsset(null);
       setMusicStart(0);
+      setMusicVolume(0.8);
+      setKeepOriginalAudio(true);
       if (kind === 'posts') {
         await refreshContent();
         setActiveTab('Home');
@@ -1298,8 +1404,16 @@ const refreshProfile = React.useCallback(async () => {
 
   const cancelDraftMedia = () => {
     setMediaDraft(null);
+    musicPlayer.pause();
     setMediaDraftIndex(0);
     setMediaDraftCaption('');
+    setZoomEffectEnabled(false);
+    setZoomEffectLevel(1.5);
+    setZoomEffectDuration(3);
+    setMusicAsset(null);
+    setMusicStart(0);
+    setMusicVolume(0.8);
+    setKeepOriginalAudio(true);
   };
 
   const pickImage = () => chooseMedia('posts');
@@ -1308,17 +1422,22 @@ const refreshProfile = React.useCallback(async () => {
 
   const handleTab = (name) => {
     if (name === 'Create') {
-      Alert.alert('Create', 'क्या अपलोड करना है?', [
-        { text: 'पोस्ट', onPress: pickImage },
-        { text: 'स्टोरी', onPress: createStory },
-        { text: 'रील', onPress: createReel },
-        { text: 'रद्द करें', style: 'cancel' },
+      Alert.alert('Create', 'Choose what you want to create', [
+        { text: 'Photo Post', onPress: () => openCaptureCamera('posts', 'picture') },
+        { text: 'Video Post', onPress: () => openCaptureCamera('posts', 'video') },
+        { text: 'Story from Camera', onPress: () => openCaptureCamera('stories', 'picture') },
+        { text: 'Story from Gallery', onPress: createStory },
+        { text: 'Record Reel', onPress: openReelCamera },
+        { text: 'Reel from Gallery', onPress: createReel },
+        { text: 'Reel from Photos', onPress: createReelFromPhotos },
+        { text: 'Post from Gallery', onPress: pickImage },
+        { text: 'Cancel', style: 'cancel' },
       ]);
     } else {
       setActiveTab(name);
       if (name === 'Home') refreshContent();
       if (name === 'Reels' && reels.length === 0) {
-        Alert.alert('Reels', 'अभी कोई रील नहीं है।', [
+        Alert.alert('Reels', 'No reels yet.', [
           { text: 'रील अपलोड करें', onPress: createReel },
           { text: 'ठीक है', style: 'cancel' },
         ]);
@@ -1707,6 +1826,7 @@ const refreshProfile = React.useCallback(async () => {
           if (isRecording) cameraRef.current?.stopRecording();
           setCameraOpen(false);
           setRecordedVideo(null);
+          setRecordedPhoto(null);
         }}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: '#090909' }}>
@@ -1715,42 +1835,87 @@ const refreshProfile = React.useCallback(async () => {
               if (isRecording) cameraRef.current?.stopRecording();
               setCameraOpen(false);
               setRecordedVideo(null);
+              setRecordedPhoto(null);
             }} style={{ padding: 8 }}>
               <Text style={{ color: '#FFFFFF', fontSize: 16 }}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '700' }}>Create Reel</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '700' }}>
+              {cameraTargetKind === 'reels' ? 'Create Reel' : cameraTargetKind === 'stories' ? 'Create Story' : 'Create Post'}
+            </Text>
             <TouchableOpacity
               onPress={() => setCameraFacing(current => current === 'back' ? 'front' : 'back')}
-              disabled={isRecording || !!recordedVideo}
+              disabled={isRecording || !!recordedVideo || !!recordedPhoto}
               style={{ padding: 8 }}
             >
               <Text style={{ color: '#FFFFFF', fontSize: 15 }}>Flip</Text>
             </TouchableOpacity>
           </View>
 
+          <View style={{ flexDirection: 'row', justifyContent: 'center', paddingVertical: 10, gap: 12 }}>
+            {[
+              { label: 'Photo', value: 'picture' },
+              { label: 'Video', value: 'video' },
+            ].map(option => (
+              <TouchableOpacity
+                key={option.value}
+                disabled={isRecording || !!recordedVideo || !!recordedPhoto || cameraTargetKind === 'reels'}
+                onPress={() => setCameraMode(option.value)}
+                style={{
+                  paddingHorizontal: 22,
+                  paddingVertical: 9,
+                  borderRadius: 22,
+                  backgroundColor: cameraMode === option.value ? '#1685D9' : '#292929',
+                  opacity: cameraTargetKind === 'reels' ? 0.55 : 1,
+                }}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{option.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <View style={{ flex: 1, backgroundColor: '#000000', overflow: 'hidden' }}>
-            {recordedVideo ? (
+            {recordedPhoto ? (
+              <Image source={{ uri: recordedPhoto }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+            ) : recordedVideo ? (
               <ReelVideo key={recordedVideo} uri={recordedVideo} />
             ) : (
               <CameraView
                 ref={cameraRef}
                 style={{ flex: 1 }}
                 facing={cameraFacing}
-                mode="video"
+                mode={cameraMode}
               />
             )}
           </View>
 
-          <View style={{ minHeight: 100, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', paddingHorizontal: 16, paddingVertical: 18 }}>
-            {recordedVideo ? (
+          <View style={{ minHeight: 112, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', paddingHorizontal: 16, paddingVertical: 18 }}>
+            {(recordedPhoto || recordedVideo) ? (
               <>
-                <TouchableOpacity onPress={() => setRecordedVideo(null)} style={{ padding: 14 }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setRecordedPhoto(null);
+                    setRecordedVideo(null);
+                  }}
+                  style={{ padding: 14 }}
+                >
                   <Text style={{ color: '#FFFFFF', fontSize: 16 }}>Retake</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={useRecordedVideo} style={{ backgroundColor: '#1685D9', borderRadius: 24, paddingHorizontal: 26, paddingVertical: 13 }}>
-                  <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>Use Video</Text>
+                <TouchableOpacity
+                  onPress={recordedPhoto ? useRecordedPhoto : useRecordedVideo}
+                  style={{ backgroundColor: '#1685D9', borderRadius: 24, paddingHorizontal: 26, paddingVertical: 13 }}
+                >
+                  <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
+                    {recordedPhoto ? 'Use Photo' : 'Use Video'}
+                  </Text>
                 </TouchableOpacity>
               </>
+            ) : cameraMode === 'picture' ? (
+              <TouchableOpacity
+                onPress={takeCameraPhoto}
+                style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 5, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#FFFFFF' }} />
+              </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 onPress={isRecording ? stopCameraRecording : startCameraRecording}
@@ -1795,7 +1960,7 @@ const refreshProfile = React.useCallback(async () => {
                   position: 'relative',
                 }}>
                   {isVideo ? (
-                    <ReelVideo uri={asset.uri} />
+                    <ReelVideo uri={asset.uri} height={Math.max(360, Dimensions.get('window').height - 190)} />
                   ) : (
                     <Image
                       source={{ uri: asset.uri }}
@@ -1853,7 +2018,14 @@ const refreshProfile = React.useCallback(async () => {
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 }}>
                     <TouchableOpacity
                       disabled={mediaDraftIndex === 0}
-                      onPress={() => setMediaDraftIndex(index => Math.max(0, index - 1))}
+                      onPress={() => {
+                        setMediaDraftIndex(index => Math.max(0, index - 1));
+                        setZoomEffectEnabled(false);
+                        setZoomEffectLevel(1.5);
+                        setZoomEffectDuration(3);
+                        setMusicAsset(null);
+                        setMusicStart(0);
+                      }}
                       style={{ padding: 10 }}
                     >
                       <Text style={{ color: '#1685D9', fontSize: 16 }}>Previous</Text>
@@ -1861,7 +2033,14 @@ const refreshProfile = React.useCallback(async () => {
                     <Text style={{ color: '#555555' }}>{mediaDraftIndex + 1} / {assets.length}</Text>
                     <TouchableOpacity
                       disabled={mediaDraftIndex >= assets.length - 1}
-                      onPress={() => setMediaDraftIndex(index => Math.min(assets.length - 1, index + 1))}
+                      onPress={() => {
+                        setMediaDraftIndex(index => Math.min(assets.length - 1, index + 1));
+                        setZoomEffectEnabled(false);
+                        setZoomEffectLevel(1.5);
+                        setZoomEffectDuration(3);
+                        setMusicAsset(null);
+                        setMusicStart(0);
+                      }}
                       style={{ padding: 10 }}
                     >
                       <Text style={{ color: '#1685D9', fontSize: 16 }}>Next</Text>
@@ -1914,7 +2093,7 @@ const refreshProfile = React.useCallback(async () => {
                           <TouchableOpacity onPress={() => setMusicVolume(v => Math.min(1, Number((v + 0.1).toFixed(1))))} style={{ padding: 10, marginLeft: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
                             <Text style={{ color: '#1685D9' }}>＋</Text>
                           </TouchableOpacity>
-                          <TouchableOpacity onPress={() => { setMusicAsset(null); setMusicStart(0); }} style={{ padding: 10, marginLeft: 8 }}>
+                          <TouchableOpacity onPress={() => { musicPlayer.pause(); setMusicAsset(null); setMusicStart(0); }} style={{ padding: 10, marginLeft: 8 }}>
                             <Text style={{ color: '#D93025' }}>Remove Music</Text>
                           </TouchableOpacity>
                         </View>
@@ -1992,18 +2171,24 @@ const refreshProfile = React.useCallback(async () => {
       <View style={styles.header}>
         <Text style={styles.brand}>Bhumi Social AI</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity onPress={pickImage}><Text style={styles.headerIcon}>＋</Text></TouchableOpacity>
-          <TouchableOpacity><Text style={styles.headerIcon}>♡</Text></TouchableOpacity>
-          <TouchableOpacity><Text style={styles.headerIcon}>➤</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => handleTab("Create")} accessibilityLabel="Create menu">
+            <Ionicons name="add-circle-outline" size={27} color="#171717" />
+          </TouchableOpacity>
+          <TouchableOpacity accessibilityLabel="Notifications">
+            <Ionicons name="heart-outline" size={27} color="#171717" />
+          </TouchableOpacity>
+          <TouchableOpacity accessibilityLabel="Messages">
+            <Ionicons name="paper-plane-outline" size={26} color="#171717" />
+          </TouchableOpacity>
         </View>
       </View>
 
       {!serverOnline && (
         <Text style={{ paddingHorizontal: 12, paddingVertical: 4, color: '#888', fontSize: 11 }}>
-          सर्वर से कनेक्शन नहीं है
+          Server connection unavailable
         </Text>
       )}
-      {busy && <Text style={{ padding: 5, color: '#1685D9' }}>मीडिया अपलोड हो रहा है…</Text>}
+      {busy && <Text style={{ padding: 5, color: '#1685D9' }}>Uploading media…</Text>}
 
       {activeTab === 'Reels' ? (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false} pagingEnabled decelerationRate="fast">
@@ -2015,9 +2200,9 @@ const refreshProfile = React.useCallback(async () => {
             </View>
           )) : (
             <View style={{ padding: 24, alignItems: 'center' }}>
-              <Text style={{ color: '#555' }}>अभी कोई रील नहीं है।</Text>
+              <Text style={{ color: '#555' }}>No reels yet.</Text>
               <TouchableOpacity onPress={createReel} style={{ padding: 14 }}>
-                <Text style={{ color: '#1685D9', fontWeight: '700' }}>＋ रील अपलोड करें</Text>
+                <Text style={{ color: '#1685D9', fontWeight: '700' }}>+ Upload Reel</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -2056,15 +2241,85 @@ const refreshProfile = React.useCallback(async () => {
           <View style={styles.feedDivider} />
           {groupPostItems(feedPosts).map((p, i) => <PostCard key={p.groupId || p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} onOpen={() => setSelectedPost(p)} />)}
         </ScrollView>
+      ) : activeTab === 'Search' ? (
+        <ScrollView
+          style={styles.content}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ padding: 16, paddingBottom: 30 }}
+        >
+          <Text style={{ color: '#171717', fontSize: 24, fontWeight: '800', marginBottom: 14 }}>
+            Search
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F3F5', borderRadius: 12, paddingHorizontal: 12, marginBottom: 16 }}>
+            <Ionicons name="search-outline" size={20} color="#777777" />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search people by name or username"
+              placeholderTextColor="#888888"
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+              style={{ flex: 1, paddingVertical: 13, paddingHorizontal: 10, color: '#171717', fontSize: 15 }}
+            />
+            {!!searchQuery && (
+              <TouchableOpacity onPress={() => setSearchQuery('')} accessibilityLabel="Clear search">
+                <Ionicons name="close-circle" size={20} color="#777777" />
+              </TouchableOpacity>
+            )}
+          </View>
+          {searchQuery.trim().length < 2 ? (
+            <Text style={{ color: '#777777', paddingVertical: 12 }}>
+              Enter at least 2 characters to search for people.
+            </Text>
+          ) : searchLoading ? (
+            <Text style={{ color: '#777777', paddingVertical: 12 }}>Searching...</Text>
+          ) : searchError ? (
+            <Text style={{ color: '#B42318', paddingVertical: 12 }}>{searchError}</Text>
+          ) : searchResults.length === 0 ? (
+            <Text style={{ color: '#777777', paddingVertical: 12 }}>No users found.</Text>
+          ) : (
+            searchResults.map((item) => (
+              <TouchableOpacity
+                key={item.username}
+                onPress={() => Alert.alert(item.displayName || item.username, '@' + item.username)}
+                activeOpacity={0.75}
+                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}
+              >
+                {item.avatarUrl ? (
+                  <Image
+                    source={{ uri: item.avatarUrl.startsWith('http') ? item.avatarUrl : 'https://bhumi-social-app-1.onrender.com' + item.avatarUrl }}
+                    style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#E4EAF4' }}
+                  />
+                ) : (
+                  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#DDE7F5', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: '#34415A', fontSize: 20, fontWeight: '700' }}>
+                      {(item.displayName || item.username || 'U').charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={{ color: '#171717', fontWeight: '700', fontSize: 15 }}>
+                    {item.displayName || item.username}
+                  </Text>
+                  <Text style={{ color: '#777777', fontSize: 13, marginTop: 3 }}>
+                    @{item.username}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#999999" />
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
       ) : activeTab === 'Profile' ? (
         <ScrollView style={styles.content} contentContainerStyle={{ padding: 20, paddingBottom: 36 }}>
           {!profile ? (
             <Text style={{ color: '#777', textAlign: 'center', padding: 24 }}>
-              प्रोफ़ाइल लोड हो रही है…
+              Loading profile…
             </Text>
           ) : (
             <View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 22 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 22, padding: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E8EDF4', borderRadius: 18 }}>
                 <TouchableOpacity onPress={chooseProfilePhoto} disabled={profileBusy}>
                   {profile.avatarUrl ? (
                     <Image source={{ uri: profile.avatarUrl }}
@@ -2080,7 +2335,7 @@ const refreshProfile = React.useCallback(async () => {
                     </View>
                   )}
                   <Text style={{ color: '#1685D9', fontSize: 12, textAlign: 'center', marginTop: 5 }}>
-                    फ़ोटो बदलें
+                    Change Photo
                   </Text>
                 </TouchableOpacity>
 
@@ -2122,7 +2377,7 @@ const refreshProfile = React.useCallback(async () => {
                   <Text style={{ color: '#555', marginBottom: 5 }}>Bio</Text>
                   <TextInput value={profileDraft.bio}
                     onChangeText={v => setProfileDraft(d => ({ ...d, bio: v }))}
-                    maxLength={300} multiline placeholder="अपने बारे में लिखें"
+                    maxLength={300} multiline placeholder="Write about yourself"
                     style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
                       padding: 11, minHeight: 80, color: '#222', marginBottom: 12,
                       textAlignVertical: 'top' }} />
@@ -2130,7 +2385,7 @@ const refreshProfile = React.useCallback(async () => {
                     <TouchableOpacity onPress={saveProfile} disabled={profileBusy}
                       style={{ backgroundColor: '#1685D9', padding: 12, borderRadius: 8, marginRight: 10 }}>
                       <Text style={{ color: '#FFF', fontWeight: '700' }}>
-                        {profileBusy ? 'सेव हो रहा है…' : 'Save'}
+                        {profileBusy ? 'Saving…' : 'Save'}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => {
@@ -2144,15 +2399,14 @@ const refreshProfile = React.useCallback(async () => {
               ) : (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
                   <TouchableOpacity onPress={() => setProfileEditing(true)}
-                    style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
-                      paddingVertical: 10, paddingHorizontal: 18, marginRight: 8, marginBottom: 8 }}>
+                    style={{ borderWidth: 1, borderColor: '#D7E5F5', borderRadius: 10, backgroundColor: '#F4F8FE', paddingVertical: 11, paddingHorizontal: 20, marginRight: 8, marginBottom: 8 }}>
                     <Text style={{ color: '#333', fontWeight: '600' }}>Edit Profile</Text>
                   </TouchableOpacity>
                   {!!profile.avatarUrl && (
                     <TouchableOpacity onPress={removeProfilePhoto} disabled={profileBusy}
                       style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
                         paddingVertical: 10, paddingHorizontal: 14, marginBottom: 8 }}>
-                      <Text style={{ color: '#555' }}>फ़ोटो हटाएँ</Text>
+                      <Text style={{ color: '#555' }}>Remove Photo</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -2256,12 +2510,12 @@ const refreshProfile = React.useCallback(async () => {
 
 
                               </View>
-                <Text style={{ color: '#555', fontWeight: '700', marginBottom: 12 }}>आपकी पोस्ट</Text>
+                <Text style={{ color: '#555', fontWeight: '700', marginBottom: 12 }}>Your Posts</Text>
               {groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).length ? (
                 groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).map((p, i) =>
                   <PostCard key={p.groupId || p.id || `my-post-${i}`} post={p} onOpen={() => setSelectedPost(p)} />)
               ) : (
-                <Text style={{ color: '#888', paddingVertical: 12 }}>अभी आपकी कोई पोस्ट नहीं है।</Text>
+                <Text style={{ color: '#888', paddingVertical: 12 }}>You haven't shared any posts yet.</Text>
               )}
             </View>
           )}
@@ -2274,14 +2528,18 @@ const refreshProfile = React.useCallback(async () => {
 
       <View style={styles.bottomNav}>
         {[
-          { name: 'Home', icon: '⌂', color: '#4F83CC' },
-          { name: 'Search', icon: '⌕', color: '#9274CC' },
-          { name: 'Create', icon: '＋', color: '#4A9D83' },
-          { name: 'Reels', icon: '▻', color: '#D879A0' },
-          { name: 'Profile', icon: '○', color: '#C69255' }
+          { name: 'Home', icon: 'home-outline' },
+          { name: 'Search', icon: 'search-outline' },
+          { name: 'Create', icon: 'add-circle-outline' },
+          { name: 'Reels', icon: 'play-circle-outline' },
+          { name: 'Profile', icon: 'person-circle-outline' }
         ].map(tab => (
-          <TouchableOpacity key={tab.name} style={styles.navItem} onPress={() => handleTab(tab.name)}>
-            <Text style={[styles.navIcon, { color: tab.color }, activeTab === tab.name && { fontWeight: '800' }]}>{tab.icon}</Text>
+          <TouchableOpacity key={tab.name} style={styles.navItem} onPress={() => handleTab(tab.name)} accessibilityLabel={tab.name}>
+            <Ionicons
+              name={tab.icon}
+              size={25}
+              color={activeTab === tab.name ? '#1685D9' : '#333333'}
+            />
             <Text style={[styles.navLabel, activeTab === tab.name && styles.activeNavLabel]}>{tab.name}</Text>
           </TouchableOpacity>
         ))}
@@ -2690,12 +2948,11 @@ const styles = StyleSheet.create({
   brand: { fontSize: 27, fontWeight: '800', color: '#171717', letterSpacing: -1 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 19 },
   headerIcon: { fontSize: 27, color: '#171717' },
-  stories: { paddingHorizontal: 10, paddingVertical: 13, gap: 14 },
+  stories: { paddingHorizontal: 12, paddingVertical: 15, gap: 15 },
   story: { width: 68, alignItems: 'center' },
   storyRing: {
-    width: 62, height: 62, borderRadius: 31, padding: 3,
-    borderWidth: 2, borderColor: '#D62976',
-    alignItems: 'center', justifyContent: 'center',
+    width: 66, height: 66, borderRadius: 33, padding: 3,
+    borderWidth: 2, borderColor: '#D62976', alignItems: 'center', justifyContent: 'center',
   },
   ownRing: { borderColor: '#D9D9D9' },
   storyAvatar: {
@@ -2706,9 +2963,9 @@ const styles = StyleSheet.create({
   avatarLetter: { fontSize: 22, fontWeight: '700', color: '#343434' },
   storyName: { marginTop: 5, fontSize: 11, color: '#252525' },
   feedDivider: { height: 1, backgroundColor: '#EEEEEE' },
-  post: { marginBottom: 18 },
+  post: { marginHorizontal: 8, marginBottom: 18, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#F0F0F0', borderRadius: 14, overflow: 'hidden' },
   postHeader: {
-    height: 58, paddingHorizontal: 12,
+    height: 62, paddingHorizontal: 12,
     flexDirection: 'row', alignItems: 'center',
   },
   smallAvatar: {
@@ -2724,7 +2981,7 @@ const styles = StyleSheet.create({
   postEmoji: { fontSize: 112 },
   actions: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 13, paddingTop: 8, gap: 16,
+    paddingHorizontal: 13, paddingTop: 10, gap: 18,
   },
   actionIcon: { fontSize: 28, color: '#202020' },
   liked: { color: '#E1306C' },
@@ -2734,7 +2991,7 @@ const styles = StyleSheet.create({
   comments: { marginHorizontal: 13, marginTop: 5, color: '#888888', fontSize: 12 },
   time: { marginHorizontal: 13, marginTop: 6, fontSize: 9, color: '#888888', letterSpacing: 0.6 },
   bottomNav: {
-    height: 58,
+    height: 62,
     transform: [{ translateY: -28 }],
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#DDDDDD', flexDirection: 'row',
