@@ -487,3 +487,14 @@ export async function createPostComment(postId, text, username = 'you') {
   }
   return data.comment;
 }
+
+export async function searchUsers(query) {
+  const term = String(query || '').trim();
+  if (term.length < 2) return [];
+  const response = await fetch(
+    `${API_BASE_URL}/api/search/users?q=${encodeURIComponent(term)}`
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Search failed.');
+  return data.results || [];
+}

@@ -387,6 +387,38 @@ def profile_json(db, username):
     }
 
 
+@app.get("/api/search/users")
+def search_users():
+    query = request.args.get("q", "").strip().lstrip("@")
+    if len(query) < 2:
+        return jsonify({"results": []})
+    query = query[:60].lower()
+    pattern = "%" + query + "%"
+    with get_db() as db:
+        rows = db.execute(
+            """SELECT u.username,
+                      COALESCE(NULLIF(p.display_name, ''), u.username) AS display_name,
+                      p.avatar_url
+               FROM users u
+               LEFT JOIN profiles p ON LOWER(p.username) = LOWER(u.username)
+               WHERE LOWER(u.username) LIKE ?
+                  OR LOWER(COALESCE(p.display_name, '')) LIKE ?
+               ORDER BY CASE WHEN LOWER(u.username) = ? THEN 0 ELSE 1 END,
+                        LOWER(u.username)
+               LIMIT 30""",
+            (pattern, pattern, query),
+        ).fetchall()
+    results = [
+        {
+            "username": row["username"],
+            "displayName": row["display_name"],
+            "avatarUrl": row["avatar_url"],
+        }
+        for row in rows
+    ]
+    return jsonify({"results": results})
+
+
 @app.get("/api/profile/<username>")
 def get_profile(username):
     username = username.strip().lstrip("@")
