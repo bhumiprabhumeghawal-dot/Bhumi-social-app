@@ -665,7 +665,7 @@ export default function App() {
 
   React.useEffect(() => {
     let active = true;
-    fetch('https://bhumi-social-app-fresh.onrender.com/api/app-version')
+    fetch('https://bhumi-social-app-1.onrender.com/api/app-version')
       .then(response => {
         if (!response.ok) throw new Error('Version check failed');
         return response.json();
@@ -2498,14 +2498,14 @@ const refreshProfile = React.useCallback(async () => {
               {updateInfo?.message || 'A new version of Bhumi Social AI is available.'}
             </Text>
             <TouchableOpacity
-              onPress={() => Linking.openURL(updateInfo?.download_url || 'https://bhumi-social-app-fresh.onrender.com/download')}
+              onPress={() => Linking.openURL(updateInfo?.download_url || 'https://bhumi-social-app-1.onrender.com/download')}
               style={{ backgroundColor: '#1685D9', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, width: '100%', alignItems: 'center' }}
             >
               <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>Update Now</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => Share.share({
-                message: 'Download Bhumi Social AI: https://bhumi-social-app-fresh.onrender.com/download',
+                message: 'Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download',
               })}
               style={{ backgroundColor: '#1685D9', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, width: '100%', alignItems: 'center', marginTop: 10 }}
             >
