@@ -171,6 +171,7 @@ export async function loadContent(type) {
 
   return (data.items || []).map(item => ({
     ...item,
+    avatarUrl: item.avatarUrl ? (item.avatarUrl.startsWith("http") ? item.avatarUrl : API_BASE_URL + item.avatarUrl) : null,
     uri: item.mediaUrl
       ? `${API_BASE_URL}${item.mediaUrl}`
       : null,

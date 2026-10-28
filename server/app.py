@@ -101,8 +101,12 @@ def init_db():
 
 
 def content_json(row):
+    with get_db() as db:
+        profile = db.execute("SELECT avatar_url FROM profiles WHERE username=?", (row["username"],)).fetchone()
+    avatar_url = profile["avatar_url"] if profile else None
     return {
         "id": row["id"],
+        "avatarUrl": avatar_url,
         "type": row["kind"],
         "user": row["username"],
         "caption": row["caption"],
