@@ -817,6 +817,10 @@ def _auth_user():
 @app.before_request
 def enforce_authenticated_mutations():
     if request.method in ("GET", "HEAD", "OPTIONS"):
+        if request.path.startswith("/api/"):
+            username = _auth_user()
+            if username:
+                g.auth_username = username
         return None
     if request.path in (
         "/api/auth/register",
