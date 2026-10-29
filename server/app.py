@@ -290,7 +290,7 @@ def create_content(kind):
 
 @app.get("/uploads/<kind>/<filename>")
 def uploaded_file(kind, filename):
-    if kind not in ALLOWED_EXTENSIONS and kind != "profiles":
+    if kind not in ALLOWED_EXTENSIONS and kind not in {"profiles", "chat"}:
         return jsonify({"error": "Unknown media type"}), 404
 
     return send_from_directory(UPLOAD_DIR / kind, filename)
@@ -1425,6 +1425,38 @@ def auth_forgot_password_reset():
 
 
 
+
+# SOCIALAPP_CHAT_PHOTO_UPLOAD_V1
+@app.post("/api/messages/upload-photo")
+def upload_chat_photo():
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to upload a chat photo."}), 401
+    media = request.files.get("file")
+    if media is None or not media.filename:
+        return jsonify({"error": "Photo file is required."}), 400
+    filename = secure_filename(media.filename)
+    if "." not in filename:
+        return jsonify({"error": "Photo file extension is missing."}), 400
+    extension = filename.rsplit(".", 1)[1].lower()
+    if extension not in {"jpg", "jpeg", "png", "webp", "gif"}:
+        return jsonify({"error": "Only JPG, PNG, WEBP and GIF photos are allowed."}), 415
+    folder = UPLOAD_DIR / "chat"
+    folder.mkdir(parents=True, exist_ok=True)
+    stored_name = f"{uuid.uuid4().hex}.{extension}"
+    destination = folder / stored_name
+    try:
+        media.save(destination)
+        size = destination.stat().st_size
+        if size <= 0 or size > 10 * 1024 * 1024:
+            destination.unlink(missing_ok=True)
+            return jsonify({"error": "Chat photos must not exceed 10 MB."}), 413
+        return jsonify({"ok": True, "imageUrl": f"/uploads/chat/{stored_name}"}), 201
+    except Exception:
+        destination.unlink(missing_ok=True)
+        app.logger.exception("Could not save chat photo")
+        return jsonify({"error": "Could not save chat photo."}), 500
+
 # SOCIALAPP_CHAT_API_V1
 def init_chat_tables():
     with get_db() as db:
@@ -1434,9 +1466,13 @@ def init_chat_tables():
                 sender_username TEXT NOT NULL,
                 recipient_username TEXT NOT NULL,
                 body TEXT NOT NULL,
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                image_url TEXT
             )
         """)
+        columns = {row["name"] for row in db.execute("PRAGMA table_info(direct_messages)").fetchall()}
+        if "image_url" not in columns:
+            db.execute("ALTER TABLE direct_messages ADD COLUMN image_url TEXT")
         db.execute("""
             CREATE INDEX IF NOT EXISTS idx_direct_messages_pair
             ON direct_messages(sender_username, recipient_username, created_at)
@@ -1459,7 +1495,7 @@ def get_message_conversations():
 
     with get_db() as db:
         rows = db.execute("""
-            SELECT id, sender_username, recipient_username, body, created_at
+            SELECT id, sender_username, recipient_username, body, image_url, created_at
             FROM direct_messages
             WHERE LOWER(sender_username)=LOWER(?)
                OR LOWER(recipient_username)=LOWER(?)
@@ -1481,7 +1517,7 @@ def get_message_conversations():
         seen.add(key)
         conversations.append({
             "username": other,
-            "lastMessage": row["body"],
+            "lastMessage": row["body"] or ("📷 Photo" if row["image_url"] else ""),
             "lastMessageAt": row["created_at"],
         })
 
@@ -1510,7 +1546,7 @@ def get_direct_messages(username):
         target = user["username"]
 
         rows = db.execute("""
-            SELECT id, sender_username, recipient_username, body, created_at
+            SELECT id, sender_username, recipient_username, body, image_url, created_at
             FROM direct_messages
             WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
                OR (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
@@ -1525,6 +1561,7 @@ def get_direct_messages(username):
             "sender": row["sender_username"],
             "recipient": row["recipient_username"],
             "text": row["body"],
+            "imageUrl": row["image_url"],
             "createdAt": row["created_at"],
         } for row in rows]
     })
@@ -1539,11 +1576,12 @@ def send_direct_message(username):
     target = username.strip().lstrip("@")
     data = request.get_json(silent=True) or {}
     body = str(data.get("text", data.get("message", ""))).strip()
+    image_url = str(data.get("imageUrl") or "").strip() or None
 
     if not target or target.lower() == current.lower():
         return jsonify({"error": "Choose another valid username."}), 400
-    if not body:
-        return jsonify({"error": "Message cannot be empty."}), 400
+    if not body and not image_url:
+        return jsonify({"error": "Write a message or attach a photo."}), 400
     if len(body) > 5000:
         return jsonify({"error": "Message must be 5000 characters or less."}), 400
 
@@ -1571,9 +1609,9 @@ def send_direct_message(username):
 
         db.execute("""
             INSERT INTO direct_messages
-                (id, sender_username, recipient_username, body, created_at)
-            VALUES (?, ?, ?, ?, ?)
-        """, (message_id, current, target, body, now))
+                (id, sender_username, recipient_username, body, image_url, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (message_id, current, target, body, image_url, now))
 
     return jsonify({
         "ok": True,
@@ -1582,6 +1620,7 @@ def send_direct_message(username):
             "sender": current,
             "recipient": target,
             "text": body,
+            "imageUrl": image_url,
             "createdAt": now,
         },
     }), 201

@@ -519,13 +519,37 @@ export async function loadDirectMessages(username) {
   return data.messages || [];
 }
 
-export async function sendDirectMessage(username, text) {
+export async function uploadChatPhoto(asset) {
+  if (!asset?.uri) throw new Error('Please select a photo first.');
+  const cleanUri = asset.uri.split('?')[0];
+  const extension = (cleanUri.split('.').pop() || 'jpg').toLowerCase();
+  const safeExtension = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension) ? extension : 'jpg';
+  const mimeType = asset.mimeType ||
+    (safeExtension === 'png' ? 'image/png' :
+     safeExtension === 'webp' ? 'image/webp' :
+     safeExtension === 'gif' ? 'image/gif' : 'image/jpeg');
+  const form = new FormData();
+  form.append('file', {
+    uri: asset.uri,
+    name: `chat-photo.${safeExtension}`,
+    type: mimeType,
+  });
+  const response = await fetch(`${API_BASE_URL}/api/messages/upload-photo`, {
+    method: 'POST',
+    body: form,
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not upload chat photo.');
+  return data.imageUrl.startsWith('http') ? data.imageUrl : `${API_BASE_URL}${data.imageUrl}`;
+}
+
+export async function sendDirectMessage(username, text, imageUrl = null) {
   const response = await fetch(
     `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, imageUrl }),
     }
   );
   const data = await response.json();

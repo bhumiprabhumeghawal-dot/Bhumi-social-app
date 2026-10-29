@@ -22,7 +22,7 @@ import {
   loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails,
   togglePostLike, loadPostComments, createPostComment,
   registerAccount, loginAccount, getAuthSession, clearAuthSession,
-  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadMessageConversations, loadDirectMessages, sendDirectMessage} from './api';
+  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadMessageConversations, loadDirectMessages, sendDirectMessage, uploadChatPhoto} from './api';
 import {
   SafeAreaView,
   ScrollView,
@@ -790,8 +790,11 @@ export default function App() {
   const [directMessages, setDirectMessages] = React.useState([]);
   const [newChatUsername, setNewChatUsername] = React.useState('');
   const [chatDraft, setChatDraft] = React.useState('');
+  const [chatMediaDraft, setChatMediaDraft] = React.useState(null);
+  const [chatEmojiOpen, setChatEmojiOpen] = React.useState(false);
   const [chatBusy, setChatBusy] = React.useState(false);
   const [chatError, setChatError] = React.useState('');
+  const [chatSearchQuery, setChatSearchQuery] = React.useState('');
 
   const openMessages = async () => {
     setMessagesOpen(true);
@@ -827,15 +830,32 @@ export default function App() {
     }
   };
 
+  // SOCIALAPP_CHAT_MEDIA_CONTROLS_V1
+  const chooseChatMedia = async (useCamera = false) => {
+    try {
+      const options = { mediaTypes: ['images'], allowsEditing: true, quality: 0.85 };
+      const result = useCamera
+        ? await ImagePicker.launchCameraAsync(options)
+        : await ImagePicker.launchImageLibraryAsync(options);
+      if (!result.canceled && result.assets?.[0]) setChatMediaDraft(result.assets[0]);
+    } catch (error) {
+      Alert.alert('Photo selection failed', error?.message || 'Please try again.');
+    }
+  };
+
   const sendChatDraft = async () => {
     const text = chatDraft.trim();
-    if (!text || !selectedChatUser || chatBusy) return;
+    if ((!text && !chatMediaDraft) || !selectedChatUser || chatBusy) return;
     setChatBusy(true);
     setChatError('');
     try {
-      const message = await sendDirectMessage(selectedChatUser, text);
+      let imageUrl = null;
+      if (chatMediaDraft) imageUrl = await uploadChatPhoto(chatMediaDraft);
+      const message = await sendDirectMessage(selectedChatUser, text, imageUrl);
       setDirectMessages(previous => [...previous, message]);
       setChatDraft('');
+      setChatMediaDraft(null);
+      setChatEmojiOpen(false);
       setMessageConversations(await loadMessageConversations());
     } catch (error) {
       setChatError(error?.message || 'Could not send message.');
@@ -3004,9 +3024,22 @@ const refreshProfile = React.useCallback(async () => {
                 <Ionicons name="arrow-back" size={25} color="#171717" />
               </TouchableOpacity>
             ) : null}
-            <Text style={{ flex: 1, fontSize: 21, fontWeight: '700', color: '#171717' }}>
-              {selectedChatUser || 'Messages'}
-            </Text>
+            {selectedChatUser ? (
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#E7F3FF', alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#087BD0', fontSize: 17, fontWeight: '800' }}>{selectedChatUser.slice(0, 1).toUpperCase()}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 17, fontWeight: '700', color: '#171717' }}>{selectedChatUser}</Text>
+                  <Text style={{ fontSize: 12, color: '#777777', marginTop: 2 }}>Direct message</Text>
+                </View>
+              </View>
+            ) : (
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 23, fontWeight: '800', color: '#171717' }}>Messages</Text>
+                <Text style={{ fontSize: 12, color: '#777777', marginTop: 2 }}>Your conversations</Text>
+              </View>
+            )}
             <TouchableOpacity onPress={() => setMessagesOpen(false)} accessibilityLabel="Close messages">
               <Ionicons name="close" size={27} color="#171717" />
             </TouchableOpacity>
@@ -3033,18 +3066,40 @@ const refreshProfile = React.useCallback(async () => {
               </View>
               {chatError ? <Text style={{ color: '#D93025', marginBottom: 10 }}>{chatError}</Text> : null}
               {chatBusy ? <Text style={{ color: '#777777', paddingVertical: 12 }}>Loading messages...</Text> : null}
-              <ScrollView>
-                {messageConversations.map((conversation, index) => {
+              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 13, paddingHorizontal: 12, marginBottom: 10 }}>
+                    <Ionicons name="search-outline" size={20} color="#777777" />
+                    <TextInput
+                      value={chatSearchQuery}
+                      onChangeText={setChatSearchQuery}
+                      placeholder="Search conversations"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      style={{ flex: 1, paddingHorizontal: 9, paddingVertical: 11, color: '#171717' }}
+                    />
+                    {chatSearchQuery ? <TouchableOpacity onPress={() => setChatSearchQuery('')}><Ionicons name="close-circle" size={19} color="#777777" /></TouchableOpacity> : null}
+                  </View>
+                  <ScrollView>
+                {messageConversations.filter(conversation => {
+                  const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
+                  const term = chatSearchQuery.trim().toLowerCase();
+                  return !term || String(username).toLowerCase().includes(term) || String(conversation.lastMessage || '').toLowerCase().includes(term);
+                }).map((conversation, index) => {
                   const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
                   if (!username) return null;
                   return (
                     <TouchableOpacity
                       key={String(username) + index}
                       onPress={() => openDirectChat(username)}
-                      style={{ paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}
+                      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', gap: 12 }}
                     >
-                      <Text style={{ fontSize: 16, fontWeight: '700', color: '#171717' }}>{username}</Text>
-                      <Text numberOfLines={1} style={{ color: '#777777', marginTop: 4 }}>{conversation.lastMessage || 'Open conversation'}</Text>
+                      <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: '#E7F3FF', alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontSize: 21, fontWeight: '800', color: '#087BD0' }}>{String(username).slice(0, 1).toUpperCase()}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#171717' }}>{username}</Text>
+                        <Text numberOfLines={1} style={{ color: '#777777', marginTop: 5, fontSize: 13 }}>{conversation.lastMessage || 'Start a conversation'}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={18} color="#B0B0B0" />
                     </TouchableOpacity>
                   );
                 })}
@@ -3062,9 +3117,10 @@ const refreshProfile = React.useCallback(async () => {
                 {directMessages.map((message, index) => {
                   const mine = String(message.sender || '').toLowerCase() === String(authSession?.username || '').toLowerCase();
                   return (
-                    <View key={String(message.id || index)} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: mine ? '#DDF1FF' : '#F0F0F0', borderRadius: 16, paddingHorizontal: 13, paddingVertical: 9, marginVertical: 4 }}>
-                      <Text style={{ color: '#171717', fontSize: 15 }}>{message.text}</Text>
-                      <Text style={{ color: '#777777', fontSize: 10, marginTop: 4 }}>{message.createdAt ? new Date(message.createdAt).toLocaleString() : ''}</Text>
+                    <View key={String(message.id || index)} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: mine ? '#3797F0' : '#EFEFEF', borderRadius: 20, borderTopRightRadius: mine ? 6 : 20, borderTopLeftRadius: mine ? 20 : 6, paddingHorizontal: 14, paddingVertical: 10, marginVertical: 5 }}>
+                      {message.imageUrl ? <Image source={{ uri: message.imageUrl.startsWith('http') ? message.imageUrl : `https://bhumi-social-app-1.onrender.com${message.imageUrl}` }} style={{ width: 210, height: 210, borderRadius: 10, marginBottom: message.text ? 6 : 0 }} resizeMode="cover" /> : null}
+                      {message.text ? <Text style={{ color: mine ? '#FFFFFF' : '#262626', fontSize: 15, lineHeight: 21 }}>{message.text}</Text> : null}
+                      <Text style={{ color: mine ? '#EAF5FF' : '#777777', fontSize: 10, marginTop: 5 }}>{message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</Text>
                     </View>
                   );
                 })}
@@ -3073,23 +3129,29 @@ const refreshProfile = React.useCallback(async () => {
                 ) : null}
               </ScrollView>
               {chatError ? <Text style={{ color: '#D93025', paddingHorizontal: 12, paddingTop: 6 }}>{chatError}</Text> : null}
-              <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10, borderTopWidth: 1, borderTopColor: '#EEEEEE', gap: 8 }}>
-                <TextInput
-                  value={chatDraft}
-                  onChangeText={setChatDraft}
-                  placeholder="Write a message..."
-                  multiline
-                  maxLength={5000}
-                  style={{ flex: 1, maxHeight: 110, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9, color: '#222222' }}
-                />
-                <TouchableOpacity
-                  onPress={sendChatDraft}
-                  disabled={chatBusy || !chatDraft.trim()}
-                  style={{ backgroundColor: chatBusy || !chatDraft.trim() ? '#A7D5F5' : '#0095F6', borderRadius: 22, paddingHorizontal: 15, paddingVertical: 12 }}
-                >
-                  <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Send</Text>
-                </TouchableOpacity>
-              </View>
+              <View>
+                            {chatMediaDraft ? (
+                              <View style={{ paddingHorizontal: 12, paddingTop: 8, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                <Image source={{ uri: chatMediaDraft.uri }} style={{ width: 64, height: 64, borderRadius: 8 }} />
+                                <Text style={{ flex: 1, color: '#555555' }}>Photo selected</Text>
+                                <TouchableOpacity onPress={() => setChatMediaDraft(null)}><Ionicons name="close-circle" size={24} color="#D93025" /></TouchableOpacity>
+                              </View>
+                            ) : null}
+                            {chatEmojiOpen ? (
+                              <View style={{ flexDirection: 'row', flexWrap: 'wrap', padding: 8, gap: 8 }}>
+                                {['😀','😂','🥰','😍','😊','😭','😎','🙏','👍','❤️','🔥','🎉','😘','🤔','👏','💯'].map(emoji => (
+                                  <TouchableOpacity key={emoji} onPress={() => setChatDraft(v => v + emoji)}><Text style={{ fontSize: 25 }}>{emoji}</Text></TouchableOpacity>
+                                ))}
+                              </View>
+                            ) : null}
+                            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#F0F0F0', backgroundColor: '#FFFFFF', gap: 9 }}>
+                              <TouchableOpacity onPress={() => chooseChatMedia(false)} accessibilityLabel="Choose photo from gallery"><Ionicons name="images-outline" size={25} color="#1685D9" /></TouchableOpacity>
+                              <TouchableOpacity onPress={() => chooseChatMedia(true)} accessibilityLabel="Take a photo"><Ionicons name="camera-outline" size={25} color="#1685D9" /></TouchableOpacity>
+                              <TouchableOpacity onPress={() => setChatEmojiOpen(v => !v)} accessibilityLabel="Open emoji picker"><Ionicons name="happy-outline" size={25} color="#1685D9" /></TouchableOpacity>
+                              <TextInput value={chatDraft} onChangeText={setChatDraft} placeholder="Write a message..." multiline maxLength={5000} style={{ flex: 1, maxHeight: 110, backgroundColor: '#F4F4F4', borderWidth: 0, borderRadius: 22, paddingHorizontal: 15, paddingVertical: 10, color: '#222222', fontSize: 15 }} />
+                              <TouchableOpacity onPress={sendChatDraft} disabled={chatBusy || (!chatDraft.trim() && !chatMediaDraft)} style={{ backgroundColor: chatBusy || (!chatDraft.trim() && !chatMediaDraft) ? '#A7D5F5' : '#0095F6', borderRadius: 22, paddingHorizontal: 13, paddingVertical: 12 }}><Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Send</Text></TouchableOpacity>
+                            </View>
+                          </View>
             </View>
           )}
         </SafeAreaView>
