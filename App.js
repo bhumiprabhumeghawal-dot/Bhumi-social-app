@@ -2247,10 +2247,10 @@ const refreshProfile = React.useCallback(async () => {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ padding: 16, paddingBottom: 30 }}
         >
-          <Text style={{ color: '#171717', fontSize: 24, fontWeight: '800', marginBottom: 14 }}>
+          <Text style={{ color: '#171717', fontSize: 24, fontWeight: '700', marginBottom: 16 }}>
             Search
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F3F5', borderRadius: 12, paddingHorizontal: 12, marginBottom: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F5', borderRadius: 14, paddingHorizontal: 14, marginBottom: 18, borderWidth: 1, borderColor: '#E8E8E8' }}>
             <Ionicons name="search-outline" size={20} color="#777777" />
             <TextInput
               value={searchQuery}
@@ -2260,7 +2260,7 @@ const refreshProfile = React.useCallback(async () => {
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="search"
-              style={{ flex: 1, paddingVertical: 13, paddingHorizontal: 10, color: '#171717', fontSize: 15 }}
+              style={{ flex: 1, paddingVertical: 14, paddingHorizontal: 10, color: '#171717', fontSize: 15 }}
             />
             {!!searchQuery && (
               <TouchableOpacity onPress={() => setSearchQuery('')} accessibilityLabel="Clear search">
@@ -2325,9 +2325,9 @@ const refreshProfile = React.useCallback(async () => {
                     <Image source={{ uri: profile.avatarUrl }}
                       onError={(e) => console.log('PROFILE_AVATAR_IMAGE_ERROR:', profile.avatarUrl, e.nativeEvent?.error)}
                       onLoad={() => console.log('PROFILE_AVATAR_IMAGE_LOADED:', profile.avatarUrl)}
-                      style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: '#DDE7F5' }} />
+                      style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: '#DDE7F5' }} />
                   ) : (
-                    <View style={{ width: 88, height: 88, borderRadius: 44,
+                    <View style={{ width: 96, height: 96, borderRadius: 48,
                       backgroundColor: '#DDE7F5', alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ color: '#4F83CC', fontSize: 32, fontWeight: '700' }}>
                         {(profile.displayName || 'Y').charAt(0).toUpperCase()}
@@ -2399,7 +2399,7 @@ const refreshProfile = React.useCallback(async () => {
               ) : (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
                   <TouchableOpacity onPress={() => setProfileEditing(true)}
-                    style={{ borderWidth: 1, borderColor: '#D7E5F5', borderRadius: 10, backgroundColor: '#F4F8FE', paddingVertical: 11, paddingHorizontal: 20, marginRight: 8, marginBottom: 8 }}>
+                    style={{ borderWidth: 1, borderColor: '#DBDBDB', borderRadius: 8, backgroundColor: '#FAFAFA', paddingVertical: 10, paddingHorizontal: 20, marginRight: 8, marginBottom: 8 }}>
                     <Text style={{ color: '#333', fontWeight: '600' }}>Edit Profile</Text>
                   </TouchableOpacity>
                   {!!profile.avatarUrl && (
@@ -2415,13 +2415,13 @@ const refreshProfile = React.useCallback(async () => {
               <View style={{ height: 1, backgroundColor: '#E5E5E5', marginTop: 18, marginBottom: 14 }} />
               {/* SOCIALAPP_PROFILE_SETTINGS_V1 */}
               <View style={{ marginTop: 20, marginBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-  <Text style={{ color: '#26344D', fontWeight: '800', fontSize: 18 }}>Profile Settings</Text>
-  <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open Settings" onPress={() => setSettingsHubOpen(true)} style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#172554', alignItems: 'center', justifyContent: 'center', elevation: 3 }}>
+  <Text style={{ color: '#262626', fontWeight: '700', fontSize: 18 }}>Profile Settings</Text>
+  <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open Settings" onPress={() => setSettingsHubOpen(true)} style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center' }}>
     <Text style={{ color: '#FFFFFF', fontSize: 23 }}>⚙</Text>
   </TouchableOpacity>
 </View>
                 <View>
-                <View style={{ borderWidth: 1, borderColor: '#E1E8F3', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10 }}>
+                <View style={{ borderWidth: 1, borderColor: '#DBDBDB', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 10 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <View style={{ flex: 1, paddingRight: 12 }}>
                       <Text style={{ color: '#26344D', fontWeight: '700', fontSize: 15 }}>Notifications</Text>
@@ -2936,36 +2936,36 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   content: { flex: 1 },
   header: {
-    height: 56,
-    transform: [{ translateY: 24 }],
-    paddingHorizontal: 16,
+    height: 54,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E7E7E7',
+    borderBottomColor: '#EFEFEF',
+    backgroundColor: '#FFFFFF',
   },
-  brand: { fontSize: 27, fontWeight: '800', color: '#171717', letterSpacing: -1 },
+  brand: { fontSize: 25, fontWeight: '800', color: '#171717', letterSpacing: -0.8 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 19 },
   headerIcon: { fontSize: 27, color: '#171717' },
-  stories: { paddingHorizontal: 12, paddingVertical: 15, gap: 15 },
+  stories: { paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   story: { width: 68, alignItems: 'center' },
   storyRing: {
-    width: 66, height: 66, borderRadius: 33, padding: 3,
+    width: 68, height: 68, borderRadius: 34, padding: 3,
     borderWidth: 2, borderColor: '#D62976', alignItems: 'center', justifyContent: 'center',
   },
   ownRing: { borderColor: '#D9D9D9' },
   storyAvatar: {
-    width: 52, height: 52, borderRadius: 26,
+    width: 56, height: 56, borderRadius: 28,
     alignItems: 'center', justifyContent: 'center',
   },
   plus: { fontSize: 30, color: '#1685D9' },
   avatarLetter: { fontSize: 22, fontWeight: '700', color: '#343434' },
   storyName: { marginTop: 5, fontSize: 11, color: '#252525' },
   feedDivider: { height: 1, backgroundColor: '#EEEEEE' },
-  post: { marginHorizontal: 8, marginBottom: 18, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#F0F0F0', borderRadius: 14, overflow: 'hidden' },
+  post: { marginHorizontal: 0, marginBottom: 10, backgroundColor: '#FFFFFF', borderWidth: 0, borderColor: '#FFFFFF', borderRadius: 0, overflow: 'hidden' },
   postHeader: {
-    height: 62, paddingHorizontal: 12,
+    height: 58, paddingHorizontal: 12,
     flexDirection: 'row', alignItems: 'center',
   },
   smallAvatar: {
@@ -2974,14 +2974,14 @@ const styles = StyleSheet.create({
   },
   smallAvatarText: { fontSize: 16, fontWeight: '700', color: '#34415A' },
   postUserInfo: { flex: 1, marginLeft: 10 },
-  username: { fontSize: 13, fontWeight: '700', color: '#171717' },
+  username: { fontSize: 14, fontWeight: '700', color: '#171717' },
   location: { marginTop: 2, fontSize: 11, color: '#555555' },
   more: { fontSize: 19, fontWeight: '700', color: '#222222', paddingHorizontal: 5 },
   postImage: { width: '100%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
   postEmoji: { fontSize: 112 },
   actions: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 13, paddingTop: 10, gap: 18,
+    paddingHorizontal: 13, paddingTop: 10, gap: 20,
   },
   actionIcon: { fontSize: 28, color: '#202020' },
   liked: { color: '#E1306C' },

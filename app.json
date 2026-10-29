@@ -43,7 +43,8 @@
           "microphonePermission": "Allow SocialApp to use the microphone to record Reels with audio.",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
