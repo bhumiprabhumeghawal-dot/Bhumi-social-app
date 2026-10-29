@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import appConfig from './app.json';
+import * as SecureStore from 'expo-secure-store';
 import React from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -708,6 +709,27 @@ export default function App() {
 
 
   // SOCIALAPP_AUTH_SCREEN_V1
+  // SOCIALAPP_FIRST_WELCOME_V1
+  const [welcomeChecked, setWelcomeChecked] = React.useState(false);
+  const [welcomeSeen, setWelcomeSeen] = React.useState(false);
+
+  React.useEffect(() => {
+    SecureStore.getItemAsync('socialapp_welcome_seen')
+      .then(value => setWelcomeSeen(value === 'true'))
+      .catch(() => setWelcomeSeen(true))
+      .finally(() => setWelcomeChecked(true));
+  }, []);
+
+  const finishWelcome = async (mode) => {
+    setWelcomeSeen(true);
+    setAuthMode(mode);
+    try {
+      await SecureStore.setItemAsync('socialapp_welcome_seen', 'true');
+    } catch (error) {
+      console.warn('Could not save welcome screen preference.');
+    }
+  };
+
   const [authReady, setAuthReady] = React.useState(false);
   const [authSession, setAuthSession] = React.useState(null);
   const [authMode, setAuthMode] = React.useState('login');
@@ -1528,6 +1550,13 @@ const refreshProfile = React.useCallback(async () => {
   };
 
 
+  React.useEffect(() => {
+    if (authSession?.token) {
+      setWelcomeSeen(true);
+      SecureStore.setItemAsync('socialapp_welcome_seen', 'true').catch(() => {});
+    }
+  }, [authSession]);
+
   const submitAuth = async () => {
     if (authBusy) return;
     const username = authUsername.trim();
@@ -1761,6 +1790,45 @@ const refreshProfile = React.useCallback(async () => {
           >
             <Text style={{ color: '#1685D9' }}>Back to login</Text>
           </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (authReady && welcomeChecked && !authSession && !welcomeSeen) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#101827' }}>
+        <StatusBar style="light" />
+        <View style={{ flex: 1, paddingHorizontal: 28, paddingTop: 30, paddingBottom: 24, alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ alignItems: 'center', marginTop: 24 }}>
+            <View style={{ width: 112, height: 112, borderRadius: 34, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', padding: 8, marginBottom: 20 }}>
+              <Image source={require('./assets/icon.png')} style={{ width: 96, height: 96, borderRadius: 28 }} resizeMode="contain" />
+            </View>
+            <Text style={{ color: '#FFFFFF', fontSize: 29, fontWeight: '800', textAlign: 'center', letterSpacing: -0.5 }}>Bhumi Social AI</Text>
+            <Text style={{ color: '#AFC7E8', fontSize: 13, fontWeight: '700', letterSpacing: 3, marginTop: 9 }}>CONNECT · SHARE · DISCOVER</Text>
+          </View>
+
+          <View style={{ width: '100%', alignItems: 'center', paddingVertical: 24 }}>
+            <View style={{ width: 190, height: 190, borderRadius: 95, backgroundColor: '#1D3554', alignItems: 'center', justifyContent: 'center', marginBottom: 28, borderWidth: 1, borderColor: '#355578' }}>
+              <View style={{ width: 142, height: 142, borderRadius: 71, backgroundColor: '#284A70', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="people" size={70} color="#FFFFFF" />
+                <View style={{ position: 'absolute', right: 8, bottom: 12, width: 48, height: 48, borderRadius: 24, backgroundColor: '#4DA8FF', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#284A70' }}>
+                  <Ionicons name="chatbubble-ellipses" size={23} color="#FFFFFF" />
+                </View>
+              </View>
+            </View>
+            <Text style={{ color: '#FFFFFF', fontSize: 27, lineHeight: 34, fontWeight: '800', textAlign: 'center' }}>Your world,{"\n"}your people.</Text>
+            <Text style={{ color: '#C2CDDD', fontSize: 15, lineHeight: 23, textAlign: 'center', marginTop: 14 }}>Share your moments, discover Reels, and stay connected with your community.</Text>
+          </View>
+
+          <View style={{ width: '100%', gap: 12 }}>
+            <TouchableOpacity onPress={() => finishWelcome('register')} activeOpacity={0.85} style={{ backgroundColor: '#4DA8FF', borderRadius: 16, paddingVertical: 17, alignItems: 'center' }}>
+              <Text style={{ color: '#101827', fontSize: 16, fontWeight: '800' }}>Get Started</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => finishWelcome('login')} activeOpacity={0.85} style={{ borderWidth: 1, borderColor: '#526782', borderRadius: 16, paddingVertical: 16, alignItems: 'center' }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>Already have an account? Log In</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     );
