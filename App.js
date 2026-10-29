@@ -9,11 +9,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
-import { Alert, Share, Dimensions,
-
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { Alert as NativeAlert, Share, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { applyZoomEffect, createVideoFromPhotos, addMusicToVideo } from './videoEditor';
 import { editPhotoAsset } from './photoEditor';
@@ -656,6 +652,73 @@ function PostCard({ post, onOpen = () => {} }) {
     </View>
   );
 }
+
+let customAlertHandler = null;
+const Alert = {
+  alert: (...args) => {
+    if (customAlertHandler) customAlertHandler(...args);
+    else NativeAlert.alert(...args);
+  },
+};
+
+function CustomAlertHost() {
+  const [alertData, setAlertData] = React.useState(null);
+
+  React.useEffect(() => {
+    const handler = (title, message, buttons, options) => {
+      setAlertData({
+        title: String(title || 'Bhumi Social AI'),
+        message: message == null ? '' : String(message),
+        buttons: Array.isArray(buttons) && buttons.length ? buttons : [{ text: 'OK' }],
+        options: options || {},
+      });
+    };
+    customAlertHandler = handler;
+    return () => {
+      if (customAlertHandler === handler) customAlertHandler = null;
+    };
+  }, []);
+
+  if (!alertData) return null;
+  const words = (alertData.title + ' ' + alertData.message).toLowerCase();
+  const error = /error|failed|विफल|गलत|समस्या|त्रुटि/.test(words);
+  const success = /success|successful|सफल|saved|हो गया|भेज दिया|अपलोड/.test(words);
+  const danger = /delete|remove|logout|log out|डिलीट|हटाएं|हटाएँ|मिटाएं/.test(words);
+  const accent = error ? '#D93636' : success ? '#159957' : danger ? '#D97706' : '#0095F6';
+  const icon = error ? 'alert-circle' : success ? 'checkmark-circle' : danger ? 'warning' : 'information-circle';
+  const close = () => setAlertData(null);
+
+  return (
+    <Modal transparent visible animationType="fade" statusBarTranslucent
+      onRequestClose={() => { if (alertData.options.cancelable !== false) close(); }}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(10,18,30,0.52)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+        <View style={{ width: '100%', maxWidth: 390, backgroundColor: '#FFFFFF', borderRadius: 25, padding: 22, alignItems: 'center', elevation: 14 }}>
+          <View style={{ width: 62, height: 62, borderRadius: 31, backgroundColor: accent + '18', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+            <Ionicons name={icon} size={35} color={accent} />
+          </View>
+          <Text style={{ color: '#172033', fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 8 }}>{alertData.title}</Text>
+          {!!alertData.message && <Text style={{ color: '#5D6678', fontSize: 15, lineHeight: 22, textAlign: 'center', marginBottom: 20 }}>{alertData.message}</Text>}
+          <View style={{ width: '100%', flexDirection: alertData.buttons.length > 1 ? 'row' : 'column', gap: 10, marginTop: alertData.message ? 0 : 10 }}>
+            {alertData.buttons.map((button, index) => {
+              const cancel = button.style === 'cancel';
+              const destructive = button.style === 'destructive';
+              const primary = !cancel && (destructive || index === alertData.buttons.length - 1);
+              return (
+                <TouchableOpacity key={`${button.text || 'button'}-${index}`} accessibilityRole="button"
+                  onPress={() => { close(); if (typeof button.onPress === 'function') Promise.resolve().then(() => button.onPress()); }}
+                  style={{ flex: alertData.buttons.length > 1 ? 1 : undefined, minHeight: 47, paddingHorizontal: 12, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: primary ? (destructive ? '#D93636' : accent) : '#F0F3F8' }}>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: primary ? '#FFFFFF' : '#344054', textAlign: 'center' }}>{button.text || 'OK'}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <Text style={{ marginTop: 15, color: '#A0A8B5', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>BHUMI SOCIAL AI</Text>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = React.useState('Home');
   const [cameraOpen, setCameraOpen] = React.useState(false);
@@ -1366,7 +1429,7 @@ const refreshProfile = React.useCallback(async () => {
       return;
     }
     try {
-      const video = kind === 'reels';
+      const video = kind === 'reels' && mediaMode !== 'camera-gallery';
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: video ? ['videos'] : ['images', 'videos'],
         allowsMultipleSelection: kind === 'posts',
@@ -1524,6 +1587,10 @@ const refreshProfile = React.useCallback(async () => {
         setReels(current => [item, ...current]);
         setActiveTab('Reels');
       }
+    Alert.alert(
+      kind === 'posts' ? 'Post published!' : kind === 'stories' ? 'Story shared!' : 'Reel published!',
+      kind === 'posts' ? 'Your post is now live on Bhumi Social AI.' : kind === 'stories' ? 'Your story is now live.' : 'Your reel is now live.'
+    );
     } catch (e) {
       console.error('Upload failed:', e);
       Alert.alert('अपलोड विफल', e.message || 'सर्वर कनेक्शन जाँचें।');
@@ -2049,7 +2116,20 @@ const refreshProfile = React.useCallback(async () => {
             ))}
           </View>
 
-          <View style={{ flex: 1, backgroundColor: '#000000', overflow: 'hidden' }}>
+          <TouchableOpacity
+  accessibilityRole="button"
+  accessibilityLabel="Choose photo or video from gallery"
+  onPress={() => {
+    const target = cameraTargetKind;
+    setCameraOpen(false);
+    setTimeout(() => chooseMedia(target, 'camera-gallery'), 300);
+  }}
+  style={{ marginHorizontal: 20, marginVertical: 8, minHeight: 48, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#202B3C', borderWidth: 1, borderColor: '#53647A', gap: 9 }}
+>
+  <Ionicons name="images-outline" size={23} color="#FFFFFF" />
+  <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700' }}>Choose from Gallery</Text>
+</TouchableOpacity>
+<View style={{ flex: 1, backgroundColor: '#000000', overflow: 'hidden' }}>
             {recordedPhoto ? (
               <Image source={{ uri: recordedPhoto }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
             ) : recordedVideo ? (
@@ -3252,7 +3332,8 @@ const refreshProfile = React.useCallback(async () => {
 
       </Modal>
 
-</SafeAreaView>
+<CustomAlertHost />
+    </SafeAreaView>
   );
 }
 
