@@ -670,18 +670,41 @@ export default function App() {
 
   React.useEffect(() => {
     let active = true;
-    fetch('https://bhumi-social-app-1.onrender.com/api/app-version')
-      .then(response => {
+    let checking = false;
+
+    const checkForAppUpdate = async () => {
+      if (checking) return;
+      checking = true;
+      try {
+        const response = await fetch(
+          'https://bhumi-social-app-1.onrender.com/api/app-version',
+          { headers: { Accept: 'application/json' } }
+        );
         if (!response.ok) throw new Error('Version check failed');
-        return response.json();
-      })
-      .then(info => {
-        if (!active || !isVersionNewer(info.version, appConfig.expo?.version || '1.0.0')) return;
-        setUpdateInfo(info);
-        setUpdatePromptVisible(true);
-      })
-      .catch(() => {});
-    return () => { active = false; };
+        const info = await response.json();
+        if (!active) return;
+
+        if (isVersionNewer(info.version, appConfig.expo?.version || '1.0.0')) {
+          setUpdateInfo(info);
+          setUpdatePromptVisible(true);
+        } else {
+          setUpdateInfo(null);
+          setUpdatePromptVisible(false);
+        }
+      } catch (error) {
+        // Keep the app usable when the version service is unavailable.
+      } finally {
+        checking = false;
+      }
+    };
+
+    checkForAppUpdate();
+    const interval = setInterval(checkForAppUpdate, 6 * 60 * 60 * 1000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, []);
 
 
