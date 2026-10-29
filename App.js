@@ -2251,7 +2251,7 @@ const refreshProfile = React.useCallback(async () => {
       </Modal>
 
       <View style={styles.header}>
-        <Text style={styles.brand}>Bhumi Social AI</Text>
+        <View style={styles.headerSideSpacer} /><Text style={styles.brand}>Bhumi Social AI</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={() => handleTab("Create")} accessibilityLabel="Create menu">
             <Ionicons name="add-circle-outline" size={27} color="#171717" />
@@ -2612,7 +2612,7 @@ const refreshProfile = React.useCallback(async () => {
         {[
           { name: 'Home', icon: 'home-outline' },
           { name: 'Search', icon: 'search-outline' },
-          { name: 'Create', icon: 'add-circle-outline' },
+          { name: 'Create', icon: 'balloon-outline' },
           { name: 'Reels', icon: 'play-circle-outline' },
           { name: 'Profile', icon: 'person-circle-outline' }
         ].map(tab => (
@@ -3176,7 +3176,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#EFEFEF',
     backgroundColor: '#FFFFFF',
   },
-  brand: { fontSize: 25, fontWeight: '800', color: '#171717', letterSpacing: -0.8 },
+  brand: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '800', color: '#171717', letterSpacing: -0.8 },
+  headerSideSpacer: { width: 116 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 19 },
   headerIcon: { fontSize: 27, color: '#171717' },
   stories: { paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
