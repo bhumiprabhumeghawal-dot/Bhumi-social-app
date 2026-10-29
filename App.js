@@ -22,7 +22,7 @@ import {
   loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails,
   togglePostLike, loadPostComments, createPostComment,
   registerAccount, loginAccount, getAuthSession, clearAuthSession,
-  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers} from './api';
+  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadMessageConversations, loadDirectMessages, sendDirectMessage} from './api';
 import {
   SafeAreaView,
   ScrollView,
@@ -583,7 +583,7 @@ function PostCard({ post, onOpen = () => {} }) {
           <Text style={[styles.actionIcon, liked && styles.liked]}>{liked ? '♥' : '♡'}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={openComments}>
-          <Text style={styles.actionIcon}>▢</Text>
+          <Ionicons name="checkbox-outline" size={24} color="#262626" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => Alert.alert('Share', 'Sharing will be added next.')}>
           <Text style={styles.actionIcon}>➤</Text>
@@ -782,6 +782,68 @@ export default function App() {
   const [profileEditing, setProfileEditing] = React.useState(false);
   const [profileDraft, setProfileDraft] = React.useState({ displayName: '', bio: '' });
   const [profileBusy, setProfileBusy] = React.useState(false);
+
+  // SOCIALAPP_DIRECT_MESSAGES_V1
+  const [messagesOpen, setMessagesOpen] = React.useState(false);
+  const [messageConversations, setMessageConversations] = React.useState([]);
+  const [selectedChatUser, setSelectedChatUser] = React.useState('');
+  const [directMessages, setDirectMessages] = React.useState([]);
+  const [newChatUsername, setNewChatUsername] = React.useState('');
+  const [chatDraft, setChatDraft] = React.useState('');
+  const [chatBusy, setChatBusy] = React.useState(false);
+  const [chatError, setChatError] = React.useState('');
+
+  const openMessages = async () => {
+    setMessagesOpen(true);
+    setSelectedChatUser('');
+    setChatError('');
+    setChatBusy(true);
+    try {
+      setMessageConversations(await loadMessageConversations());
+    } catch (error) {
+      setChatError(error?.message || 'Could not load conversations.');
+    } finally {
+      setChatBusy(false);
+    }
+  };
+
+  const openDirectChat = async (username) => {
+    const target = String(username || '').trim();
+    if (!target) {
+      setChatError('Enter a username to start a chat.');
+      return;
+    }
+    setSelectedChatUser(target);
+    setNewChatUsername(target);
+    setDirectMessages([]);
+    setChatError('');
+    setChatBusy(true);
+    try {
+      setDirectMessages(await loadDirectMessages(target));
+    } catch (error) {
+      setChatError(error?.message || 'Could not load messages.');
+    } finally {
+      setChatBusy(false);
+    }
+  };
+
+  const sendChatDraft = async () => {
+    const text = chatDraft.trim();
+    if (!text || !selectedChatUser || chatBusy) return;
+    setChatBusy(true);
+    setChatError('');
+    try {
+      const message = await sendDirectMessage(selectedChatUser, text);
+      setDirectMessages(previous => [...previous, message]);
+      setChatDraft('');
+      setMessageConversations(await loadMessageConversations());
+    } catch (error) {
+      setChatError(error?.message || 'Could not send message.');
+    } finally {
+      setChatBusy(false);
+    }
+  };
+
 
   // SEARCH_USERS_EFFECT_V1
   React.useEffect(() => {
@@ -2177,7 +2239,7 @@ const refreshProfile = React.useCallback(async () => {
           <TouchableOpacity accessibilityLabel="Notifications">
             <Ionicons name="heart-outline" size={27} color="#171717" />
           </TouchableOpacity>
-          <TouchableOpacity accessibilityLabel="Messages">
+          <TouchableOpacity onPress={openMessages} accessibilityLabel="Messages">
             <Ionicons name="paper-plane-outline" size={26} color="#171717" />
           </TouchableOpacity>
         </View>
@@ -2926,6 +2988,111 @@ const refreshProfile = React.useCallback(async () => {
             </View>
           </View>
         </View>
+      </Modal>
+
+
+      {/* SOCIALAPP_DIRECT_MESSAGES_MODAL_V1 */}
+      <Modal
+        visible={messagesOpen}
+        animationType="slide"
+        onRequestClose={() => setMessagesOpen(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
+            {selectedChatUser ? (
+              <TouchableOpacity onPress={() => { setSelectedChatUser(''); setChatError(''); }} style={{ paddingRight: 14 }}>
+                <Ionicons name="arrow-back" size={25} color="#171717" />
+              </TouchableOpacity>
+            ) : null}
+            <Text style={{ flex: 1, fontSize: 21, fontWeight: '700', color: '#171717' }}>
+              {selectedChatUser || 'Messages'}
+            </Text>
+            <TouchableOpacity onPress={() => setMessagesOpen(false)} accessibilityLabel="Close messages">
+              <Ionicons name="close" size={27} color="#171717" />
+            </TouchableOpacity>
+          </View>
+
+          {!selectedChatUser ? (
+            <View style={{ flex: 1, padding: 16 }}>
+              <Text style={{ color: '#555555', marginBottom: 8 }}>Start a chat using a username</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 18 }}>
+                <TextInput
+                  value={newChatUsername}
+                  onChangeText={setNewChatUsername}
+                  placeholder="Enter username"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  style={{ flex: 1, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, color: '#222222' }}
+                />
+                <TouchableOpacity
+                  onPress={() => openDirectChat(newChatUsername)}
+                  style={{ backgroundColor: '#0095F6', borderRadius: 10, paddingHorizontal: 15, paddingVertical: 12 }}
+                >
+                  <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Open</Text>
+                </TouchableOpacity>
+              </View>
+              {chatError ? <Text style={{ color: '#D93025', marginBottom: 10 }}>{chatError}</Text> : null}
+              {chatBusy ? <Text style={{ color: '#777777', paddingVertical: 12 }}>Loading messages...</Text> : null}
+              <ScrollView>
+                {messageConversations.map((conversation, index) => {
+                  const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
+                  if (!username) return null;
+                  return (
+                    <TouchableOpacity
+                      key={String(username) + index}
+                      onPress={() => openDirectChat(username)}
+                      style={{ paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}
+                    >
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: '#171717' }}>{username}</Text>
+                      <Text numberOfLines={1} style={{ color: '#777777', marginTop: 4 }}>{conversation.lastMessage || 'Open conversation'}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+                {!chatBusy && messageConversations.length === 0 && !chatError ? (
+                  <Text style={{ color: '#777777', textAlign: 'center', padding: 22 }}>No conversations yet. Enter a username above to start chatting.</Text>
+                ) : null}
+              </ScrollView>
+            </View>
+          ) : (
+            <View style={{ flex: 1 }}>
+              <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ padding: 14, flexGrow: 1, justifyContent: 'flex-end' }}
+              >
+                {directMessages.map((message, index) => {
+                  const mine = String(message.sender || '').toLowerCase() === String(authSession?.username || '').toLowerCase();
+                  return (
+                    <View key={String(message.id || index)} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: mine ? '#DDF1FF' : '#F0F0F0', borderRadius: 16, paddingHorizontal: 13, paddingVertical: 9, marginVertical: 4 }}>
+                      <Text style={{ color: '#171717', fontSize: 15 }}>{message.text}</Text>
+                      <Text style={{ color: '#777777', fontSize: 10, marginTop: 4 }}>{message.createdAt ? new Date(message.createdAt).toLocaleString() : ''}</Text>
+                    </View>
+                  );
+                })}
+                {!chatBusy && directMessages.length === 0 && !chatError ? (
+                  <Text style={{ color: '#777777', textAlign: 'center', padding: 20 }}>No messages yet. Say hello!</Text>
+                ) : null}
+              </ScrollView>
+              {chatError ? <Text style={{ color: '#D93025', paddingHorizontal: 12, paddingTop: 6 }}>{chatError}</Text> : null}
+              <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10, borderTopWidth: 1, borderTopColor: '#EEEEEE', gap: 8 }}>
+                <TextInput
+                  value={chatDraft}
+                  onChangeText={setChatDraft}
+                  placeholder="Write a message..."
+                  multiline
+                  maxLength={5000}
+                  style={{ flex: 1, maxHeight: 110, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9, color: '#222222' }}
+                />
+                <TouchableOpacity
+                  onPress={sendChatDraft}
+                  disabled={chatBusy || !chatDraft.trim()}
+                  style={{ backgroundColor: chatBusy || !chatDraft.trim() ? '#A7D5F5' : '#0095F6', borderRadius: 22, paddingHorizontal: 15, paddingVertical: 12 }}
+                >
+                  <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Send</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </SafeAreaView>
       </Modal>
 
 </SafeAreaView>

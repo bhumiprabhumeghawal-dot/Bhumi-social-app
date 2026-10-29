@@ -498,3 +498,39 @@ export async function searchUsers(query) {
   if (!response.ok) throw new Error(data.error || 'Search failed.');
   return data.results || [];
 }
+
+export async function loadMessageConversations() {
+  const response = await fetch(`${API_BASE_URL}/api/messages/conversations`);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not load conversations.');
+  }
+  return data.conversations || [];
+}
+
+export async function loadDirectMessages(username) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not load messages.');
+  }
+  return data.messages || [];
+}
+
+export async function sendDirectMessage(username, text) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    }
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not send message.');
+  }
+  return data.message;
+}

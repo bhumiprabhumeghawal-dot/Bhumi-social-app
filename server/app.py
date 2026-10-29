@@ -1424,10 +1424,174 @@ def auth_forgot_password_reset():
     return jsonify({"ok": True, "message": "Password reset successfully. Please log in again."}), 200
 
 
+
+# SOCIALAPP_CHAT_API_V1
+def init_chat_tables():
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS direct_messages (
+                id TEXT PRIMARY KEY,
+                sender_username TEXT NOT NULL,
+                recipient_username TEXT NOT NULL,
+                body TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_direct_messages_pair
+            ON direct_messages(sender_username, recipient_username, created_at)
+        """)
+
+
+def _chat_current_user():
+    username = _auth_user()
+    if not username:
+        return None
+    g.auth_username = username
+    return username
+
+
+@app.get("/api/messages/conversations")
+def get_message_conversations():
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to view messages."}), 401
+
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT id, sender_username, recipient_username, body, created_at
+            FROM direct_messages
+            WHERE LOWER(sender_username)=LOWER(?)
+               OR LOWER(recipient_username)=LOWER(?)
+            ORDER BY created_at DESC, id DESC
+        """, (current, current)).fetchall()
+
+    conversations = []
+    seen = set()
+
+    for row in rows:
+        other = (
+            row["recipient_username"]
+            if row["sender_username"].lower() == current.lower()
+            else row["sender_username"]
+        )
+        key = other.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        conversations.append({
+            "username": other,
+            "lastMessage": row["body"],
+            "lastMessageAt": row["created_at"],
+        })
+
+    return jsonify({"conversations": conversations})
+
+
+@app.get("/api/messages/<username>")
+def get_direct_messages(username):
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to view messages."}), 401
+
+    target = username.strip().lstrip("@")
+    if not target or target.lower() == current.lower():
+        return jsonify({"error": "Choose another valid username."}), 400
+
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE username=? COLLATE NOCASE",
+            (target,),
+        ).fetchone()
+
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
+        target = user["username"]
+
+        rows = db.execute("""
+            SELECT id, sender_username, recipient_username, body, created_at
+            FROM direct_messages
+            WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+               OR (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+            ORDER BY created_at ASC, id ASC
+            LIMIT 500
+        """, (current, target, target, current)).fetchall()
+
+    return jsonify({
+        "username": target,
+        "messages": [{
+            "id": row["id"],
+            "sender": row["sender_username"],
+            "recipient": row["recipient_username"],
+            "text": row["body"],
+            "createdAt": row["created_at"],
+        } for row in rows]
+    })
+
+
+@app.post("/api/messages/<username>")
+def send_direct_message(username):
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to send messages."}), 401
+
+    target = username.strip().lstrip("@")
+    data = request.get_json(silent=True) or {}
+    body = str(data.get("text", data.get("message", ""))).strip()
+
+    if not target or target.lower() == current.lower():
+        return jsonify({"error": "Choose another valid username."}), 400
+    if not body:
+        return jsonify({"error": "Message cannot be empty."}), 400
+    if len(body) > 5000:
+        return jsonify({"error": "Message must be 5000 characters or less."}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+    message_id = str(uuid.uuid4())
+
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE username=? COLLATE NOCASE",
+            (target,),
+        ).fetchone()
+
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
+        target = user["username"]
+
+        settings = db.execute(
+            "SELECT allow_messages FROM user_settings WHERE username=?",
+            (target,),
+        ).fetchone()
+
+        if settings and not bool(settings["allow_messages"]):
+            return jsonify({"error": "This user does not accept messages."}), 403
+
+        db.execute("""
+            INSERT INTO direct_messages
+                (id, sender_username, recipient_username, body, created_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (message_id, current, target, body, now))
+
+    return jsonify({
+        "ok": True,
+        "message": {
+            "id": message_id,
+            "sender": current,
+            "recipient": target,
+            "text": body,
+            "createdAt": now,
+        },
+    }), 201
+
+
 # Initialize database only after all functions and routes are defined.
 init_db()
 init_profile_tables()
 init_auth_tables()
+init_chat_tables()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)
