@@ -10,6 +10,9 @@ import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { Alert, Share, Dimensions,
+
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { applyZoomEffect, createVideoFromPhotos, addMusicToVideo } from './videoEditor';
@@ -3108,7 +3111,7 @@ const refreshProfile = React.useCallback(async () => {
         animationType="slide"
         onRequestClose={() => setMessagesOpen(false)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}><SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
             {selectedChatUser ? (
               <TouchableOpacity onPress={() => { setSelectedChatUser(''); setChatError(''); }} style={{ paddingRight: 14 }}>
@@ -3245,7 +3248,8 @@ const refreshProfile = React.useCallback(async () => {
                           </View>
             </View>
           )}
-        </SafeAreaView>
+        </SafeAreaView></KeyboardAvoidingView>
+
       </Modal>
 
 </SafeAreaView>
