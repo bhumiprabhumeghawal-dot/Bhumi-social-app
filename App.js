@@ -3103,7 +3103,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   content: { flex: 1 },
   header: {
-    height: 54,
+    height: 82,
+    marginTop: 12,
+    paddingTop: 12,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
