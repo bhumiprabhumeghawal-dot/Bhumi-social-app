@@ -484,13 +484,17 @@ export async function loadPostById(postId) {
   };
 }
 
-export async function togglePostLike(postId, username = 'you') {
+export async function togglePostLike(postId) {
+  const session = await getAuthSession();
+  if (!session?.token || !session?.username) {
+    throw new Error('Please log in to like this post.');
+  }
   const response = await fetch(
     `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/like`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username }),
+      body: JSON.stringify({ username: session.username }),
     }
   );
   const data = await response.json();

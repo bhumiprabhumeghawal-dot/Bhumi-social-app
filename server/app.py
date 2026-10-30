@@ -422,7 +422,7 @@ def search_users():
 @app.get("/api/profile/<username>")
 def get_profile(username):
     username = username.strip().lstrip("@")
-    if not username or len(username) > 30:
+    if not username or len(username) > 50:
         return jsonify({"error": "Invalid username"}), 400
     with get_db() as db:
         result = profile_json(db, username)
@@ -925,11 +925,11 @@ def auth_register():
     username = str(data.get("username", "")).strip().lstrip("@")
     full_name = str(data.get("full_name", "")).strip()
 
-    if not (3 <= len(username) <= 30) or any(
+    if not (3 <= len(username) <= 50) or any(
         not (ch.isascii() and (ch.isalnum() or ch in "_."))
         for ch in username
     ):
-        return jsonify({"error": "Username must be 3 to 30 letters, numbers, dots, or underscores."}), 400
+        return jsonify({"error": "Username must be 3 to 50 letters, numbers, dots, or underscores."}), 400
     if not full_name or len(full_name) > 60:
         return jsonify({"error": "Full name is required and must be at most 60 characters."}), 400
 

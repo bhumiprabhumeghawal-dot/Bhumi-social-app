@@ -1856,7 +1856,6 @@ const refreshProfile = React.useCallback(async () => {
   const submitAuth = async () => {
     if (authBusy) return;
     const username = authUsername.trim();
-    console.log('Registration username check:', JSON.stringify({length: username.length, value: username, valid: /^[a-zA-Z0-9_.]{3,30}$/.test(username)}));
     const fullName = authFullName.trim();
     const email = authEmail.trim().toLowerCase();
     if (!username || !authPassword) {
@@ -1868,8 +1867,8 @@ const refreshProfile = React.useCallback(async () => {
         Alert.alert('Required', 'Enter your full name.');
         return;
       }
-      if (!/^[a-zA-Z0-9_.]{3,30}$/.test(username)) {
-        Alert.alert('Invalid username', 'Use 3 to 30 letters, numbers, dots, or underscores.');
+      if (!/^[a-zA-Z0-9_.]{3,50}$/.test(username)) {
+        Alert.alert('Invalid username', 'Use 3 to 50 letters, numbers, dots, or underscores.');
         return;
       }
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
