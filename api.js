@@ -427,6 +427,18 @@ export async function resetPasswordWithToken(email, resetToken, newPassword, con
   return data;
 }
 
+export async function logoutOtherSessions() {
+  const response = await fetch(`${API_BASE_URL}/api/auth/logout-other-sessions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not sign out other sessions.');
+  }
+  return data;
+}
+
 export async function changeAccountPassword(oldPassword, newPassword, confirmPassword) {
   const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
     method: 'POST',
@@ -444,6 +456,33 @@ export async function changeAccountPassword(oldPassword, newPassword, confirmPas
   return data;
 }
 
+
+export async function loadPostById(postId) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}`
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not load post.');
+  }
+  const item = data.item;
+  if (!item) return null;
+  return {
+    ...item,
+    avatarUrl: item.avatarUrl
+      ? (item.avatarUrl.startsWith("http") ? item.avatarUrl : API_BASE_URL + item.avatarUrl)
+      : null,
+    uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
+    likes: '0',
+    mediaItems: [{
+      ...item,
+      avatarUrl: item.avatarUrl
+        ? (item.avatarUrl.startsWith("http") ? item.avatarUrl : API_BASE_URL + item.avatarUrl)
+        : null,
+      uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
+    }],
+  };
+}
 
 export async function togglePostLike(postId, username = 'you') {
   const response = await fetch(

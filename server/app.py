@@ -693,6 +693,20 @@ def toggle_post_like(content_id):
     return jsonify({"ok": True, "liked": liked, "likes": count})
 
 
+@app.get("/api/posts/<int:content_id>")
+def get_post_by_id(content_id):
+    with get_db() as db:
+        row = db.execute(
+            "SELECT * FROM content WHERE id=? AND kind='posts'",
+            (content_id,),
+        ).fetchone()
+
+    if row is None:
+        return jsonify({"error": "Post not found"}), 404
+
+    return jsonify({"ok": True, "item": content_json(row)})
+
+
 @app.get("/api/posts/<int:content_id>/comments")
 def list_post_comments(content_id):
     with get_db() as db:
@@ -1168,6 +1182,26 @@ def auth_logout():
             db.execute("DELETE FROM auth_sessions WHERE token_hash=?", (digest,))
     return jsonify({"ok": True})
 
+
+
+@app.post("/api/auth/logout-other-sessions")
+def auth_logout_other_sessions():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in again."}), 401
+
+    header = request.headers.get("Authorization", "")
+    token = header[7:].strip() if header.startswith("Bearer ") else ""
+    if not token:
+        return jsonify({"error": "Current session token is missing."}), 401
+
+    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    with get_db() as db:
+        db.execute(
+            "DELETE FROM auth_sessions WHERE username=? AND token_hash!=?",
+            (username, digest),
+        )
+    return jsonify({"ok": True, "message": "Other sessions signed out."})
 
 
 @app.post("/api/auth/change-password")

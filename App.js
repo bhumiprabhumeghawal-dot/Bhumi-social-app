@@ -8,7 +8,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSequence, withSpring } from 'react-native-reanimated';
 import { Alert as NativeAlert, Share, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { applyZoomEffect, createVideoFromPhotos, addMusicToVideo } from './videoEditor';
@@ -17,11 +17,11 @@ import {
   loadContent, uploadContent, checkServer,
   loadProfile, updateProfile, uploadProfileAvatar,
   deleteProfileAvatar, loadProfileConnections,
-  loadPrivacySettings, savePrivacySettings, changeAccountPassword,
+  loadPrivacySettings, savePrivacySettings, changeAccountPassword, logoutOtherSessions,
   loadAccountSettings, saveAccountSettings,
   loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails,
-  togglePostLike, loadPostComments, createPostComment,
-  registerAccount, loginAccount, getAuthSession, clearAuthSession,
+  togglePostLike, loadPostById, loadPostComments, createPostComment,
+  registerAccount, loginAccount, logoutAccount, getAuthSession, clearAuthSession,
   requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadMessageConversations, loadDirectMessages, sendDirectMessage, uploadChatPhoto} from './api';
 import {
   SafeAreaView,
@@ -653,6 +653,147 @@ function PostCard({ post, onOpen = () => {} }) {
   );
 }
 
+
+function PostDetailActions({ post }) {
+  const [liked, setLiked] = React.useState(false);
+  const [likeCount, setLikeCount] = React.useState(Number(String(post?.likes || '0').replace(/,/g, '')) || 0);
+  const [comments, setComments] = React.useState([]);
+  const [commentCount, setCommentCount] = React.useState(Number(post?.commentsCount || post?.commentCount || 0));
+  const [draft, setDraft] = React.useState('');
+  const [commentsOpen, setCommentsOpen] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+  const likeScale = useSharedValue(1);
+  const likeAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: likeScale.value }],
+  }));
+
+  React.useEffect(() => {
+    setLiked(false);
+    setLikeCount(Number(String(post?.likes || '0').replace(/,/g, '')) || 0);
+    setComments([]);
+    setCommentCount(Number(post?.commentsCount || post?.commentCount || 0));
+    setDraft('');
+    setCommentsOpen(false);
+  }, [post?.id]);
+
+  const handleLike = async () => {
+    if (busy) return;
+    likeScale.value = withSequence(
+      withSpring(1.4, { damping: 5, stiffness: 220 }),
+      withSpring(1, { damping: 7, stiffness: 180 })
+    );
+    if (!post?.id) {
+      setLiked(old => {
+        setLikeCount(count => Math.max(0, count + (old ? -1 : 1)));
+        return !old;
+      });
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = await togglePostLike(post.id);
+      setLiked(Boolean(result.liked));
+      setLikeCount(Number(result.likes) || 0);
+    } catch (error) {
+      Alert.alert('Like failed', error.message || 'Could not update like.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const openComments = async () => {
+    setCommentsOpen(true);
+    if (!post?.id) return;
+    try {
+      const loadedComments = await loadPostComments(post.id);
+      setComments(loadedComments);
+      setCommentCount(loadedComments.length);
+    } catch (error) {
+      Alert.alert('Comments', error.message || 'Could not load comments.');
+    }
+  };
+
+  const submitComment = async () => {
+    const value = draft.trim();
+    if (!value || busy) return;
+    if (!post?.id) {
+      Alert.alert('Comments', 'This post is not saved on the server yet.');
+      return;
+    }
+    setBusy(true);
+    try {
+      const comment = await createPostComment(post.id, value);
+      setComments(old => [...old, comment]);
+      setCommentCount(count => count + 1);
+      setDraft('');
+    } catch (error) {
+      Alert.alert('Comment failed', error.message || 'Could not post comment.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const sharePost = async () => {
+    try {
+      const postLink = post?.id ? `bhumisocial://post/${post.id}` : '';
+      const message = `${post?.user || 'Bhumi Social'}: ${post?.caption || 'Check out this post on Bhumi Social AI'}${postLink ? `\n\nOpen post: ${postLink}` : ''}`;
+      await Share.share({ message });
+    } catch (error) {
+      Alert.alert('Share', error.message || 'Could not share this post.');
+    }
+  };
+
+  return (
+    <View style={{ marginHorizontal: 16, marginTop: 14, marginBottom: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 28 }}>
+        <TouchableOpacity onPress={handleLike} disabled={busy} style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Animated.View style={likeAnimatedStyle}>
+            <Ionicons name={liked ? 'heart' : 'heart-outline'} size={29} color={liked ? '#FF4968' : '#FFFFFF'} />
+          </Animated.View>
+          <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{likeCount.toLocaleString()}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={openComments} style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Ionicons name="chatbubble-outline" size={26} color="#FFFFFF" />
+          <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{commentCount.toLocaleString()}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={sharePost}>
+          <Ionicons name="paper-plane-outline" size={26} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+      <Modal visible={commentsOpen} transparent animationType="slide" onRequestClose={() => setCommentsOpen(false)}>
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' }}>
+          <View style={{ backgroundColor: '#151D2E', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 18, maxHeight: '75%' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '800' }}>Comments</Text>
+              <TouchableOpacity onPress={() => setCommentsOpen(false)}>
+                <Ionicons name="close" size={26} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ maxHeight: 360 }}>
+              {comments.length === 0 ? (
+                <Text style={{ color: '#AAB6CC', paddingVertical: 14 }}>No comments yet. Be the first to comment.</Text>
+              ) : comments.map((item, index) => (
+                <View key={String(item.id || index)} style={{ paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#29344B' }}>
+                  <Text style={{ color: '#FFFFFF', lineHeight: 21 }}>
+                    <Text style={{ fontWeight: '800' }}>{item.username || 'you'} </Text>
+                    {item.text}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14, gap: 8 }}>
+              <TextInput value={draft} onChangeText={setDraft} placeholder="Write a comment..." placeholderTextColor="#8793AA" maxLength={2000} editable={!busy} style={{ flex: 1, color: '#FFFFFF', backgroundColor: '#202B40', borderRadius: 22, paddingHorizontal: 15, paddingVertical: 11 }} />
+              <TouchableOpacity onPress={submitComment} disabled={busy || !draft.trim()} style={{ padding: 10 }}>
+                <Text style={{ color: '#60A5FA', fontWeight: '800' }}>Post</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
 let customAlertHandler = null;
 const Alert = {
   alert: (...args) => {
@@ -780,6 +921,38 @@ export default function App() {
   const [storyQueue, setStoryQueue] = React.useState([]);
   const [storyIndex, setStoryIndex] = React.useState(0);
   const [selectedPost, setSelectedPost] = React.useState(null);
+  const [selectedPostMediaIndex, setSelectedPostMediaIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    let active = true;
+
+    const openSharedPost = async (url) => {
+      const match = String(url || '').match(/^bhumisocial:\/\/post\/(\d+)/i);
+      if (!match) return;
+
+      try {
+        const post = await loadPostById(match[1]);
+        if (!active || !post) return;
+        setSelectedPost(post);
+        setSelectedPostMediaIndex(0);
+      } catch (error) {
+        if (active) {
+          NativeAlert.alert('Post unavailable', error?.message || 'Could not open this shared post.');
+        }
+      }
+    };
+
+    Linking.getInitialURL().then(openSharedPost).catch(() => {});
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      openSharedPost(url);
+    });
+
+    return () => {
+      active = false;
+      subscription?.remove();
+    };
+  }, []);
+  const [profileImageErrors, setProfileImageErrors] = React.useState({});
   const [reels, setReels] = React.useState([]);
   const [serverOnline, setServerOnline] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
@@ -1176,6 +1349,36 @@ export default function App() {
     } finally {
       setPrivacyBusy(false);
     }
+  };
+
+  const openAboutApp = () => {
+    Alert.alert('Bhumi Social AI', 'Version: ' + (appConfig.expo?.version || '1.0.0'), [
+      { text: 'Check Updates', onPress: () => Linking.openURL('https://bhumi-social-app-1.onrender.com/api/app-version') },
+      { text: 'Download App', onPress: () => Linking.openURL('https://bhumi-social-app-1.onrender.com/download') },
+      { text: 'Share App', onPress: () => Share.share({ message: 'Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download' }) },
+      { text: 'Close', style: 'cancel' },
+    ]);
+  };
+
+  const handleSettingsLogout = () => {
+    Alert.alert('Log out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logoutAccount();
+          } catch (error) {
+            console.warn('Server logout failed:', error?.message || error);
+          } finally {
+            setSettingsHubOpen(false);
+            setAuthMode('login');
+            setAuthSession(null);
+          }
+        },
+      },
+    ]);
   };
 
   const persistPrivacySettings = async () => {
@@ -2495,7 +2698,7 @@ const refreshProfile = React.useCallback(async () => {
             ))}
           </ScrollView>
           <View style={styles.feedDivider} />
-          {groupPostItems(feedPosts).map((p, i) => <PostCard key={p.groupId || p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} onOpen={() => setSelectedPost(p)} />)}
+          {groupPostItems(feedPosts).map((p, i) => <PostCard key={p.groupId || p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} onOpen={() => { setSelectedPostMediaIndex(0); setSelectedPost(p); }} />)}
         </ScrollView>
       ) : activeTab === 'Search' ? (
         <ScrollView
@@ -2568,57 +2771,59 @@ const refreshProfile = React.useCallback(async () => {
           )}
         </ScrollView>
       ) : activeTab === 'Profile' ? (
-        <ScrollView style={styles.content} contentContainerStyle={{ padding: 20, paddingBottom: 36 }}>
+        <ScrollView style={styles.content} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
           {!profile ? (
             <Text style={{ color: '#777', textAlign: 'center', padding: 24 }}>
               Loading profile…
             </Text>
           ) : (
             <View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 22, padding: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E8EDF4', borderRadius: 18 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 22, padding: 18, backgroundColor: '#F8FAFF', borderWidth: 1, borderColor: '#DCE6FA', borderRadius: 24, elevation: 3 }}>
                 <TouchableOpacity onPress={chooseProfilePhoto} disabled={profileBusy}>
-                  {profile.avatarUrl ? (
+                  <View style={{ width: 116, height: 116, borderRadius: 58, borderWidth: 3, borderColor: '#7C9FF2', padding: 2, alignItems: 'center', justifyContent: 'center' }}>
+{profile.avatarUrl ? (
                     <Image source={{ uri: profile.avatarUrl }}
                       onError={(e) => console.log('PROFILE_AVATAR_IMAGE_ERROR:', profile.avatarUrl, e.nativeEvent?.error)}
                       onLoad={() => console.log('PROFILE_AVATAR_IMAGE_LOADED:', profile.avatarUrl)}
-                      style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: '#DDE7F5' }} />
+                      style={{ width: 108, height: 108, borderRadius: 54, backgroundColor: '#DDE7F5' }} />
                   ) : (
-                    <View style={{ width: 96, height: 96, borderRadius: 48,
-                      backgroundColor: '#DDE7F5', alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 108, height: 108, borderRadius: 54,
+                      backgroundColor: '#E8EEFA', alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ color: '#4F83CC', fontSize: 32, fontWeight: '700' }}>
                         {(profile.displayName || 'Y').charAt(0).toUpperCase()}
                       </Text>
                     </View>
                   )}
+</View>
                   <Text style={{ color: '#1685D9', fontSize: 12, textAlign: 'center', marginTop: 5 }}>
                     Change Photo
                   </Text>
                 </TouchableOpacity>
 
                 <View style={{ flex: 1, marginLeft: 22 }}>
-                  <Text style={{ color: '#222', fontSize: 18, fontWeight: '700' }}>
+                  <Text style={{ color: '#171A2B', fontSize: 21, fontWeight: '800' }}>
                     {profile.displayName || 'you'}
                   </Text>
-                  <Text style={{ color: '#777', marginTop: 3 }}>@{profile.username || 'you'}</Text>
+                  <Text style={{ color: '#7B8192', marginTop: 5, fontSize: 13 }}>@{profile.username || 'you'}</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 15 }}>
                     <View style={{ alignItems: 'center' }}>
-                      <Text style={{ color: '#222', fontWeight: '700' }}>{profile.postsCount ?? 0}</Text>
-                      <Text style={{ color: '#777', fontSize: 12 }}>Posts</Text>
+                      <Text style={{ color: '#171C2F', fontWeight: '900', fontSize: 18 }}>{profile.postsCount ?? 0}</Text>
+                      <Text style={{ color: '#858A9B', fontSize: 11 }}>Posts</Text>
                     </View>
                     <TouchableOpacity onPress={() => showProfileConnections('followers')} style={{ alignItems: 'center' }}>
-                      <Text style={{ color: '#222', fontWeight: '700' }}>{profile.followersCount ?? 0}</Text>
-                      <Text style={{ color: '#777', fontSize: 12 }}>Followers</Text>
+                      <Text style={{ color: '#171C2F', fontWeight: '900', fontSize: 18 }}>{profile.followersCount ?? 0}</Text>
+                      <Text style={{ color: '#858A9B', fontSize: 11 }}>Followers</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => showProfileConnections('following')} style={{ alignItems: 'center' }}>
-                      <Text style={{ color: '#222', fontWeight: '700' }}>{profile.followingCount ?? 0}</Text>
-                      <Text style={{ color: '#777', fontSize: 12 }}>Following</Text>
+                      <Text style={{ color: '#171C2F', fontWeight: '900', fontSize: 18 }}>{profile.followingCount ?? 0}</Text>
+                      <Text style={{ color: '#858A9B', fontSize: 11 }}>Following</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               </View>
 
               {!!profile.bio && !profileEditing &&
-                <Text style={{ color: '#444', marginBottom: 16 }}>{profile.bio}</Text>}
+                <Text style={{ color: '#454B60', marginBottom: 20, lineHeight: 23, fontSize: 14 }}>{profile.bio}</Text>}
 
               {profileEditing ? (
                 <View>
@@ -2639,7 +2844,7 @@ const refreshProfile = React.useCallback(async () => {
                       textAlignVertical: 'top' }} />
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <TouchableOpacity onPress={saveProfile} disabled={profileBusy}
-                      style={{ backgroundColor: '#1685D9', padding: 12, borderRadius: 8, marginRight: 10 }}>
+                      style={{ backgroundColor: '#2563EB', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 13, marginRight: 10 }}>
                       <Text style={{ color: '#FFF', fontWeight: '700' }}>
                         {profileBusy ? 'Saving…' : 'Save'}
                       </Text>
@@ -2655,14 +2860,14 @@ const refreshProfile = React.useCallback(async () => {
               ) : (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
                   <TouchableOpacity onPress={() => setProfileEditing(true)}
-                    style={{ borderWidth: 1, borderColor: '#DBDBDB', borderRadius: 8, backgroundColor: '#FAFAFA', paddingVertical: 10, paddingHorizontal: 20, marginRight: 8, marginBottom: 8 }}>
-                    <Text style={{ color: '#333', fontWeight: '600' }}>Edit Profile</Text>
+                    style={{ borderWidth: 1, borderColor: '#2563EB', borderRadius: 14, backgroundColor: '#2563EB', paddingVertical: 13, paddingHorizontal: 24, marginRight: 8, marginBottom: 8 }}>
+                    <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>Edit Profile</Text>
                   </TouchableOpacity>
                   {!!profile.avatarUrl && (
                     <TouchableOpacity onPress={removeProfilePhoto} disabled={profileBusy}
-                      style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
-                        paddingVertical: 10, paddingHorizontal: 14, marginBottom: 8 }}>
-                      <Text style={{ color: '#555' }}>Remove Photo</Text>
+                      style={{ borderWidth: 1, borderColor: '#F2B8BE', borderRadius: 14,
+                        backgroundColor: '#FFF1F2', paddingVertical: 13, paddingHorizontal: 16, marginBottom: 8 }}>
+                      <Text style={{ color: '#BE3548', fontWeight: '700' }}>Remove Photo</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -2670,14 +2875,14 @@ const refreshProfile = React.useCallback(async () => {
 
               <View style={{ height: 1, backgroundColor: '#E5E5E5', marginTop: 18, marginBottom: 14 }} />
               {/* SOCIALAPP_PROFILE_SETTINGS_V1 */}
-              <View style={{ marginTop: 20, marginBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-  <Text style={{ color: '#262626', fontWeight: '700', fontSize: 18 }}>Profile Settings</Text>
-  <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open Settings" onPress={() => setSettingsHubOpen(true)} style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center' }}>
-    <Text style={{ color: '#FFFFFF', fontSize: 23 }}>⚙</Text>
+              <View style={{ marginTop: 28, marginBottom: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+  <Text style={{ color: '#1B2033', fontWeight: '800', fontSize: 19 }}>Profile Settings</Text>
+  <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open Settings" onPress={() => setSettingsHubOpen(true)} style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: '#EAF1FF', borderWidth: 1, borderColor: '#D5E3FF', alignItems: 'center', justifyContent: 'center' }}>
+    <Text style={{ color: '#2563EB', fontSize: 23, fontWeight: '800' }}>⚙</Text>
   </TouchableOpacity>
 </View>
                 <View>
-                <View style={{ borderWidth: 1, borderColor: '#DBDBDB', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 10 }}>
+                <View style={{ borderWidth: 1, borderColor: '#DCE6FA', borderRadius: 16, paddingHorizontal: 15, paddingVertical: 15, marginBottom: 12, backgroundColor: '#FBFCFF' }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <View style={{ flex: 1, paddingRight: 12 }}>
                       <Text style={{ color: '#26344D', fontWeight: '700', fontSize: 15 }}>Notifications</Text>
@@ -2697,7 +2902,7 @@ const refreshProfile = React.useCallback(async () => {
                 <TouchableOpacity
                   onPress={openNotificationSettings}
                   disabled={notificationsBusy}
-                  style={{ borderWidth: 1, borderColor: '#E1E8F3', borderRadius: 10, padding: 12, marginBottom: 10 }}
+                  style={{ borderWidth: 1, borderColor: '#E8ECF4', borderRadius: 14, padding: 14, marginBottom: 11, backgroundColor: '#FFFFFF' }}
                 >
                   <Text style={{ color: '#26344D', fontWeight: '700' }}>
                     {notificationDetailsOpen ? 'Hide notification options' : 'Manage notification options'}
@@ -2707,7 +2912,7 @@ const refreshProfile = React.useCallback(async () => {
                   </Text>
                 </TouchableOpacity>
                 {notificationDetailsOpen && (
-                  <View style={{ borderWidth: 1, borderColor: '#E1E8F3', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+                  <View style={{ borderWidth: 1, borderColor: '#E8ECF4', borderRadius: 14, padding: 14, marginBottom: 12, backgroundColor: '#FFFFFF' }}>
                     {[
                       { key: 'likes', label: 'Likes' },
                       { key: 'comments', label: 'Comments' },
@@ -2747,18 +2952,20 @@ const refreshProfile = React.useCallback(async () => {
                       }
                     }}
                     style={{
-                      paddingVertical: 13,
-                      paddingHorizontal: 12,
+                      paddingVertical: 15,
+                      paddingHorizontal: 15,
                       borderWidth: 1,
-                      borderColor: '#E5E5E5',
-                      borderRadius: 8,
-                      marginBottom: 8,
+                      borderColor: '#E8ECF4',
+                      borderRadius: 15,
+                      marginBottom: 10,
+                      backgroundColor: '#FFFFFF',
+                      elevation: 1,
                     }}
                   >
-                    <Text style={{ color: '#333', fontWeight: '600', fontSize: 15 }}>
+                    <Text style={{ color: '#252A40', fontWeight: '700', fontSize: 15 }}>
                       {item.title}
                     </Text>
-                    <Text style={{ color: '#777', fontSize: 12, marginTop: 4 }}>
+                    <Text style={{ color: '#858A9B', fontSize: 11, marginTop: 4 }}>
                       {item.subtitle}
                     </Text>
                   </TouchableOpacity>
@@ -2766,13 +2973,65 @@ const refreshProfile = React.useCallback(async () => {
 
 
                               </View>
-                <Text style={{ color: '#555', fontWeight: '700', marginBottom: 12 }}>Your Posts</Text>
-              {groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).length ? (
-                groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).map((p, i) =>
-                  <PostCard key={p.groupId || p.id || `my-post-${i}`} post={p} onOpen={() => setSelectedPost(p)} />)
+                <View style={{ marginTop: 22, marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+  <Text style={{ color: '#1B2033', fontSize: 19, fontWeight: '800' }}>Your Posts</Text>
+  <Ionicons name="grid-outline" size={21} color="#454B60" />
+</View>
+{groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).length ? (
+  <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 5 }}>
+    {groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).map((p, i) => {
+      const media = p.mediaItems?.[0] || p;
+      const isVideo = media.mediaType === 'video';
+      const hasMultiple = (p.mediaItems?.length || 0) > 1;
+      return (
+        <TouchableOpacity
+          key={p.groupId || p.id || `my-post-${i}`}
+          activeOpacity={0.85}
+          onPress={() => { setSelectedPostMediaIndex(0); setSelectedPost(p); }}
+          style={{ width: '32.5%', aspectRatio: 1, backgroundColor: '#E9ECF3', borderRadius: 11, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E5EAF4' }}
+        >
+          {media.uri && !isVideo && !profileImageErrors[p.groupId || p.id || `my-post-${i}`] ? (
+            <Image
+              source={{ uri: media.uri }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="cover"
+              onError={() => setProfileImageErrors(prev => ({ ...prev, [p.groupId || p.id || `my-post-${i}`]: true }))}
+            />
+          ) : (
+            <View style={{ width: '100%', height: '100%', backgroundColor: isVideo ? '#252A3B' : (p.color || '#D8E7DF'), alignItems: 'center', justifyContent: 'center' }}>
+              {isVideo ? (
+                <Ionicons name="play-circle" size={34} color="#FFFFFF" />
               ) : (
-                <Text style={{ color: '#888', paddingVertical: 12 }}>You haven't shared any posts yet.</Text>
+                <Text style={{ fontSize: 38 }}>{p.emoji || '🌿'}</Text>
               )}
+            </View>
+          )}
+          {isVideo && media.uri ? (
+            <View style={{ position: 'absolute', right: 7, top: 7, width: 27, height: 27, borderRadius: 9, backgroundColor: 'rgba(15, 23, 42, 0.68)', alignItems: 'center', justifyContent: 'center' }}>
+                        <Ionicons name="play" size={15} color="#FFFFFF" />
+                      </View>
+          ) : null}
+          {hasMultiple ? (
+            <View style={{ position: 'absolute', right: 7, top: 7, width: 27, height: 27, borderRadius: 9, backgroundColor: 'rgba(15, 23, 42, 0.68)', alignItems: 'center', justifyContent: 'center' }}>
+                        <Ionicons name="copy-outline" size={15} color="#FFFFFF" />
+                      </View>
+          ) : null}
+        </TouchableOpacity>
+      );
+    })}
+  </View>
+) : (
+  <View style={{ alignItems: 'center', paddingVertical: 28, paddingHorizontal: 18, backgroundColor: '#F8FAFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5EAF4' }}>
+  <View style={{ width: 58, height: 58, borderRadius: 20, backgroundColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+    <Ionicons name="images-outline" size={29} color="#2563EB" />
+  </View>
+  <Text style={{ color: '#1B2033', fontSize: 16, fontWeight: '800', marginBottom: 6 }}>Share your first post</Text>
+  <Text style={{ color: '#858A9B', fontSize: 12, textAlign: 'center', lineHeight: 18, marginBottom: 16 }}>Your photos and videos will appear here.</Text>
+  <TouchableOpacity onPress={() => handleTab('Create')} activeOpacity={0.85} style={{ backgroundColor: '#2563EB', paddingHorizontal: 22, paddingVertical: 11, borderRadius: 12 }}>
+    <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>Create First Post</Text>
+  </TouchableOpacity>
+</View>
+)}
             </View>
           )}
         </ScrollView>
@@ -2863,37 +3122,75 @@ const refreshProfile = React.useCallback(async () => {
         animationType="fade"
         onRequestClose={() => setSelectedPost(null)}
       >
-        <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center' }}>
-          <TouchableOpacity
-            onPress={() => setSelectedPost(null)}
-            style={{ position: 'absolute', top: 38, right: 18, zIndex: 2, padding: 12 }}
-          >
-            <Text style={{ color: '#FFFFFF', fontSize: 30 }}>×</Text>
-          </TouchableOpacity>
-          {selectedPost?.uri && selectedPost.mediaType === 'video' ? (
-            <ReelVideo uri={selectedPost.uri} zoomControls />
-          ) : selectedPost?.uri ? (
-            <ZoomableImage
-              uri={selectedPost.uri}
-              style={{ width: '100%', height: '72%' }}
-            />
-          ) : (
-            <View style={{ padding: 24, alignItems: 'center' }}>
-              <Text style={{ color: '#FFFFFF', fontSize: 48 }}>
-                {selectedPost?.emoji || '🌿'}
-              </Text>
+        <View style={{ flex: 1, backgroundColor: '#080B14', paddingTop: 42, paddingBottom: 18 }}>
+  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 12 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#26385F', borderWidth: 1.5, borderColor: '#7C9FF2', alignItems: 'center', justifyContent: 'center', marginRight: 11 }}>
+        <Ionicons name="person" size={20} color="#FFFFFF" />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>{selectedPost?.user || 'you'}</Text>
+        <Text style={{ color: '#AAB4CA', fontSize: 11, marginTop: 3 }}>Bhumi Social</Text>
+      </View>
+    </View>
+    <TouchableOpacity accessibilityLabel="Close post" onPress={() => setSelectedPost(null)} style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: '#20283A', alignItems: 'center', justifyContent: 'center' }}>
+      <Ionicons name="close" size={25} color="#FFFFFF" />
+    </TouchableOpacity>
+  </View>
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 12 }}>
+    {(selectedPost?.mediaItems?.length || 0) > 1 ? (
+      <>
+        <ScrollView
+          key={String(selectedPost?.groupId || selectedPost?.id || 'selected-post')}
+          horizontal
+          pagingEnabled
+          nestedScrollEnabled
+          showsHorizontalScrollIndicator={false}
+          style={{ width: '100%' }}
+          onMomentumScrollEnd={event => {
+            const width = event.nativeEvent.layoutMeasurement.width;
+            if (width > 0) setSelectedPostMediaIndex(Math.round(event.nativeEvent.contentOffset.x / width));
+          }}
+        >
+          {(selectedPost.mediaItems || []).map((media, index) => (
+            <View key={String(media.id || index)} style={{ width: Dimensions.get('window').width, flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              {media.uri && media.mediaType === 'video' ? (
+                <ReelVideo uri={media.uri} zoomControls />
+              ) : media.uri ? (
+                <ZoomableImage uri={media.uri} style={{ width: '100%', height: '100%' }} />
+              ) : (
+                <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#151D2E' }}>
+                  <Text style={{ fontSize: 64 }}>{media.emoji || '🌿'}</Text>
+                </View>
+              )}
             </View>
-          )}
-          {!!selectedPost?.caption && (
-            <Text style={{ color: '#FFFFFF', textAlign: 'center', padding: 16 }}>
-              {selectedPost.caption}
-            </Text>
-          )}
-          <Text style={{ color: '#BBBBBB', textAlign: 'center', paddingBottom: 24 }}>
-            {selectedPost?.user || 'you'}
-          </Text>
-        </View>
-      </Modal>
+          ))}
+        </ScrollView>
+        <Text style={{ color: '#FFFFFF', backgroundColor: '#29344B', paddingHorizontal: 13, paddingVertical: 6, borderRadius: 14, overflow: 'hidden', fontSize: 12, fontWeight: '700', marginTop: 8 }}>
+          {selectedPostMediaIndex + 1} / {selectedPost.mediaItems.length}
+        </Text>
+      </>
+    ) : selectedPost?.uri && selectedPost.mediaType === 'video' ? (
+      <ReelVideo uri={selectedPost.uri} zoomControls />
+    ) : selectedPost?.uri ? (
+      <ZoomableImage uri={selectedPost.uri} style={{ width: '100%', height: '100%' }} />
+    ) : (
+      <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#151D2E' }}>
+        <Text style={{ fontSize: 64 }}>{selectedPost?.emoji || '🌿'}</Text>
+      </View>
+    )}
+</View>
+<PostDetailActions post={selectedPost} />
+<View style={{ marginHorizontal: 16, marginTop: 8, padding: 16, backgroundColor: '#151D2E', borderRadius: 18, borderWidth: 1, borderColor: '#29344B' }}>
+            {!!selectedPost?.caption ? (
+      <Text style={{ color: '#FFFFFF', fontSize: 14, lineHeight: 21 }}>{selectedPost.caption}</Text>
+    ) : (
+      <Text style={{ color: '#8793AA', fontSize: 13 }}>No caption added</Text>
+    )}
+    <Text style={{ color: '#8FA4CB', fontSize: 11, fontWeight: '700', marginTop: 12 }}>POST BY {selectedPost?.user || 'you'}</Text>
+  </View>
+</View>
+</Modal>
 
 
       {/* SOCIALAPP_PREMIUM_SETTINGS_HUB_V1 */}
@@ -2916,7 +3213,8 @@ const refreshProfile = React.useCallback(async () => {
               { title: 'Account Security', subtitle: 'Change your password', icon: '▣', color: '#F3E8FF', action: () => { setSettingsHubOpen(false); setPasswordOpen(true); } },
               { title: 'Privacy', subtitle: 'Manage account visibility and messages', icon: '◈', color: '#D1FAE5', action: () => { setSettingsHubOpen(false); openPrivacySettings(); } },
               { title: 'Account Settings', subtitle: 'Update your email and phone number', icon: '◎', color: '#FEF3C7', action: () => { setSettingsHubOpen(false); openAccountSettings(); } },
-              { title: 'About Bhoomi Social', subtitle: 'App information', icon: 'ⓘ', color: '#E0E7FF', action: () => Alert.alert('About Bhoomi Social', 'Bhoomi Social is your social community app.') },
+              { title: 'Log Out', subtitle: 'Sign out of this account', icon: '↪', color: '#FEE2E2', action: handleSettingsLogout },
+              { title: 'About & App Updates', subtitle: 'Version, updates, download and share', icon: 'ⓘ', color: '#E0E7FF', action: openAboutApp },
             ].map(item => (
               <TouchableOpacity
                 key={item.title}
@@ -3132,7 +3430,40 @@ const refreshProfile = React.useCallback(async () => {
               />
             ))}
 
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+            <TouchableOpacity
+  disabled={passwordBusy}
+  onPress={() => {
+    Alert.alert(
+      'Log Out Other Devices',
+      'This will sign out your account from other devices. This device will stay logged in.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Log Out Other Devices',
+          style: 'destructive',
+          onPress: async () => {
+            setPasswordBusy(true);
+            try {
+              const result = await logoutOtherSessions();
+              Alert.alert('Success', result.message || 'Other devices have been signed out.');
+            } catch (e) {
+              Alert.alert('Could Not Sign Out Devices', e.message || 'Please try again.');
+            } finally {
+              setPasswordBusy(false);
+            }
+          },
+        },
+      ]
+    );
+  }}
+  style={{ padding: 12, borderWidth: 1, borderColor: '#DC2626', borderRadius: 8, marginBottom: 14 }}
+>
+  <Text style={{ color: '#DC2626', fontWeight: '700', textAlign: 'center' }}>
+    Log Out Other Devices
+  </Text>
+</TouchableOpacity>
+
+<View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
               <TouchableOpacity
                 onPress={() => setPasswordOpen(false)}
                 disabled={passwordBusy}
