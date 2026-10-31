@@ -2,6 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import appConfig from './app.json';
 import * as SecureStore from 'expo-secure-store';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as IntentLauncher from 'expo-intent-launcher';
 import React from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -896,6 +898,7 @@ export default function App() {
 
   const [updateInfo, setUpdateInfo] = React.useState(null);
   const [updatePromptVisible, setUpdatePromptVisible] = React.useState(false);
+  const [updateDownloading, setUpdateDownloading] = React.useState(false);
 
   React.useEffect(() => {
     let active = true;
@@ -935,6 +938,39 @@ export default function App() {
       clearInterval(interval);
     };
   }, []);
+
+
+  const downloadAndInstallUpdate = async () => {
+    const apkUrl = updateInfo?.apk_url || 'https://github.com/bhumiprabhumeghawal-dot/Bhumi-social-app/releases/latest/download/SocialApp.apk';
+    if (updateDownloading) return;
+    if (Platform.OS !== 'android') {
+      Linking.openURL(apkUrl).catch(() => NativeAlert.alert('Update', 'Unable to open the download link.'));
+      return;
+    }
+    setUpdateDownloading(true);
+    try {
+      if (!FileSystem.documentDirectory) throw new Error('App storage is unavailable.');
+      const apkUri = FileSystem.documentDirectory + 'BhumiSocialAI-update.apk';
+      const download = await FileSystem.downloadAsync(apkUrl, apkUri);
+      if (download.status !== 200) throw new Error('APK download failed. Please try again.');
+      const info = await FileSystem.getInfoAsync(download.uri);
+      if (!info.exists || !info.size || info.size < 10000000) {
+        await FileSystem.deleteAsync(download.uri, { idempotent: true }).catch(() => {});
+        throw new Error('Downloaded file is incomplete. Please try again later.');
+      }
+      const contentUri = await FileSystem.getContentUriAsync(download.uri);
+      setUpdatePromptVisible(false);
+      await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+        data: contentUri,
+        type: 'application/vnd.android.package-archive',
+        flags: 1,
+      });
+    } catch (error) {
+      NativeAlert.alert('Update download', error?.message || 'Could not download or open the installer. Please try again.');
+    } finally {
+      setUpdateDownloading(false);
+    }
+  };
 
 
   const [feedPosts, setFeedPosts] = React.useState(posts);
@@ -3572,10 +3608,11 @@ const refreshProfile = React.useCallback(async () => {
               {updateInfo?.message || 'A new version of Bhumi Social AI is available.'}
             </Text>
             <TouchableOpacity
-              onPress={() => Linking.openURL(updateInfo?.download_url || 'https://bhumi-social-app-1.onrender.com/download')}
-              style={{ backgroundColor: '#1685D9', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, width: '100%', alignItems: 'center' }}
+              onPress={downloadAndInstallUpdate}
+              disabled={updateDownloading}
+              style={{ backgroundColor: updateDownloading ? '#7AAED4' : '#1685D9', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, width: '100%', alignItems: 'center' }}
             >
-              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>Update Now</Text>
+              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>{updateDownloading ? 'Downloading APK...' : 'Download & Install Update'}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => Share.share({
