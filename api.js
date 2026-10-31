@@ -484,8 +484,10 @@ export async function loadPostById(postId) {
   };
 }
 
-export async function togglePostLike(postId) {
-  const session = await getAuthSession();
+export async function togglePostLike(postId, activeSession = null) {
+  const session = activeSession?.token && activeSession?.username
+    ? activeSession
+    : await getAuthSession();
   if (!session?.token || !session?.username) {
     throw new Error('Please log in to like this post.');
   }

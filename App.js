@@ -429,7 +429,7 @@ function groupPostItems(items) {
   return result;
 }
 
-function PostCard({ post, onOpen = () => {} }) {
+function PostCard({ post, authSession, onOpen = () => {} }) {
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
   const [liked, setLiked] = React.useState(false);
@@ -455,7 +455,7 @@ function PostCard({ post, onOpen = () => {} }) {
 
     setInteractionBusy(true);
     try {
-      const result = await togglePostLike(post.id);
+      const result = await togglePostLike(post.id, authSession);
       setLiked(Boolean(result.liked));
       setLikeCount(Number(result.likes) || 0);
     } catch (error) {
@@ -654,7 +654,7 @@ function PostCard({ post, onOpen = () => {} }) {
 }
 
 
-function PostDetailActions({ post }) {
+function PostDetailActions({ post, authSession }) {
   const [liked, setLiked] = React.useState(false);
   const [likeCount, setLikeCount] = React.useState(Number(String(post?.likes || '0').replace(/,/g, '')) || 0);
   const [comments, setComments] = React.useState([]);
@@ -691,7 +691,7 @@ function PostDetailActions({ post }) {
     }
     setBusy(true);
     try {
-      const result = await togglePostLike(post.id);
+      const result = await togglePostLike(post.id, authSession);
       setLiked(Boolean(result.liked));
       setLikeCount(Number(result.likes) || 0);
     } catch (error) {
@@ -2697,7 +2697,7 @@ const refreshProfile = React.useCallback(async () => {
             ))}
           </ScrollView>
           <View style={styles.feedDivider} />
-          {groupPostItems(feedPosts).map((p, i) => <PostCard key={p.groupId || p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} onOpen={() => { setSelectedPostMediaIndex(0); setSelectedPost(p); }} />)}
+          {groupPostItems(feedPosts).map((p, i) => <PostCard key={p.groupId || p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} authSession={authSession} onOpen={() => { setSelectedPostMediaIndex(0); setSelectedPost(p); }} />)}
         </ScrollView>
       ) : activeTab === 'Search' ? (
         <ScrollView
@@ -3179,7 +3179,7 @@ const refreshProfile = React.useCallback(async () => {
       </View>
     )}
 </View>
-<PostDetailActions post={selectedPost} />
+<PostDetailActions post={selectedPost} authSession={authSession} />
 <View style={{ marginHorizontal: 16, marginTop: 8, padding: 16, backgroundColor: '#151D2E', borderRadius: 18, borderWidth: 1, borderColor: '#29344B' }}>
             {!!selectedPost?.caption ? (
       <Text style={{ color: '#FFFFFF', fontSize: 14, lineHeight: 21 }}>{selectedPost.caption}</Text>
