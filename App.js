@@ -429,9 +429,10 @@ function groupPostItems(items) {
   return result;
 }
 
-function PostCard({ post, authSession, onOpen = () => {} }) {
+function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () => {} }) {
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
+  const [createMenuOpen, setCreateMenuOpen] = React.useState(false);
   const [liked, setLiked] = React.useState(false);
   const [likeCount, setLikeCount] = React.useState(
     Number(String(post.likes || '0').replace(/,/g, '')) || 0
@@ -571,6 +572,27 @@ function PostCard({ post, authSession, onOpen = () => {} }) {
             )}
           </TouchableOpacity>
         )}
+        <View style={{ position: 'absolute', top: 12, right: 12, zIndex: 20, alignItems: 'flex-end' }}>
+          <TouchableOpacity onPress={() => setCreateMenuOpen(v => !v)} style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: '#7C3AED', borderWidth: 2, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', elevation: 8 }}>
+            <Ionicons name={createMenuOpen ? 'close' : 'add'} size={30} color="#FFFFFF" />
+          </TouchableOpacity>
+          {createMenuOpen && <View style={{ marginTop: 8, minWidth: 178, backgroundColor: 'rgba(20,20,24,0.96)', borderRadius: 14, padding: 7, elevation: 10 }}>
+            {[
+              ['Record Reel', 'videocam', 'reel-camera'],
+              ['Reel from Photos', 'film', 'reel-photos'],
+              ['Photo Post', 'image', 'photo-post'],
+              ['Video Post', 'play-circle', 'video-post'],
+              ['Story from Camera', 'camera', 'story-camera'],
+              ['Story from Gallery', 'images', 'story-gallery'],
+              ['Post from Gallery', 'albums', 'post-gallery'],
+            ].map(([label, icon, action]) => (
+              <TouchableOpacity key={action} onPress={() => { setCreateMenuOpen(false); onCreateAction(action); }} style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}>
+                <Ionicons name={icon} size={19} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', fontSize: 13, marginLeft: 10, fontWeight: '600' }}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>}
+        </View>
         {(post.mediaItems?.length > 1) && (
           <Text style={{ textAlign: 'center', paddingVertical: 5, color: '#777777', fontSize: 12 }}>
             {mediaIndex + 1} / {post.mediaItems.length}
@@ -2697,7 +2719,15 @@ const refreshProfile = React.useCallback(async () => {
             ))}
           </ScrollView>
           <View style={styles.feedDivider} />
-          {groupPostItems(feedPosts).map((p, i) => <PostCard key={p.groupId || p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} authSession={authSession} onOpen={() => { setSelectedPostMediaIndex(0); setSelectedPost(p); }} />)}
+          {groupPostItems(feedPosts).map((p, i) => <PostCard key={p.groupId || p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} authSession={authSession} onOpen={() => { setSelectedPostMediaIndex(0); setSelectedPost(p); }} onCreateAction={action => {
+            if (action === 'reel-camera') openReelCamera();
+            else if (action === 'reel-photos') createReelFromPhotos();
+            else if (action === 'photo-post') openCaptureCamera('posts', 'picture');
+            else if (action === 'video-post') openCaptureCamera('posts', 'video');
+            else if (action === 'story-camera') openCaptureCamera('stories', 'picture');
+            else if (action === 'story-gallery') createStory();
+            else if (action === 'post-gallery') pickImage();
+          }} />)}
         </ScrollView>
       ) : activeTab === 'Search' ? (
         <ScrollView
