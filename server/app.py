@@ -392,30 +392,155 @@ def search_users():
     query = request.args.get("q", "").strip().lstrip("@")
     if len(query) < 2:
         return jsonify({"results": []})
+
     query = query[:60].lower()
     pattern = "%" + query + "%"
+    viewer = getattr(g, "auth_username", None)
+
     with get_db() as db:
-        rows = db.execute(
-            """SELECT u.username,
-                      COALESCE(NULLIF(p.display_name, ''), u.username) AS display_name,
-                      p.avatar_url
-               FROM users u
-               LEFT JOIN profiles p ON LOWER(p.username) = LOWER(u.username)
-               WHERE LOWER(u.username) LIKE ?
-                  OR LOWER(COALESCE(p.display_name, '')) LIKE ?
-               ORDER BY CASE WHEN LOWER(u.username) = ? THEN 0 ELSE 1 END,
-                        LOWER(u.username)
-               LIMIT 30""",
-            (pattern, pattern, query),
-        ).fetchall()
-    results = [
-        {
-            "username": row["username"],
-            "displayName": row["display_name"],
-            "avatarUrl": row["avatar_url"],
-        }
-        for row in rows
-    ]
+        rows = db.execute("""
+            SELECT u.username,
+                   COALESCE(NULLIF(p.display_name, ''), u.username) AS display_name,
+                   p.avatar_url
+            FROM users u
+            LEFT JOIN profiles p ON LOWER(p.username) = LOWER(u.username)
+            WHERE LOWER(u.username) LIKE ?
+               OR LOWER(COALESCE(p.display_name, '')) LIKE ?
+            ORDER BY CASE WHEN LOWER(u.username) = ? THEN 0 ELSE 1 END,
+                     LOWER(u.username)
+            LIMIT 30
+        """, (pattern, pattern, query)).fetchall()
+
+        results = []
+        for row in rows:
+            target = row["username"]
+            if viewer and target.lower() != viewer.lower():
+                blocked = db.execute("""
+                    SELECT 1 FROM people_blocks
+                    WHERE (blocker=? AND blocked=?)
+                       OR (blocker=? AND blocked=?)
+                    LIMIT 1
+                """, (viewer, target, target, viewer)).fetchone()
+                if blocked:
+                    continue
+
+            is_following = False
+            follows_you = False
+            request_status = None
+            is_private = False
+            is_restricted = False
+            mutual_count = 0
+
+            if viewer:
+                is_following = bool(db.execute(
+                    "SELECT 1 FROM follows WHERE follower=? AND following=?",
+                    (viewer, target)
+                ).fetchone())
+                follows_you = bool(db.execute(
+                    "SELECT 1 FROM follows WHERE follower=? AND following=?",
+                    (target, viewer)
+                ).fetchone())
+
+                request_row = db.execute("""
+                    SELECT status FROM follow_requests
+                    WHERE requester=? AND target=?
+                """, (viewer, target)).fetchone()
+                request_status = request_row["status"] if request_row else None
+
+                settings = db.execute(
+                    "SELECT is_private FROM user_settings WHERE username=?",
+                    (target,)
+                ).fetchone()
+                is_private = bool(settings["is_private"]) if settings else False
+
+                is_restricted = bool(db.execute("""
+                    SELECT 1 FROM people_restrictions
+                    WHERE owner=? AND restricted=?
+                """, (viewer, target)).fetchone())
+
+                mutual = db.execute("""
+                    SELECT COUNT(*) FROM follows a
+                    JOIN follows b ON b.following=a.following
+                    WHERE a.follower=? AND b.follower=?
+                """, (viewer, target)).fetchone()
+                mutual_count = mutual[0] if mutual else 0
+
+            results.append({
+                "username": target,
+                "displayName": row["display_name"],
+                "avatarUrl": row["avatar_url"],
+                "isFollowing": is_following,
+                "followsYou": follows_you,
+                "followRequestStatus": request_status,
+                "isPrivate": is_private,
+                "isRestricted": is_restricted,
+                "mutualFollowersCount": mutual_count,
+            })
+
+    return jsonify({"results": results})
+
+
+@app.get("/api/people/suggestions")
+def people_suggestions():
+    viewer = getattr(g, "auth_username", None)
+    if not viewer:
+        return jsonify({"error": "Please log in first."}), 401
+
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT u.username,
+                   COALESCE(NULLIF(p.display_name, ''), u.username) AS display_name,
+                   p.avatar_url,
+                   COUNT(DISTINCT mutual.following) AS mutual_count,
+                   MAX(u.created_at) AS recent_rank
+            FROM users u
+            LEFT JOIN profiles p ON LOWER(p.username)=LOWER(u.username)
+            LEFT JOIN follows mutual
+                ON mutual.follower=? AND mutual.following IN (
+                    SELECT f.following FROM follows f
+                    WHERE f.follower=u.username
+                )
+            WHERE LOWER(u.username) <> LOWER(?)
+              AND NOT EXISTS (
+                  SELECT 1 FROM follows f
+                  WHERE f.follower=? AND f.following=u.username
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM follow_requests r
+                  WHERE r.requester=? AND r.target=u.username
+                    AND r.status='pending'
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM people_blocks b
+                  WHERE (b.blocker=? AND b.blocked=u.username)
+                     OR (b.blocker=u.username AND b.blocked=?)
+              )
+            GROUP BY u.username, p.display_name, p.avatar_url
+            ORDER BY mutual_count DESC, recent_rank DESC
+            LIMIT 30
+        """, (viewer, viewer, viewer, viewer, viewer, viewer)).fetchall()
+
+        results = []
+        for row in rows:
+            target = row["username"]
+            follows_you = bool(db.execute(
+                "SELECT 1 FROM follows WHERE follower=? AND following=?",
+                (target, viewer)
+            ).fetchone())
+            settings = db.execute(
+                "SELECT is_private FROM user_settings WHERE username=?",
+                (target,)
+            ).fetchone()
+
+            results.append({
+                "username": target,
+                "displayName": row["display_name"],
+                "avatarUrl": row["avatar_url"],
+                "mutualFollowersCount": row["mutual_count"],
+                "followsYou": follows_you,
+                "isPrivate": bool(settings["is_private"]) if settings else False,
+            })
+
     return jsonify({"results": results})
 
 
@@ -426,11 +551,13 @@ def get_profile(username):
         return jsonify({"error": "Invalid username"}), 400
     with get_db() as db:
         result = profile_json(db, username)
-        viewer = request.args.get("viewer", "you").strip().lstrip("@") or "you"
-        result["isFollowing"] = bool(db.execute(
-            "SELECT 1 FROM follows WHERE follower=? AND following=?",
-            (viewer, username),
-        ).fetchone())
+        viewer = getattr(g, "auth_username", None)
+        result["isFollowing"] = bool(
+            viewer and db.execute(
+                "SELECT 1 FROM follows WHERE follower=? AND following=?",
+                (viewer, username),
+            ).fetchone()
+        )
     return jsonify({"profile": result})
 
 
@@ -528,34 +655,229 @@ def delete_profile_avatar(username):
     return jsonify({"ok": True, "profile": result})
 
 
+
 @app.post("/api/profile/<username>/follow")
 def follow_profile(username):
-    username = username.strip().lstrip("@")
-    data = request.get_json(silent=True) or {}
-    viewer = str(data.get("viewer", "you")).strip().lstrip("@") or "you"
-    if username == viewer:
-        return jsonify({"error": "You cannot follow yourself"}), 400
+    actor = getattr(g, "auth_username", None)
+    target = username.strip().lstrip("@")
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+    if not target or target.lower() == actor.lower():
+        return jsonify({"error": "You cannot follow yourself."}), 400
+
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as db:
-        profile_json(db, username)
-        profile_json(db, viewer)
-        db.execute(
-            "INSERT OR IGNORE INTO follows (follower, following, created_at) VALUES (?, ?, ?)",
-            (viewer, username, now),
-        )
-        result = profile_json(db, username)
-    return jsonify({"ok": True, "profile": result})
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (target,),
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+        target = user["username"]
+
+        blocked = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE (blocker=? AND blocked=?)
+               OR (blocker=? AND blocked=?)
+        """, (actor, target, target, actor)).fetchone()
+        if blocked:
+            return jsonify({"error": "This connection is unavailable."}), 403
+
+        db.execute("""
+            INSERT OR IGNORE INTO user_settings (username, updated_at)
+            VALUES (?, ?)
+        """, (target, now))
+        settings = db.execute(
+            "SELECT is_private FROM user_settings WHERE username=?",
+            (target,),
+        ).fetchone()
+
+        if settings and settings["is_private"]:
+            existing = db.execute("""
+                SELECT id, status FROM follow_requests
+                WHERE requester=? AND target=?
+            """, (actor, target)).fetchone()
+            if existing and existing["status"] == "pending":
+                return jsonify({"ok": True, "status": "requested"})
+            request_id = uuid.uuid4().hex
+            db.execute("""
+                INSERT INTO follow_requests
+                (id, requester, target, status, created_at, updated_at)
+                VALUES (?, ?, ?, 'pending', ?, ?)
+            ON CONFLICT(requester, target) DO UPDATE SET
+                id=excluded.id, status='pending',
+                created_at=excluded.created_at,
+                updated_at=excluded.updated_at
+            """, (request_id, actor, target, now, now))
+            _people_notification(db, target, actor, "follow_request", request_id, now)
+            return jsonify({"ok": True, "status": "requested"}), 201
+
+        db.execute("""
+            INSERT OR IGNORE INTO follows (follower, following, created_at)
+            VALUES (?, ?, ?)
+        """, (actor, target, now))
+        _people_notification(db, target, actor, "follow", None, now)
+        return jsonify({"ok": True, "status": "following",
+                        "profile": profile_json(db, target)}), 201
 
 
 @app.delete("/api/profile/<username>/follow")
 def unfollow_profile(username):
-    username = username.strip().lstrip("@")
-    viewer = request.args.get("viewer", "you").strip().lstrip("@") or "you"
+    actor = getattr(g, "auth_username", None)
+    target = username.strip().lstrip("@")
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
     with get_db() as db:
-        db.execute("DELETE FROM follows WHERE follower=? AND following=?",
-                   (viewer, username))
-        result = profile_json(db, username)
-    return jsonify({"ok": True, "profile": result})
+        db.execute(
+            "DELETE FROM follows WHERE follower=? AND following=?",
+            (actor, target),
+        )
+        db.execute("""
+            UPDATE follow_requests SET status='cancelled', updated_at=?
+            WHERE requester=? AND target=? AND status='pending'
+        """, (datetime.now(timezone.utc).isoformat(), actor, target))
+        return jsonify({"ok": True, "status": "not_following",
+                        "profile": profile_json(db, target)})
+
+
+@app.get("/api/follow-requests")
+def get_follow_requests():
+    actor = getattr(g, "auth_username", None)
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT r.id, r.requester, r.created_at,
+                   COALESCE(NULLIF(p.display_name, ''), u.username) AS display_name,
+                   p.avatar_url
+            FROM follow_requests r
+            JOIN users u ON LOWER(u.username)=LOWER(r.requester)
+            LEFT JOIN profiles p ON LOWER(p.username)=LOWER(r.requester)
+            WHERE r.target=? AND r.status='pending'
+            ORDER BY r.created_at DESC
+        """, (actor,)).fetchall()
+        return jsonify({"requests": [
+            {"id": row["id"], "username": row["requester"],
+             "displayName": row["display_name"], "avatarUrl": row["avatar_url"],
+             "createdAt": row["created_at"]}
+            for row in rows
+        ]})
+
+
+def _resolve_follow_request(db, request_id, actor, decision):
+    row = db.execute("""
+        SELECT id, requester, target FROM follow_requests
+        WHERE id=? AND target=? AND status='pending'
+    """, (request_id, actor)).fetchone()
+    if not row:
+        return None
+    now = datetime.now(timezone.utc).isoformat()
+    if decision == "accept":
+        blocked = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE (blocker=? AND blocked=?)
+               OR (blocker=? AND blocked=?)
+        """, (actor, row["requester"], row["requester"], actor)).fetchone()
+        if blocked:
+            db.execute("""
+                UPDATE follow_requests SET status='rejected', updated_at=?
+                WHERE id=?
+            """, (now, request_id))
+            return {"ok": False, "error": "This connection is unavailable."}
+        db.execute("""
+            INSERT OR IGNORE INTO follows (follower, following, created_at)
+            VALUES (?, ?, ?)
+        """, (row["requester"], actor, now))
+        _people_notification(db, row["requester"], actor, "follow_accepted", request_id, now)
+    db.execute("""
+        UPDATE follow_requests SET status=?, updated_at=? WHERE id=?
+    """, ("accepted" if decision == "accept" else "rejected", now, request_id))
+    if decision == "reject":
+        _people_notification(db, row["requester"], actor, "follow_rejected", request_id, now)
+    return {"ok": True, "status": "accepted" if decision == "accept" else "rejected"}
+
+
+@app.post("/api/follow-requests/<request_id>/accept")
+def accept_follow_request(request_id):
+    actor = getattr(g, "auth_username", None)
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        result = _resolve_follow_request(db, request_id, actor, "accept")
+        if result is None:
+            return jsonify({"error": "Request not found."}), 404
+        return jsonify(result), (200 if result.get("ok") else 403)
+
+
+@app.post("/api/follow-requests/<request_id>/reject")
+def reject_follow_request(request_id):
+    actor = getattr(g, "auth_username", None)
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        result = _resolve_follow_request(db, request_id, actor, "reject")
+        if result is None:
+            return jsonify({"error": "Request not found."}), 404
+        return jsonify(result)
+
+
+@app.get("/api/notifications")
+def list_people_notifications():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT id, actor, kind, reference_id, created_at, is_read
+            FROM people_notifications
+            WHERE recipient=?
+            ORDER BY created_at DESC
+            LIMIT 100
+        """, (username,)).fetchall()
+        unread = db.execute("""
+            SELECT COUNT(*) AS total
+            FROM people_notifications
+            WHERE recipient=? AND is_read=0
+        """, (username,)).fetchone()
+    return jsonify({
+        "notifications": [{
+            "id": row["id"],
+            "actor": row["actor"],
+            "kind": row["kind"],
+            "referenceId": row["reference_id"],
+            "createdAt": row["created_at"],
+            "isRead": bool(row["is_read"]),
+        } for row in rows],
+        "unreadCount": unread["total"],
+    })
+
+
+@app.patch("/api/notifications/<notification_id>/read")
+def mark_people_notification_read(notification_id):
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        result = db.execute("""
+            UPDATE people_notifications SET is_read=1
+            WHERE id=? AND recipient=?
+        """, (notification_id, username))
+        if result.rowcount == 0:
+            return jsonify({"error": "Notification not found."}), 404
+    return jsonify({"ok": True})
+
+
+@app.patch("/api/notifications/read-all")
+def mark_all_people_notifications_read():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        db.execute("""
+            UPDATE people_notifications SET is_read=1
+            WHERE recipient=? AND is_read=0
+        """, (username,))
+    return jsonify({"ok": True})
 
 
 @app.get("/api/profile/<username>/followers")
@@ -655,13 +977,12 @@ def update_user_settings(username):
 # SOCIALAPP_POST_INTERACTIONS_V1
 @app.post("/api/posts/<int:content_id>/like")
 def toggle_post_like(content_id):
-    data = request.get_json(silent=True) or {}
-    username = str(data.get("username", "you")).strip() or "you"
+    username = g.auth_username
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
         post = db.execute(
-            "SELECT id FROM content WHERE id=? AND kind='posts'",
+            "SELECT id, username FROM content WHERE id=? AND kind='posts'",
             (content_id,),
         ).fetchone()
         if post is None:
@@ -684,6 +1005,7 @@ def toggle_post_like(content_id):
                 (content_id, username, now),
             )
             liked = True
+            _people_notification(db, post["username"], username, "like", content_id, now)
 
         count = db.execute(
             "SELECT COUNT(*) AS total FROM post_likes WHERE content_id=?",
@@ -741,7 +1063,7 @@ def list_post_comments(content_id):
 @app.post("/api/posts/<int:content_id>/comments")
 def create_post_comment(content_id):
     data = request.get_json(silent=True) or {}
-    username = str(data.get("username", "you")).strip() or "you"
+    username = g.auth_username
     text = str(data.get("text", "")).strip()
 
     if not text:
@@ -753,7 +1075,7 @@ def create_post_comment(content_id):
 
     with get_db() as db:
         post = db.execute(
-            "SELECT id FROM content WHERE id=? AND kind='posts'",
+            "SELECT id, username FROM content WHERE id=? AND kind='posts'",
             (content_id,),
         ).fetchone()
         if post is None:
@@ -769,6 +1091,7 @@ def create_post_comment(content_id):
             "SELECT id, username, text, created_at FROM post_comments WHERE id=?",
             (cursor.lastrowid,),
         ).fetchone()
+        _people_notification(db, post["username"], username, "comment", cursor.lastrowid, now)
 
     return jsonify({
         "ok": True,
@@ -866,12 +1189,15 @@ def _auth_user():
 
 @app.before_request
 def enforce_authenticated_mutations():
-    if request.method in ("GET", "HEAD", "OPTIONS"):
-        if request.path.startswith("/api/"):
-            username = _auth_user()
-            if username:
-                g.auth_username = username
+    if not request.path.startswith("/api/"):
         return None
+
+    if request.method in ("GET", "HEAD", "OPTIONS"):
+        username = _auth_user()
+        if username:
+            g.auth_username = username
+        return None
+
     if request.path in (
         "/api/auth/register",
         "/api/auth/login",
@@ -880,29 +1206,36 @@ def enforce_authenticated_mutations():
         "/api/auth/forgot-password/reset",
     ):
         return None
-    if not request.path.startswith("/api/"):
-        return None
 
     username = _auth_user()
     if not username:
         return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
 
     g.auth_username = username
+
     supplied = request.form.get("username")
     if supplied and supplied.strip().lstrip("@").lower() != username.lower():
         return jsonify({"error": "लॉगिन अकाउंट से ही पोस्ट करें।"}), 403
 
     if request.path.startswith("/api/profile/"):
-        parts = request.path.split("/")
-        if len(parts) >= 4:
-            target = parts[3].strip().lstrip("@")
-            if target and target.lower() != username.lower():
-                return jsonify({"error": "दूसरे अकाउंट में बदलाव की अनुमति नहीं है।"}), 403
+        parts = request.path.strip("/").split("/")
+        target = parts[2].strip().lstrip("@") if len(parts) >= 3 else ""
+        action = parts[3] if len(parts) >= 4 else ""
 
-    data = request.get_json(silent=True) or {}
-    supplied_json = data.get("username") or data.get("viewer")
-    if supplied_json and str(supplied_json).strip().lstrip("@").lower() != username.lower():
-        return jsonify({"error": "लॉगिन अकाउंट से ही यह काम करें।"}), 403
+        social_actions = {
+            ("POST", "follow"),
+            ("DELETE", "follow"),
+        }
+        is_social_action = (request.method, action) in social_actions
+
+        if target and target.lower() != username.lower() and not is_social_action:
+            return jsonify({"error": "दूसरे अकाउंट में बदलाव की अनुमति नहीं है।"}), 403
+
+        data = request.get_json(silent=True) or {}
+        supplied_json = data.get("username") or data.get("viewer")
+        if supplied_json and str(supplied_json).strip().lstrip("@").lower() != username.lower():
+            return jsonify({"error": "लॉगिन अकाउंट से ही यह काम करें।"}), 403
+
     return None
 
 @app.post("/api/auth/register")
@@ -1646,6 +1979,7 @@ def send_direct_message(username):
                 (id, sender_username, recipient_username, body, image_url, created_at)
             VALUES (?, ?, ?, ?, ?, ?)
         """, (message_id, current, target, body, image_url, now))
+        _people_notification(db, target, current, "message", message_id, now)
 
     return jsonify({
         "ok": True,
@@ -1660,11 +1994,113 @@ def send_direct_message(username):
     }), 201
 
 
+
+def _people_notification(db, recipient, actor, kind, reference_id, now):
+    if not recipient or not actor or recipient.lower() == actor.lower():
+        return
+    category = {
+        "like": "likes",
+        "comment": "comments",
+        "message": "messages",
+        "follow": "follows",
+        "follow_request": "follows",
+        "follow_accepted": "follows",
+        "follow_rejected": "follows",
+        "system_alert": "system_alerts",
+    }.get(kind, "system_alerts")
+    pref = db.execute(
+        "SELECT enabled FROM notification_preferences WHERE username=?",
+        (recipient,),
+    ).fetchone()
+    detail = db.execute(
+        f"SELECT {category} AS enabled FROM notification_detail_preferences WHERE username=?",
+        (recipient,),
+    ).fetchone()
+    if pref and not pref["enabled"]:
+        return
+    if detail and not detail["enabled"]:
+        return
+    db.execute("""
+        INSERT INTO people_notifications
+        (id, recipient, actor, kind, reference_id, created_at, is_read)
+        VALUES (?, ?, ?, ?, ?, ?, 0)
+    """, (uuid.uuid4().hex, recipient, actor, kind, reference_id, now))
+
+
+
+def init_people_connect_tables():
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS notification_preferences (
+                username TEXT PRIMARY KEY,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS notification_detail_preferences (
+                username TEXT PRIMARY KEY,
+                likes INTEGER NOT NULL DEFAULT 1,
+                comments INTEGER NOT NULL DEFAULT 1,
+                follows INTEGER NOT NULL DEFAULT 1,
+                messages INTEGER NOT NULL DEFAULT 1,
+                system_alerts INTEGER NOT NULL DEFAULT 1,
+                updated_at TEXT NOT NULL
+            )
+        """)
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS follow_requests (
+                id TEXT PRIMARY KEY,
+                requester TEXT NOT NULL,
+                target TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                UNIQUE(requester, target)
+            )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS people_blocks (
+                blocker TEXT NOT NULL,
+                blocked TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY(blocker, blocked),
+                CHECK(blocker <> blocked)
+            )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS people_restrictions (
+                owner TEXT NOT NULL,
+                restricted TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY(owner, restricted),
+                CHECK(owner <> restricted)
+            )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS people_notifications (
+                id TEXT PRIMARY KEY,
+                recipient TEXT NOT NULL,
+                actor TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                reference_id TEXT,
+                created_at TEXT NOT NULL,
+                is_read INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_people_notifications_recipient
+            ON people_notifications(recipient, created_at)
+        """)
+
+
 # Initialize database only after all functions and routes are defined.
 init_db()
 init_profile_tables()
 init_auth_tables()
 init_chat_tables()
+init_people_connect_tables()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)

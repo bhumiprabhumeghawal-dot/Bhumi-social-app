@@ -544,6 +544,48 @@ export async function searchUsers(query) {
   return data.results || [];
 }
 
+export async function loadFollowRequests() {
+  const response = await fetch(`${API_BASE_URL}/api/follow-requests`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Follow requests load नहीं हुईं।');
+  return data.requests || [];
+}
+
+export async function acceptFollowRequest(requestId) {
+  const response = await fetch(`${API_BASE_URL}/api/follow-requests/${encodeURIComponent(requestId)}/accept`, { method: 'POST' });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Request accept नहीं हुई।');
+  return data;
+}
+
+export async function rejectFollowRequest(requestId) {
+  const response = await fetch(`${API_BASE_URL}/api/follow-requests/${encodeURIComponent(requestId)}/reject`, { method: 'POST' });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Request reject नहीं हुई।');
+  return data;
+}
+
+export async function loadNotifications() {
+  const response = await fetch(`${API_BASE_URL}/api/notifications`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Notifications load नहीं हुईं।');
+  return data;
+}
+
+export async function markNotificationRead(notificationId) {
+  const response = await fetch(`${API_BASE_URL}/api/notifications/${encodeURIComponent(notificationId)}/read`, { method: 'PATCH' });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Notification read नहीं हुई।');
+  return data;
+}
+
+export async function markAllNotificationsRead() {
+  const response = await fetch(`${API_BASE_URL}/api/notifications/read-all`, { method: 'PATCH' });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Notifications update नहीं हुईं।');
+  return data;
+}
+
 export async function loadMessageConversations() {
   const response = await fetch(`${API_BASE_URL}/api/messages/conversations`);
   const data = await response.json();

@@ -16,13 +16,13 @@ import { editPhotoAsset } from './photoEditor';
 import {
   loadContent, uploadContent, checkServer,
   loadProfile, updateProfile, uploadProfileAvatar,
-  deleteProfileAvatar, loadProfileConnections,
+  deleteProfileAvatar, loadProfileConnections, followProfile, unfollowProfile,
   loadPrivacySettings, savePrivacySettings, changeAccountPassword, logoutOtherSessions,
   loadAccountSettings, saveAccountSettings,
   loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails,
   togglePostLike, loadPostById, loadPostComments, createPostComment,
   registerAccount, loginAccount, logoutAccount, getAuthSession, clearAuthSession,
-  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadMessageConversations, loadDirectMessages, sendDirectMessage, uploadChatPhoto} from './api';
+  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadFollowRequests, acceptFollowRequest, rejectFollowRequest, loadMessageConversations, loadDirectMessages, sendDirectMessage, uploadChatPhoto, loadNotifications, markNotificationRead, markAllNotificationsRead} from './api';
 import {
   SafeAreaView,
   ScrollView,
@@ -1083,11 +1083,19 @@ export default function App() {
   const [searchResults, setSearchResults] = React.useState([]);
   const [searchLoading, setSearchLoading] = React.useState(false);
   const [searchError, setSearchError] = React.useState('');
+  const [searchFollowBusy, setSearchFollowBusy] = React.useState({});
 
   const [profile, setProfile] = React.useState(null);
+  const [followRequests, setFollowRequests] = React.useState([]);
+  const [followRequestsBusy, setFollowRequestsBusy] = React.useState(false);
+  const [followRequestAction, setFollowRequestAction] = React.useState({});
+
   const [profileEditing, setProfileEditing] = React.useState(false);
   const [profileDraft, setProfileDraft] = React.useState({ displayName: '', bio: '' });
   const [profileBusy, setProfileBusy] = React.useState(false);
+  const [viewedProfileOpen, setViewedProfileOpen] = React.useState(false);
+  const [viewedProfile, setViewedProfile] = React.useState(null);
+  const [viewedProfileBusy, setViewedProfileBusy] = React.useState(false);
 
   // SOCIALAPP_DIRECT_MESSAGES_V1
   const [messagesOpen, setMessagesOpen] = React.useState(false);
@@ -1277,6 +1285,10 @@ export default function App() {
   const [accountPhone, setAccountPhone] = React.useState('');
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [notificationsBusy, setNotificationsBusy] = React.useState(false);
+ const [notificationsListOpen, setNotificationsListOpen] = React.useState(false);
+ const [notificationsList, setNotificationsList] = React.useState([]);
+ const [unreadNotificationCount, setUnreadNotificationCount] = React.useState(0);
+ const [notificationsLoading, setNotificationsLoading] = React.useState(false);
   const [notificationDetailsOpen, setNotificationDetailsOpen] = React.useState(false);
   const [notificationDetails, setNotificationDetails] = React.useState({
     likes: true, comments: true, follows: true, messages: true, system_alerts: true,
@@ -1337,6 +1349,120 @@ export default function App() {
       Alert.alert('Notifications', e.message || 'Could not load notification settings.');
     } finally {
       setNotificationsBusy(false);
+    }
+  };
+
+  React.useEffect(() => {
+    let active = true;
+    if (!authSession) {
+      setUnreadNotificationCount(0);
+      return () => { active = false; };
+    }
+    Promise.all([loadNotifications(), loadNotificationPreference(), loadNotificationDetails()])
+      .then(([notifications, enabled, details]) => {
+        if (!active) return;
+        setUnreadNotificationCount(Number(notifications.unreadCount || 0));
+        setNotificationsEnabled(Boolean(enabled));
+        setNotificationDetails(current => ({ ...current, ...details }));
+      })
+      .catch(error => console.warn("Could not load notification settings:", error?.message || error));
+    return () => { active = false; };
+  }, [authSession]);
+
+  const openNotifications = async () => {
+    setNotificationsListOpen(true);
+    setNotificationsLoading(true);
+    try {
+      const data = await loadNotifications();
+      setNotificationsList(Array.isArray(data.notifications) ? data.notifications : []);
+      setUnreadNotificationCount(Number(data.unreadCount || 0));
+    } catch (e) {
+      Alert.alert("Notifications", e.message || "Could not load notifications.");
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  const handleReadNotification = async (notificationId) => {
+    try {
+      await markNotificationRead(notificationId);
+      setNotificationsList(current => current.map(item => String(item.id) === String(notificationId) ? { ...item, isRead: true } : item));
+      setUnreadNotificationCount(current => Math.max(0, current - 1));
+    } catch (e) {
+      Alert.alert("Notifications", e.message || "Could not mark notification as read.");
+    }
+  };
+
+  const openUserProfile = async (username) => {
+    const target = String(username || '').replace(/^@/, '').trim();
+    if (!target) return;
+    setNotificationsListOpen(false);
+    setViewedProfile(null);
+    setViewedProfileOpen(true);
+    setViewedProfileBusy(true);
+    try {
+      const result = await loadProfile(target, authSession?.username || '');
+      setViewedProfile(result.profile || result);
+    } catch (e) {
+      setViewedProfileOpen(false);
+      Alert.alert('Profile', e.message || 'Could not load profile.');
+    } finally {
+      setViewedProfileBusy(false);
+    }
+  };
+
+  const handleNotificationPress = async (item) => {
+    if (!item) return;
+    if (!item.isRead) {
+      try {
+        await markNotificationRead(item.id);
+        setNotificationsList(current => current.map(n => String(n.id) === String(item.id) ? { ...n, isRead: true } : n));
+        setUnreadNotificationCount(current => Math.max(0, current - 1));
+      } catch (e) {
+        Alert.alert('Notifications', e.message || 'Could not mark notification as read.');
+      }
+    }
+
+    setNotificationsListOpen(false);
+    const kind = String(item.kind || '');
+    const actor = String(item.actor || '').trim();
+
+    if (kind === 'like' || kind === 'comment') {
+      if (!item.referenceId) {
+        Alert.alert('Post unavailable', 'This notification does not contain a post reference.');
+        return;
+      }
+      try {
+        const post = await loadPostById(item.referenceId);
+        if (!post) {
+          Alert.alert('Post unavailable', 'This post may have been deleted.');
+          return;
+        }
+        setSelectedPostMediaIndex(0);
+        setSelectedPost(post);
+      } catch (e) {
+        Alert.alert('Post', e.message || 'Could not open this post.');
+      }
+      return;
+    }
+
+    if (kind === 'message') {
+      if (!actor) return;
+      setMessagesOpen(true);
+      await openDirectChat(actor);
+      return;
+    }
+
+    if (actor) await openUserProfile(actor);
+  };
+
+  const handleReadAllNotifications = async () => {
+    try {
+      await markAllNotificationsRead();
+      setNotificationsList(current => current.map(item => ({ ...item, isRead: true })));
+      setUnreadNotificationCount(0);
+    } catch (e) {
+      Alert.alert("Notifications", e.message || "Could not mark notifications as read.");
     }
   };
 
@@ -1518,6 +1644,40 @@ const refreshProfile = React.useCallback(async () => {
     }
   };
 
+
+
+  const refreshFollowRequests = React.useCallback(async () => {
+    if (!authSession?.username) return;
+    setFollowRequestsBusy(true);
+    try {
+      setFollowRequests(await loadFollowRequests());
+    } catch (e) {
+      Alert.alert('Follow Requests', e.message || 'Requests load नहीं हुईं।');
+    } finally {
+      setFollowRequestsBusy(false);
+    }
+  }, [authSession?.username]);
+
+  React.useEffect(() => {
+    if (activeTab === 'Profile' && authSession?.username) refreshFollowRequests();
+  }, [activeTab, authSession?.username, refreshFollowRequests]);
+
+  const resolveFollowRequest = async (requestId, decision) => {
+    if (followRequestAction[requestId]) return;
+    setFollowRequestAction(prev => ({ ...prev, [requestId]: true }));
+    try {
+      if (decision === 'accept') await acceptFollowRequest(requestId);
+      else await rejectFollowRequest(requestId);
+      setFollowRequests(prev => prev.filter(item => String(item.id) !== String(requestId)));
+      await refreshProfile();
+      Alert.alert(decision === 'accept' ? 'Request accepted' : 'Request rejected',
+        decision === 'accept' ? 'अब यह user आपका follower है।' : 'Follow request reject कर दी गई।');
+    } catch (e) {
+      Alert.alert('Follow Request', e.message || 'Action पूरा नहीं हुआ।');
+    } finally {
+      setFollowRequestAction(prev => ({ ...prev, [requestId]: false }));
+    }
+  };
 
   const refreshContent = React.useCallback(async () => {
     try {
@@ -2654,8 +2814,9 @@ const refreshProfile = React.useCallback(async () => {
           <TouchableOpacity onPress={() => handleTab("Create")} accessibilityLabel="Create menu">
             <Ionicons name="add-circle-outline" size={27} color="#171717" />
           </TouchableOpacity>
-          <TouchableOpacity accessibilityLabel="Notifications">
+          <TouchableOpacity onPress={openNotifications} accessibilityLabel="Notifications" style={{ position: "relative", paddingHorizontal: 3 }}>
             <Ionicons name="heart-outline" size={27} color="#171717" />
+            {unreadNotificationCount > 0 ? <View style={{ position: "absolute", right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#E1306C", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}><Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text></View> : null}
           </TouchableOpacity>
           <TouchableOpacity onPress={openMessages} accessibilityLabel="Messages">
             <Ionicons name="paper-plane-outline" size={26} color="#171717" />
@@ -2768,12 +2929,15 @@ const refreshProfile = React.useCallback(async () => {
             <Text style={{ color: '#777777', paddingVertical: 12 }}>No users found.</Text>
           ) : (
             searchResults.map((item) => (
-              <TouchableOpacity
+              <View
                 key={item.username}
-                onPress={() => Alert.alert(item.displayName || item.username, '@' + item.username)}
-                activeOpacity={0.75}
                 style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}
               >
+                <TouchableOpacity
+                  onPress={() => Alert.alert(item.displayName || item.username, '@' + item.username)}
+                  activeOpacity={0.75}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 }}
+                >
                 {item.avatarUrl ? (
                   <Image
                     source={{ uri: item.avatarUrl.startsWith('http') ? item.avatarUrl : 'https://bhumi-social-app-1.onrender.com' + item.avatarUrl }}
@@ -2794,8 +2958,53 @@ const refreshProfile = React.useCallback(async () => {
                     @{item.username}
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="#999999" />
-              </TouchableOpacity>
+                  <Ionicons name="chevron-forward" size={18} color="#999999" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  disabled={!!searchFollowBusy[item.username]}
+                  onPress={async () => {
+                    const username = item.username;
+                    if (!username || username === authSession?.username) return;
+                    setSearchFollowBusy(prev => ({ ...prev, [username]: true }));
+                    try {
+                      const currentlyFollowing = !!item.isFollowing;
+                                  const requestPending = item.followRequestStatus === 'pending';
+                                  const result = currentlyFollowing || requestPending
+                        ? await unfollowProfile(username, authSession?.username || 'you')
+                        : await followProfile(username, authSession?.username || 'you');
+                      const status = result?.status || (currentlyFollowing ? 'not_following' : 'following');
+                      setSearchResults(prev => prev.map(user =>
+                        user.username === username
+                          ? { ...user, isFollowing: status === 'following', followRequestStatus: status === 'requested' ? 'pending' : status === 'following' ? '' : '' }
+                          : user
+                      ));
+                      Alert.alert(
+                        status === 'requested' ? 'Request sent' : status === 'following' ? 'Following' : 'Updated',
+                        status === 'requested' ? 'Private account follow request भेज दी गई।' : status === 'following' ? 'अब आप इस user को follow कर रहे हैं।' : requestPending ? 'Follow request cancel कर दी गई।' : 'Follow हट गया।'
+                      );
+                    } catch (e) {
+                      Alert.alert('Follow नहीं हुआ', e.message || 'फिर से कोशिश करें।');
+                    } finally {
+                      setSearchFollowBusy(prev => ({ ...prev, [username]: false }));
+                    }
+                  }}
+                  activeOpacity={0.8}
+                  style={{
+                    marginLeft: 8,
+                    minWidth: 88,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 10,
+                    alignItems: 'center',
+                    backgroundColor: item.isFollowing ? '#F1F1F1' : item.followRequestStatus === 'pending' ? '#F1F1F1' : '#246BFD',
+                    opacity: searchFollowBusy[item.username] ? 0.55 : 1
+                  }}
+                >
+                  <Text style={{ color: item.isFollowing || item.followRequestStatus === 'pending' ? '#333333' : '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
+                    {searchFollowBusy[item.username] ? '...' : item.isFollowing ? 'Following' : item.followRequestStatus === 'pending' ? 'Requested' : item.followsYou ? 'Follow Back' : 'Follow'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             ))
           )}
         </ScrollView>
@@ -2903,7 +3112,31 @@ const refreshProfile = React.useCallback(async () => {
               )}
 
               <View style={{ height: 1, backgroundColor: '#E5E5E5', marginTop: 18, marginBottom: 14 }} />
-              {/* SOCIALAPP_PROFILE_SETTINGS_V1 */}
+              <View style={{ marginTop: 18, marginBottom: 16, padding: 15, borderWidth: 1, borderColor: '#DCE6FA', borderRadius: 17, backgroundColor: '#FBFCFF' }}>
+  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+    <Text style={{ color: '#1B2033', fontWeight: '800', fontSize: 17 }}>Follow Requests ({followRequests.length})</Text>
+    <TouchableOpacity onPress={refreshFollowRequests} disabled={followRequestsBusy}>
+      <Text style={{ color: '#2563EB', fontWeight: '700' }}>{followRequestsBusy ? 'Loading…' : 'Refresh'}</Text>
+    </TouchableOpacity>
+  </View>
+  {followRequests.length === 0 ? (
+    <Text style={{ color: '#858A9B', paddingVertical: 8 }}>अभी कोई pending follow request नहीं है।</Text>
+  ) : followRequests.map(request => (
+    <View key={String(request.id)} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#EEF1F7' }}>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: '#20263A', fontWeight: '800' }}>{request.displayName || request.username}</Text>
+        <Text style={{ color: '#858A9B', fontSize: 12 }}>@{request.username}</Text>
+      </View>
+      <TouchableOpacity disabled={!!followRequestAction[request.id]} onPress={() => resolveFollowRequest(request.id, 'accept')} style={{ backgroundColor: '#2563EB', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 10, marginRight: 7 }}>
+        <Text style={{ color: '#FFF', fontWeight: '700' }}>Accept</Text>
+      </TouchableOpacity>
+      <TouchableOpacity disabled={!!followRequestAction[request.id]} onPress={() => resolveFollowRequest(request.id, 'reject')} style={{ backgroundColor: '#F0F2F7', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 10 }}>
+        <Text style={{ color: '#555D70', fontWeight: '700' }}>Reject</Text>
+      </TouchableOpacity>
+    </View>
+  ))}
+</View>
+{/* SOCIALAPP_PROFILE_SETTINGS_V1 */}
               <View style={{ marginTop: 28, marginBottom: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
   <Text style={{ color: '#1B2033', fontWeight: '800', fontSize: 19 }}>Profile Settings</Text>
   <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open Settings" onPress={() => setSettingsHubOpen(true)} style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: '#EAF1FF', borderWidth: 1, borderColor: '#D5E3FF', alignItems: 'center', justifyContent: 'center' }}>
@@ -3692,6 +3925,37 @@ const refreshProfile = React.useCallback(async () => {
 
       </Modal>
 
+<Modal visible={viewedProfileOpen} transparent animationType="slide" onRequestClose={() => setViewedProfileOpen(false)}>
+  <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}>
+    <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 22, minHeight: 300 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
+        <Text style={{ fontSize: 20, fontWeight: '800', color: '#171717' }}>Profile</Text>
+        <TouchableOpacity onPress={() => setViewedProfileOpen(false)}>
+          <Ionicons name="close" size={27} color="#222222" />
+        </TouchableOpacity>
+      </View>
+      {viewedProfileBusy ? (
+        <Text style={{ textAlign: 'center', color: '#777777', padding: 30 }}>Loading profile...</Text>
+      ) : viewedProfile ? (
+        <View style={{ alignItems: 'center' }}>
+          <View style={{ width: 82, height: 82, borderRadius: 41, backgroundColor: '#E7F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+            <Text style={{ fontSize: 32, fontWeight: '800', color: '#087BD0' }}>{String(viewedProfile.displayName || viewedProfile.username || '?').slice(0, 1).toUpperCase()}</Text>
+          </View>
+          <Text style={{ fontSize: 19, fontWeight: '800', color: '#171717' }}>{viewedProfile.displayName || viewedProfile.username}</Text>
+          <Text style={{ color: '#777777', marginTop: 4 }}>@{viewedProfile.username}</Text>
+          {!!viewedProfile.bio ? <Text style={{ color: '#444444', textAlign: 'center', marginTop: 14, lineHeight: 21 }}>{viewedProfile.bio}</Text> : null}
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 28, marginTop: 22 }}>
+            <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 17, fontWeight: '800', color: '#171717' }}>{viewedProfile.postsCount || 0}</Text><Text style={{ color: '#777777', fontSize: 12 }}>Posts</Text></View>
+            <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 17, fontWeight: '800', color: '#171717' }}>{viewedProfile.followersCount || 0}</Text><Text style={{ color: '#777777', fontSize: 12 }}>Followers</Text></View>
+            <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 17, fontWeight: '800', color: '#171717' }}>{viewedProfile.followingCount || 0}</Text><Text style={{ color: '#777777', fontSize: 12 }}>Following</Text></View>
+          </View>
+        </View>
+      ) : null}
+    </View>
+  </View>
+</Modal>
+
+<Modal visible={notificationsListOpen} transparent animationType="slide" onRequestClose={() => setNotificationsListOpen(false)}><View style={{flex:1,backgroundColor:"rgba(0,0,0,0.45)",justifyContent:"flex-end"}}><View style={{height:"75%",backgroundColor:"#FFFFFF",borderTopLeftRadius:22,borderTopRightRadius:22,paddingTop:18}}><View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",paddingHorizontal:18,paddingBottom:14,borderBottomWidth:1,borderBottomColor:"#EEEEEE"}}><Text style={{fontSize:20,fontWeight:"800",color:"#171717"}}>Notifications</Text><View style={{flexDirection:"row",alignItems:"center",gap:16}}>{unreadNotificationCount>0?<TouchableOpacity onPress={handleReadAllNotifications}><Text style={{color:"#1685D9",fontWeight:"700"}}>Mark all read</Text></TouchableOpacity>:null}<TouchableOpacity onPress={()=>setNotificationsListOpen(false)}><Ionicons name="close" size={27} color="#222222"/></TouchableOpacity></View></View>{notificationsLoading?<Text style={{textAlign:"center",color:"#777777",padding:25}}>Loading notifications...</Text>:<ScrollView contentContainerStyle={{paddingBottom:30}}>{notificationsList.map((item,index)=>{const actor=item.actor?"@"+item.actor:"Someone";const messages={follow_request:"sent you a follow request",follow:"started following you",follow_accepted:"accepted your follow request",follow_rejected:"declined your follow request",like:"liked your post",comment:"commented on your post",message:"sent you a message"};return <TouchableOpacity key={String(item.id||index)} onPress={()=>handleNotificationPress(item)} style={{flexDirection:"row",alignItems:"center",paddingHorizontal:18,paddingVertical:16,backgroundColor:item.isRead?"#FFFFFF":"#EFF7FF",borderBottomWidth:1,borderBottomColor:"#F0F0F0"}}><View style={{width:42,height:42,borderRadius:21,backgroundColor:"#E8F2FC",alignItems:"center",justifyContent:"center",marginRight:12}}><Ionicons name={item.kind==="like"?"heart":item.kind==="comment"?"chatbubble":item.kind==="message"?"paper-plane":"person"} size={21} color="#1685D9"/></View><View style={{flex:1}}><Text style={{color:"#222222",fontSize:14,lineHeight:20}}><Text style={{fontWeight:"800"}}>{actor}</Text>{" "}{messages[item.kind]||"sent you a notification"}</Text><Text style={{color:"#888888",fontSize:11,marginTop:5}}>{item.createdAt?new Date(item.createdAt).toLocaleString():""}</Text></View>{!item.isRead?<View style={{width:9,height:9,borderRadius:5,backgroundColor:"#1685D9",marginLeft:8}}/>:null}</TouchableOpacity>})}{!notificationsList.length?<Text style={{textAlign:"center",color:"#888888",padding:35}}>No notifications yet.</Text>:null}</ScrollView>}</View></View></Modal>
 <CustomAlertHost />
     </SafeAreaView>
   );
