@@ -2934,7 +2934,7 @@ const refreshProfile = React.useCallback(async () => {
                 style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}
               >
                 <TouchableOpacity
-                  onPress={() => Alert.alert(item.displayName || item.username, '@' + item.username)}
+                  onPress={() => openUserProfile(item.username)}
                   activeOpacity={0.75}
                   style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 }}
                 >
