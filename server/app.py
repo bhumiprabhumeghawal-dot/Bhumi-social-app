@@ -100,10 +100,87 @@ def init_db():
         """)
 
 
-def content_json(row):
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS reel_likes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content_id INTEGER NOT NULL,
+                username TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(content_id, username)
+            )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS reel_comments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content_id INTEGER NOT NULL,
+                username TEXT NOT NULL,
+                text TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_reel_comments_content
+            ON reel_comments(content_id, id DESC)
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS saved_content (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                content_id INTEGER NOT NULL,
+                kind TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(username, content_id, kind)
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_saved_content_user
+            ON saved_content(username, created_at DESC)
+        """)
+
+def content_json(row, viewer=None):
     with get_db() as db:
-        profile = db.execute("SELECT avatar_url FROM profiles WHERE username=?", (row["username"],)).fetchone()
-    avatar_url = profile["avatar_url"] if profile else None
+        profile = db.execute(
+            "SELECT avatar_url FROM profiles WHERE username=?",
+            (row["username"],)
+        ).fetchone()
+        avatar_url = profile["avatar_url"] if profile else None
+        extra = {}
+        if row["kind"] == "reels":
+            likes = db.execute(
+                "SELECT COUNT(*) AS total FROM reel_likes WHERE content_id=?",
+                (row["id"],)
+            ).fetchone()
+            extra["likesCount"] = int(likes["total"] or 0)
+            extra["isLiked"] = False
+            extra["isSaved"] = False
+            extra["isFollowing"] = False
+            extra["followRequestStatus"] = None
+            extra["isPrivate"] = False
+            if viewer:
+                extra["isLiked"] = bool(db.execute(
+                    "SELECT 1 FROM reel_likes WHERE content_id=? AND username=?",
+                    (row["id"], viewer)
+                ).fetchone())
+                extra["isSaved"] = bool(db.execute(
+                    "SELECT 1 FROM saved_content WHERE username=? AND content_id=? AND kind='reels'",
+                    (viewer, row["id"])
+                ).fetchone())
+                extra["isFollowing"] = bool(db.execute(
+                    "SELECT 1 FROM follows WHERE follower=? AND following=?",
+                    (viewer, row["username"])
+                ).fetchone())
+                request_row = db.execute(
+                    "SELECT status FROM follow_requests WHERE requester=? AND target=?",
+                    (viewer, row["username"])
+                ).fetchone()
+                extra["followRequestStatus"] = request_row["status"] if request_row else None
+                settings = db.execute(
+                    "SELECT is_private FROM user_settings WHERE username=?",
+                    (row["username"],)
+                ).fetchone()
+                extra["isPrivate"] = bool(settings["is_private"]) if settings else False
+
     return {
         "id": row["id"],
         "avatarUrl": avatar_url,
@@ -115,6 +192,7 @@ def content_json(row):
         "groupId": row["group_id"],
         "createdAt": row["created_at"],
         "expiresAt": row["expires_at"],
+        **extra,
     }
 
 
@@ -210,7 +288,7 @@ def list_content(kind):
             (kind,),
         ).fetchall()
 
-    return jsonify({"items": [content_json(row) for row in rows]})
+    return jsonify({"items": [content_json(row, getattr(g, "auth_username", None)) for row in rows]})
 
 
 @app.post("/api/<kind>")
@@ -1105,6 +1183,183 @@ def create_post_comment(content_id):
         },
     }), 201
 
+
+
+
+# SOCIALAPP_REELS_AND_SAVED_V1
+@app.post("/api/reels/<int:content_id>/like")
+def toggle_reel_like(content_id):
+    username = g.auth_username
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        reel = db.execute(
+            "SELECT id, username FROM content WHERE id=? AND kind='reels'",
+            (content_id,)
+        ).fetchone()
+        if reel is None:
+            return jsonify({"error": "Reel not found"}), 404
+
+        existing = db.execute(
+            "SELECT id FROM reel_likes WHERE content_id=? AND username=?",
+            (content_id, username)
+        ).fetchone()
+        if existing:
+            db.execute(
+                "DELETE FROM reel_likes WHERE content_id=? AND username=?",
+                (content_id, username)
+            )
+            liked = False
+        else:
+            db.execute(
+                "INSERT INTO reel_likes (content_id, username, created_at) VALUES (?, ?, ?)",
+                (content_id, username, now)
+            )
+            liked = True
+            if liked:
+                _people_notification(db, reel["username"], username, "like", content_id, now)
+
+        count = db.execute(
+            "SELECT COUNT(*) AS total FROM reel_likes WHERE content_id=?",
+            (content_id,)
+        ).fetchone()["total"]
+        return jsonify({"ok": True, "liked": liked, "likes": count})
+
+
+@app.get("/api/reels/<int:content_id>/comments")
+def list_reel_comments(content_id):
+    with get_db() as db:
+        reel = db.execute(
+            "SELECT id FROM content WHERE id=? AND kind='reels'",
+            (content_id,)
+        ).fetchone()
+        if reel is None:
+            return jsonify({"error": "Reel not found"}), 404
+
+        rows = db.execute(
+            """SELECT id, username, text, created_at
+               FROM reel_comments WHERE content_id=? ORDER BY id ASC""",
+            (content_id,)
+        ).fetchall()
+        return jsonify({
+            "ok": True,
+            "comments": [
+                {
+                    "id": row["id"],
+                    "username": row["username"],
+                    "text": row["text"],
+                    "createdAt": row["created_at"],
+                }
+                for row in rows
+            ],
+        })
+
+
+@app.post("/api/reels/<int:content_id>/comments")
+def create_reel_comment(content_id):
+    username = g.auth_username
+    data = request.get_json(silent=True) or {}
+    text = str(data.get("text", "")).strip()
+    if not text:
+        return jsonify({"error": "Comment cannot be empty"}), 400
+    if len(text) > 2000:
+        return jsonify({"error": "Comment is too long"}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        reel = db.execute(
+            "SELECT id, username FROM content WHERE id=? AND kind='reels'",
+            (content_id,)
+        ).fetchone()
+        if reel is None:
+            return jsonify({"error": "Reel not found"}), 404
+
+        cursor = db.execute(
+            """INSERT INTO reel_comments (content_id, username, text, created_at)
+               VALUES (?, ?, ?, ?)""",
+            (content_id, username, text, now)
+        )
+        row = db.execute(
+            "SELECT id, username, text, created_at FROM reel_comments WHERE id=?",
+            (cursor.lastrowid,)
+        ).fetchone()
+        _people_notification(db, reel["username"], username, "comment", cursor.lastrowid, now)
+
+        return jsonify({
+            "ok": True,
+            "comment": {
+                "id": row["id"],
+                "username": row["username"],
+                "text": row["text"],
+                "createdAt": row["created_at"],
+            },
+        }), 201
+
+
+@app.get("/api/saved")
+def list_saved_content():
+    username = g.auth_username
+    with get_db() as db:
+        rows = db.execute(
+            """SELECT c.*
+               FROM saved_content s
+               JOIN content c ON c.id=s.content_id AND c.kind=s.kind
+               WHERE s.username=? AND s.kind IN ('posts', 'reels')
+               ORDER BY s.created_at DESC""",
+            (username,)
+        ).fetchall()
+        items = [content_json(row, username) for row in rows]
+        return jsonify({"ok": True, "items": items})
+
+
+@app.post("/api/content/<kind>/<int:content_id>/save")
+def save_content_item(kind, content_id):
+    username = g.auth_username
+    if kind not in ("posts", "reels"):
+        return jsonify({"error": "Only posts and reels can be saved"}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        item = db.execute(
+            "SELECT id FROM content WHERE id=? AND kind=?",
+            (content_id, kind)
+        ).fetchone()
+        if item is None:
+            return jsonify({"error": "Content not found"}), 404
+
+        existing = db.execute(
+            """SELECT id FROM saved_content
+               WHERE username=? AND content_id=? AND kind=?""",
+            (username, content_id, kind)
+        ).fetchone()
+        if existing:
+            db.execute(
+                "DELETE FROM saved_content WHERE username=? AND content_id=? AND kind=?",
+                (username, content_id, kind)
+            )
+            saved = False
+        else:
+            db.execute(
+                """INSERT INTO saved_content (username, content_id, kind, created_at)
+                   VALUES (?, ?, ?, ?)""",
+                (username, content_id, kind, now)
+            )
+            saved = True
+
+        return jsonify({"ok": True, "saved": saved})
+
+
+@app.delete("/api/content/<kind>/<int:content_id>/save")
+def remove_saved_content_item(kind, content_id):
+    username = g.auth_username
+    if kind not in ("posts", "reels"):
+        return jsonify({"error": "Only posts and reels can be removed from Saved"}), 400
+
+    with get_db() as db:
+        db.execute(
+            "DELETE FROM saved_content WHERE username=? AND content_id=? AND kind=?",
+            (username, content_id, kind)
+        )
+    return jsonify({"ok": True, "saved": False})
 
 
 # SOCIALAPP_AUTH_FOUNDATION_V1

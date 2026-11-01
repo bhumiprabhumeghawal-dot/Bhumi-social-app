@@ -104,7 +104,7 @@ class CompatConnection:
             query += " ON CONFLICT DO NOTHING"
 
         wants_id = bool(re.match(
-            r"\s*INSERT\s+INTO\s+(content|post_comments)\b",
+            r"\s*INSERT\s+INTO\s+(content|post_comments|reel_comments)\b",
             query, re.IGNORECASE
         ))
         if wants_id and " RETURNING " not in query.upper():

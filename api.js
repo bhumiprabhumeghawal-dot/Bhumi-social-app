@@ -720,3 +720,58 @@ export async function sendDirectMessage(username, text, imageUrl = null) {
   }
   return data.message;
 }
+
+// SOCIALAPP_REELS_SAVED_API_V1
+export async function toggleReelLike(reelId) {
+  const response = await fetch(`${API_BASE_URL}/api/reels/${encodeURIComponent(reelId)}/like`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not update reel like.');
+  return data;
+}
+
+export async function loadReelComments(reelId) {
+  const response = await fetch(`${API_BASE_URL}/api/reels/${encodeURIComponent(reelId)}/comments`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load reel comments.');
+  return data.comments || [];
+}
+
+export async function createReelComment(reelId, text) {
+  const response = await fetch(`${API_BASE_URL}/api/reels/${encodeURIComponent(reelId)}/comments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not create reel comment.');
+  return data.comment;
+}
+
+export async function loadSavedContent() {
+  const response = await fetch(`${API_BASE_URL}/api/saved`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load Saved content.');
+  return (data.items || []).map(item => ({
+    ...item,
+    avatarUrl: item.avatarUrl
+      ? (item.avatarUrl.startsWith('http') ? item.avatarUrl : API_BASE_URL + item.avatarUrl)
+      : null,
+    uri: item.mediaUrl
+      ? (item.mediaUrl.startsWith('http') ? item.mediaUrl : API_BASE_URL + item.mediaUrl)
+      : null,
+  }));
+}
+
+export async function toggleSavedContent(kind, contentId) {
+  if (!['posts', 'reels'].includes(kind)) throw new Error('Invalid content type.');
+  const response = await fetch(
+    `${API_BASE_URL}/api/content/${kind}/${encodeURIComponent(contentId)}/save`,
+    { method: 'POST' }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not update Saved content.');
+  return data;
+}

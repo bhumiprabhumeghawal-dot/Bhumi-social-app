@@ -7,6 +7,7 @@ import * as IntentLauncher from 'expo-intent-launcher';
 import React from 'react';
 import { useEvent } from 'expo';
 import * as ImagePicker from 'expo-image-picker';
+import * as MediaLibrary from 'expo-media-library';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
@@ -23,12 +24,13 @@ import {
   loadPrivacySettings, savePrivacySettings, changeAccountPassword, logoutOtherSessions,
   loadAccountSettings, saveAccountSettings,
   loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails,
-  togglePostLike, loadPostById, loadPostComments, createPostComment,
+  togglePostLike, loadPostById, loadPostComments, createPostComment, toggleReelLike, loadReelComments, createReelComment, loadSavedContent, toggleSavedContent,
   registerAccount, loginAccount, logoutAccount, getAuthSession, clearAuthSession,
   requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadFollowRequests, acceptFollowRequest, rejectFollowRequest, loadMessageConversations, loadDirectMessages, sendDirectMessage, uploadChatPhoto, loadNotifications, markNotificationRead, markAllNotificationsRead} from './api';
 import {
   SafeAreaView,
   ScrollView,
+  FlatList,
   StyleSheet,
   Text,
   TextInput,
@@ -103,7 +105,7 @@ function Story({ item, onPress }) {
 }
 
 // SOCIALAPP_MEDIA_MASTER2
-function ZoomableImage({ uri, style }) {
+function ZoomableImage({ uri, style, onZoomChange }) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -112,6 +114,10 @@ function ZoomableImage({ uri, style }) {
   const savedY = useSharedValue(0);
   const [fitMode, setFitMode] = React.useState('fit');
   const [zoomLevel, setZoomLevel] = React.useState(1);
+
+  React.useEffect(() => {
+    onZoomChange?.(zoomLevel);
+  }, [zoomLevel, onZoomChange]);
 
   const resetZoom = () => {
     scale.value = 1;
@@ -135,7 +141,9 @@ function ZoomableImage({ uri, style }) {
         savedX.value = 0;
         savedY.value = 0;
       }
-    });
+      setZoomLevel(scale.value);
+    })
+    .runOnJS(true);
 
   const pan = Gesture.Pan()
     .onUpdate(event => {
@@ -159,7 +167,8 @@ function ZoomableImage({ uri, style }) {
         savedScale.value = 2.5;
         setZoomLevel(2.5);
       }
-    });
+    })
+    .runOnJS(true);
 
   const gesture = Gesture.Simultaneous(pinch, pan, doubleTap);
 
@@ -330,9 +339,26 @@ function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
     </View>
   );
 }
-function ReelVideo({ uri, zoomControls = false, height = 420 }) {
-  const player = useVideoPlayer(uri, p => { p.loop = true; p.play(); });
+function ReelVideo({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain' }) {
+  const player = useVideoPlayer(uri, p => { p.loop = true; p.muted = muted; });
   const { status, error } = useEvent(player, 'statusChange', { status: player.status });
+
+  React.useEffect(() => {
+    try {
+      if (active) player.play();
+      else player.pause();
+    } catch (error) {
+      console.log('REEL_PLAYBACK_STATE_ERROR:', error?.message);
+    }
+  }, [active, player]);
+
+  React.useEffect(() => {
+    try {
+      player.muted = muted;
+    } catch (error) {
+      console.log('REEL_MUTE_STATE_ERROR:', error?.message);
+    }
+  }, [muted, player]);
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -404,7 +430,7 @@ function ReelVideo({ uri, zoomControls = false, height = 420 }) {
       <View style={{ width: '100%', height, backgroundColor: '#000', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
       <GestureDetector gesture={gesture}>
         <Animated.View style={[{ width: '100%', height: '100%', backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }, animatedStyle]}>
-          <VideoView player={player} style={{ width: '100%', height: '100%' }} />
+          <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit={contentFit} nativeControls={false} />
         </Animated.View>
       </GestureDetector>
 
@@ -1047,6 +1073,7 @@ export default function App() {
   const [selectedStory, setSelectedStory] = React.useState(null);
   const [storyQueue, setStoryQueue] = React.useState([]);
   const [storyIndex, setStoryIndex] = React.useState(0);
+  const [storyImageZoomed, setStoryImageZoomed] = React.useState(false);
   const [selectedPost, setSelectedPost] = React.useState(null);
   const [selectedPostMediaIndex, setSelectedPostMediaIndex] = React.useState(0);
 
@@ -1081,6 +1108,23 @@ export default function App() {
   }, []);
   const [profileImageErrors, setProfileImageErrors] = React.useState({});
   const [reels, setReels] = React.useState([]);
+  const reelListRef = React.useRef(null);
+  const [activeReelIndex, setActiveReelIndex] = React.useState(0);
+  const [reelViewportHeight, setReelViewportHeight] = React.useState(0);
+  const [mutedReels, setMutedReels] = React.useState(true);
+  const [reelLikeState, setReelLikeState] = React.useState({});
+  const [reelSavedState, setReelSavedState] = React.useState({});
+  const [reelBusyState, setReelBusyState] = React.useState({});
+  const [reelCommentsOpen, setReelCommentsOpen] = React.useState(false);
+  const [selectedReel, setSelectedReel] = React.useState(null);
+  const [reelComments, setReelComments] = React.useState([]);
+  const [reelCommentDraft, setReelCommentDraft] = React.useState('');
+  const [reelCommentsBusy, setReelCommentsBusy] = React.useState(false);
+  const [savedContent, setSavedContent] = React.useState([]);
+  const [savedContentBusy, setSavedContentBusy] = React.useState(false);
+  const [savedScreenOpen, setSavedScreenOpen] = React.useState(false);
+  const [reelFollowState, setReelFollowState] = React.useState({});
+
   const [serverOnline, setServerOnline] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [mediaDraft, setMediaDraft] = React.useState(null);
@@ -1349,12 +1393,14 @@ export default function App() {
 
   const openStoryGroup = (items) => {
     if (!items || items.length === 0) return;
+    setStoryImageZoomed(false);
     setStoryQueue(items);
     setStoryIndex(0);
     setSelectedStory(items[0]);
   };
 
   const moveStory = (direction) => {
+    setStoryImageZoomed(false);
     const nextIndex = storyIndex + direction;
 
     if (nextIndex < 0) return;
@@ -1369,6 +1415,18 @@ export default function App() {
     setStoryIndex(nextIndex);
     setSelectedStory(storyQueue[nextIndex]);
   };
+
+  const storySwipeGesture = React.useMemo(
+    () => Gesture.Pan()
+      .activeOffsetY([-12, 12])
+      .onEnd((event) => {
+        if (storyImageZoomed) return;
+        if (event.translationY < -60) moveStory(1);
+        else if (event.translationY > 60) moveStory(-1);
+      })
+      .runOnJS(true),
+    [storyIndex, storyQueue, storyImageZoomed]
+  );
 
   // SOCIALAPP_PRIVACY_SCREEN_V1
   const [privacyOpen, setPrivacyOpen] = React.useState(false);
@@ -1473,6 +1531,215 @@ export default function App() {
       .catch(error => console.warn("Could not load notification settings:", error?.message || error));
     return () => { active = false; };
   }, [authSession]);
+
+
+  const handleReelLike = async (reel) => {
+    const id = Number(reel?.id);
+    if (!Number.isSafeInteger(id) || id <= 0 || reelBusyState[id]) return;
+    setReelBusyState(prev => ({ ...prev, [id]: true }));
+    try {
+      const result = await toggleReelLike(id);
+      setReelLikeState(prev => ({ ...prev, [id]: !!result.liked }));
+      setReels(prev => prev.map(item => Number(item.id) === id ? { ...item, isLiked: !!result.liked, likesCount: result.likesCount } : item));
+    } catch (e) {
+      Alert.alert("Reel Like", e.message || "Could not update like.");
+    } finally {
+      setReelBusyState(prev => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const handleReelSave = async (reel) => {
+    const id = Number(reel?.id);
+    if (!Number.isSafeInteger(id) || id <= 0 || reelBusyState[`save-${id}`]) return;
+    setReelBusyState(prev => ({ ...prev, [`save-${id}`]: true }));
+    try {
+      const result = await toggleSavedContent("reels", id);
+      setReelSavedState(prev => ({ ...prev, [id]: !!result.saved }));
+      setReels(prev => prev.map(item => Number(item.id) === id ? { ...item, isSaved: !!result.saved } : item));
+    } catch (e) {
+      Alert.alert("Saved", e.message || "Could not update Saved.");
+    } finally {
+      setReelBusyState(prev => ({ ...prev, [`save-${id}`]: false }));
+    }
+  };
+
+  const handleReelFollow = async (reel) => {
+    const username = String(reel?.user || reel?.username || "").replace(/^@/, "").trim();
+    if (!username || username === authSession?.username || reelBusyState[`follow-${username}`]) return;
+    setReelBusyState(prev => ({ ...prev, [`follow-${username}`]: true }));
+    try {
+      const following = reelFollowState[username] ?? !!reel.isFollowing;
+      const result = following
+        ? await unfollowProfile(username, authSession?.username || "you")
+        : await followProfile(username, authSession?.username || "you");
+      const status = result?.status || (following ? "not_following" : "following");
+      setReelFollowState(prev => ({ ...prev, [username]: status === "following" }));
+      setReels(prev => prev.map(item => (item.user || item.username) === username
+        ? { ...item, isFollowing: status === "following", followRequestStatus: status === "requested" ? "pending" : "" }
+        : item));
+    } catch (e) {
+      Alert.alert("Follow", e.message || "Could not update follow.");
+    } finally {
+      setReelBusyState(prev => ({ ...prev, [`follow-${username}`]: false }));
+    }
+  };
+
+  const handleReelShare = async (reel) => {
+    try {
+      await Share.share({ message: `${reel.caption || "Watch this reel"}\n${reel.uri || ""}` });
+    } catch (e) {
+      Alert.alert("Share", e.message || "Could not share this reel.");
+    }
+  };
+
+  const handleReelDownload = async (reel) => {
+    if (!reel?.uri) return;
+    try {
+      const permission = await MediaLibrary.requestPermissionsAsync(true, ["video"]);
+      if (!permission.granted) {
+        Alert.alert("Gallery permission", "Allow video access to save this reel to your Gallery.");
+        return;
+      }
+      const safeId = String(reel.id || Date.now()).replace(/[^a-zA-Z0-9_-]/g, "_");
+      const localPath = `${FileSystem.cacheDirectory}Bhumi-Reel-${safeId}.mp4`;
+      const downloaded = await FileSystem.downloadAsync(reel.uri, localPath);
+      await MediaLibrary.saveToLibraryAsync(downloaded.uri);
+      Alert.alert("Saved to Gallery", "The original video file was saved to your phone Gallery.");
+    } catch (e) {
+      Alert.alert("Download", e.message || "Could not save this reel to Gallery.");
+    }
+  };
+
+
+  const handleOpenReelComments = async (reel) => {
+    setSelectedReel(reel);
+    setReelComments([]);
+    setReelCommentDraft('');
+    setReelCommentsOpen(true);
+    const id = Number(reel?.id);
+    if (!Number.isSafeInteger(id) || id <= 0) return;
+    setReelCommentsBusy(true);
+    try {
+      const rows = await loadReelComments(id);
+      setReelComments(Array.isArray(rows) ? rows : []);
+    } catch (e) {
+      Alert.alert('Reel comments', e.message || 'Could not load comments.');
+    } finally {
+      setReelCommentsBusy(false);
+    }
+  };
+
+  const handleSubmitReelComment = async () => {
+    const id = Number(selectedReel?.id);
+    const message = reelCommentDraft.trim();
+    if (!Number.isSafeInteger(id) || id <= 0 || !message || reelCommentsBusy) return;
+    setReelCommentsBusy(true);
+    try {
+      const created = await createReelComment(id, message);
+      setReelComments(current => [...current, created]);
+      setReelCommentDraft('');
+    } catch (e) {
+      Alert.alert('Reel comment', e.message || 'Could not post comment.');
+    } finally {
+      setReelCommentsBusy(false);
+    }
+  };
+
+  const handleOpenSavedScreen = async () => {
+    setSavedScreenOpen(true);
+    setSavedContentBusy(true);
+    try {
+      const items = await loadSavedContent();
+      setSavedContent(Array.isArray(items) ? items : []);
+    } catch (e) {
+      Alert.alert('Saved', e.message || 'Could not load Saved items.');
+    } finally {
+      setSavedContentBusy(false);
+    }
+  };
+
+  const handleOpenSavedItem = async (item) => {
+    const id = Number(item?.id);
+    const kind = item?.kind;
+    if (!Number.isSafeInteger(id) || id <= 0) return;
+
+    setSavedScreenOpen(false);
+
+    if (kind === "reels") {
+      let rows = reels;
+      let index = rows.findIndex(row => Number(row.id) === id);
+
+      if (index < 0) {
+        try {
+          rows = await loadContent("reels");
+          if (!Array.isArray(rows)) rows = [];
+          index = rows.findIndex(row => Number(row.id) === id);
+        } catch (e) {
+          rows = [];
+        }
+        if (index < 0) {
+          rows = [item, ...rows];
+          index = 0;
+        }
+        setReels(rows);
+      }
+
+      setActiveReelIndex(index);
+      setActiveTab("Reels");
+      const targetIndex = index;
+      const scrollToSavedReel = () => {
+        if (!reelListRef.current || reelViewportHeight <= 0) return;
+        try {
+          reelListRef.current.scrollToOffset({
+            offset: reelViewportHeight * targetIndex,
+            animated: false,
+          });
+        } catch (e) {}
+      };
+      setTimeout(scrollToSavedReel, 300);
+      setTimeout(scrollToSavedReel, 800);
+      return;
+    }
+
+    if (kind === "posts") {
+      let post = feedPosts.find(row =>
+        Number(row.id) === id ||
+        (row.mediaItems || []).some(media => Number(media.id) === id)
+      );
+
+      if (!post) {
+        try {
+          const rows = await loadContent("posts");
+          post = (Array.isArray(rows) ? rows : []).find(row =>
+            Number(row.id) === id ||
+            (row.mediaItems || []).some(media => Number(media.id) === id)
+          );
+        } catch (e) {}
+      }
+
+      setSelectedPostMediaIndex(0);
+      setSelectedPost(post || item);
+      return;
+    }
+
+    Alert.alert("Saved", "This saved item type is not supported.");
+  };
+
+    const handleRemoveSavedItem = async (item) => {
+    const kind = item?.kind;
+    const id = Number(item?.id);
+    if (!['posts', 'reels'].includes(kind) || !Number.isSafeInteger(id) || id <= 0) return;
+    try {
+      await toggleSavedContent(kind, id);
+      setSavedContent(current => current.filter(row => !(row.kind === kind && Number(row.id) === id)));
+      if (kind === 'reels') {
+        setReels(current => current.map(row => Number(row.id) === id ? { ...row, isSaved: false } : row));
+        setReelSavedState(current => ({ ...current, [id]: false }));
+      }
+    } catch (e) {
+      Alert.alert('Saved', e.message || 'Could not remove this item.');
+    }
+  };
 
   const openNotifications = async () => {
     setNotificationsListOpen(true);
@@ -2937,23 +3204,119 @@ const refreshProfile = React.useCallback(async () => {
       {busy && <Text style={{ padding: 5, color: '#1685D9' }}>Uploading media…</Text>}
 
       {activeTab === 'Reels' ? (
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false} pagingEnabled decelerationRate="fast">
-          {reels.length ? reels.map((r, i) => (
-            <View key={r.id || r.uri || i} style={styles.post}>
-              {r.uri ? <ReelVideo uri={r.uri} zoomControls /> : null}
-              {!!r.caption && <Text style={styles.caption}>{r.caption}</Text>}
-              <Text style={styles.location}>@{r.user || 'you'}</Text>
-            </View>
-          )) : (
-            <View style={{ padding: 24, alignItems: 'center' }}>
-              <Text style={{ color: '#555' }}>No reels yet.</Text>
-              <TouchableOpacity onPress={createReel} style={{ padding: 14 }}>
-                <Text style={{ color: '#1685D9', fontWeight: '700' }}>+ Upload Reel</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </ScrollView>
-      ) : activeTab === 'Home' ? (
+                <View
+                  style={{ flex: 1, backgroundColor: '#000000' }}
+                  onLayout={event => {
+                    const height = event.nativeEvent.layout.height;
+                    if (height > 0 && height !== reelViewportHeight) setReelViewportHeight(height);
+                  }}
+                >
+                  {reels.length ? (
+                    <FlatList
+                      ref={reelListRef}
+                                   data={reels}
+                      keyExtractor={(item, index) => String(item.id || item.uri || index)}
+                      pagingEnabled
+                      snapToInterval={reelViewportHeight || undefined}
+                      snapToAlignment="start"
+                      decelerationRate="fast"
+                      showsVerticalScrollIndicator={false}
+                      initialNumToRender={2}
+                      maxToRenderPerBatch={2}
+                      windowSize={3}
+                      removeClippedSubviews
+                      getItemLayout={(_, index) => ({
+                        length: reelViewportHeight,
+                        offset: reelViewportHeight * index,
+                        index,
+                      })}
+                      onMomentumScrollEnd={event => {
+                        if (reelViewportHeight > 0) {
+                          const nextIndex = Math.round(event.nativeEvent.contentOffset.y / reelViewportHeight);
+                          setActiveReelIndex(Math.max(0, Math.min(nextIndex, reels.length - 1)));
+                        }
+                      }}
+                      renderItem={({ item: r, index }) => {
+                        const id = Number(r.id);
+                        const hasServerId = Number.isSafeInteger(id) && id > 0 && !r.isStarterReel;
+                        const username = String(r.user || r.username || "you").replace(/^@/, "");
+                        const liked = reelLikeState[id] ?? !!r.isLiked;
+                        const saved = reelSavedState[id] ?? !!r.isSaved;
+                        const following = reelFollowState[username] ?? !!r.isFollowing;
+                        const rowHeight = reelViewportHeight || Dimensions.get("window").height;
+                        return (
+                          <View style={{ width: "100%", height: rowHeight, backgroundColor: "#000000", overflow: "hidden" }}>
+                            {r.uri ? (
+                              <ReelVideo
+                                uri={r.uri}
+                                height={rowHeight}
+                                active={activeTab === "Reels" && index === activeReelIndex}
+                                muted={mutedReels}
+                                contentFit="cover"
+                              />
+                            ) : null}
+                            <View pointerEvents="box-none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "space-between", paddingHorizontal: 15, paddingTop: 15, paddingBottom: 18 }}>
+                              <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+                                <TouchableOpacity onPress={() => setMutedReels(value => !value)} style={{ width: 42, height: 42, borderRadius: 22, backgroundColor: "rgba(0,0,0,0.48)", alignItems: "center", justifyContent: "center" }} accessibilityLabel={mutedReels ? "Unmute reel" : "Mute reel"}>
+                                  <Ionicons name={mutedReels ? "volume-mute" : "volume-high"} size={22} color="#FFFFFF" />
+                                </TouchableOpacity>
+                              </View>
+                              <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
+                                <View style={{ flex: 1, paddingRight: 12 }}>
+                                  <TouchableOpacity onPress={() => openUserProfile(username)} style={{ alignSelf: "flex-start", paddingVertical: 7 }}>
+                                    <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "800" }}>@{username}</Text>
+                                  </TouchableOpacity>
+                                  {!!r.caption && <Text numberOfLines={3} style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 20, textShadowColor: "#000000", textShadowRadius: 5 }}>{r.caption}</Text>}
+                                  {username !== (authSession?.username || "you") && (
+                                    <TouchableOpacity
+                                      disabled={!hasServerId || !!reelBusyState[`follow-${username}`]}
+                                      onPress={() => handleReelFollow(r)}
+                                      style={{ marginTop: 10, alignSelf: "flex-start", borderWidth: 1, borderColor: "#FFFFFF", borderRadius: 8, paddingHorizontal: 14, paddingVertical: 7, opacity: hasServerId ? 1 : 0.55 }}
+                                    >
+                                      <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>
+                                        {r.followRequestStatus === "pending" ? "Requested" : following ? "Following" : "Follow"}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  )}
+                                </View>
+                                <View style={{ alignItems: "center", gap: 22, paddingBottom: 4 }}>
+                                  <TouchableOpacity disabled={!hasServerId || !!reelBusyState[id]} onPress={() => handleReelLike(r)} style={{ alignItems: "center" }}>
+                                    <Ionicons name={liked ? "heart" : "heart-outline"} size={31} color={liked ? "#FF3158" : "#FFFFFF"} />
+                                    <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>{r.likesCount ?? r.likes ?? "0"}</Text>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity onPress={() => handleOpenReelComments(r)} style={{ alignItems: "center" }}>
+                                    <Ionicons name="chatbubble-outline" size={28} color="#FFFFFF" />
+                                    <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>Comment</Text>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity onPress={() => handleReelShare(r)} style={{ alignItems: "center" }}>
+                                    <Ionicons name="paper-plane-outline" size={28} color="#FFFFFF" />
+                                    <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>Share</Text>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity disabled={!hasServerId || !!reelBusyState[`save-${id}`]} onPress={() => handleReelSave(r)} style={{ alignItems: "center" }}>
+                                    <Ionicons name={saved ? "bookmark" : "bookmark-outline"} size={28} color="#FFFFFF" />
+                                    <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>Save</Text>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity onPress={() => handleReelDownload(r)} style={{ alignItems: "center" }}>
+                                    <Ionicons name="download-outline" size={28} color="#FFFFFF" />
+                                    <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>Download</Text>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      }}
+                    />
+                  ) : (
+                    <View style={{ flex: 1, padding: 24, alignItems: "center", justifyContent: "center" }}>
+                      <Text style={{ color: "#FFFFFF" }}>No reels yet.</Text>
+                      <TouchableOpacity onPress={createReel} style={{ padding: 14 }}>
+                        <Text style={{ color: "#1685D9", fontWeight: "700" }}>+ Upload Reel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              ) : activeTab === 'Home' ? (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stories}>
             {(() => {
@@ -3340,7 +3703,18 @@ const refreshProfile = React.useCallback(async () => {
 
 
                               </View>
-                <View style={{ marginTop: 22, marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+
+                    <TouchableOpacity onPress={handleOpenSavedScreen} activeOpacity={0.85} style={{ marginTop: 18, marginBottom: 5, paddingHorizontal: 15, paddingVertical: 14, borderRadius: 14, backgroundColor: '#F1F7FD', borderWidth: 1, borderColor: '#DCEBFA', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <Ionicons name="bookmark" size={21} color="#1685D9" />
+                        <View>
+                          <Text style={{ color: '#1B2033', fontWeight: '800', fontSize: 15 }}>Saved</Text>
+                          <Text style={{ color: '#7A8495', fontSize: 11, marginTop: 2 }}>Your saved posts and reels</Text>
+                        </View>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#1685D9" />
+                    </TouchableOpacity>
+<View style={{ marginTop: 22, marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
   <Text style={{ color: '#1B2033', fontSize: 19, fontWeight: '800' }}>Your Posts</Text>
   <Ionicons name="grid-outline" size={21} color="#454B60" />
 </View>
@@ -3433,6 +3807,7 @@ const refreshProfile = React.useCallback(async () => {
         animationType="fade"
         onRequestClose={() => setSelectedStory(null)}
       >
+        <GestureDetector gesture={storySwipeGesture}>
         <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center' }}>
           <TouchableOpacity
             onPress={() => setSelectedStory(null)}
@@ -3445,8 +3820,10 @@ const refreshProfile = React.useCallback(async () => {
               <ReelVideo uri={selectedStory.uri} zoomControls />
             ) : (
               <ZoomableImage
+                key={selectedStory.uri}
                 uri={selectedStory.uri}
                 style={{ width: '100%', height: '78%' }}
+                onZoomChange={(level) => setStoryImageZoomed(level > 1.01)}
               />
             )
           ) : (
@@ -3480,6 +3857,7 @@ const refreshProfile = React.useCallback(async () => {
             activeOpacity={1}
           />
         </View>
+        </GestureDetector>
       </Modal>
 
 
@@ -4062,6 +4440,62 @@ const refreshProfile = React.useCallback(async () => {
 </Modal>
 
 <Modal visible={notificationsListOpen} transparent animationType="slide" onRequestClose={() => setNotificationsListOpen(false)}><View style={{flex:1,backgroundColor:"rgba(0,0,0,0.45)",justifyContent:"flex-end"}}><View style={{height:"75%",backgroundColor:"#FFFFFF",borderTopLeftRadius:22,borderTopRightRadius:22,paddingTop:18}}><View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",paddingHorizontal:18,paddingBottom:14,borderBottomWidth:1,borderBottomColor:"#EEEEEE"}}><Text style={{fontSize:20,fontWeight:"800",color:"#171717"}}>Notifications</Text><View style={{flexDirection:"row",alignItems:"center",gap:16}}>{unreadNotificationCount>0?<TouchableOpacity onPress={handleReadAllNotifications}><Text style={{color:"#1685D9",fontWeight:"700"}}>Mark all read</Text></TouchableOpacity>:null}<TouchableOpacity onPress={()=>setNotificationsListOpen(false)}><Ionicons name="close" size={27} color="#222222"/></TouchableOpacity></View></View>{notificationsLoading?<Text style={{textAlign:"center",color:"#777777",padding:25}}>Loading notifications...</Text>:<ScrollView contentContainerStyle={{paddingBottom:30}}>{notificationsList.map((item,index)=>{const actor=item.actor?"@"+item.actor:"Someone";const messages={follow_request:"sent you a follow request",follow:"started following you",follow_accepted:"accepted your follow request",follow_rejected:"declined your follow request",like:"liked your post",comment:"commented on your post",message:"sent you a message"};return <TouchableOpacity key={String(item.id||index)} onPress={()=>handleNotificationPress(item)} style={{flexDirection:"row",alignItems:"center",paddingHorizontal:18,paddingVertical:16,backgroundColor:item.isRead?"#FFFFFF":"#EFF7FF",borderBottomWidth:1,borderBottomColor:"#F0F0F0"}}><View style={{width:42,height:42,borderRadius:21,backgroundColor:"#E8F2FC",alignItems:"center",justifyContent:"center",marginRight:12}}><Ionicons name={item.kind==="like"?"heart":item.kind==="comment"?"chatbubble":item.kind==="message"?"paper-plane":"person"} size={21} color="#1685D9"/></View><View style={{flex:1}}><Text style={{color:"#222222",fontSize:14,lineHeight:20}}><Text style={{fontWeight:"800"}}>{actor}</Text>{" "}{messages[item.kind]||"sent you a notification"}</Text><Text style={{color:"#888888",fontSize:11,marginTop:5}}>{item.createdAt?new Date(item.createdAt).toLocaleString():""}</Text></View>{!item.isRead?<View style={{width:9,height:9,borderRadius:5,backgroundColor:"#1685D9",marginLeft:8}}/>:null}</TouchableOpacity>})}{!notificationsList.length?<Text style={{textAlign:"center",color:"#888888",padding:35}}>No notifications yet.</Text>:null}</ScrollView>}</View></View></Modal>
+
+      <Modal visible={reelCommentsOpen} transparent animationType="slide" onRequestClose={() => setReelCommentsOpen(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' }}>
+          <View style={{ height: '72%', backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 18 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
+              <Text style={{ color: '#171717', fontSize: 19, fontWeight: '800' }}>Reel comments</Text>
+              <TouchableOpacity onPress={() => setReelCommentsOpen(false)}><Ionicons name="close" size={27} color="#222222" /></TouchableOpacity>
+            </View>
+            {reelCommentsBusy && reelComments.length === 0 ? <Text style={{ color: '#777777', textAlign: 'center', padding: 24 }}>Loading comments...</Text> : null}
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 18, paddingVertical: 10 }} keyboardShouldPersistTaps="handled">
+              {reelComments.map((item, index) => (
+                <View key={String(item.id || index)} style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
+                  <Text style={{ color: '#222222', fontSize: 14, lineHeight: 21 }}><Text style={{ fontWeight: '800' }}>@{item.username || 'user'} </Text>{item.text}</Text>
+                  {!!item.createdAt ? <Text style={{ color: '#999999', fontSize: 10, marginTop: 4 }}>{new Date(item.createdAt).toLocaleString()}</Text> : null}
+                </View>
+              ))}
+              {!reelCommentsBusy && reelComments.length === 0 ? <Text style={{ color: '#888888', textAlign: 'center', padding: 28 }}>No comments yet. Be the first to comment.</Text> : null}
+            </ScrollView>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#EEEEEE', gap: 9 }}>
+              <TextInput value={reelCommentDraft} onChangeText={setReelCommentDraft} placeholder="Add a comment..." placeholderTextColor="#999999" maxLength={2000} editable={!reelCommentsBusy} style={{ flex: 1, backgroundColor: '#F3F5F7', borderRadius: 22, paddingHorizontal: 15, paddingVertical: 11, color: '#222222' }} />
+              <TouchableOpacity onPress={handleSubmitReelComment} disabled={reelCommentsBusy || !reelCommentDraft.trim()} style={{ paddingHorizontal: 10, paddingVertical: 9 }}><Text style={{ color: reelCommentsBusy || !reelCommentDraft.trim() ? '#AAB4C0' : '#1685D9', fontWeight: '800' }}>Post</Text></TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      <Modal visible={savedScreenOpen} animationType="slide" onRequestClose={() => setSavedScreenOpen(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+          <View style={{ height: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <TouchableOpacity onPress={() => setSavedScreenOpen(false)}><Ionicons name="arrow-back" size={25} color="#171717" /></TouchableOpacity>
+              <Text style={{ color: '#171717', fontSize: 19, fontWeight: '800' }}>Saved</Text>
+            </View>
+            <TouchableOpacity onPress={handleOpenSavedScreen}><Ionicons name="refresh" size={22} color="#1685D9" /></TouchableOpacity>
+          </View>
+          {savedContentBusy ? <Text style={{ color: '#777777', textAlign: 'center', padding: 30 }}>Loading saved items...</Text> : (
+            <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 30 }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', gap: 6 }}>
+                {savedContent.map((item, index) => (
+                  <View key={`${item.kind || 'content'}-${item.id || index}`} style={{ width: '32%', aspectRatio: 0.82, borderRadius: 10, overflow: 'hidden', backgroundColor: '#EEF1F5' }}>
+                    <TouchableOpacity activeOpacity={0.85} onPress={() => handleOpenSavedItem(item)} style={{ flex: 1 }}>
+                    {item.uri && item.mediaType !== 'video' ? <Image source={{ uri: item.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: item.mediaType === 'video' ? '#202638' : '#EEF1F5' }}><Ionicons name={item.mediaType === 'video' || item.kind === 'reels' ? 'play-circle' : 'image'} size={42} color={item.mediaType === 'video' || item.kind === 'reels' ? '#FFFFFF' : '#718096'} /></View>}
+                    <View style={{ position: 'absolute', left: 5, top: 5, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(0,0,0,0.58)' }}><Text style={{ color: '#FFFFFF', fontSize: 9, fontWeight: '700' }}>{item.kind === 'reels' ? 'REEL' : 'POST'}</Text></View>
+                    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 6, backgroundColor: 'rgba(0,0,0,0.48)' }}><Text numberOfLines={2} style={{ color: '#FFFFFF', fontSize: 10 }}>{item.caption || `@${item.user || item.username || 'user'}`}</Text></View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleRemoveSavedItem(item)} style={{ position: 'absolute', right: 5, top: 5, width: 27, height: 27, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.62)' }}><Ionicons name="bookmark" size={15} color="#FFFFFF" /></TouchableOpacity>
+
+                  </View>
+                ))}
+              </View>
+              {!savedContent.length ? <View style={{ alignItems: 'center', padding: 45 }}><Ionicons name="bookmark-outline" size={42} color="#A0A8B4" /><Text style={{ color: '#777777', marginTop: 12 }}>Nothing saved yet.</Text></View> : null}
+            </ScrollView>
+          )}
+        </SafeAreaView>
+      </Modal>
+
 <CustomAlertHost />
     </SafeAreaView>
   );
