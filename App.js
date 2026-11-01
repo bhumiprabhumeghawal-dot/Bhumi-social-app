@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
 import React from 'react';
+import { useEvent } from 'expo';
 import * as ImagePicker from 'expo-image-picker';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as DocumentPicker from 'expo-document-picker';
@@ -331,6 +332,7 @@ function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
 }
 function ReelVideo({ uri, zoomControls = false, height = 420 }) {
   const player = useVideoPlayer(uri, p => { p.loop = true; p.play(); });
+  const { status, error } = useEvent(player, 'statusChange', { status: player.status });
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -405,7 +407,18 @@ function ReelVideo({ uri, zoomControls = false, height = 420 }) {
           <VideoView player={player} style={{ width: '100%', height: '100%' }} />
         </Animated.View>
       </GestureDetector>
-    </View>
+
+      {status === 'loading' && (
+        <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 14 }}>Loading video...</Text>
+        </View>
+      )}
+      {status === 'error' && (
+        <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 14, textAlign: 'center' }}>Video unavailable: {error?.message || 'Could not load this video.'}</Text>
+        </View>
+      )}
+      </View>
       {zoomControls && (
         <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 6 }}>
           <TouchableOpacity onPress={() => setZoom(1)} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
@@ -485,7 +498,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
   const handleLike = async () => {
     if (interactionBusy) return;
 
-    if (!post.id) {
+    if (!post.id || (post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) {
       setLiked(previous => {
         setLikeCount(count => Math.max(0, count + (previous ? -1 : 1)));
         return !previous;
@@ -507,7 +520,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
 
   const openComments = async () => {
     setCommentsOpen(true);
-    if (!post.id) {
+    if (!post.id || (post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) {
       setComments([]);
       return;
     }
@@ -524,6 +537,15 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
     const text = commentDraft.trim();
     if (!text || interactionBusy) return;
 
+    if ((post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) {
+      setComments(previous => [...previous, {
+        id: `local-${Date.now()}`,
+        username: authSession?.username || 'you',
+        text,
+      }]);
+      setCommentDraft('');
+      return;
+    }
     if (!post.id) {
       Alert.alert('Comments', 'Save this post to the server before commenting.');
       return;
@@ -743,7 +765,7 @@ function PostDetailActions({ post, authSession }) {
       withSpring(1.4, { damping: 5, stiffness: 220 }),
       withSpring(1, { damping: 7, stiffness: 180 })
     );
-    if (!post?.id) {
+    if (!post?.id || (post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) {
       setLiked(old => {
         setLikeCount(count => Math.max(0, count + (old ? -1 : 1)));
         return !old;
@@ -764,7 +786,7 @@ function PostDetailActions({ post, authSession }) {
 
   const openComments = async () => {
     setCommentsOpen(true);
-    if (!post?.id) return;
+    if (!post?.id || (post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) return;
     try {
       const loadedComments = await loadPostComments(post.id);
       setComments(loadedComments);
@@ -777,6 +799,16 @@ function PostDetailActions({ post, authSession }) {
   const submitComment = async () => {
     const value = draft.trim();
     if (!value || busy) return;
+    if ((post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) {
+      setComments(old => [...old, {
+        id: `local-${Date.now()}`,
+        username: authSession?.username || 'you',
+        text: value,
+      }]);
+      setCommentCount(count => count + 1);
+      setDraft('');
+      return;
+    }
     if (!post?.id) {
       Alert.alert('Comments', 'This post is not saved on the server yet.');
       return;
@@ -1759,7 +1791,7 @@ const refreshProfile = React.useCallback(async () => {
         loadContent('posts'), loadContent('stories'), loadContent('reels')
       ]);
       setServerOnline(true);
-      setFeedPosts([...p, ...posts]);
+      setFeedPosts(p.length ? p : posts);
       setServerStories(s.map((item, i) => ({
         ...item, name: item.user || `story${i + 1}`, color: '#DDE7F5'
       })));

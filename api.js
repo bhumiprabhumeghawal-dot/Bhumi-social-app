@@ -168,17 +168,92 @@ export async function loadContent(type) {
   }
 
   const data = await response.json();
+  let items = data.items || [];
 
-  return (data.items || []).map(item => ({
+  if (type === 'posts' && items.length === 0) {
+    items = [
+      {
+        id: 'bhumi-starter-post-1',
+        user: 'Bhumi Social',
+        caption: '🌄 Starter Post • Discover beautiful places and share your moments with the world.',
+        mediaUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?fm=jpg&w=1080&q=85',
+        isStarterPost: true,
+      },
+      {
+        id: 'bhumi-starter-post-2',
+        user: 'Bhumi Social',
+        caption: '🌅 Starter Post • Every new day brings a new story. Welcome to Bhumi Social AI!',
+        mediaUrl: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?fm=jpg&w=1080&q=85',
+        isStarterPost: true,
+      },
+      {
+        id: 'bhumi-starter-post-3',
+        user: 'Bhumi Social',
+        caption: '🏞️ Starter Post • Find inspiration in the beauty of nature.',
+        mediaUrl: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?fm=jpg&w=1080&q=85',
+        isStarterPost: true,
+      },
+      {
+        id: 'bhumi-starter-post-4',
+        user: 'Bhumi Social',
+        caption: '🌍 Starter Post • Your world, your people, your stories. Connect on Bhumi Social AI.',
+        mediaUrl: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?fm=jpg&w=1080&q=85',
+        isStarterPost: true,
+      },
+    ];
+  }
+
+  if (type === 'reels' && items.length === 0) {
+    items = [
+      {
+        id: 'bhumi-starter-big-buck-bunny',
+        user: 'Bhumi Social',
+        caption: 'Starter Reel • Big Buck Bunny | © Blender Foundation',
+        mediaUrl: 'https://archive.org/download/BigBuckBunny_124/Content/big_buck_bunny_720p_surround.mp4',
+        isStarterReel: true,
+      },
+      {
+        id: 'bhumi-starter-elephants-dream',
+        user: 'Bhumi Social',
+        caption: 'Starter Reel • Elephants Dream | Blender Foundation',
+        mediaUrl: 'https://raw.githubusercontent.com/andreasbotsikas/DemoVideos/master/elephants_dream.mp4',
+        isStarterReel: true,
+      },
+      {
+        id: 'bhumi-starter-sintel',
+        user: 'Bhumi Social',
+        caption: 'Starter Reel • Sintel | Blender Foundation',
+        mediaUrl: 'https://raw.githubusercontent.com/andreasbotsikas/DemoVideos/master/sintel.mp4',
+        isStarterReel: true,
+      },
+      {
+        id: 'bhumi-starter-tears-of-steel',
+        user: 'Bhumi Social',
+        caption: 'Starter Reel • Tears of Steel | Blender Foundation',
+        mediaUrl: 'https://raw.githubusercontent.com/andreasbotsikas/DemoVideos/master/tears_of_steel.mp4',
+        isStarterReel: true,
+      },
+      {
+        id: 'bhumi-starter-flower',
+        user: 'Bhumi Social',
+        caption: 'Starter Reel • Flower | MDN CC0 video',
+        mediaUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+        isStarterReel: true,
+      },
+    ];
+  }
+
+  return items.map(item => ({
     ...item,
-    avatarUrl: item.avatarUrl ? (item.avatarUrl.startsWith("http") ? item.avatarUrl : API_BASE_URL + item.avatarUrl) : null,
-    uri: item.mediaUrl
-      ? `${API_BASE_URL}${item.mediaUrl}`
+    avatarUrl: item.avatarUrl
+      ? (item.avatarUrl.startsWith("http") ? item.avatarUrl : API_BASE_URL + item.avatarUrl)
       : null,
-    likes: '0',
+    uri: item.mediaUrl
+      ? (item.mediaUrl.startsWith("http") ? item.mediaUrl : `${API_BASE_URL}${item.mediaUrl}`)
+      : null,
+    likes: item.likes ?? '0',
   }));
 }
-
 export async function uploadContent(type, asset, caption = '', groupId = '') {
   const extension = (
     asset.fileName || asset.uri || ''
