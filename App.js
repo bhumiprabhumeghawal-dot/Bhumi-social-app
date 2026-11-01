@@ -234,6 +234,30 @@ function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
   const translateY = useSharedValue(0);
   const savedX = useSharedValue(0);
   const savedY = useSharedValue(0);
+  const [zoomLevel, setZoomLevel] = React.useState(1);
+
+  const resetZoom = () => {
+    scale.value = 1;
+    savedScale.value = 1;
+    translateX.value = 0;
+    translateY.value = 0;
+    savedX.value = 0;
+    savedY.value = 0;
+    setZoomLevel(1);
+  };
+
+  const setZoom = value => {
+    const next = Math.max(1, Math.min(Number(value) || 1, 5));
+    scale.value = next;
+    savedScale.value = next;
+    setZoomLevel(next);
+    if (next === 1) {
+      translateX.value = 0;
+      translateY.value = 0;
+      savedX.value = 0;
+      savedY.value = 0;
+    }
+  };
 
   const pinch = Gesture.Pinch()
     .onUpdate(event => {
@@ -265,9 +289,11 @@ function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
         translateY.value = 0;
         savedX.value = 0;
         savedY.value = 0;
+        setZoomLevel(1);
       } else {
         scale.value = 2.5;
         savedScale.value = 2.5;
+        setZoomLevel(2.5);
       }
     });
 
@@ -280,7 +306,7 @@ function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
   }));
 
   return (
-    <View style={[style, { overflow: 'hidden' }]}>
+    <View style={[style, { overflow: 'hidden', backgroundColor: '#080B14' }]}>
       <GestureDetector gesture={Gesture.Simultaneous(pinch, pan, doubleTap)}>
         <Animated.Image
           source={{ uri }}
@@ -288,10 +314,21 @@ function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
           resizeMode={resizeMode}
         />
       </GestureDetector>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 5, backgroundColor: '#080B14' }}>
+        <TouchableOpacity onPress={resetZoom} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 12 }}>Reset</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setZoom(zoomLevel - 0.5)} style={{ paddingHorizontal: 9, paddingVertical: 5 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 16 }}>−</Text>
+        </TouchableOpacity>
+        <Text style={{ color: '#FFFFFF', fontSize: 12, marginHorizontal: 6 }}>{zoomLevel.toFixed(1)}×</Text>
+        <TouchableOpacity onPress={() => setZoom(zoomLevel + 0.5)} style={{ paddingHorizontal: 9, paddingVertical: 5 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 16 }}>＋</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
-
 function ReelVideo({ uri, zoomControls = false, height = 420 }) {
   const player = useVideoPlayer(uri, p => { p.loop = true; p.play(); });
   const scale = useSharedValue(1);
