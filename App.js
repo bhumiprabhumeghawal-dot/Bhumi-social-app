@@ -11,7 +11,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, ScrollView as GestureScrollView } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSequence, withSpring } from 'react-native-reanimated';
 import { Alert as NativeAlert, Share, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
@@ -170,7 +170,7 @@ function ZoomableImage({ uri, style, onZoomChange }) {
     })
     .runOnJS(true);
 
-  const gesture = Gesture.Simultaneous(pinch, pan, doubleTap);
+  const gesture = pinch;
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -237,7 +237,7 @@ function ZoomableImage({ uri, style, onZoomChange }) {
 }
 
 
-function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
+function PinchZoomImage({ uri, style, resizeMode = "contain" }) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -245,6 +245,24 @@ function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
   const savedX = useSharedValue(0);
   const savedY = useSharedValue(0);
   const [zoomLevel, setZoomLevel] = React.useState(1);
+  const [viewportWidth, setViewportWidth] = React.useState(0);
+  const [imageAspectRatio, setImageAspectRatio] = React.useState(1);
+
+  React.useEffect(() => {
+    let active = true;
+    if (uri) {
+      Image.getSize(uri, (width, height) => {
+        if (active && width > 0 && height > 0) setImageAspectRatio(width / height);
+      }, () => {
+        if (active) setImageAspectRatio(1);
+      });
+    }
+    return () => { active = false; };
+  }, [uri]);
+
+  const imageHeight = viewportWidth > 0
+    ? Math.min(viewportWidth / imageAspectRatio, Dimensions.get("window").height * 0.68)
+    : 320;
 
   const resetZoom = () => {
     scale.value = 1;
@@ -275,6 +293,15 @@ function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
     })
     .onEnd(() => {
       savedScale.value = scale.value;
+      setZoomLevel(scale.value);
+      if (scale.value <= 1.01) {
+        scale.value = 1;
+        savedScale.value = 1;
+        translateX.value = 0;
+        translateY.value = 0;
+        savedX.value = 0;
+        savedY.value = 0;
+      }
     });
 
   const pan = Gesture.Pan()
@@ -316,24 +343,29 @@ function PinchZoomImage({ uri, style, resizeMode = 'cover' }) {
   }));
 
   return (
-    <View style={[style, { overflow: 'hidden', backgroundColor: '#080B14' }]}>
-      <GestureDetector gesture={Gesture.Simultaneous(pinch, pan, doubleTap)}>
-        <Animated.Image
-          source={{ uri }}
-          style={[{ width: '100%', height: '100%' }, animatedStyle]}
-          resizeMode={resizeMode}
-        />
-      </GestureDetector>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 5, backgroundColor: '#080B14' }}>
+    <View
+      onLayout={event => setViewportWidth(event.nativeEvent.layout.width)}
+      style={[style, { width: "100%", aspectRatio: undefined, overflow: "visible", backgroundColor: "#080B14" }]}
+    >
+      <View style={{ width: "100%", height: imageHeight, overflow: "hidden", backgroundColor: "#080B14" }}>
+        <GestureDetector gesture={Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true)}>
+          <Animated.Image
+            source={{ uri }}
+            style={[{ width: "100%", height: "100%" }, animatedStyle]}
+            resizeMode="contain"
+          />
+        </GestureDetector>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 5, backgroundColor: "#080B14" }}>
         <TouchableOpacity onPress={resetZoom} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 12 }}>Reset</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Reset</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setZoom(zoomLevel - 0.5)} style={{ paddingHorizontal: 9, paddingVertical: 5 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 16 }}>−</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 16 }}>−</Text>
         </TouchableOpacity>
-        <Text style={{ color: '#FFFFFF', fontSize: 12, marginHorizontal: 6 }}>{zoomLevel.toFixed(1)}×</Text>
+        <Text style={{ color: "#FFFFFF", fontSize: 12, marginHorizontal: 6 }}>{zoomLevel.toFixed(1)}×</Text>
         <TouchableOpacity onPress={() => setZoom(zoomLevel + 0.5)} style={{ paddingHorizontal: 9, paddingVertical: 5 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 16 }}>＋</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 16 }}>＋</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -373,6 +405,15 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
     })
     .onEnd(() => {
       savedScale.value = scale.value;
+      setZoomLevel(scale.value);
+      if (scale.value <= 1.01) {
+        scale.value = 1;
+        savedScale.value = 1;
+        translateX.value = 0;
+        translateY.value = 0;
+        savedX.value = 0;
+        savedY.value = 0;
+      }
     });
 
   const pan = Gesture.Pan()
@@ -403,7 +444,7 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
       }
     });
 
-  const gesture = Gesture.Simultaneous(pinch, pan, doubleTap);
+  const gesture = Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
@@ -3220,6 +3261,7 @@ const refreshProfile = React.useCallback(async () => {
                       snapToInterval={reelViewportHeight || undefined}
                       snapToAlignment="start"
                       decelerationRate="fast"
+                      nestedScrollEnabled
                       showsVerticalScrollIndicator={false}
                       initialNumToRender={2}
                       maxToRenderPerBatch={2}
@@ -3317,7 +3359,7 @@ const refreshProfile = React.useCallback(async () => {
                   )}
                 </View>
               ) : activeTab === 'Home' ? (
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <GestureScrollView style={styles.content} showsVerticalScrollIndicator={false} decelerationRate="fast" nestedScrollEnabled>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stories}>
             {(() => {
               const ownGroup = groupedStories.find(group => group.own);
@@ -3357,7 +3399,7 @@ const refreshProfile = React.useCallback(async () => {
             else if (action === 'story-gallery') createStory();
             else if (action === 'post-gallery') pickImage();
           }} />)}
-        </ScrollView>
+        </GestureScrollView>
       ) : activeTab === 'Search' ? (
         <ScrollView
           style={styles.content}
