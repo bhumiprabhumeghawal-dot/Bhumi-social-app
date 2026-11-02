@@ -11,7 +11,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { Gesture, GestureDetector, ScrollView as GestureScrollView } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, ScrollView as GestureScrollView, useNativeGesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSequence, withSpring } from 'react-native-reanimated';
 import { Alert as NativeAlert, Share, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
@@ -371,7 +371,7 @@ function PinchZoomImage({ uri, style, resizeMode = "contain" }) {
     </View>
   );
 }
-function ReelVideo({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain' }) {
+function ReelVideo({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain', nativeScrollGesture }) {
   const player = useVideoPlayer(uri, p => { p.loop = true; p.muted = muted; });
   const { status, error } = useEvent(player, 'statusChange', { status: player.status });
 
@@ -382,6 +382,11 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
     } catch (error) {
       console.log('REEL_PLAYBACK_STATE_ERROR:', error?.message);
     }
+    return () => {
+      try { player.pause(); } catch (error) {
+        console.log('REEL_PAUSE_CLEANUP_ERROR:', error?.message);
+      }
+    };
   }, [active, player]);
 
   React.useEffect(() => {
@@ -430,6 +435,9 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
 
   const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
+    .maxDuration(250)
+    .maxDelay(350)
+    .maxDistance(12)
     .onEnd(() => {
       if (scale.value > 1) {
         scale.value = 1;
@@ -444,7 +452,10 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
       }
     });
 
-  const gesture = Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true);
+  const videoGestures = Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true);
+  const gesture = nativeScrollGesture
+    ? videoGestures.simultaneousWithExternalGesture(nativeScrollGesture)
+    : videoGestures;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
@@ -1022,6 +1033,7 @@ function CustomAlertHost() {
 
 export default function App() {
   const [activeTab, setActiveTab] = React.useState('Home');
+  const reelScrollGesture = useNativeGesture({ shouldActivateOnStart: false });
   const [cameraOpen, setCameraOpen] = React.useState(false);
   const [cameraFacing, setCameraFacing] = React.useState('back');
   const [cameraMode, setCameraMode] = React.useState('video');
@@ -3221,7 +3233,8 @@ const refreshProfile = React.useCallback(async () => {
         </SafeAreaView>
       </Modal>
 
-      <View style={styles.header}>
+      {activeTab !== 'Reels' && (
+<View style={styles.header}>
         <View style={styles.headerSideSpacer} /><Text style={styles.brand}>Bhumi Social AI</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={() => handleTab("Create")} accessibilityLabel="Create menu">
@@ -3237,7 +3250,8 @@ const refreshProfile = React.useCallback(async () => {
         </View>
       </View>
 
-      {!serverOnline && (
+      )}
+{!serverOnline && (
         <Text style={{ paddingHorizontal: 12, paddingVertical: 4, color: '#888', fontSize: 11 }}>
           Server connection unavailable
         </Text>
@@ -3253,7 +3267,8 @@ const refreshProfile = React.useCallback(async () => {
                   }}
                 >
                   {reels.length ? (
-                    <FlatList
+                    <GestureDetector gesture={reelScrollGesture}>
+<FlatList
                       ref={reelListRef}
                                    data={reels}
                       keyExtractor={(item, index) => String(item.id || item.uri || index)}
@@ -3272,6 +3287,16 @@ const refreshProfile = React.useCallback(async () => {
                         offset: reelViewportHeight * index,
                         index,
                       })}
+                      scrollEventThrottle={16}
+                      onScroll={event => {
+                        if (reelViewportHeight > 0) {
+                          const nextIndex = Math.max(0, Math.min(
+                            Math.round(event.nativeEvent.contentOffset.y / reelViewportHeight),
+                            reels.length - 1
+                          ));
+                          setActiveReelIndex(current => current === nextIndex ? current : nextIndex);
+                        }
+                      }}
                       onMomentumScrollEnd={event => {
                         if (reelViewportHeight > 0) {
                           const nextIndex = Math.round(event.nativeEvent.contentOffset.y / reelViewportHeight);
@@ -3295,6 +3320,7 @@ const refreshProfile = React.useCallback(async () => {
                                 active={activeTab === "Reels" && index === activeReelIndex}
                                 muted={mutedReels}
                                 contentFit="cover"
+                                  nativeScrollGesture={reelScrollGesture}
                               />
                             ) : null}
                             <View pointerEvents="box-none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "space-between", paddingHorizontal: 15, paddingTop: 15, paddingBottom: 18 }}>
@@ -3349,6 +3375,7 @@ const refreshProfile = React.useCallback(async () => {
                         );
                       }}
                     />
+                  </GestureDetector>
                   ) : (
                     <View style={{ flex: 1, padding: 24, alignItems: "center", justifyContent: "center" }}>
                       <Text style={{ color: "#FFFFFF" }}>No reels yet.</Text>
@@ -3824,7 +3851,8 @@ const refreshProfile = React.useCallback(async () => {
         </View>
       )}
 
-      <View style={styles.bottomNav}>
+      {activeTab !== 'Reels' && (
+<View style={styles.bottomNav}>
         {[
           { name: 'Home', icon: 'home-outline' },
           { name: 'Search', icon: 'search-outline' },
@@ -3843,7 +3871,8 @@ const refreshProfile = React.useCallback(async () => {
         ))}
       </View>
 
-      <Modal
+      )}
+<Modal
         visible={!!selectedStory}
         transparent
         animationType="fade"
