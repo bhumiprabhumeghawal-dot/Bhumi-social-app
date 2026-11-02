@@ -237,7 +237,7 @@ function ZoomableImage({ uri, style, onZoomChange }) {
 }
 
 
-function PinchZoomImage({ uri, style, resizeMode = "contain" }) {
+function PinchZoomImage({ uri, style, resizeMode = "contain", nativeScrollGesture, onZoomChange }) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -265,6 +265,7 @@ function PinchZoomImage({ uri, style, resizeMode = "contain" }) {
     : 320;
 
   const resetZoom = () => {
+    onZoomChange?.(1);
     scale.value = 1;
     savedScale.value = 1;
     translateX.value = 0;
@@ -279,6 +280,7 @@ function PinchZoomImage({ uri, style, resizeMode = "contain" }) {
     scale.value = next;
     savedScale.value = next;
     setZoomLevel(next);
+    onZoomChange?.(next);
     if (next === 1) {
       translateX.value = 0;
       translateY.value = 0;
@@ -294,6 +296,7 @@ function PinchZoomImage({ uri, style, resizeMode = "contain" }) {
     .onEnd(() => {
       savedScale.value = scale.value;
       setZoomLevel(scale.value);
+      onZoomChange?.(scale.value);
       if (scale.value <= 1.01) {
         scale.value = 1;
         savedScale.value = 1;
@@ -327,10 +330,12 @@ function PinchZoomImage({ uri, style, resizeMode = "contain" }) {
         savedX.value = 0;
         savedY.value = 0;
         setZoomLevel(1);
+        onZoomChange?.(1);
       } else {
         scale.value = 2.5;
         savedScale.value = 2.5;
         setZoomLevel(2.5);
+        onZoomChange?.(2.5);
       }
     });
 
@@ -348,7 +353,9 @@ function PinchZoomImage({ uri, style, resizeMode = "contain" }) {
       style={[style, { width: "100%", aspectRatio: undefined, overflow: "visible", backgroundColor: "#080B14" }]}
     >
       <View style={{ width: "100%", height: imageHeight, overflow: "hidden", backgroundColor: "#080B14" }}>
-        <GestureDetector gesture={Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true)}>
+        <GestureDetector gesture={(nativeScrollGesture
+            ? Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true).simultaneousWithExternalGesture(nativeScrollGesture)
+            : Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true))}>
           <Animated.Image
             source={{ uri }}
             style={[{ width: "100%", height: "100%" }, animatedStyle]}
@@ -371,7 +378,7 @@ function PinchZoomImage({ uri, style, resizeMode = "contain" }) {
     </View>
   );
 }
-function ReelVideo({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain', nativeScrollGesture }) {
+function ReelVideo({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain', nativeScrollGesture, onZoomChange }) {
   const player = useVideoPlayer(uri, p => { p.loop = true; p.muted = muted; });
   const { status, error } = useEvent(player, 'statusChange', { status: player.status });
 
@@ -411,6 +418,7 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
     .onEnd(() => {
       savedScale.value = scale.value;
       setZoomLevel(scale.value);
+      onZoomChange?.(scale.value);
       if (scale.value <= 1.01) {
         scale.value = 1;
         savedScale.value = 1;
@@ -442,6 +450,8 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
       if (scale.value > 1) {
         scale.value = 1;
         savedScale.value = 1;
+        setZoomLevel(1);
+        onZoomChange?.(1);
         translateX.value = 0;
         translateY.value = 0;
         savedX.value = 0;
@@ -449,6 +459,8 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
       } else {
         scale.value = 2.5;
         savedScale.value = 2.5;
+        setZoomLevel(2.5);
+        onZoomChange?.(2.5);
       }
     });
 
@@ -469,6 +481,7 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
     scale.value = next;
     savedScale.value = next;
     setZoomLevel(next);
+    onZoomChange?.(next);
     if (next === 1) {
       translateX.value = 0;
       translateY.value = 0;
@@ -559,7 +572,7 @@ function groupPostItems(items) {
   return result;
 }
 
-function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () => {} }) {
+function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () => {}, pageHeight = 0, active = true, nativeScrollGesture, onZoomChange }) {
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
   const [createMenuOpen, setCreateMenuOpen] = React.useState(false);
@@ -572,6 +585,16 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
   const [comments, setComments] = React.useState([]);
   const [commentDraft, setCommentDraft] = React.useState('');
   const [interactionBusy, setInteractionBusy] = React.useState(false);
+  const mediaHeight = pageHeight > 0 ? Math.max(220, pageHeight - 215) : 420;
+  const sharePost = async () => {
+    try {
+      const postLink = post?.id ? `bhumisocial://post/${post.id}` : '';
+      const message = `${post?.user || 'Bhumi Social'}: ${post?.caption || 'Check out this post on Bhumi Social AI'}${postLink ? `\\n\\nOpen post: ${postLink}` : ''}`;
+      await Share.share({ message });
+    } catch (error) {
+      Alert.alert('Share', error.message || 'Could not share this post.');
+    }
+  };
 
   const handleLike = async () => {
     if (interactionBusy) return;
@@ -642,7 +665,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
   };
 
   return (
-    <View style={styles.post}>
+    <View style={[styles.post, pageHeight > 0 ? { height: pageHeight, marginBottom: 0 } : null]}>
       <View style={styles.postHeader}>
         <View style={styles.smallAvatar}>
           {post.avatarUrl ? (
@@ -660,7 +683,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
 
       <View
         onLayout={event => setMediaWidth(event.nativeEvent.layout.width)}
-        style={{ width: '100%' }}
+        style={{ width: '100%', height: mediaHeight, overflow: 'hidden' }}
       >
         {(post.mediaItems?.length > 1) ? (
           <ScrollView
@@ -668,6 +691,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
             pagingEnabled
             nestedScrollEnabled
             showsHorizontalScrollIndicator={false}
+            style={{ height: mediaHeight }}
             onMomentumScrollEnd={event => {
               const width = mediaWidth || event.nativeEvent.layoutMeasurement.width;
               if (width > 0) {
@@ -680,18 +704,19 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
                 key={String(media.id || index)}
                 activeOpacity={0.95}
                 onPress={onOpen}
-                style={{ width: mediaWidth || 320 }}
+                style={{ width: mediaWidth || 320, height: mediaHeight }}
               >
                 {media.uri && media.mediaType === 'video' ? (
-                  <ReelVideo uri={media.uri} />
+                  <ReelVideo uri={media.uri} height={mediaHeight} active={active && mediaIndex === index} contentFit="contain" nativeScrollGesture={nativeScrollGesture}
+                  onZoomChange={onZoomChange} />
                 ) : media.uri ? (
                   <PinchZoomImage
                     uri={media.uri}
-                    style={[styles.postImage, mediaWidth ? { width: mediaWidth } : null]}
-                    resizeMode="cover"
-                  />
+                    style={[styles.postImage, { width: mediaWidth || '100%', height: mediaHeight, aspectRatio: undefined }]}
+                    resizeMode="contain" nativeScrollGesture={nativeScrollGesture}
+                  onZoomChange={onZoomChange} />
                 ) : (
-                  <View style={[styles.postImage, { backgroundColor: post.color || '#D8E7DF' }]}>
+                  <View style={[styles.postImage, { height: mediaHeight, aspectRatio: undefined, backgroundColor: post.color || '#D8E7DF' }]}>
                     <Text style={styles.postEmoji}>{post.emoji || '🌿'}</Text>
                   </View>
                 )}
@@ -699,11 +724,13 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
             ))}
           </ScrollView>
         ) : (
-          <TouchableOpacity activeOpacity={0.95} onPress={onOpen}>
+          <TouchableOpacity activeOpacity={0.95} onPress={onOpen} style={{ height: mediaHeight }}>
             {post.uri && post.mediaType === 'video' ? (
-              <ReelVideo uri={post.uri} />
+              <ReelVideo uri={post.uri} height={mediaHeight} active={active} contentFit="contain" nativeScrollGesture={nativeScrollGesture}
+                  onZoomChange={onZoomChange} />
             ) : post.uri ? (
-              <PinchZoomImage uri={post.uri} style={styles.postImage} resizeMode="cover" />
+              <PinchZoomImage uri={post.uri} style={[styles.postImage, { height: mediaHeight, aspectRatio: undefined }]} resizeMode="contain" nativeScrollGesture={nativeScrollGesture}
+                  onZoomChange={onZoomChange} />
             ) : (
               <View style={[styles.postImage, { backgroundColor: post.color || '#D8E7DF' }]}>
                 <Text style={styles.postEmoji}>{post.emoji || '🌿'}</Text>
@@ -746,7 +773,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
         <TouchableOpacity onPress={openComments}>
           <Ionicons name="checkbox-outline" size={24} color="#262626" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => Alert.alert('Share', 'Sharing will be added next.')}>
+        <TouchableOpacity onPress={sharePost}>
           <Text style={styles.actionIcon}>➤</Text>
         </TouchableOpacity>
         <View style={styles.actionSpacer} />
@@ -1033,7 +1060,8 @@ function CustomAlertHost() {
 
 export default function App() {
   const [activeTab, setActiveTab] = React.useState('Home');
-  const reelScrollGesture = useNativeGesture({ shouldActivateOnStart: false });
+  const feedScrollGesture = useNativeGesture({ shouldActivateOnStart: true });
+  const reelScrollGesture = useNativeGesture({ shouldActivateOnStart: true });
   const [cameraOpen, setCameraOpen] = React.useState(false);
   const [cameraFacing, setCameraFacing] = React.useState('back');
   const [cameraMode, setCameraMode] = React.useState('video');
@@ -1122,6 +1150,8 @@ export default function App() {
 
 
   const [feedPosts, setFeedPosts] = React.useState(posts);
+  const [feedViewportHeight, setFeedViewportHeight] = React.useState(0);
+  const [activeFeedIndex, setActiveFeedIndex] = React.useState(0);
   const [serverStories, setServerStories] = React.useState([]);
   const [selectedStory, setSelectedStory] = React.useState(null);
   const [storyQueue, setStoryQueue] = React.useState([]);
@@ -1163,6 +1193,13 @@ export default function App() {
   const [reels, setReels] = React.useState([]);
   const reelListRef = React.useRef(null);
   const [activeReelIndex, setActiveReelIndex] = React.useState(0);
+  const [feedZoomed, setFeedZoomed] = React.useState(false);
+  const [reelZoomed, setReelZoomed] = React.useState(false);
+
+  React.useEffect(() => {
+    setFeedZoomed(false);
+    setReelZoomed(false);
+  }, [activeTab]);
   const [reelViewportHeight, setReelViewportHeight] = React.useState(0);
   const [mutedReels, setMutedReels] = React.useState(true);
   const [reelLikeState, setReelLikeState] = React.useState({});
@@ -3272,6 +3309,7 @@ const refreshProfile = React.useCallback(async () => {
                       ref={reelListRef}
                                    data={reels}
                       keyExtractor={(item, index) => String(item.id || item.uri || index)}
+                      scrollEnabled={!reelZoomed}
                       pagingEnabled
                       snapToInterval={reelViewportHeight || undefined}
                       snapToAlignment="start"
@@ -3321,6 +3359,7 @@ const refreshProfile = React.useCallback(async () => {
                                 muted={mutedReels}
                                 contentFit="cover"
                                   nativeScrollGesture={reelScrollGesture}
+                                  onZoomChange={(level) => setReelZoomed(level > 1.01)}
                               />
                             ) : null}
                             <View pointerEvents="box-none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "space-between", paddingHorizontal: 15, paddingTop: 15, paddingBottom: 18 }}>
@@ -3386,18 +3425,19 @@ const refreshProfile = React.useCallback(async () => {
                   )}
                 </View>
               ) : activeTab === 'Home' ? (
-        <GestureScrollView style={styles.content} showsVerticalScrollIndicator={false} decelerationRate="fast" nestedScrollEnabled>
+        <View
+          style={styles.content}
+          onLayout={event => {
+            const height = event.nativeEvent.layout.height;
+            if (height > 0 && height !== feedViewportHeight) setFeedViewportHeight(height);
+          }}
+        >
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stories}>
             {(() => {
               const ownGroup = groupedStories.find(group => group.own);
               return (
                 <Story
-                  item={{
-                    name: 'Your story',
-                    color: '#DDE7F5',
-                    own: true,
-                    uri: profile?.avatarUrl
-                  }}
+                  item={{ name: 'Your story', color: '#DDE7F5', own: true, uri: profile?.avatarUrl }}
                   onPress={() => {
                     if (ownGroup) openStoryGroup(ownGroup.items);
                     else createStory();
@@ -3412,22 +3452,89 @@ const refreshProfile = React.useCallback(async () => {
                 onPress={() => openStoryGroup(group.items)}
               />
             ))}
-            {stories.filter(s => !s.own).map(s => (
-              <Story key={s.name} item={s} onPress={() => openStoryGroup([s])} />
+            {stories.filter(story => !story.own).map(story => (
+              <Story key={story.name} item={story} onPress={() => openStoryGroup([story])} />
             ))}
           </ScrollView>
           <View style={styles.feedDivider} />
-          {groupPostItems(feedPosts).map((p, i) => <PostCard key={p.groupId || p.id || `${p.user}-${i}`} post={{ ...p, avatarUrl: (p.user || 'you') === 'you' ? (profile?.avatarUrl || p.avatarUrl) : p.avatarUrl }} authSession={authSession} onOpen={() => { setSelectedPostMediaIndex(0); setSelectedPost(p); }} onCreateAction={action => {
-            if (action === 'reel-camera') openReelCamera();
-            else if (action === 'reel-photos') createReelFromPhotos();
-            else if (action === 'photo-post') openCaptureCamera('posts', 'picture');
-            else if (action === 'video-post') openCaptureCamera('posts', 'video');
-            else if (action === 'story-camera') openCaptureCamera('stories', 'picture');
-            else if (action === 'story-gallery') createStory();
-            else if (action === 'post-gallery') pickImage();
-          }} />)}
-        </GestureScrollView>
-      ) : activeTab === 'Search' ? (
+          <GestureDetector gesture={feedScrollGesture}>
+            <FlatList
+              data={groupPostItems(feedPosts)}
+              keyExtractor={(item, index) => String(item.groupId || item.id || `${item.user}-${index}`)}
+              style={{ flex: 1 }}
+              scrollEnabled={!feedZoomed}
+              pagingEnabled
+              snapToInterval={feedViewportHeight || undefined}
+              snapToAlignment="start"
+              decelerationRate="fast"
+              disableIntervalMomentum
+              nestedScrollEnabled
+              showsVerticalScrollIndicator={false}
+              initialNumToRender={2}
+              maxToRenderPerBatch={2}
+              windowSize={3}
+              removeClippedSubviews
+              getItemLayout={feedViewportHeight > 0 ? (_, index) => ({
+                length: feedViewportHeight,
+                offset: feedViewportHeight * index,
+                index
+              }) : undefined}
+              scrollEventThrottle={16}
+              onScroll={event => {
+                if (feedViewportHeight > 0) {
+                  const count = groupPostItems(feedPosts).length;
+                  const nextIndex = Math.max(0, Math.min(
+                    Math.round(event.nativeEvent.contentOffset.y / feedViewportHeight),
+                    Math.max(0, count - 1)
+                  ));
+                  setActiveFeedIndex(current => current === nextIndex ? current : nextIndex);
+                }
+              }}
+              onMomentumScrollEnd={event => {
+                if (feedViewportHeight > 0) {
+                  const count = groupPostItems(feedPosts).length;
+                  const nextIndex = Math.round(event.nativeEvent.contentOffset.y / feedViewportHeight);
+                  setActiveFeedIndex(Math.max(0, Math.min(nextIndex, Math.max(0, count - 1))));
+                }
+              }}
+              renderItem={({ item: post, index }) => (
+                <PostCard
+                  key={post.groupId || post.id || `${post.user}-${index}`}
+                  post={{
+                    ...post,
+                    avatarUrl: (post.user || 'you') === 'you'
+                      ? (profile?.avatarUrl || post.avatarUrl)
+                      : post.avatarUrl
+                  }}
+                  authSession={authSession}
+                  pageHeight={feedViewportHeight}
+                  active={activeTab === 'Home' && index === activeFeedIndex}
+                  nativeScrollGesture={feedScrollGesture}
+                  onZoomChange={(level) => setFeedZoomed(level > 1.01)}
+                  onOpen={() => {
+                    setSelectedPostMediaIndex(0);
+                    setSelectedPost(post);
+                  }}
+                  onCreateAction={action => {
+                    if (action === 'reel-camera') openReelCamera();
+                    else if (action === 'reel-photos') createReelFromPhotos();
+                    else if (action === 'photo-post') openCaptureCamera('posts', 'picture');
+                    else if (action === 'video-post') openCaptureCamera('posts', 'video');
+                    else if (action === 'story-camera') openCaptureCamera('stories', 'picture');
+                    else if (action === 'story-gallery') createStory();
+                    else if (action === 'post-gallery') pickImage();
+                  }}
+                />
+              )}
+              ListEmptyComponent={
+                <View style={{ flex: 1, minHeight: 260, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#777777' }}>No posts yet.</Text>
+                </View>
+              }
+            />
+          </GestureDetector>
+        </View>
+) : activeTab === 'Search' ? (
         <ScrollView
           style={styles.content}
           keyboardShouldPersistTaps="handled"
