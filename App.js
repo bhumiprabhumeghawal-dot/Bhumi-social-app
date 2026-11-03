@@ -585,7 +585,8 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
   const [comments, setComments] = React.useState([]);
   const [commentDraft, setCommentDraft] = React.useState('');
   const [interactionBusy, setInteractionBusy] = React.useState(false);
-  const mediaHeight = pageHeight > 0 ? Math.max(220, pageHeight - 215) : 420;
+  const [postFooterHeight, setPostFooterHeight] = React.useState(150);
+  const mediaHeight = pageHeight > 0 ? Math.max(220, pageHeight - 58 - postFooterHeight) : 420;
   const sharePost = async () => {
     try {
       const postLink = post?.id ? `bhumisocial://post/${post.id}` : '';
@@ -703,6 +704,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
               <TouchableOpacity
                 key={String(media.id || index)}
                 activeOpacity={0.95}
+                delayPressIn={180}
                 onPress={onOpen}
                 style={{ width: mediaWidth || 320, height: mediaHeight }}
               >
@@ -724,7 +726,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
             ))}
           </ScrollView>
         ) : (
-          <TouchableOpacity activeOpacity={0.95} onPress={onOpen} style={{ height: mediaHeight }}>
+          <TouchableOpacity activeOpacity={0.95} delayPressIn={180} onPress={onOpen} style={{ height: mediaHeight }}>
             {post.uri && post.mediaType === 'video' ? (
               <ReelVideo uri={post.uri} height={mediaHeight} active={active} contentFit="contain" nativeScrollGesture={nativeScrollGesture}
                   onZoomChange={onZoomChange} />
@@ -766,6 +768,10 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
         )}
       </View>
 
+      <View onLayout={event => {
+        const height = event.nativeEvent.layout.height;
+        if (height > 0 && height !== postFooterHeight) setPostFooterHeight(height);
+      }}>
       <View style={styles.actions}>
         <TouchableOpacity onPress={handleLike} disabled={interactionBusy}>
           <Text style={[styles.actionIcon, liked && styles.liked]}>{liked ? '♥' : '♡'}</Text>
@@ -793,6 +799,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
       </TouchableOpacity>
       {!!post.createdAt && <Text style={styles.time}>{formatPostTime(post.createdAt)}</Text>}
 
+      </View>
       <Modal
         visible={commentsOpen}
         animationType="slide"
@@ -3427,10 +3434,7 @@ const refreshProfile = React.useCallback(async () => {
               ) : activeTab === 'Home' ? (
         <View
           style={styles.content}
-          onLayout={event => {
-            const height = event.nativeEvent.layout.height;
-            if (height > 0 && height !== feedViewportHeight) setFeedViewportHeight(height);
-          }}
+
         >
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stories}>
             {(() => {
@@ -3459,6 +3463,10 @@ const refreshProfile = React.useCallback(async () => {
           <View style={styles.feedDivider} />
           <GestureDetector gesture={feedScrollGesture}>
             <FlatList
+                onLayout={event => {
+                  const height = event.nativeEvent.layout.height;
+                  if (height > 0 && height !== feedViewportHeight) setFeedViewportHeight(height);
+                }}
               data={groupPostItems(feedPosts)}
               keyExtractor={(item, index) => String(item.groupId || item.id || `${item.user}-${index}`)}
               style={{ flex: 1 }}
