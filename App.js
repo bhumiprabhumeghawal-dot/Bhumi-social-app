@@ -1066,6 +1066,26 @@ function CustomAlertHost() {
 }
 
 export default function App() {
+
+  // BHUMI_CRASH_DISPLAY
+  React.useEffect(() => {
+    let active = true;
+    SecureStore.getItemAsync('bhumi_last_crash_report')
+      .then(async (report) => {
+        if (!report || !active) return;
+        await SecureStore.deleteItemAsync('bhumi_last_crash_report');
+        if (active) {
+          NativeAlert.alert('पिछली बार ऐप क्यों बंद हुआ', report);
+        }
+      })
+      .catch((error) => console.error('Crash report read failed:', error));
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+
   const [activeTab, setActiveTab] = React.useState('Home');
   const feedScrollGesture = useNativeGesture({ shouldActivateOnStart: true });
   const reelScrollGesture = useNativeGesture({ shouldActivateOnStart: true });
