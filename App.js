@@ -1195,6 +1195,7 @@ export default function App() {
 
   const [feedPosts, setFeedPosts] = React.useState(posts);
   const [feedViewportHeight, setFeedViewportHeight] = React.useState(0);
+  const [feedHeaderHeight, setFeedHeaderHeight] = React.useState(0);
   const [activeFeedIndex, setActiveFeedIndex] = React.useState(0);
   const [serverStories, setServerStories] = React.useState([]);
   const [selectedStory, setSelectedStory] = React.useState(null);
@@ -3471,6 +3472,16 @@ const refreshProfile = React.useCallback(async () => {
           style={styles.content}
 
         >
+
+          <GestureDetector gesture={feedScrollGesture}>
+          <FlatList
+              ListHeaderComponent={(
+                <View
+                  onLayout={event => {
+                    const height = event.nativeEvent.layout.height;
+                    if (height > 0 && height !== feedHeaderHeight) setFeedHeaderHeight(height);
+                  }}
+                >
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stories}>
             {(() => {
               const ownGroup = groupedStories.find(group => group.own);
@@ -3496,8 +3507,8 @@ const refreshProfile = React.useCallback(async () => {
             ))}
           </ScrollView>
           <View style={styles.feedDivider} />
-          <GestureDetector gesture={feedScrollGesture}>
-          <FlatList
+                </View>
+              )}
                 onLayout={event => {
                   const height = event.nativeEvent.layout.height;
                   if (height > 0 && height !== feedViewportHeight) setFeedViewportHeight(height);
@@ -3505,8 +3516,11 @@ const refreshProfile = React.useCallback(async () => {
               data={groupPostItems(feedPosts)}
               keyExtractor={(item, index) => String(item.groupId || item.id || `${item.user}-${index}`)}
               style={{ flex: 1 }}
-              pagingEnabled
-              snapToInterval={feedViewportHeight || undefined}
+              snapToOffsets={feedViewportHeight > 0 && feedHeaderHeight > 0
+                ? Array.from({ length: groupPostItems(feedPosts).length + 1 }, (_, index) =>
+                    index === 0 ? 0 : feedHeaderHeight + (index - 1) * feedViewportHeight
+                  )
+                : undefined}
               snapToAlignment="start"
               decelerationRate="fast"
               disableIntervalMomentum
@@ -3518,7 +3532,7 @@ const refreshProfile = React.useCallback(async () => {
               removeClippedSubviews
               getItemLayout={feedViewportHeight > 0 ? (_, index) => ({
                 length: feedViewportHeight,
-                offset: feedViewportHeight * index,
+                offset: feedHeaderHeight + feedViewportHeight * index,
                 index
               }) : undefined}
               scrollEventThrottle={16}
@@ -3526,7 +3540,7 @@ const refreshProfile = React.useCallback(async () => {
                 if (feedViewportHeight > 0) {
                   const count = groupPostItems(feedPosts).length;
                   const nextIndex = Math.max(0, Math.min(
-                    Math.round(event.nativeEvent.contentOffset.y / feedViewportHeight),
+                    Math.round((event.nativeEvent.contentOffset.y - feedHeaderHeight) / feedViewportHeight),
                     Math.max(0, count - 1)
                   ));
                   setActiveFeedIndex(current => current === nextIndex ? current : nextIndex);
@@ -3535,7 +3549,7 @@ const refreshProfile = React.useCallback(async () => {
               onMomentumScrollEnd={event => {
                 if (feedViewportHeight > 0) {
                   const count = groupPostItems(feedPosts).length;
-                  const nextIndex = Math.round(event.nativeEvent.contentOffset.y / feedViewportHeight);
+                  const nextIndex = Math.round((event.nativeEvent.contentOffset.y - feedHeaderHeight) / feedViewportHeight);
                   setActiveFeedIndex(Math.max(0, Math.min(nextIndex, Math.max(0, count - 1))));
                 }
               }}
