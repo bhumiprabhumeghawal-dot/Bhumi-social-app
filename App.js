@@ -378,7 +378,7 @@ function PinchZoomImage({ uri, style, resizeMode = "contain", nativeScrollGestur
     </View>
   );
 }
-function ReelVideo({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain', nativeScrollGesture, onZoomChange }) {
+function ReelVideo({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain', nativeScrollGesture, onZoomChange, zoomEnabled = true }) {
   const player = useVideoPlayer(uri, p => { p.loop = true; p.muted = muted; });
   const { status, error } = useEvent(player, 'statusChange', { status: player.status });
 
@@ -493,11 +493,17 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
   return (
     <View style={{ width: '100%', alignItems: 'center' }}>
       <View style={{ width: '100%', height, backgroundColor: '#000', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
-      <GestureDetector gesture={gesture}>
-        <Animated.View style={[{ width: '100%', height: '100%', backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }, animatedStyle]}>
+      {zoomEnabled ? (
+        <GestureDetector gesture={gesture}>
+          <Animated.View style={[{ width: '100%', height: '100%', backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }, animatedStyle]}>
+            <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit={contentFit} nativeControls={false} />
+          </Animated.View>
+        </GestureDetector>
+      ) : (
+        <View style={{ width: '100%', height: '100%', backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
           <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit={contentFit} nativeControls={false} />
-        </Animated.View>
-      </GestureDetector>
+        </View>
+      )}
 
       {status === 'loading' && (
         <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
@@ -572,7 +578,7 @@ function groupPostItems(items) {
   return result;
 }
 
-function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () => {}, pageHeight = 0, active = true, nativeScrollGesture, onZoomChange }) {
+function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () => {}, pageHeight = 0, active = true }) {
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
   const [createMenuOpen, setCreateMenuOpen] = React.useState(false);
@@ -586,7 +592,9 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
   const [commentDraft, setCommentDraft] = React.useState('');
   const [interactionBusy, setInteractionBusy] = React.useState(false);
   const [postFooterHeight, setPostFooterHeight] = React.useState(150);
-  const mediaHeight = pageHeight > 0 ? Math.max(220, pageHeight - 58 - postFooterHeight) : 420;
+  const mediaHeight = pageHeight > 0
+    ? Math.max(0, pageHeight - 58 - postFooterHeight)
+    : 420;
   const sharePost = async () => {
     try {
       const postLink = post?.id ? `bhumisocial://post/${post.id}` : '';
@@ -667,7 +675,10 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
 
   return (
     <View style={[styles.post, pageHeight > 0 ? { height: pageHeight, marginBottom: 0 } : null]}>
-      <View style={styles.postHeader}>
+      <View style={[styles.postHeader, {
+        position: 'absolute', top: 0, left: 0, right: 0,
+        zIndex: 10, backgroundColor: 'rgba(0,0,0,0.42)'
+      }]}>
         <View style={styles.smallAvatar}>
           {post.avatarUrl ? (
             <Image source={{ uri: post.avatarUrl }} style={{ width: 40, height: 40, borderRadius: 20 }} />
@@ -676,15 +687,18 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
           )}
         </View>
         <View style={styles.postUserInfo}>
-          <Text style={styles.username}>{post.user || 'you'}</Text>
-          {!!post.location && <Text style={styles.location}>{post.location}</Text>}
+          <Text style={[styles.username, { color: "#FFFFFF" }]}>{post.user || 'you'}</Text>
+          {!!post.location && <Text style={[styles.location, { color: "#FFFFFF" }]}>{post.location}</Text>}
         </View>
         <TouchableOpacity><Text style={styles.more}>•••</Text></TouchableOpacity>
       </View>
 
       <View
         onLayout={event => setMediaWidth(event.nativeEvent.layout.width)}
-        style={{ width: '100%', height: mediaHeight, overflow: 'hidden' }}
+        style={{
+          position: 'absolute', top: 58, left: 0, right: 0,
+          height: mediaHeight, overflow: 'hidden', backgroundColor: '#000000'
+        }}
       >
         {(post.mediaItems?.length > 1) ? (
           <ScrollView
@@ -709,14 +723,14 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
                 style={{ width: mediaWidth || 320, height: mediaHeight }}
               >
                 {media.uri && media.mediaType === 'video' ? (
-                  <ReelVideo uri={media.uri} height={mediaHeight} active={active && mediaIndex === index} contentFit="contain" nativeScrollGesture={nativeScrollGesture}
-                  onZoomChange={onZoomChange} />
+                  <ReelVideo uri={media.uri} height={mediaHeight} active={active && mediaIndex === index} contentFit="cover" zoomEnabled={false}
+                   />
                 ) : media.uri ? (
-                  <PinchZoomImage
-                    uri={media.uri}
+                  <Image
+                    source={{ uri: media.uri }}
                     style={[styles.postImage, { width: mediaWidth || '100%', height: mediaHeight, aspectRatio: undefined }]}
-                    resizeMode="contain" nativeScrollGesture={nativeScrollGesture}
-                  onZoomChange={onZoomChange} />
+                    resizeMode="cover"
+                  />
                 ) : (
                   <View style={[styles.postImage, { height: mediaHeight, aspectRatio: undefined, backgroundColor: post.color || '#D8E7DF' }]}>
                     <Text style={styles.postEmoji}>{post.emoji || '🌿'}</Text>
@@ -726,13 +740,12 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
             ))}
           </ScrollView>
         ) : (
-          <TouchableOpacity activeOpacity={0.95} delayPressIn={180} onPress={onOpen} style={{ height: mediaHeight }}>
+          <TouchableOpacity activeOpacity={0.95} delayPressIn={180} onPress={onOpen} style={{ width: "100%", height: mediaHeight }}>
             {post.uri && post.mediaType === 'video' ? (
-              <ReelVideo uri={post.uri} height={mediaHeight} active={active} contentFit="contain" nativeScrollGesture={nativeScrollGesture}
-                  onZoomChange={onZoomChange} />
+              <ReelVideo uri={post.uri} height={mediaHeight} active={active} contentFit="cover" zoomEnabled={false}
+                   />
             ) : post.uri ? (
-              <PinchZoomImage uri={post.uri} style={[styles.postImage, { height: mediaHeight, aspectRatio: undefined }]} resizeMode="contain" nativeScrollGesture={nativeScrollGesture}
-                  onZoomChange={onZoomChange} />
+              <Image source={{ uri: post.uri }} style={[styles.postImage, { height: mediaHeight, aspectRatio: undefined }]} resizeMode="cover" />
             ) : (
               <View style={[styles.postImage, { backgroundColor: post.color || '#D8E7DF' }]}>
                 <Text style={styles.postEmoji}>{post.emoji || '🌿'}</Text>
@@ -771,33 +784,37 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
       <View onLayout={event => {
         const height = event.nativeEvent.layout.height;
         if (height > 0 && height !== postFooterHeight) setPostFooterHeight(height);
+      }} style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        zIndex: 30, backgroundColor: 'rgba(0,0,0,0.42)',
+        paddingBottom: 10, paddingTop: 6
       }}>
       <View style={styles.actions}>
         <TouchableOpacity onPress={handleLike} disabled={interactionBusy}>
-          <Text style={[styles.actionIcon, liked && styles.liked]}>{liked ? '♥' : '♡'}</Text>
+          <Ionicons name={liked ? "heart" : "heart-outline"} size={27} color={liked ? "#ED4956" : "#FFFFFF"} />
         </TouchableOpacity>
         <TouchableOpacity onPress={openComments}>
-          <Ionicons name="checkbox-outline" size={24} color="#262626" />
+          <Ionicons name="chatbubble-outline" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <TouchableOpacity onPress={sharePost}>
-          <Text style={styles.actionIcon}>➤</Text>
+          <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
         </TouchableOpacity>
         <View style={styles.actionSpacer} />
         <TouchableOpacity onPress={() => setSaved(!saved)}>
-          <Text style={styles.actionIcon}>{saved ? '▣' : '♧'}</Text>
+          <Ionicons name={saved ? "bookmark" : "bookmark-outline"} size={25} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.likes}>{likeCount.toLocaleString()} likes</Text>
+      <Text style={[styles.likes, { color: "#FFFFFF" }]}>{likeCount.toLocaleString()} likes</Text>
       {!!post.caption && (
-        <Text style={styles.caption}>
-          <Text style={styles.username}>{post.user || 'you'} </Text>{post.caption}
+        <Text style={[styles.caption, { color: "#FFFFFF" }]}>
+          <Text style={[styles.username, { color: "#FFFFFF" }]}>{post.user || 'you'} </Text>{post.caption}
         </Text>
       )}
       <TouchableOpacity onPress={openComments}>
-        <Text style={styles.comments}>View all comments</Text>
+        <Text style={[styles.comments, { color: "#FFFFFF" }]}>View all comments</Text>
       </TouchableOpacity>
-      {!!post.createdAt && <Text style={styles.time}>{formatPostTime(post.createdAt)}</Text>}
+      {!!post.createdAt && <Text style={[styles.time, { color: "#FFFFFF" }]}>{formatPostTime(post.createdAt)}</Text>}
 
       </View>
       <Modal
@@ -1220,11 +1237,9 @@ export default function App() {
   const [reels, setReels] = React.useState([]);
   const reelListRef = React.useRef(null);
   const [activeReelIndex, setActiveReelIndex] = React.useState(0);
-  const [feedZoomed, setFeedZoomed] = React.useState(false);
   const [reelZoomed, setReelZoomed] = React.useState(false);
 
   React.useEffect(() => {
-    setFeedZoomed(false);
     setReelZoomed(false);
   }, [activeTab]);
   const [reelViewportHeight, setReelViewportHeight] = React.useState(0);
@@ -3482,7 +3497,7 @@ const refreshProfile = React.useCallback(async () => {
           </ScrollView>
           <View style={styles.feedDivider} />
           <GestureDetector gesture={feedScrollGesture}>
-            <FlatList
+          <FlatList
                 onLayout={event => {
                   const height = event.nativeEvent.layout.height;
                   if (height > 0 && height !== feedViewportHeight) setFeedViewportHeight(height);
@@ -3490,7 +3505,6 @@ const refreshProfile = React.useCallback(async () => {
               data={groupPostItems(feedPosts)}
               keyExtractor={(item, index) => String(item.groupId || item.id || `${item.user}-${index}`)}
               style={{ flex: 1 }}
-              scrollEnabled={!feedZoomed}
               pagingEnabled
               snapToInterval={feedViewportHeight || undefined}
               snapToAlignment="start"
@@ -3537,8 +3551,6 @@ const refreshProfile = React.useCallback(async () => {
                   authSession={authSession}
                   pageHeight={feedViewportHeight}
                   active={activeTab === 'Home' && index === activeFeedIndex}
-                  nativeScrollGesture={feedScrollGesture}
-                  onZoomChange={(level) => setFeedZoomed(level > 1.01)}
                   onOpen={() => {
                     setSelectedPostMediaIndex(0);
                     setSelectedPost(post);
@@ -4741,7 +4753,7 @@ const styles = StyleSheet.create({
   avatarLetter: { fontSize: 22, fontWeight: '700', color: '#343434' },
   storyName: { marginTop: 5, fontSize: 11, color: '#252525' },
   feedDivider: { height: 1, backgroundColor: '#EEEEEE' },
-  post: { marginHorizontal: 0, marginBottom: 10, backgroundColor: '#FFFFFF', borderWidth: 0, borderColor: '#FFFFFF', borderRadius: 0, overflow: 'hidden' },
+  post: { marginHorizontal: 0, marginBottom: 10, backgroundColor: '#000000', borderWidth: 0, borderColor: '#000000', borderRadius: 0, overflow: 'hidden' },
   postHeader: {
     height: 58, paddingHorizontal: 12,
     flexDirection: 'row', alignItems: 'center',
@@ -4754,7 +4766,7 @@ const styles = StyleSheet.create({
   postUserInfo: { flex: 1, marginLeft: 10 },
   username: { fontSize: 14, fontWeight: '700', color: '#171717' },
   location: { marginTop: 2, fontSize: 11, color: '#555555' },
-  more: { fontSize: 19, fontWeight: '700', color: '#222222', paddingHorizontal: 5 },
+  more: { fontSize: 19, fontWeight: '700', color: '#FFFFFF', paddingHorizontal: 5 },
   postImage: { width: '100%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
   postEmoji: { fontSize: 112 },
   actions: {
