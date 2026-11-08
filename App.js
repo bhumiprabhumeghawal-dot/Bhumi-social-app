@@ -2537,7 +2537,6 @@ const refreshProfile = React.useCallback(async () => {
       ) : null}
     </View>
   );
-};
 
 
   const handleTab = (name) => {
