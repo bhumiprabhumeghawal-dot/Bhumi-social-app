@@ -1084,7 +1084,6 @@ export default function App() {
 
   const [activeTab, setActiveTab] = React.useState('Home');
   const feedScrollGesture = useNativeGesture({ shouldActivateOnStart: true });
-  const reelScrollGesture = useNativeGesture({ shouldActivateOnStart: true });
   const [cameraOpen, setCameraOpen] = React.useState(false);
   const [cameraFacing, setCameraFacing] = React.useState('back');
   const [cameraMode, setCameraMode] = React.useState('video');
@@ -3363,7 +3362,6 @@ const refreshProfile = React.useCallback(async () => {
                   }}
                 >
                   {reels.length ? (
-                    <GestureDetector gesture={reelScrollGesture}>
 <FlatList
                       ref={reelListRef}
                                    data={reels}
@@ -3417,7 +3415,6 @@ const refreshProfile = React.useCallback(async () => {
                                 active={activeTab === "Reels" && index === activeReelIndex}
                                 muted={mutedReels}
                                 contentFit="cover"
-                                  nativeScrollGesture={reelScrollGesture}
                                   onZoomChange={(level) => setReelZoomed(level > 1.01)}
                               />
                             ) : null}
@@ -3473,7 +3470,6 @@ const refreshProfile = React.useCallback(async () => {
                         );
                       }}
                     />
-                  </GestureDetector>
                   ) : (
                     <View style={{ flex: 1, padding: 24, alignItems: "center", justifyContent: "center" }}>
                       <Text style={{ color: "#FFFFFF" }}>No reels yet.</Text>
