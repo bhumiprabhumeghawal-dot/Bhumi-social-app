@@ -581,7 +581,7 @@ function groupPostItems(items) {
 function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () => {}, pageHeight = 0, active = true }) {
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
-  const [createMenuOpen, setCreateMenuOpen] = React.useState(false);
+
   const [liked, setLiked] = React.useState(false);
   const [likeCount, setLikeCount] = React.useState(
     Number(String(post.likes || '0').replace(/,/g, '')) || 0
@@ -753,27 +753,6 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
             )}
           </TouchableOpacity>
         )}
-        <View style={{ position: 'absolute', top: 12, right: 12, zIndex: 20, alignItems: 'flex-end' }}>
-          <TouchableOpacity onPress={() => setCreateMenuOpen(v => !v)} style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: '#7C3AED', borderWidth: 2, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', elevation: 8 }}>
-            <Ionicons name={createMenuOpen ? 'close' : 'add'} size={30} color="#FFFFFF" />
-          </TouchableOpacity>
-          {createMenuOpen && <View style={{ marginTop: 8, minWidth: 178, backgroundColor: 'rgba(20,20,24,0.96)', borderRadius: 14, padding: 7, elevation: 10 }}>
-            {[
-              ['Record Reel', 'videocam', 'reel-camera'],
-              ['Reel from Photos', 'film', 'reel-photos'],
-              ['Photo Post', 'image', 'photo-post'],
-              ['Video Post', 'play-circle', 'video-post'],
-              ['Story from Camera', 'camera', 'story-camera'],
-              ['Story from Gallery', 'images', 'story-gallery'],
-              ['Post from Gallery', 'albums', 'post-gallery'],
-            ].map(([label, icon, action]) => (
-              <TouchableOpacity key={action} onPress={() => { setCreateMenuOpen(false); onCreateAction(action); }} style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}>
-                <Ionicons name={icon} size={19} color="#FFFFFF" />
-                <Text style={{ color: '#FFFFFF', fontSize: 13, marginLeft: 10, fontWeight: '600' }}>{label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>}
-        </View>
         {(post.mediaItems?.length > 1) && (
           <Text style={{ textAlign: 'center', paddingVertical: 5, color: '#777777', fontSize: 12 }}>
             {mediaIndex + 1} / {post.mediaItems.length}
@@ -1238,6 +1217,7 @@ export default function App() {
   const [reels, setReels] = React.useState([]);
   const reelListRef = React.useRef(null);
   const [activeReelIndex, setActiveReelIndex] = React.useState(0);
+  const [headerCreateMenuOpen, setHeaderCreateMenuOpen] = React.useState(false);
   const [reelZoomed, setReelZoomed] = React.useState(false);
 
   React.useEffect(() => {
@@ -2507,6 +2487,59 @@ const refreshProfile = React.useCallback(async () => {
   const createStory = () => chooseMedia('stories');
   const createReel = () => chooseMedia('reels');
 
+  const runHeaderCreateAction = (action) => {
+    setHeaderCreateMenuOpen(false);
+    if (action === 'reel-camera') openReelCamera();
+    else if (action === 'reel-photos') createReelFromPhotos();
+    else if (action === 'photo-post') openCaptureCamera('posts', 'picture');
+    else if (action === 'video-post') openCaptureCamera('posts', 'video');
+    else if (action === 'story-camera') openCaptureCamera('stories', 'picture');
+    else if (action === 'story-gallery') createStory();
+    else if (action === 'post-gallery') pickImage();
+  };
+
+  const renderAppHeader = () => (
+    <View style={[styles.header, { justifyContent: 'flex-start', gap: 10, position: 'relative' }]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <TouchableOpacity onPress={() => setHeaderCreateMenuOpen(value => !value)} accessibilityLabel="Create menu" style={{ padding: 3 }}>
+          <Ionicons name="add-circle-outline" size={28} color="#171717" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={openNotifications} accessibilityLabel="Notifications" style={{ position: 'relative', padding: 3 }}>
+          <Ionicons name="heart-outline" size={27} color="#171717" />
+          {unreadNotificationCount > 0 ? (
+            <View style={{ position: 'absolute', right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: '#E1306C', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>{unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
+      </View>
+      <Text style={[styles.brand, { flex: 1 }]} numberOfLines={1}>Bhumi Social AI</Text>
+      <TouchableOpacity onPress={openMessages} accessibilityLabel="Messages" style={{ padding: 3 }}>
+        <Ionicons name="paper-plane-outline" size={26} color="#171717" />
+      </TouchableOpacity>
+      {headerCreateMenuOpen ? (
+        <View style={{ position: 'absolute', top: 72, left: 8, zIndex: 1000, elevation: 20, minWidth: 215, backgroundColor: '#202027', borderRadius: 14, paddingVertical: 6, paddingHorizontal: 8 }}>
+          {[
+            ['reel-camera', 'Record Reel', 'videocam-outline'],
+            ['reel-photos', 'Reel from Photos', 'images-outline'],
+            ['photo-post', 'Photo Post', 'camera-outline'],
+            ['video-post', 'Video Post', 'film-outline'],
+            ['story-camera', 'Story from Camera', 'camera'],
+            ['story-gallery', 'Story from Gallery', 'images'],
+            ['post-gallery', 'Post from Gallery', 'image-outline'],
+          ].map(([action, label, iconName]) => (
+            <TouchableOpacity key={action} onPress={() => runHeaderCreateAction(action)} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 9 }}>
+              <Ionicons name={iconName} size={19} color="#FFFFFF" />
+              <Text style={{ color: '#FFFFFF', fontSize: 14, marginLeft: 12, fontWeight: '600' }}>{label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+};
+
+
   const handleTab = (name) => {
     if (name === 'Create') {
       Alert.alert('Create', 'Choose what you want to create', [
@@ -3313,24 +3346,8 @@ const refreshProfile = React.useCallback(async () => {
         </SafeAreaView>
       </Modal>
 
-      {activeTab !== 'Reels' && (
-<View style={styles.header}>
-        <View style={styles.headerSideSpacer} /><Text style={styles.brand}>Bhumi Social AI</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={() => handleTab("Create")} accessibilityLabel="Create menu">
-            <Ionicons name="add-circle-outline" size={27} color="#171717" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={openNotifications} accessibilityLabel="Notifications" style={{ position: "relative", paddingHorizontal: 3 }}>
-            <Ionicons name="heart-outline" size={27} color="#171717" />
-            {unreadNotificationCount > 0 ? <View style={{ position: "absolute", right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#E1306C", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}><Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text></View> : null}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={openMessages} accessibilityLabel="Messages">
-            <Ionicons name="paper-plane-outline" size={26} color="#171717" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      {activeTab !== 'Reels' && activeTab !== 'Home' && renderAppHeader()}
 
-      )}
 {!serverOnline && (
         <Text style={{ paddingHorizontal: 12, paddingVertical: 4, color: '#888', fontSize: 11 }}>
           Server connection unavailable
@@ -3394,7 +3411,7 @@ const refreshProfile = React.useCallback(async () => {
                         const rowHeight = reelViewportHeight || Dimensions.get("window").height;
                         return (
                           <View style={{ width: "100%", height: rowHeight, backgroundColor: "#000000", overflow: "hidden" }}>
-                            {r.uri ? (
+                            {r.uri && index === activeReelIndex ? (
                               <ReelVideo
                                 uri={r.uri}
                                 height={rowHeight}
@@ -3462,7 +3479,7 @@ const refreshProfile = React.useCallback(async () => {
                     <View style={{ flex: 1, padding: 24, alignItems: "center", justifyContent: "center" }}>
                       <Text style={{ color: "#FFFFFF" }}>No reels yet.</Text>
                       <TouchableOpacity onPress={createReel} style={{ padding: 14 }}>
-                        <Text style={{ color: "#1685D9", fontWeight: "700" }}>+ Upload Reel</Text>
+                        <Text style={{ color: "#1685D9", fontWeight: "700" }}>Upload Reel</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -3482,7 +3499,8 @@ const refreshProfile = React.useCallback(async () => {
                     if (height > 0 && height !== feedHeaderHeight) setFeedHeaderHeight(height);
                   }}
                 >
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stories}>
+          {renderAppHeader()}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stories}>
             {(() => {
               const ownGroup = groupedStories.find(group => group.own);
               return (
