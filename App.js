@@ -378,7 +378,89 @@ function PinchZoomImage({ uri, style, resizeMode = "contain", nativeScrollGestur
     </View>
   );
 }
-function ReelVideo({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain', nativeScrollGesture, onZoomChange, zoomEnabled = true }) {
+function ReelVideo(props) {
+  if (props.zoomEnabled === false) {
+    return <ReelVideoPlain {...props} />;
+  }
+  return <ReelVideoZoomable {...props} />;
+}
+
+function ReelVideoPlain({
+  uri,
+  height = 420,
+  active = true,
+  muted = false,
+  contentFit = 'contain',
+}) {
+  const player = useVideoPlayer(uri, p => {
+    p.loop = true;
+    p.muted = muted;
+  });
+  const { status, error } = useEvent(player, 'statusChange', {
+    status: player.status,
+  });
+
+  React.useEffect(() => {
+    try {
+      if (active) player.play();
+      else player.pause();
+    } catch (error) {
+      console.log('PLAIN_REEL_PLAYBACK_ERROR:', error?.message);
+    }
+    return () => {
+      try { player.pause(); } catch (error) {}
+    };
+  }, [active, player]);
+
+  React.useEffect(() => {
+    try { player.muted = muted; } catch (error) {}
+  }, [muted, player]);
+
+  return (
+    <View style={{ width: '100%', alignItems: 'center' }}>
+      <View style={{
+        width: '100%',
+        height,
+        backgroundColor: '#000',
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <VideoView
+          player={player}
+          style={{ width: '100%', height: '100%' }}
+          contentFit={contentFit}
+          nativeControls={false}
+        />
+        {status === 'loading' && (
+          <View pointerEvents="none" style={{
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 14 }}>Loading video...</Text>
+          </View>
+        )}
+        {status === 'error' && (
+          <View pointerEvents="none" style={{
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 14, textAlign: 'center' }}>
+              Video unavailable: {error?.message || 'Could not load this video.'}
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function ReelVideoZoomable({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain', nativeScrollGesture, onZoomChange, zoomEnabled = true }) {
   const player = useVideoPlayer(uri, p => { p.loop = true; p.muted = muted; });
   const { status, error } = useEvent(player, 'statusChange', { status: player.status });
 
@@ -464,8 +546,10 @@ function ReelVideo({ uri, zoomControls = false, height = 420, active = true, mut
       }
     });
 
-  const videoGestures = Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true);
-  const gesture = nativeScrollGesture
+  const videoGestures = zoomEnabled
+    ? Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true)
+    : null;
+  const gesture = videoGestures && nativeScrollGesture
     ? videoGestures.simultaneousWithExternalGesture(nativeScrollGesture)
     : videoGestures;
   const animatedStyle = useAnimatedStyle(() => ({
@@ -3415,7 +3499,8 @@ const refreshProfile = React.useCallback(async () => {
                                 active={activeTab === "Reels" && index === activeReelIndex}
                                 muted={mutedReels}
                                 contentFit="cover"
-                                  onZoomChange={(level) => setReelZoomed(level > 1.01)}
+                                zoomEnabled={false}
+                                onZoomChange={(level) => setReelZoomed(level > 1.01)}
                               />
                             ) : null}
                             <View pointerEvents="box-none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "space-between", paddingHorizontal: 15, paddingTop: 15, paddingBottom: 18 }}>
