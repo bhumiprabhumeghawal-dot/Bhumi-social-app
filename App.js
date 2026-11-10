@@ -2623,6 +2623,10 @@ const refreshProfile = React.useCallback(async () => {
 
 
   const handleTab = (name) => {
+    if (name === 'Chat') {
+      openMessages();
+      return;
+    }
     if (name === 'Create') {
       Alert.alert('Create', 'Choose what you want to create', [
         { text: 'Photo Post', onPress: () => openCaptureCamera('posts', 'picture') },
@@ -4115,7 +4119,7 @@ const refreshProfile = React.useCallback(async () => {
         {[
           { name: 'Home', icon: 'home-outline' },
           { name: 'Search', icon: 'search-outline' },
-          { name: 'Create', icon: 'balloon-outline' },
+          { name: 'Chat', icon: 'chatbubble-ellipses-outline' },
           { name: 'Reels', icon: 'play-circle-outline' },
           { name: 'Profile', icon: 'person-circle-outline' }
         ].map(tab => (
