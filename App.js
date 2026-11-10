@@ -385,14 +385,14 @@ function ReelVideo(props) {
   return <ReelVideoZoomable {...props} />;
 }
 
-function ReelVideoPlain({
+const ReelVideoPlain = React.memo(function ReelVideoPlain({
   uri,
   height = 420,
   active = true,
   muted = false,
   contentFit = 'contain',
 }) {
-  const player = useVideoPlayer(uri, p => {
+  const player = useVideoPlayer({ uri, useCaching: true }, p => {
     p.loop = true;
     p.muted = muted;
   });
@@ -458,10 +458,10 @@ function ReelVideoPlain({
       </View>
     </View>
   );
-}
+});
 
 function ReelVideoZoomable({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain', nativeScrollGesture, onZoomChange, zoomEnabled = true }) {
-  const player = useVideoPlayer(uri, p => { p.loop = true; p.muted = muted; });
+  const player = useVideoPlayer({ uri, useCaching: true }, p => { p.loop = true; p.muted = muted; });
   const { status, error } = useEvent(player, 'statusChange', { status: player.status });
 
   React.useEffect(() => {
@@ -3459,8 +3459,8 @@ const refreshProfile = React.useCallback(async () => {
                       showsVerticalScrollIndicator={false}
                       initialNumToRender={2}
                       maxToRenderPerBatch={2}
-                      windowSize={3}
-                      removeClippedSubviews
+                      windowSize={5}
+                      removeClippedSubviews={false}
                       getItemLayout={(_, index) => ({
                         length: reelViewportHeight,
                         offset: reelViewportHeight * index,
@@ -3492,7 +3492,7 @@ const refreshProfile = React.useCallback(async () => {
                         const rowHeight = reelViewportHeight || Dimensions.get("window").height;
                         return (
                           <View style={{ width: "100%", height: rowHeight, backgroundColor: "#000000", overflow: "hidden" }}>
-                            {r.uri && index === activeReelIndex ? (
+                            {r.uri && Math.abs(index - activeReelIndex) <= 1 ? (
                               <ReelVideo
                                 uri={r.uri}
                                 height={rowHeight}
