@@ -73,6 +73,10 @@ def init_db():
             CREATE INDEX IF NOT EXISTS idx_content_kind_id
             ON content(kind, id DESC)
         """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_content_kind_username
+            ON content(kind, username)
+        """)
 
         db.execute("""
             CREATE TABLE IF NOT EXISTS post_likes (
@@ -138,48 +142,53 @@ def init_db():
             ON saved_content(username, created_at DESC)
         """)
 
-def content_json(row, viewer=None):
-    with get_db() as db:
-        profile = db.execute(
-            "SELECT avatar_url FROM profiles WHERE username=?",
-            (row["username"],)
+def content_json(row, viewer=None, db=None):
+    if db is None:
+        with get_db() as connection:
+            return content_json(row, viewer, connection)
+
+    profile = db.execute(
+        "SELECT avatar_url FROM profiles WHERE username=?",
+        (row["username"],)
+    ).fetchone()
+    avatar_url = profile["avatar_url"] if profile else None
+    extra = {}
+
+    if row["kind"] == "reels":
+        likes = db.execute(
+            "SELECT COUNT(*) AS total FROM reel_likes WHERE content_id=?",
+            (row["id"],)
         ).fetchone()
-        avatar_url = profile["avatar_url"] if profile else None
-        extra = {}
-        if row["kind"] == "reels":
-            likes = db.execute(
-                "SELECT COUNT(*) AS total FROM reel_likes WHERE content_id=?",
-                (row["id"],)
+        extra["likesCount"] = int(likes["total"] or 0)
+        extra["isLiked"] = False
+        extra["isSaved"] = False
+        extra["isFollowing"] = False
+        extra["followRequestStatus"] = None
+        extra["isPrivate"] = False
+
+        if viewer:
+            extra["isLiked"] = bool(db.execute(
+                "SELECT 1 FROM reel_likes WHERE content_id=? AND username=?",
+                (row["id"], viewer)
+            ).fetchone())
+            extra["isSaved"] = bool(db.execute(
+                "SELECT 1 FROM saved_content WHERE username=? AND content_id=? AND kind='reels'",
+                (viewer, row["id"])
+            ).fetchone())
+            extra["isFollowing"] = bool(db.execute(
+                "SELECT 1 FROM follows WHERE follower=? AND following=?",
+                (viewer, row["username"])
+            ).fetchone())
+            request_row = db.execute(
+                "SELECT status FROM follow_requests WHERE requester=? AND target=?",
+                (viewer, row["username"])
             ).fetchone()
-            extra["likesCount"] = int(likes["total"] or 0)
-            extra["isLiked"] = False
-            extra["isSaved"] = False
-            extra["isFollowing"] = False
-            extra["followRequestStatus"] = None
-            extra["isPrivate"] = False
-            if viewer:
-                extra["isLiked"] = bool(db.execute(
-                    "SELECT 1 FROM reel_likes WHERE content_id=? AND username=?",
-                    (row["id"], viewer)
-                ).fetchone())
-                extra["isSaved"] = bool(db.execute(
-                    "SELECT 1 FROM saved_content WHERE username=? AND content_id=? AND kind='reels'",
-                    (viewer, row["id"])
-                ).fetchone())
-                extra["isFollowing"] = bool(db.execute(
-                    "SELECT 1 FROM follows WHERE follower=? AND following=?",
-                    (viewer, row["username"])
-                ).fetchone())
-                request_row = db.execute(
-                    "SELECT status FROM follow_requests WHERE requester=? AND target=?",
-                    (viewer, row["username"])
-                ).fetchone()
-                extra["followRequestStatus"] = request_row["status"] if request_row else None
-                settings = db.execute(
-                    "SELECT is_private FROM user_settings WHERE username=?",
-                    (row["username"],)
-                ).fetchone()
-                extra["isPrivate"] = bool(settings["is_private"]) if settings else False
+            extra["followRequestStatus"] = request_row["status"] if request_row else None
+            settings = db.execute(
+                "SELECT is_private FROM user_settings WHERE username=?",
+                (row["username"],)
+            ).fetchone()
+            extra["isPrivate"] = bool(settings["is_private"]) if settings else False
 
     return {
         "id": row["id"],
@@ -287,8 +296,10 @@ def list_content(kind):
             "SELECT * FROM content WHERE kind=? ORDER BY id DESC LIMIT 100",
             (kind,),
         ).fetchall()
+        viewer = getattr(g, "auth_username", None)
+        items = [content_json(row, viewer, db) for row in rows]
 
-    return jsonify({"items": [content_json(row, getattr(g, "auth_username", None)) for row in rows]})
+    return jsonify({"items": items})
 
 
 @app.post("/api/<kind>")
@@ -415,6 +426,10 @@ def init_profile_tables():
                 PRIMARY KEY (follower, following),
                 CHECK (follower <> following)
             )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_follows_following
+            ON follows(following)
         """)
 
 
@@ -1307,7 +1322,7 @@ def list_saved_content():
                ORDER BY s.created_at DESC""",
             (username,)
         ).fetchall()
-        items = [content_json(row, username) for row in rows]
+        items = [content_json(row, username, db) for row in rows]
         return jsonify({"ok": True, "items": items})
 
 
@@ -2094,14 +2109,26 @@ def init_chat_tables():
                 image_url TEXT
             )
         """)
-        columns = {row["name"] for row in db.execute("PRAGMA table_info(direct_messages)").fetchall()}
-        if "image_url" not in columns:
-            db.execute("ALTER TABLE direct_messages ADD COLUMN image_url TEXT")
+        columns = {
+            row["name"]
+            for row in db.execute("PRAGMA table_info(direct_messages)").fetchall()
+        }
+        for column in ("image_url", "delivered_at", "read_at", "reply_to_id"):
+            if column not in columns:
+                db.execute(f"ALTER TABLE direct_messages ADD COLUMN {column} TEXT")
+
         db.execute("""
             CREATE INDEX IF NOT EXISTS idx_direct_messages_pair
             ON direct_messages(sender_username, recipient_username, created_at)
         """)
-
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS direct_message_typing (
+                sender_username TEXT NOT NULL,
+                recipient_username TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                PRIMARY KEY (sender_username, recipient_username)
+            )
+        """)
 
 def _chat_current_user():
     username = _auth_user()
@@ -2118,10 +2145,30 @@ def get_message_conversations():
         return jsonify({"error": "Please log in to view messages."}), 401
 
     with get_db() as db:
+        now = datetime.now(timezone.utc).isoformat()
+        db.execute(
+            """
+            UPDATE direct_messages
+            SET delivered_at = COALESCE(delivered_at, ?)
+            WHERE LOWER(recipient_username)=LOWER(?)
+            """,
+            (now, current),
+        )
         rows = db.execute("""
             SELECT
                 dm.id, dm.sender_username, dm.recipient_username,
-                dm.body, dm.image_url, dm.created_at,
+                dm.body, dm.image_url, dm.created_at, dm.delivered_at, dm.read_at,
+                (
+                    SELECT COUNT(*) FROM direct_messages unread
+                    WHERE LOWER(unread.sender_username)=LOWER(
+                        CASE
+                            WHEN LOWER(dm.sender_username)=LOWER(?) THEN dm.recipient_username
+                            ELSE dm.sender_username
+                        END
+                    )
+                    AND LOWER(unread.recipient_username)=LOWER(?)
+                    AND unread.read_at IS NULL
+                ) AS unread_count,
                 p.display_name AS other_display_name,
                 p.avatar_url AS other_avatar_url
             FROM direct_messages dm
@@ -2135,7 +2182,7 @@ def get_message_conversations():
             WHERE LOWER(dm.sender_username)=LOWER(?)
                OR LOWER(dm.recipient_username)=LOWER(?)
             ORDER BY dm.created_at DESC, dm.id DESC
-        """, (current, current, current)).fetchall()
+        """, (current, current, current, current, current)).fetchall()
 
     conversations = []
     seen = set()
@@ -2156,6 +2203,10 @@ def get_message_conversations():
             "avatarUrl": row["other_avatar_url"],
             "lastMessage": row["body"] or ("📷 Photo" if row["image_url"] else ""),
             "lastMessageAt": row["created_at"],
+            "lastMessageSender": row["sender_username"],
+            "deliveredAt": row["delivered_at"],
+            "readAt": row["read_at"],
+            "unreadCount": int(row["unread_count"] or 0),
         })
 
     return jsonify({"conversations": conversations})
@@ -2181,13 +2232,36 @@ def get_direct_messages(username):
             return jsonify({"error": "User not found."}), 404
 
         target = user["username"]
+        now = datetime.now(timezone.utc).isoformat()
 
-        rows = db.execute("""
-            SELECT id, sender_username, recipient_username, body, image_url, created_at
-            FROM direct_messages
+        db.execute("""
+            UPDATE direct_messages
+            SET delivered_at = CASE
+                    WHEN LOWER(recipient_username)=LOWER(?)
+                    THEN COALESCE(delivered_at, ?)
+                    ELSE delivered_at
+                END,
+                read_at = CASE
+                    WHEN LOWER(recipient_username)=LOWER(?)
+                    THEN ?
+                    ELSE read_at
+                END
             WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
                OR (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
-            ORDER BY created_at ASC, id ASC
+        """, (current, now, current, now, current, target, target, current))
+
+        rows = db.execute("""
+            SELECT
+                dm.id, dm.sender_username, dm.recipient_username,
+                dm.body, dm.image_url, dm.created_at,
+                dm.delivered_at, dm.read_at, dm.reply_to_id,
+                parent.body AS reply_text,
+                parent.sender_username AS reply_sender
+            FROM direct_messages dm
+            LEFT JOIN direct_messages parent ON parent.id = dm.reply_to_id
+            WHERE (LOWER(dm.sender_username)=LOWER(?) AND LOWER(dm.recipient_username)=LOWER(?))
+               OR (LOWER(dm.sender_username)=LOWER(?) AND LOWER(dm.recipient_username)=LOWER(?))
+            ORDER BY dm.created_at ASC, dm.id ASC
             LIMIT 500
         """, (current, target, target, current)).fetchall()
 
@@ -2200,6 +2274,11 @@ def get_direct_messages(username):
             "text": row["body"],
             "imageUrl": row["image_url"],
             "createdAt": row["created_at"],
+            "deliveredAt": row["delivered_at"],
+            "readAt": row["read_at"],
+            "replyToId": row["reply_to_id"],
+            "replyText": row["reply_text"],
+            "replySender": row["reply_sender"],
         } for row in rows]
     })
 
@@ -2244,11 +2323,23 @@ def send_direct_message(username):
         if settings and not bool(settings["allow_messages"]):
             return jsonify({"error": "This user does not accept messages."}), 403
 
+        reply_to_id = str(data.get("replyToId") or "").strip() or None
+        if reply_to_id:
+            parent = db.execute("""
+                SELECT id FROM direct_messages
+                WHERE id=? AND (
+                    (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+                    OR (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+                )
+            """, (reply_to_id, current, target, target, current)).fetchone()
+            if not parent:
+                return jsonify({"error": "Reply message not found in this chat."}), 404
+
         db.execute("""
             INSERT INTO direct_messages
-                (id, sender_username, recipient_username, body, image_url, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (message_id, current, target, body, image_url, now))
+                (id, sender_username, recipient_username, body, image_url, created_at, reply_to_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (message_id, current, target, body, image_url, now, reply_to_id))
         _people_notification(db, target, current, "message", message_id, now)
 
     return jsonify({
@@ -2260,8 +2351,108 @@ def send_direct_message(username):
             "text": body,
             "imageUrl": image_url,
             "createdAt": now,
+                "replyToId": reply_to_id,
+                "deliveredAt": None,
+                "readAt": None,
         },
     }), 201
+
+
+
+
+@app.delete("/api/messages/<username>/<message_id>")
+def unsend_direct_message(username, message_id):
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to unsend messages."}), 401
+
+    target = username.strip().lstrip("@")
+    if not target or target.lower() == current.lower():
+        return jsonify({"error": "Invalid chat."}), 400
+
+    with get_db() as db:
+        existing = db.execute(
+            """
+            SELECT id FROM direct_messages
+            WHERE id=?
+              AND LOWER(sender_username)=LOWER(?)
+              AND LOWER(recipient_username)=LOWER(?)
+            """,
+            (message_id, current, target),
+        ).fetchone()
+
+        if not existing:
+            return jsonify({"error": "Message not found or you cannot unsend it."}), 404
+
+        db.execute(
+            "UPDATE direct_messages SET reply_to_id=NULL WHERE reply_to_id=?",
+            (message_id,),
+        )
+        db.execute(
+            """
+            DELETE FROM direct_messages
+            WHERE id=?
+              AND LOWER(sender_username)=LOWER(?)
+              AND LOWER(recipient_username)=LOWER(?)
+            """,
+            (message_id, current, target),
+        )
+
+    return jsonify({"ok": True, "messageId": message_id})
+
+
+@app.post("/api/messages/<username>/typing")
+def update_chat_typing(username):
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to use chat."}), 401
+
+    target = username.strip().lstrip("@")
+    if not target or target.lower() == current.lower():
+        return jsonify({"error": "Invalid chat user."}), 400
+
+    data = request.get_json(silent=True) or {}
+    typing = bool(data.get("typing"))
+    now = datetime.now(timezone.utc)
+    expires = (now + timedelta(seconds=8) if typing else now).isoformat()
+
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE username=? COLLATE NOCASE",
+            (target,),
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
+        target = user["username"]
+        db.execute("""
+            INSERT INTO direct_message_typing
+                (sender_username, recipient_username, expires_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(sender_username, recipient_username)
+            DO UPDATE SET expires_at=excluded.expires_at
+        """, (current, target, expires))
+
+    return jsonify({"ok": True})
+
+
+@app.get("/api/messages/<username>/typing")
+def get_chat_typing(username):
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to use chat."}), 401
+
+    target = username.strip().lstrip("@")
+    now = datetime.now(timezone.utc).isoformat()
+
+    with get_db() as db:
+        row = db.execute("""
+            SELECT expires_at FROM direct_message_typing
+            WHERE LOWER(sender_username)=LOWER(?)
+              AND LOWER(recipient_username)=LOWER(?)
+        """, (target, current)).fetchone()
+
+    return jsonify({"typing": bool(row and row["expires_at"] > now)})
 
 
 

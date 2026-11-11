@@ -83,19 +83,44 @@ export async function logoutAccount() {
 
 const originalFetch = globalThis.fetch.bind(globalThis);
 globalThis.fetch = async (input, init = {}) => {
-  const headers = new Headers(init.headers || {});
-  const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  } else {
-    headers.delete('Authorization');
-  }
   const url = typeof input === 'string' ? input : input.url;
-  const response = await originalFetch(input, { ...init, headers });
-  if (String(url).includes('/api/')) {
-    console.log('[AUTH DEBUG]', response.status, String(init.method || 'GET').toUpperCase(), String(url).split('?')[0], 'tokenSent=' + headers.has('Authorization'));
+  const urlText = String(url);
+  const isUpload = /upload|media/i.test(urlText);
+  const timeoutMs = isUpload ? 120000 : (String(init.method || 'GET').toUpperCase() === 'GET' ? 15000 : 30000);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const headers = new Headers(init.headers || {});
+    const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    } else {
+      headers.delete('Authorization');
+    }
+
+    const response = await originalFetch(input, {
+      ...init,
+      headers,
+      signal: controller.signal,
+    });
+
+    if (urlText.includes('/api/')) {
+      console.log('[AUTH DEBUG]', response.status, String(init.method || 'GET').toUpperCase(), urlText.split('?')[0], 'tokenSent=' + headers.has('Authorization'));
+    }
+
+    return response;
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error(isUpload
+        ? 'Upload में समय लग रहा है। कृपया दोबारा कोशिश करें।'
+        : 'सर्वर से जवाब आने में समय लग रहा है। कृपया दोबारा कोशिश करें।');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return response;
 };
 
 
@@ -159,6 +184,33 @@ export async function checkServer() {
     throw new Error(`Server status: ${response.status}`);
   }
   return response.json();
+}
+
+const CONTENT_CACHE_PREFIX = 'socialapp-content-cache-v1-';
+
+export async function getCachedContent(type) {
+  if (!['posts', 'stories', 'reels'].includes(type)) return null;
+  try {
+    const path = `${FileSystem.documentDirectory}${CONTENT_CACHE_PREFIX}${type}.json`;
+    const raw = await FileSystem.readAsStringAsync(path);
+    const cached = JSON.parse(raw);
+    return Array.isArray(cached.items) ? cached.items : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function saveCachedContent(type, items) {
+  if (!['posts', 'stories', 'reels'].includes(type)) return;
+  try {
+    const path = `${FileSystem.documentDirectory}${CONTENT_CACHE_PREFIX}${type}.json`;
+    await FileSystem.writeAsStringAsync(
+      path,
+      JSON.stringify({ savedAt: Date.now(), items })
+    );
+  } catch (error) {
+    console.log('CONTENT_CACHE_SAVE_ERROR:', type, error?.message);
+  }
 }
 
 export async function loadContent(type) {
@@ -243,7 +295,7 @@ export async function loadContent(type) {
     ];
   }
 
-  return items.map(item => ({
+  const normalizedItems = items.map(item => ({
     ...item,
     avatarUrl: item.avatarUrl
       ? (item.avatarUrl.startsWith("http") ? item.avatarUrl : API_BASE_URL + item.avatarUrl)
@@ -253,6 +305,8 @@ export async function loadContent(type) {
       : null,
     likes: item.likes ?? '0',
   }));
+  void saveCachedContent(type, normalizedItems);
+  return normalizedItems;
 }
 export async function uploadContent(type, asset, caption = '', groupId = '') {
   const extension = (
@@ -323,6 +377,34 @@ export async function uploadContent(type, asset, caption = '', groupId = '') {
 
 
 // SOCIALAPP_PROFILE_CLIENT_API_V1
+const PROFILE_CACHE_PREFIX = 'socialapp-profile-cache-v1-';
+
+function profileCachePath(username, viewer) {
+  const key = encodeURIComponent(`${username}::${viewer}`);
+  return `${FileSystem.documentDirectory}${PROFILE_CACHE_PREFIX}${key}.json`;
+}
+
+export async function getCachedProfile(username = 'you', viewer = 'you') {
+  try {
+    const raw = await FileSystem.readAsStringAsync(profileCachePath(username, viewer));
+    const cached = JSON.parse(raw);
+    return cached?.profile ? cached : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function saveCachedProfile(username, viewer, data) {
+  try {
+    await FileSystem.writeAsStringAsync(
+      profileCachePath(username, viewer),
+      JSON.stringify({ ...data, cachedAt: Date.now() })
+    );
+  } catch (error) {
+    console.log('PROFILE_CACHE_SAVE_ERROR:', error?.message);
+  }
+}
+
 export async function loadProfile(username = 'you', viewer = 'you') {
   const response = await fetch(
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}?viewer=${encodeURIComponent(viewer)}`
@@ -332,6 +414,7 @@ export async function loadProfile(username = 'you', viewer = 'you') {
   if (data.profile?.avatarUrl && !data.profile.avatarUrl.startsWith('http')) {
     data.profile.avatarUrl = `${API_BASE_URL}${data.profile.avatarUrl}`;
   }
+  await saveCachedProfile(username, viewer, data);
   return data;
 }
 
@@ -681,6 +764,41 @@ export async function loadDirectMessages(username) {
   return data.messages || [];
 }
 
+export async function unsendDirectMessage(username, messageId) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/${encodeURIComponent(messageId)}`,
+    { method: 'DELETE' }
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not unsend message.');
+  }
+  return data;
+}
+
+export async function updateChatTyping(username, typing) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/typing`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ typing: !!typing }),
+    }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not update typing status.');
+  return data;
+}
+
+export async function loadChatTyping(username) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/typing`
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load typing status.');
+  return !!data.typing;
+}
+
 export async function uploadChatPhoto(asset) {
   if (!asset?.uri) throw new Error('Please select a photo first.');
   const cleanUri = asset.uri.split('?')[0];
@@ -705,13 +823,13 @@ export async function uploadChatPhoto(asset) {
   return data.imageUrl.startsWith('http') ? data.imageUrl : `${API_BASE_URL}${data.imageUrl}`;
 }
 
-export async function sendDirectMessage(username, text, imageUrl = null) {
+export async function sendDirectMessage(username, text, imageUrl = null, replyToId = null) {
   const response = await fetch(
     `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, imageUrl }),
+      body: JSON.stringify({ text, imageUrl, replyToId }),
     }
   );
   const data = await response.json();
