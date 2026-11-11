@@ -1454,10 +1454,67 @@ export default function App() {
   const [chatBusy, setChatBusy] = React.useState(false);
   const [chatError, setChatError] = React.useState('');
   const [chatSearchQuery, setChatSearchQuery] = React.useState('');
+  const [newChatComposerOpen, setNewChatComposerOpen] = React.useState(false);
+  const directMessagesScrollRef = React.useRef(null);
+
+  const [chatPeopleResults, setChatPeopleResults] = React.useState([]);
+  const [chatPeopleBusy, setChatPeopleBusy] = React.useState(false);
+  const [chatPeopleError, setChatPeopleError] = React.useState('');
+
+  React.useEffect(() => {
+    const term = newChatUsername.trim();
+    if (!messagesOpen || selectedChatUser || !newChatComposerOpen || term.length < 2) {
+      setChatPeopleResults([]);
+      setChatPeopleBusy(false);
+      setChatPeopleError('');
+      return undefined;
+    }
+
+    let active = true;
+    const timer = setTimeout(async () => {
+      setChatPeopleBusy(true);
+      setChatPeopleError('');
+      try {
+        const results = await searchUsers(term);
+        if (active) setChatPeopleResults(results);
+      } catch (error) {
+        if (active) {
+          setChatPeopleResults([]);
+          setChatPeopleError(error?.message || 'People search failed.');
+        }
+      } finally {
+        if (active) setChatPeopleBusy(false);
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [newChatUsername, messagesOpen, selectedChatUser, newChatComposerOpen]);
+
+
+  const closeMessages = () => {
+    setMessagesOpen(false);
+    setNewChatComposerOpen(false);
+    setNewChatUsername('');
+    setChatPeopleResults([]);
+    setChatPeopleBusy(false);
+    setChatPeopleError('');
+    setChatEmojiOpen(false);
+  };
 
   const openMessages = async () => {
     setMessagesOpen(true);
     setSelectedChatUser('');
+    setChatSearchQuery('');
+    setNewChatUsername('');
+    setNewChatComposerOpen(false);
+    setChatPeopleResults([]);
+    setChatPeopleError('');
+    setChatDraft('');
+    setChatMediaDraft(null);
+    setChatEmojiOpen(false);
     setChatError('');
     setChatBusy(true);
     try {
@@ -1478,6 +1535,9 @@ export default function App() {
     setSelectedChatUser(target);
     setNewChatUsername(target);
     setDirectMessages([]);
+    setChatDraft('');
+    setChatMediaDraft(null);
+    setChatEmojiOpen(false);
     setChatError('');
     setChatBusy(true);
     try {
@@ -4600,74 +4660,135 @@ const refreshProfile = React.useCallback(async () => {
       <Modal
         visible={messagesOpen}
         animationType="slide"
-        onRequestClose={() => setMessagesOpen(false)}
+        onRequestClose={closeMessages}
       >
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}><SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F1F1', backgroundColor: '#FFFFFF' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', backgroundColor: '#FFFFFF', minHeight: 76 }}>
             {selectedChatUser ? (
               <TouchableOpacity onPress={() => { setSelectedChatUser(''); setChatError(''); }} style={{ paddingRight: 14 }}>
                 <Ionicons name="arrow-back" size={25} color="#171717" />
               </TouchableOpacity>
             ) : null}
             {selectedChatUser ? (
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#E7F3FF', alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ color: '#087BD0', fontSize: 17, fontWeight: '800' }}>{selectedChatUser.slice(0, 1).toUpperCase()}</Text>
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#EAF2FA', borderWidth: 1, borderColor: '#E5EDF4', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase())?.avatarUrl ? (
+                    <Image
+                      source={{ uri: String(messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl).startsWith('http') ? messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl : `https://bhumi-social-app-1.onrender.com${messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl}` }}
+                      style={{ width: 48, height: 48, borderRadius: 24 }}
+                    />
+                  ) : (
+                    <Text style={{ color: '#1685E8', fontSize: 18, fontWeight: '800' }}>{selectedChatUser.slice(0, 1).toUpperCase()}</Text>
+                  )}
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 17, fontWeight: '700', color: '#171717' }}>{selectedChatUser}</Text>
-                  <Text style={{ fontSize: 12, color: '#777777', marginTop: 2 }}>Direct message</Text>
+                  <Text numberOfLines={1} style={{ fontSize: 18, fontWeight: '800', color: '#171717', letterSpacing: -0.3 }}>{messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase())?.displayName || selectedChatUser}</Text>
+                  <Text style={{ fontSize: 12, color: '#8A929B', marginTop: 3 }}>@{selectedChatUser}</Text>
                 </View>
               </View>
             ) : (
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 26, fontWeight: '900', color: '#171717', letterSpacing: -0.5 }}>Messages</Text>
-                <Text style={{ fontSize: 12, color: '#777777', marginTop: 2 }}>Your conversations</Text>
+                <Text style={{ fontSize: 27, fontWeight: '900', color: '#171717', letterSpacing: -0.9 }}>Messages</Text>
+                <Text style={{ fontSize: 12, color: '#888888', marginTop: 2 }}>Messages and chats</Text>
               </View>
             )}
-            <TouchableOpacity onPress={() => setMessagesOpen(false)} accessibilityLabel="Close messages">
+            {!selectedChatUser ? (
+              <TouchableOpacity
+                onPress={() => setNewChatComposerOpen(v => !v)}
+                accessibilityLabel="New message"
+                style={{ paddingHorizontal: 12 }}
+              >
+                <Ionicons name="create-outline" size={25} color="#171717" />
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity onPress={closeMessages} accessibilityLabel="Close messages">
               <Ionicons name="close" size={27} color="#171717" />
             </TouchableOpacity>
           </View>
 
           {!selectedChatUser ? (
-            <View style={{ flex: 1, paddingHorizontal: 18, paddingTop: 20, backgroundColor: '#FFFFFF' }}>
-              <Text style={{ color: '#555555', marginBottom: 8 }}>Start a chat using a username</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-                <TextInput
-                  value={newChatUsername}
-                  onChangeText={setNewChatUsername}
-                  placeholder="Enter username"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  style={{ flex: 1, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, color: '#222222' }}
-                />
-                <TouchableOpacity
-                  onPress={() => openDirectChat(newChatUsername)}
-                  style={{ backgroundColor: '#0095F6', borderRadius: 10, paddingHorizontal: 15, paddingVertical: 12 }}
-                >
-                  <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Open</Text>
-                </TouchableOpacity>
-              </View>
+            <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 12, backgroundColor: '#FFFFFF' }}>
               {chatError ? <Text style={{ color: '#D93025', marginBottom: 10 }}>{chatError}</Text> : null}
               {chatBusy ? <Text style={{ color: '#777777', paddingVertical: 12 }}>Loading messages...</Text> : null}
-              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F7', borderRadius: 16, paddingHorizontal: 14, marginBottom: 14, borderWidth: 1, borderColor: '#EEEEF0' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F4F6F8', borderRadius: 18, paddingHorizontal: 16, marginBottom: 16, borderWidth: 1, borderColor: '#EEF0F2', minHeight: 50 }}>
                     <Ionicons name="search-outline" size={20} color="#777777" />
                     <TextInput
                       value={chatSearchQuery}
                       onChangeText={setChatSearchQuery}
-                      placeholder="Search conversations"
+                      placeholder="Search"
                       autoCapitalize="none"
                       autoCorrect={false}
                       style={{ flex: 1, paddingHorizontal: 9, paddingVertical: 11, color: '#171717' }}
                     />
                     {chatSearchQuery ? <TouchableOpacity onPress={() => setChatSearchQuery('')}><Ionicons name="close-circle" size={19} color="#777777" /></TouchableOpacity> : null}
                   </View>
-                  <ScrollView>
+              {newChatComposerOpen ? (
+                <View style={{ marginBottom: 16, backgroundColor: '#FFFFFF', borderRadius: 20, padding: 14, borderWidth: 1, borderColor: '#ECEFF2' }}>
+                  <Text style={{ color: '#171717', fontSize: 13, fontWeight: '800', letterSpacing: 0.8, marginBottom: 12 }}>NEW MESSAGE</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F4F6F8', borderRadius: 15, paddingHorizontal: 13, borderWidth: 1, borderColor: '#EDF0F2' }}>
+                    <Ionicons name="search-outline" size={19} color="#777777" />
+                    <TextInput
+                      value={newChatUsername}
+                      onChangeText={setNewChatUsername}
+                      placeholder="Search people by name or username"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      autoFocus
+                      style={{ flex: 1, paddingHorizontal: 10, paddingVertical: 12, color: '#171717' }}
+                    />
+                    {newChatUsername ? (
+                      <TouchableOpacity onPress={() => setNewChatUsername('')} accessibilityLabel="Clear people search">
+                        <Ionicons name="close-circle" size={19} color="#777777" />
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                  {chatPeopleBusy ? (
+                    <Text style={{ color: '#888888', padding: 12 }}>Searching people...</Text>
+                  ) : null}
+                  {chatPeopleError ? (
+                    <Text style={{ color: '#D93025', padding: 10 }}>{chatPeopleError}</Text>
+                  ) : null}
+                  {chatPeopleResults.map((person, index) => (
+                    <TouchableOpacity
+                      key={String(person.username || index)}
+                      onPress={() => {
+                        setNewChatComposerOpen(false);
+                        setNewChatUsername('');
+                        setChatPeopleResults([]);
+                        openDirectChat(person.username);
+                      }}
+                      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: '#F1F3F5', gap: 13 }}
+                    >
+                      <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#EAF2FA', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                        {person.avatarUrl ? (
+                          <Image
+                            source={{ uri: String(person.avatarUrl).startsWith('http') ? person.avatarUrl : `https://bhumi-social-app-1.onrender.com${person.avatarUrl}` }}
+                            style={{ width: 52, height: 52, borderRadius: 26 }}
+                          />
+                        ) : (
+                          <Text style={{ color: '#333333', fontSize: 19, fontWeight: '800' }}>{String(person.username || '?').slice(0, 1).toUpperCase()}</Text>
+                        )}
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text numberOfLines={1} style={{ color: '#171717', fontSize: 14, fontWeight: '700' }}>{person.displayName || person.username}</Text>
+                        <Text numberOfLines={1} style={{ color: '#888888', fontSize: 12, marginTop: 3 }}>@{person.username}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={18} color="#A0A0A0" />
+                    </TouchableOpacity>
+                  ))}
+                  {newChatUsername.trim().length >= 2 && !chatPeopleBusy && !chatPeopleError && chatPeopleResults.length === 0 ? (
+                    <Text style={{ color: '#888888', textAlign: 'center', padding: 14 }}>No people found</Text>
+                  ) : null}
+                  {newChatUsername.trim().length < 2 ? (
+                    <Text style={{ color: '#999999', fontSize: 12, paddingTop: 9 }}>Type at least 2 characters to find people</Text>
+                  ) : null}
+                </View>
+              ) : null}
+              <ScrollView keyboardShouldPersistTaps="handled">
                 {messageConversations.filter(conversation => {
                   const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
                   const term = chatSearchQuery.trim().toLowerCase();
-                  return !term || String(username).toLowerCase().includes(term) || String(conversation.lastMessage || '').toLowerCase().includes(term);
+                  return !term || String(username).toLowerCase().includes(term) || String(conversation.displayName || '').toLowerCase().includes(term) || String(conversation.lastMessage || '').toLowerCase().includes(term);
                 }).map((conversation, index) => {
                   const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
                   if (!username) return null;
@@ -4675,66 +4796,101 @@ const refreshProfile = React.useCallback(async () => {
                     <TouchableOpacity
                       key={String(username) + index}
                       onPress={() => openDirectChat(username)}
-                      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F4F4F4', gap: 14 }}
+                      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F0F2F4', gap: 14 }}
                     >
-                      <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#F1F3F5', borderWidth: 1, borderColor: '#E8E8E8', alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ fontSize: 22, fontWeight: '900', color: '#333333' }}>{String(username).slice(0, 1).toUpperCase()}</Text>
+                      <View style={{ width: 62, height: 62, borderRadius: 31, backgroundColor: '#EAF2FA', borderWidth: 1, borderColor: '#E8EDF2', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                        {conversation.avatarUrl ? (
+                          <Image
+                            source={{ uri: String(conversation.avatarUrl).startsWith('http') ? conversation.avatarUrl : `https://bhumi-social-app-1.onrender.com${conversation.avatarUrl}` }}
+                            style={{ width: 62, height: 62, borderRadius: 31 }}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Text style={{ fontSize: 22, fontWeight: '900', color: '#333333' }}>{String(username).slice(0, 1).toUpperCase()}</Text>
+                        )}
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 16, fontWeight: '800', color: '#171717' }}>{username}</Text>
+                        <Text numberOfLines={1} style={{ fontSize: 15, fontWeight: '700', color: '#171717' }}>{conversation.displayName || username}</Text>
                         <Text numberOfLines={1} style={{ color: '#777777', marginTop: 5, fontSize: 13 }}>{conversation.lastMessage || 'Start a conversation'}</Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={18} color="#B0B0B0" />
+                      <View style={{ alignItems: 'flex-end', justifyContent: 'flex-start', minWidth: 48, paddingTop: 3 }}>
+                        <Text style={{ color: '#8E8E8E', fontSize: 11 }}>
+                          {conversation.lastMessageAt ? (() => {
+                            const date = new Date(conversation.lastMessageAt);
+                            const diff = Math.max(0, Date.now() - date.getTime());
+                            const minutes = Math.floor(diff / 60000);
+                            if (minutes < 1) return 'अभी';
+                            if (minutes < 60) return `${minutes}m`;
+                            if (minutes < 1440) return `${Math.floor(minutes / 60)}h`;
+                            if (minutes < 2880) return 'कल';
+                            return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+                          })() : ''}
+                        </Text>
+
+                      </View>
                     </TouchableOpacity>
                   );
                 })}
-                {!chatBusy && messageConversations.length === 0 && !chatError ? (
-                  <Text style={{ color: '#777777', textAlign: 'center', padding: 22 }}>No conversations yet. Enter a username above to start chatting.</Text>
+                {!chatBusy && !chatError && messageConversations.filter(conversation => {
+                  const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
+                  const term = chatSearchQuery.trim().toLowerCase();
+                  return !term || String(username).toLowerCase().includes(term) || String(conversation.displayName || '').toLowerCase().includes(term) || String(conversation.lastMessage || '').toLowerCase().includes(term);
+                }).length === 0 ? (
+                  <Text style={{ color: '#777777', textAlign: 'center', padding: 22 }}>
+                    {chatSearchQuery.trim() ? 'No results found' : 'No conversations yet. Start a new chat.'}
+                  </Text>
                 ) : null}
               </ScrollView>
             </View>
           ) : (
             <View style={{ flex: 1 }}>
               <ScrollView
+                ref={directMessagesScrollRef}
                 style={{ flex: 1 }}
-                contentContainerStyle={{ padding: 14, flexGrow: 1, justifyContent: 'flex-end' }}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
+                onContentSizeChange={() => directMessagesScrollRef.current?.scrollToEnd({ animated: true })}
+                contentContainerStyle={{ paddingHorizontal: 14, paddingVertical: 16, flexGrow: 1, justifyContent: 'flex-end' }}
               >
+                {chatBusy && directMessages.length === 0 ? (
+                  <Text style={{ color: '#888888', textAlign: 'center', padding: 24 }}>Loading messages...</Text>
+                ) : null}
                 {directMessages.map((message, index) => {
                   const mine = String(message.sender || '').toLowerCase() === String(authSession?.username || '').toLowerCase();
                   return (
-                    <View key={String(message.id || index)} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: mine ? '#1685E5' : '#F1F3F5', borderRadius: 20, borderTopRightRadius: mine ? 6 : 20, borderTopLeftRadius: mine ? 20 : 6, paddingHorizontal: 15, paddingVertical: 11, marginVertical: 6 }}>
-                      {message.imageUrl ? <Image source={{ uri: message.imageUrl.startsWith('http') ? message.imageUrl : `https://bhumi-social-app-1.onrender.com${message.imageUrl}` }} style={{ width: 210, height: 210, borderRadius: 10, marginBottom: message.text ? 6 : 0 }} resizeMode="cover" /> : null}
+                    <View key={String(message.id || index)} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: mine ? '#1685E8' : '#F1F3F5', borderRadius: 22, borderTopRightRadius: mine ? 7 : 22, borderTopLeftRadius: mine ? 22 : 7, paddingHorizontal: 16, paddingVertical: 12, marginVertical: 6 }}>
+                      {message.imageUrl ? <Image source={{ uri: message.imageUrl.startsWith('http') ? message.imageUrl : `https://bhumi-social-app-1.onrender.com${message.imageUrl}` }} style={{ width: 230, height: 230, borderRadius: 14, marginBottom: message.text ? 7 : 0 }} resizeMode="cover" /> : null}
                       {message.text ? <Text style={{ color: mine ? '#FFFFFF' : '#262626', fontSize: 15, lineHeight: 21 }}>{message.text}</Text> : null}
-                      <Text style={{ color: mine ? '#EAF5FF' : '#777777', fontSize: 10, marginTop: 5 }}>{message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</Text>
+                      <Text style={{ color: mine ? '#EAF5FF' : '#89929C', fontSize: 10, marginTop: 6, alignSelf: 'flex-end', letterSpacing: 0.2 }}>{message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</Text>
                     </View>
                   );
                 })}
                 {!chatBusy && directMessages.length === 0 && !chatError ? (
-                  <Text style={{ color: '#777777', textAlign: 'center', padding: 20 }}>No messages yet. Say hello!</Text>
+                  <Text style={{ color: '#929BA5', textAlign: 'center', paddingHorizontal: 24, paddingVertical: 36, fontSize: 14, fontWeight: '500' }}>No messages yet. Say hello! 👋</Text>
                 ) : null}
               </ScrollView>
-              {chatError ? <Text style={{ color: '#D93025', paddingHorizontal: 12, paddingTop: 6 }}>{chatError}</Text> : null}
+              {chatError ? <Text style={{ color: '#D93025', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4, fontSize: 12 }}>{chatError}</Text> : null}
               <View>
                             {chatMediaDraft ? (
-                              <View style={{ paddingHorizontal: 12, paddingTop: 8, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                                <Image source={{ uri: chatMediaDraft.uri }} style={{ width: 64, height: 64, borderRadius: 8 }} />
-                                <Text style={{ flex: 1, color: '#555555' }}>Photo selected</Text>
+                              <View style={{ marginHorizontal: 14, marginTop: 10, marginBottom: 4, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F5F7F9', borderRadius: 16, borderWidth: 1, borderColor: '#EAEFF3' }}>
+                                <Image source={{ uri: chatMediaDraft.uri }} style={{ width: 72, height: 72, borderRadius: 12, backgroundColor: '#E8EDF2' }} />
+                                <Text style={{ flex: 1, color: '#303943', fontSize: 13, fontWeight: '600' }}>Photo ready to send</Text>
                                 <TouchableOpacity onPress={() => setChatMediaDraft(null)}><Ionicons name="close-circle" size={24} color="#D93025" /></TouchableOpacity>
                               </View>
                             ) : null}
                             {chatEmojiOpen ? (
-                              <View style={{ flexDirection: 'row', flexWrap: 'wrap', padding: 12, gap: 10, backgroundColor: '#FAFAFB', borderTopWidth: 1, borderTopColor: '#F0F0F0' }}>
+                              <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingVertical: 14, gap: 14, backgroundColor: '#F7F9FB', borderTopWidth: 1, borderTopColor: '#EDF0F3' }}>
                                 {['😀','😂','🥰','😍','😊','😭','😎','🙏','👍','❤️','🔥','🎉','😘','🤔','👏','💯'].map(emoji => (
-                                  <TouchableOpacity key={emoji} onPress={() => setChatDraft(v => v + emoji)}><Text style={{ fontSize: 25 }}>{emoji}</Text></TouchableOpacity>
+                                  <TouchableOpacity key={emoji} onPress={() => setChatDraft(v => v + emoji)} style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderRadius: 12 }}><Text style={{ fontSize: 24 }}>{emoji}</Text></TouchableOpacity>
                                 ))}
                               </View>
                             ) : null}
-                            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#EEEEF2', backgroundColor: '#FFFFFF', gap: 10 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#EEF0F2', backgroundColor: '#FFFFFF', gap: 11 }}>
                               <TouchableOpacity onPress={() => chooseChatMedia(false)} accessibilityLabel="Choose photo from gallery"><Ionicons name="images-outline" size={25} color="#1685D9" /></TouchableOpacity>
                               <TouchableOpacity onPress={() => chooseChatMedia(true)} accessibilityLabel="Take a photo"><Ionicons name="camera-outline" size={25} color="#1685D9" /></TouchableOpacity>
                               <TouchableOpacity onPress={() => setChatEmojiOpen(v => !v)} accessibilityLabel="Open emoji picker"><Ionicons name="happy-outline" size={25} color="#1685D9" /></TouchableOpacity>
-                              <TextInput value={chatDraft} onChangeText={setChatDraft} placeholder="Write a message..." multiline maxLength={5000} style={{ flex: 1, maxHeight: 110, backgroundColor: '#F5F6F8', borderWidth: 1, borderColor: '#ECEEF1', borderRadius: 24, paddingHorizontal: 17, paddingVertical: 11, color: '#222222', fontSize: 15 }} />
-                              <TouchableOpacity onPress={sendChatDraft} disabled={chatBusy || (!chatDraft.trim() && !chatMediaDraft)} style={{ backgroundColor: chatBusy || (!chatDraft.trim() && !chatMediaDraft) ? '#A7D5F5' : '#0095F6', borderRadius: 24, paddingHorizontal: 16, paddingVertical: 12 }}><Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Send</Text></TouchableOpacity>
+                              <TextInput value={chatDraft} onChangeText={setChatDraft} placeholder="Message..." multiline maxLength={5000} style={{ flex: 1, maxHeight: 110, backgroundColor: '#F3F5F7', borderWidth: 1, borderColor: '#EBEEF1', borderRadius: 25, paddingHorizontal: 18, paddingVertical: 12, color: '#222222', fontSize: 15 }} />
+                              <TouchableOpacity onPress={sendChatDraft} disabled={chatBusy || (!chatDraft.trim() && !chatMediaDraft)} accessibilityLabel="Send message" style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: chatBusy || (!chatDraft.trim() && !chatMediaDraft) ? '#A7D5F5' : '#1685E8', elevation: 2 }}><Ionicons name="send" size={19} color="#FFFFFF" /></TouchableOpacity>
                             </View>
                           </View>
             </View>

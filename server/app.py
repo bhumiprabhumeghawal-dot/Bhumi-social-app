@@ -2119,12 +2119,23 @@ def get_message_conversations():
 
     with get_db() as db:
         rows = db.execute("""
-            SELECT id, sender_username, recipient_username, body, image_url, created_at
-            FROM direct_messages
-            WHERE LOWER(sender_username)=LOWER(?)
-               OR LOWER(recipient_username)=LOWER(?)
-            ORDER BY created_at DESC, id DESC
-        """, (current, current)).fetchall()
+            SELECT
+                dm.id, dm.sender_username, dm.recipient_username,
+                dm.body, dm.image_url, dm.created_at,
+                p.display_name AS other_display_name,
+                p.avatar_url AS other_avatar_url
+            FROM direct_messages dm
+            LEFT JOIN profiles p
+              ON LOWER(p.username) = LOWER(
+                CASE
+                  WHEN LOWER(dm.sender_username)=LOWER(?) THEN dm.recipient_username
+                  ELSE dm.sender_username
+                END
+              )
+            WHERE LOWER(dm.sender_username)=LOWER(?)
+               OR LOWER(dm.recipient_username)=LOWER(?)
+            ORDER BY dm.created_at DESC, dm.id DESC
+        """, (current, current, current)).fetchall()
 
     conversations = []
     seen = set()
@@ -2141,6 +2152,8 @@ def get_message_conversations():
         seen.add(key)
         conversations.append({
             "username": other,
+            "displayName": row["other_display_name"] or other,
+            "avatarUrl": row["other_avatar_url"],
             "lastMessage": row["body"] or ("📷 Photo" if row["image_url"] else ""),
             "lastMessageAt": row["created_at"],
         })
