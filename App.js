@@ -886,7 +886,8 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
         transparent
         onRequestClose={() => setCommentsOpen(false)}
       >
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+<View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' }}>
           <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 18, maxHeight: '75%' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <Text style={{ fontSize: 18, fontWeight: '600', color: '#222222' }}>Comments</Text>
@@ -923,6 +924,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
             </View>
           </View>
         </View>
+</KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -1046,7 +1048,8 @@ function PostDetailActions({ post, authSession }) {
         </TouchableOpacity>
       </View>
       <Modal visible={commentsOpen} transparent animationType="slide" onRequestClose={() => setCommentsOpen(false)}>
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+<View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' }}>
           <View style={{ backgroundColor: '#151D2E', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 18, maxHeight: '75%' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '800' }}>Comments</Text>
@@ -1074,6 +1077,7 @@ function PostDetailActions({ post, authSession }) {
             </View>
           </View>
         </View>
+</KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -3821,13 +3825,19 @@ const refreshProfile = React.useCallback(async () => {
             {(() => {
               const ownGroup = groupedStories.find(group => group.own);
               return (
-                <Story
-                  item={{ name: 'Your story', color: '#DDE7F5', own: true, uri: profile?.avatarUrl }}
-                  onPress={() => {
-                    if (ownGroup) openStoryGroup(ownGroup.items);
-                    else createStory();
-                  }}
-                />
+                <View style={{ width: 68, alignItems: 'center' }}>
+                  <Story
+                    item={{ name: 'Your story', color: '#DDE7F5', own: true, uri: profile?.avatarUrl }}
+                    onPress={() => {
+                      if (ownGroup) openStoryGroup(ownGroup.items);
+                      else createStory();
+                    }}
+                  />
+                  <TouchableOpacity onPress={createStory} accessibilityLabel="Add Status"
+                    style={{ position: 'absolute', right: 0, bottom: 17, width: 23, height: 23, borderRadius: 12, backgroundColor: '#1685D9', borderWidth: 2, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="add" size={17} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
               );
             })()}
             {groupedStories.filter(group => !group.own).map(group => (
@@ -4093,7 +4103,28 @@ const refreshProfile = React.useCallback(async () => {
                 </View>
               </View>
 
-              {!!profile.bio && !profileEditing &&
+              {!profileEditing ? (
+                <View style={{ marginBottom: 18, padding: 12, borderWidth: 1, borderColor: '#EEEEEE', borderRadius: 16 }}>
+                  <Text style={{ color: '#171717', fontSize: 15, fontWeight: '800', marginBottom: 10 }}>Your Status</Text>
+                  {(() => {
+                    const ownStoryGroup = groupedStories.find(group => group.own);
+                    return (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                          {ownStoryGroup ? (
+                            <Story item={{ ...ownStoryGroup.items[0], name: 'Your story', own: true }} onPress={() => openStoryGroup(ownStoryGroup.items)} />
+                          ) : null}
+                          <TouchableOpacity onPress={createStory} accessibilityLabel="Add Status"
+                            style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 20, backgroundColor: '#EEF6FF', flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                            <Ionicons name="add-circle" size={18} color="#1685D9" />
+                            <Text style={{ color: '#1685D9', fontWeight: '700' }}>Add Status</Text>
+                          </TouchableOpacity>
+                        </View>
+                      );
+                  })()}
+                </View>
+              ) : null}
+
+              {!!profile.bio &&
                 <Text style={{ color: '#454B60', marginBottom: 20, lineHeight: 23, fontSize: 14 }}>{profile.bio}</Text>}
 
               {profileEditing ? (
@@ -4347,8 +4378,7 @@ const refreshProfile = React.useCallback(async () => {
         </View>
       )}
 
-      {activeTab !== 'Reels' && (
-<View style={styles.bottomNav}>
+      <View style={styles.bottomNav}>
         {[
           { name: 'Home', icon: 'home-outline' },
           { name: 'Search', icon: 'search-outline' },
@@ -4366,8 +4396,6 @@ const refreshProfile = React.useCallback(async () => {
           </TouchableOpacity>
         ))}
       </View>
-
-      )}
 <Modal
         visible={!!selectedStory}
         transparent
@@ -4657,7 +4685,8 @@ const refreshProfile = React.useCallback(async () => {
           if (!accountSettingsBusy) setAccountSettingsOpen(false);
         }}
       >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+<View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}>
           <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 22 }}>
             <Text style={{ fontSize: 22, fontWeight: '800', color: '#26344D', marginBottom: 6 }}>
               Account Settings
@@ -4702,6 +4731,7 @@ const refreshProfile = React.useCallback(async () => {
             </View>
           </View>
         </View>
+</KeyboardAvoidingView>
       </Modal>
 
       {/* SOCIALAPP_CHANGE_PASSWORD_SCREEN_V1 */}
@@ -4713,7 +4743,8 @@ const refreshProfile = React.useCallback(async () => {
           if (!passwordBusy) setPasswordOpen(false);
         }}
       >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+<View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
           <View style={{ backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20 }}>
             <Text style={{ color: '#333333', fontSize: 20, fontWeight: '700', marginBottom: 18 }}>
               Change Password
@@ -4826,6 +4857,7 @@ const refreshProfile = React.useCallback(async () => {
             </View>
           </View>
         </View>
+</KeyboardAvoidingView>
       </Modal>
 
 
@@ -5126,7 +5158,8 @@ const refreshProfile = React.useCallback(async () => {
 
 
 <Modal visible={noteComposerOpen} transparent animationType="fade" onRequestClose={() => setNoteComposerOpen(false)}>
-  <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', paddingHorizontal: 24 }}>
+  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+<View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', paddingHorizontal: 24 }}>
     <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 20 }}>
       <Text style={{ fontSize: 19, fontWeight: '700', color: '#111111', marginBottom: 14 }}>Your note</Text>
       <TextInput
@@ -5158,6 +5191,7 @@ const refreshProfile = React.useCallback(async () => {
       </TouchableOpacity>
     </View>
   </View>
+</KeyboardAvoidingView>
 </Modal>
 
 <Modal visible={!!noteViewer} transparent animationType="fade" onRequestClose={() => setNoteViewer(null)}>
@@ -5199,6 +5233,22 @@ const refreshProfile = React.useCallback(async () => {
           <Text style={{ fontSize: 19, fontWeight: '800', color: '#171717' }}>{viewedProfile.displayName || viewedProfile.username}</Text>
           <Text style={{ color: '#777777', marginTop: 4 }}>@{viewedProfile.username}</Text>
           {!!viewedProfile.bio ? <Text style={{ color: '#444444', textAlign: 'center', marginTop: 14, lineHeight: 21 }}>{viewedProfile.bio}</Text> : null}
+          {(() => {
+            const viewedUsername = String(viewedProfile.username || '').trim().toLowerCase();
+            const viewedStories = serverStories.filter(item => String(item.user || item.name || '').trim().toLowerCase() === viewedUsername);
+            return (
+              <View style={{ width: '100%', marginTop: 18, padding: 12, borderWidth: 1, borderColor: '#EEEEEE', borderRadius: 16 }}>
+                <Text style={{ color: '#171717', fontSize: 15, fontWeight: '800', marginBottom: 8 }}>Status</Text>
+                {viewedStories.length ? (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                    {viewedStories.map((story, index) => (
+                      <Story key={String(story.id || story._id || index)} item={{ ...story, name: viewedProfile.displayName || viewedProfile.username, own: false }} onPress={() => openStoryGroup(viewedStories)} />
+                    ))}
+                  </ScrollView>
+                ) : <Text style={{ color: '#888888', fontSize: 13 }}>No status yet</Text>}
+              </View>
+            );
+          })()}
           <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 28, marginTop: 22 }}>
             <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 17, fontWeight: '800', color: '#171717' }}>{viewedProfile.postsCount || 0}</Text><Text style={{ color: '#777777', fontSize: 12 }}>Posts</Text></View>
             <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 17, fontWeight: '800', color: '#171717' }}>{viewedProfile.followersCount || 0}</Text><Text style={{ color: '#777777', fontSize: 12 }}>Followers</Text></View>
@@ -5213,7 +5263,7 @@ const refreshProfile = React.useCallback(async () => {
 <Modal visible={notificationsListOpen} transparent animationType="slide" onRequestClose={() => setNotificationsListOpen(false)}><View style={{flex:1,backgroundColor:"rgba(0,0,0,0.45)",justifyContent:"flex-end"}}><View style={{height:"75%",backgroundColor:"#FFFFFF",borderTopLeftRadius:22,borderTopRightRadius:22,paddingTop:18}}><View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",paddingHorizontal:18,paddingBottom:14,borderBottomWidth:1,borderBottomColor:"#EEEEEE"}}><Text style={{fontSize:20,fontWeight:"800",color:"#171717"}}>Notifications</Text><View style={{flexDirection:"row",alignItems:"center",gap:16}}>{unreadNotificationCount>0?<TouchableOpacity onPress={handleReadAllNotifications}><Text style={{color:"#1685D9",fontWeight:"700"}}>Mark all read</Text></TouchableOpacity>:null}<TouchableOpacity onPress={()=>setNotificationsListOpen(false)}><Ionicons name="close" size={27} color="#222222"/></TouchableOpacity></View></View>{notificationsLoading?<Text style={{textAlign:"center",color:"#777777",padding:25}}>Loading notifications...</Text>:<ScrollView contentContainerStyle={{paddingBottom:30}}>{notificationsList.map((item,index)=>{const actor=item.actor?"@"+item.actor:"Someone";const messages={follow_request:"sent you a follow request",follow:"started following you",follow_accepted:"accepted your follow request",follow_rejected:"declined your follow request",like:"liked your post",comment:"commented on your post",message:"sent you a message"};return <TouchableOpacity key={String(item.id||index)} onPress={()=>handleNotificationPress(item)} style={{flexDirection:"row",alignItems:"center",paddingHorizontal:18,paddingVertical:16,backgroundColor:item.isRead?"#FFFFFF":"#EFF7FF",borderBottomWidth:1,borderBottomColor:"#F0F0F0"}}><View style={{width:42,height:42,borderRadius:21,backgroundColor:"#E8F2FC",alignItems:"center",justifyContent:"center",marginRight:12}}><Ionicons name={item.kind==="like"?"heart":item.kind==="comment"?"chatbubble":item.kind==="message"?"paper-plane":"person"} size={21} color="#1685D9"/></View><View style={{flex:1}}><Text style={{color:"#222222",fontSize:14,lineHeight:20}}><Text style={{fontWeight:"800"}}>{actor}</Text>{" "}{messages[item.kind]||"sent you a notification"}</Text><Text style={{color:"#888888",fontSize:11,marginTop:5}}>{item.createdAt?new Date(item.createdAt).toLocaleString():""}</Text></View>{!item.isRead?<View style={{width:9,height:9,borderRadius:5,backgroundColor:"#1685D9",marginLeft:8}}/>:null}</TouchableOpacity>})}{!notificationsList.length?<Text style={{textAlign:"center",color:"#888888",padding:35}}>No notifications yet.</Text>:null}</ScrollView>}</View></View></Modal>
 
       <Modal visible={reelCommentsOpen} transparent animationType="slide" onRequestClose={() => setReelCommentsOpen(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' }}>
           <View style={{ height: '72%', backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 18 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
               <Text style={{ color: '#171717', fontSize: 19, fontWeight: '800' }}>Reel comments</Text>
@@ -5277,7 +5327,7 @@ const styles = StyleSheet.create({
   content: { flex: 1 },
   header: {
     height: 82,
-    marginTop: 12,
+    marginTop: 20,
     paddingTop: 12,
     paddingHorizontal: 14,
     flexDirection: 'row',
@@ -5334,8 +5384,8 @@ const styles = StyleSheet.create({
   comments: { marginHorizontal: 13, marginTop: 5, color: '#888888', fontSize: 12 },
   time: { marginHorizontal: 13, marginTop: 6, fontSize: 9, color: '#888888', letterSpacing: 0.6 },
   bottomNav: {
-    height: 62,
-    transform: [{ translateY: -28 }],
+    height: Platform.OS === 'android' ? 86 : 70,
+    paddingBottom: Platform.OS === 'android' ? 24 : 8,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#DDDDDD', flexDirection: 'row',
     alignItems: 'center', justifyContent: 'space-around',
