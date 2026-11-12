@@ -123,6 +123,14 @@ def init_db():
                 created_at TEXT NOT NULL
             )
         """)
+        for table in ("post_comments", "reel_comments"):
+            try:
+                db.execute(
+                    f"ALTER TABLE {table} ADD COLUMN approved INTEGER NOT NULL DEFAULT 1"
+                )
+            except Exception:
+                pass
+
         db.execute("""
             CREATE INDEX IF NOT EXISTS idx_reel_comments_content
             ON reel_comments(content_id, id DESC)
@@ -835,6 +843,122 @@ def unfollow_profile(username):
                         "profile": profile_json(db, target)})
 
 
+@app.get("/api/settings/restricted-accounts")
+def get_restricted_accounts():
+    actor = getattr(g, "auth_username", None)
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT r.restricted AS username,
+                   COALESCE(NULLIF(p.display_name, ''), u.username) AS display_name,
+                   p.avatar_url
+            FROM people_restrictions r
+            JOIN users u ON LOWER(u.username)=LOWER(r.restricted)
+            LEFT JOIN profiles p ON LOWER(p.username)=LOWER(u.username)
+            WHERE LOWER(r.owner)=LOWER(?)
+            ORDER BY r.created_at DESC
+        """, (actor,)).fetchall()
+
+    return jsonify({"restrictedAccounts": [
+        {"username": row["username"], "displayName": row["display_name"],
+         "avatarUrl": row["avatar_url"]}
+        for row in rows
+    ]})
+
+
+@app.post("/api/profile/<username>/restrict")
+def restrict_account(username):
+    actor = getattr(g, "auth_username", None)
+    target = username.strip().lstrip("@")
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+    if not target or target.lower() == actor.lower():
+        return jsonify({"error": "Invalid account."}), 400
+
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (target,)
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+        target = user["username"]
+        db.execute("""
+            INSERT OR IGNORE INTO people_restrictions
+            (owner, restricted, created_at) VALUES (?, ?, ?)
+        """, (actor, target, datetime.now(timezone.utc).isoformat()))
+
+    return jsonify({"ok": True, "restricted": True, "username": target})
+
+
+@app.delete("/api/profile/<username>/restrict")
+def unrestrict_account(username):
+    actor = getattr(g, "auth_username", None)
+    target = username.strip().lstrip("@")
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+    if not target or target.lower() == actor.lower():
+        return jsonify({"error": "Invalid account."}), 400
+
+    with get_db() as db:
+        cursor = db.execute("""
+            DELETE FROM people_restrictions
+            WHERE LOWER(owner)=LOWER(?) AND LOWER(restricted)=LOWER(?)
+        """, (actor, target))
+        if cursor.rowcount == 0:
+            return jsonify({"error": "Account is not restricted."}), 404
+
+    return jsonify({"ok": True, "restricted": False, "username": target})
+
+
+@app.get("/api/settings/blocked-accounts")
+def get_blocked_accounts():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT b.blocked AS username,
+                   COALESCE(NULLIF(p.display_name, ''), u.username) AS display_name,
+                   p.avatar_url
+            FROM people_blocks b
+            JOIN users u ON LOWER(u.username)=LOWER(b.blocked)
+            LEFT JOIN profiles p ON LOWER(p.username)=LOWER(u.username)
+            WHERE LOWER(b.blocker)=LOWER(?)
+            ORDER BY b.created_at DESC
+        """, (username,)).fetchall()
+
+    return jsonify({"blockedAccounts": [
+        {"username": row["username"], "displayName": row["display_name"],
+         "avatarUrl": row["avatar_url"]}
+        for row in rows
+    ]})
+
+
+@app.delete("/api/settings/blocked-accounts/<username>")
+def unblock_account(username):
+    actor = getattr(g, "auth_username", None)
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+
+    target = username.strip().lstrip("@")
+    if not target or target.lower() == actor.lower():
+        return jsonify({"error": "Invalid account."}), 400
+
+    with get_db() as db:
+        cursor = db.execute(
+            "DELETE FROM people_blocks WHERE LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?)",
+            (actor, target),
+        )
+        if cursor.rowcount == 0:
+            return jsonify({"error": "Account is not in your blocked list."}), 404
+
+    return jsonify({"ok": True, "username": target})
+
+
 @app.get("/api/follow-requests")
 def get_follow_requests():
     actor = getattr(g, "auth_username", None)
@@ -1126,48 +1250,7 @@ def get_post_by_id(content_id):
 
 @app.get("/api/posts/<int:content_id>/comments")
 def list_post_comments(content_id):
-    with get_db() as db:
-        post = db.execute(
-            "SELECT id FROM content WHERE id=? AND kind='posts'",
-            (content_id,),
-        ).fetchone()
-        if post is None:
-            return jsonify({"error": "Post not found"}), 404
-
-        rows = db.execute(
-            """SELECT id, username, text, created_at
-               FROM post_comments WHERE content_id=?
-               ORDER BY id ASC""",
-            (content_id,),
-        ).fetchall()
-
-    return jsonify({
-        "ok": True,
-        "comments": [
-            {
-                "id": row["id"],
-                "username": row["username"],
-                "text": row["text"],
-                "createdAt": row["created_at"],
-            }
-            for row in rows
-        ],
-    })
-
-
-@app.post("/api/posts/<int:content_id>/comments")
-def create_post_comment(content_id):
-    data = request.get_json(silent=True) or {}
-    username = g.auth_username
-    text = str(data.get("text", "")).strip()
-
-    if not text:
-        return jsonify({"error": "Comment cannot be empty"}), 400
-    if len(text) > 2000:
-        return jsonify({"error": "Comment is too long"}), 400
-
-    now = datetime.now(timezone.utc).isoformat()
-
+    viewer = getattr(g, "auth_username", None) or ""
     with get_db() as db:
         post = db.execute(
             "SELECT id, username FROM content WHERE id=? AND kind='posts'",
@@ -1176,29 +1259,105 @@ def create_post_comment(content_id):
         if post is None:
             return jsonify({"error": "Post not found"}), 404
 
-        cursor = db.execute(
-            """INSERT INTO post_comments
-               (content_id, username, text, created_at)
-               VALUES (?, ?, ?, ?)""",
-            (content_id, username, text, now),
-        )
-        row = db.execute(
-            "SELECT id, username, text, created_at FROM post_comments WHERE id=?",
-            (cursor.lastrowid,),
+        rows = db.execute("""
+            SELECT id, username, text, created_at,
+                   COALESCE(approved, 1) AS approved
+            FROM post_comments
+            WHERE content_id=?
+              AND (
+                  COALESCE(approved, 1)=1
+                  OR LOWER(username)=LOWER(?)
+                  OR LOWER(?)=LOWER(?)
+              )
+            ORDER BY id ASC
+        """, (content_id, viewer, viewer, post["username"])).fetchall()
+
+        return jsonify({
+            "ok": True,
+            "comments": [{
+                "id": row["id"],
+                "username": row["username"],
+                "text": row["text"],
+                "createdAt": row["created_at"],
+                "isPending": not bool(row["approved"]),
+                "canApprove": bool(viewer) and viewer.lower() == post["username"].lower(),
+            } for row in rows],
+        })
+
+
+@app.post("/api/posts/<int:content_id>/comments")
+def create_post_comment(content_id):
+    username = g.auth_username
+    data = request.get_json(silent=True) or {}
+    text = str(data.get("text", "")).strip()
+
+    if not text:
+        return jsonify({"error": "Comment cannot be empty"}), 400
+    if len(text) > 2000:
+        return jsonify({"error": "Comment is too long"}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        post = db.execute(
+            "SELECT id, username FROM content WHERE id=? AND kind='posts'",
+            (content_id,),
         ).fetchone()
-        _people_notification(db, post["username"], username, "comment", cursor.lastrowid, now)
+        if post is None:
+            return jsonify({"error": "Post not found"}), 404
 
-    return jsonify({
-        "ok": True,
-        "comment": {
-            "id": row["id"],
-            "username": row["username"],
-            "text": row["text"],
-            "createdAt": row["created_at"],
-        },
-    }), 201
+        restricted = db.execute("""
+            SELECT 1 FROM people_restrictions
+            WHERE LOWER(owner)=LOWER(?) AND LOWER(restricted)=LOWER(?)
+        """, (post["username"], username)).fetchone()
+        approved = 0 if restricted else 1
 
+        cursor = db.execute("""
+            INSERT INTO post_comments
+                (content_id, username, text, created_at, approved)
+            VALUES (?, ?, ?, ?, ?)
+        """, (content_id, username, text, now, approved))
 
+        row = db.execute("""
+            SELECT id, username, text, created_at, approved
+            FROM post_comments WHERE id=?
+        """, (cursor.lastrowid,)).fetchone()
+
+        if approved:
+            _people_notification(db, post["username"], username, "comment", cursor.lastrowid, now)
+
+        return jsonify({
+            "ok": True,
+            "comment": {
+                "id": row["id"],
+                "username": row["username"],
+                "text": row["text"],
+                "createdAt": row["created_at"],
+                "isPending": not bool(row["approved"]),
+                "canApprove": False,
+            },
+        }), 201
+
+@app.post("/api/posts/<int:content_id>/comments/<int:comment_id>/approve")
+def approve_post_comment(content_id, comment_id):
+    owner = g.auth_username
+    with get_db() as db:
+        post = db.execute(
+            "SELECT username FROM content WHERE id=? AND kind='posts'",
+            (content_id,),
+        ).fetchone()
+        if post is None:
+            return jsonify({"error": "Post not found"}), 404
+        if post["username"].lower() != owner.lower():
+            return jsonify({"error": "Only the post owner can approve comments."}), 403
+
+        cursor = db.execute(
+            "UPDATE post_comments SET approved=1 WHERE id=? AND content_id=?",
+            (comment_id, content_id),
+        )
+        if cursor.rowcount == 0:
+            return jsonify({"error": "Comment not found."}), 404
+
+    return jsonify({"ok": True, "approved": True, "commentId": comment_id})
 
 
 # SOCIALAPP_REELS_AND_SAVED_V1
@@ -1242,30 +1401,38 @@ def toggle_reel_like(content_id):
 
 @app.get("/api/reels/<int:content_id>/comments")
 def list_reel_comments(content_id):
+    viewer = getattr(g, "auth_username", None) or ""
     with get_db() as db:
         reel = db.execute(
-            "SELECT id FROM content WHERE id=? AND kind='reels'",
-            (content_id,)
+            "SELECT id, username FROM content WHERE id=? AND kind='reels'",
+            (content_id,),
         ).fetchone()
         if reel is None:
             return jsonify({"error": "Reel not found"}), 404
 
-        rows = db.execute(
-            """SELECT id, username, text, created_at
-               FROM reel_comments WHERE content_id=? ORDER BY id ASC""",
-            (content_id,)
-        ).fetchall()
+        rows = db.execute("""
+            SELECT id, username, text, created_at,
+                   COALESCE(approved, 1) AS approved
+            FROM reel_comments
+            WHERE content_id=?
+              AND (
+                  COALESCE(approved, 1)=1
+                  OR LOWER(username)=LOWER(?)
+                  OR LOWER(?)=LOWER(?)
+              )
+            ORDER BY id ASC
+        """, (content_id, viewer, viewer, reel["username"])).fetchall()
+
         return jsonify({
             "ok": True,
-            "comments": [
-                {
-                    "id": row["id"],
-                    "username": row["username"],
-                    "text": row["text"],
-                    "createdAt": row["created_at"],
-                }
-                for row in rows
-            ],
+            "comments": [{
+                "id": row["id"],
+                "username": row["username"],
+                "text": row["text"],
+                "createdAt": row["created_at"],
+                "isPending": not bool(row["approved"]),
+                "canApprove": bool(viewer) and viewer.lower() == reel["username"].lower(),
+            } for row in rows],
         })
 
 
@@ -1274,6 +1441,7 @@ def create_reel_comment(content_id):
     username = g.auth_username
     data = request.get_json(silent=True) or {}
     text = str(data.get("text", "")).strip()
+
     if not text:
         return jsonify({"error": "Comment cannot be empty"}), 400
     if len(text) > 2000:
@@ -1283,21 +1451,30 @@ def create_reel_comment(content_id):
     with get_db() as db:
         reel = db.execute(
             "SELECT id, username FROM content WHERE id=? AND kind='reels'",
-            (content_id,)
+            (content_id,),
         ).fetchone()
         if reel is None:
             return jsonify({"error": "Reel not found"}), 404
 
-        cursor = db.execute(
-            """INSERT INTO reel_comments (content_id, username, text, created_at)
-               VALUES (?, ?, ?, ?)""",
-            (content_id, username, text, now)
-        )
-        row = db.execute(
-            "SELECT id, username, text, created_at FROM reel_comments WHERE id=?",
-            (cursor.lastrowid,)
-        ).fetchone()
-        _people_notification(db, reel["username"], username, "comment", cursor.lastrowid, now)
+        restricted = db.execute("""
+            SELECT 1 FROM people_restrictions
+            WHERE LOWER(owner)=LOWER(?) AND LOWER(restricted)=LOWER(?)
+        """, (reel["username"], username)).fetchone()
+        approved = 0 if restricted else 1
+
+        cursor = db.execute("""
+            INSERT INTO reel_comments
+                (content_id, username, text, created_at, approved)
+            VALUES (?, ?, ?, ?, ?)
+        """, (content_id, username, text, now, approved))
+
+        row = db.execute("""
+            SELECT id, username, text, created_at, approved
+            FROM reel_comments WHERE id=?
+        """, (cursor.lastrowid,)).fetchone()
+
+        if approved:
+            _people_notification(db, reel["username"], username, "comment", cursor.lastrowid, now)
 
         return jsonify({
             "ok": True,
@@ -1306,8 +1483,32 @@ def create_reel_comment(content_id):
                 "username": row["username"],
                 "text": row["text"],
                 "createdAt": row["created_at"],
+                "isPending": not bool(row["approved"]),
+                "canApprove": False,
             },
         }), 201
+
+@app.post("/api/reels/<int:content_id>/comments/<int:comment_id>/approve")
+def approve_reel_comment(content_id, comment_id):
+    owner = g.auth_username
+    with get_db() as db:
+        reel = db.execute(
+            "SELECT username FROM content WHERE id=? AND kind='reels'",
+            (content_id,),
+        ).fetchone()
+        if reel is None:
+            return jsonify({"error": "Reel not found"}), 404
+        if reel["username"].lower() != owner.lower():
+            return jsonify({"error": "Only the reel owner can approve comments."}), 403
+
+        cursor = db.execute(
+            "UPDATE reel_comments SET approved=1 WHERE id=? AND content_id=?",
+            (comment_id, content_id),
+        )
+        if cursor.rowcount == 0:
+            return jsonify({"error": "Comment not found."}), 404
+
+    return jsonify({"ok": True, "approved": True, "commentId": comment_id})
 
 
 @app.get("/api/saved")

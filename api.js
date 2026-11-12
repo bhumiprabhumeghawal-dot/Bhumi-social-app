@@ -541,6 +541,50 @@ export async function savePrivacySettings(changes, username = 'you') {
 }
 
 
+export async function loadRestrictedAccounts() {
+  const response = await fetch(`${API_BASE_URL}/api/settings/restricted-accounts`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Restricted accounts could not be loaded.');
+  return data.restrictedAccounts || [];
+}
+
+export async function restrictAccount(username) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/restrict`,
+    { method: 'POST' }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Account could not be restricted.');
+  return data;
+}
+
+export async function unrestrictAccount(username) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/restrict`,
+    { method: 'DELETE' }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Account could not be unrestricted.');
+  return data;
+}
+
+export async function loadBlockedAccounts() {
+  const response = await fetch(`${API_BASE_URL}/api/settings/blocked-accounts`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Blocked accounts could not be loaded.');
+  return data.blockedAccounts || [];
+}
+
+export async function unblockAccount(username) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/settings/blocked-accounts/${encodeURIComponent(username)}`,
+    { method: 'DELETE' }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Account could not be unblocked.');
+  return data;
+}
+
 export async function requestPasswordReset(email) {
   const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/request`, {
     method: 'POST',
@@ -689,6 +733,16 @@ export async function createPostComment(postId, text, username = 'you') {
     throw new Error(data.error || 'Could not create comment.');
   }
   return data.comment;
+}
+
+export async function approvePostComment(postId, commentId) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}/approve`,
+    { method: 'POST' }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not approve comment.');
+  return data;
 }
 
 export async function searchUsers(query) {
@@ -893,6 +947,16 @@ export async function createReelComment(reelId, text) {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not create reel comment.');
   return data.comment;
+}
+
+export async function approveReelComment(reelId, commentId) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/reels/${encodeURIComponent(reelId)}/comments/${encodeURIComponent(commentId)}/approve`,
+    { method: 'POST' }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not approve reel comment.');
+  return data;
 }
 
 export async function loadSavedContent() {

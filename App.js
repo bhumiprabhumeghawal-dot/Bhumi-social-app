@@ -21,10 +21,10 @@ import {
   loadContent, getCachedContent, getCachedProfile, uploadContent, checkServer,
   loadProfile, updateProfile, uploadProfileAvatar,
   deleteProfileAvatar, loadProfileConnections, followProfile, unfollowProfile,
-  loadPrivacySettings, savePrivacySettings, changeAccountPassword, logoutOtherSessions,
+  loadPrivacySettings, savePrivacySettings, loadBlockedAccounts, unblockAccount, loadRestrictedAccounts, restrictAccount, unrestrictAccount, changeAccountPassword, logoutOtherSessions,
   loadAccountSettings, saveAccountSettings,
   loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails,
-  togglePostLike, loadPostById, loadPostComments, createPostComment, toggleReelLike, loadReelComments, createReelComment, loadSavedContent, toggleSavedContent,
+  togglePostLike, loadPostById, loadPostComments, createPostComment, approvePostComment, toggleReelLike, loadReelComments, createReelComment, approveReelComment, loadSavedContent, toggleSavedContent,
   registerAccount, loginAccount, logoutAccount, getAuthSession, clearAuthSession,
   requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadFollowRequests, acceptFollowRequest, rejectFollowRequest, loadMessageConversations, loadUserNotes, saveUserNote, deleteUserNote, loadDirectMessages, sendDirectMessage, unsendDirectMessage, uploadChatPhoto, updateChatTyping, loadChatTyping, loadNotifications, markNotificationRead, markAllNotificationsRead} from './api';
 import {
@@ -679,6 +679,9 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
   const mediaHeight = pageHeight > 0
     ? Math.max(0, pageHeight - 58 - postFooterHeight)
     : 420;
+
+
+
   const sharePost = async () => {
     try {
       const postLink = post?.id ? `bhumisocial://post/${post.id}` : '';
@@ -752,6 +755,21 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
       setCommentDraft('');
     } catch (error) {
       Alert.alert('Comment failed', error.message || 'Could not post comment.');
+    } finally {
+      setInteractionBusy(false);
+    }
+  };
+
+  const handleApproveComment = async (commentId) => {
+    if (!post?.id || interactionBusy) return;
+    setInteractionBusy(true);
+    try {
+      await approvePostComment(post.id, commentId);
+      setComments(items => items.map(item =>
+        String(item.id) === String(commentId) ? { ...item, isPending: false } : item
+      ));
+    } catch (error) {
+      Alert.alert('Comment approval', error.message || 'Could not approve comment.');
     } finally {
       setInteractionBusy(false);
     }
@@ -905,6 +923,9 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
                     <Text style={{ fontWeight: '600' }}>{comment.username || 'you'} </Text>
                     {comment.text}
                   </Text>
+
+                  {comment.isPending ? <Text style={{ color: '#B7791F', fontSize: 11, marginTop: 4 }}>Pending approval</Text> : null}
+                  {comment.isPending && comment.canApprove ? <TouchableOpacity onPress={() => handleApproveComment(comment.id)} disabled={interactionBusy} style={{ alignSelf: 'flex-start', marginTop: 6, paddingVertical: 5, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#E8F2FC' }}><Text style={{ color: '#1685D9', fontSize: 12, fontWeight: '800' }}>Approve</Text></TouchableOpacity> : null}
                 </View>
               ))}
             </ScrollView>
@@ -1020,6 +1041,21 @@ function PostDetailActions({ post, authSession }) {
     }
   };
 
+  const handleApproveComment = async (commentId) => {
+    if (!post?.id || busy) return;
+    setBusy(true);
+    try {
+      await approvePostComment(post.id, commentId);
+      setComments(items => items.map(item =>
+        String(item.id) === String(commentId) ? { ...item, isPending: false } : item
+      ));
+    } catch (error) {
+      Alert.alert('Comment approval', error.message || 'Could not approve comment.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const sharePost = async () => {
     try {
       const postLink = post?.id ? `bhumisocial://post/${post.id}` : '';
@@ -1066,7 +1102,10 @@ function PostDetailActions({ post, authSession }) {
                     <Text style={{ fontWeight: '800' }}>{item.username || 'you'} </Text>
                     {item.text}
                   </Text>
-                </View>
+
+                            {item.isPending ? <Text style={{ color: '#F6C66A', fontSize: 11, marginTop: 4 }}>Pending approval</Text> : null}
+                            {item.isPending && item.canApprove ? <TouchableOpacity onPress={() => handleApproveComment(item.id)} disabled={busy} style={{ alignSelf: 'flex-start', marginTop: 6, paddingVertical: 5, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#263B59' }}><Text style={{ color: '#60A5FA', fontSize: 12, fontWeight: '800' }}>Approve</Text></TouchableOpacity> : null}
+                                </View>
               ))}
             </ScrollView>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14, gap: 8 }}>
@@ -1805,6 +1844,16 @@ export default function App() {
   // SOCIALAPP_PRIVACY_SCREEN_V1
   const [privacyOpen, setPrivacyOpen] = React.useState(false);
   const [settingsHubOpen, setSettingsHubOpen] = React.useState(false);
+  const [blockedAccountsOpen, setBlockedAccountsOpen] = React.useState(false);
+  const [blockedAccounts, setBlockedAccounts] = React.useState([]);
+  const [blockedAccountsLoading, setBlockedAccountsLoading] = React.useState(false);
+  const [blockedAccountsBusy, setBlockedAccountsBusy] = React.useState(false);
+  const [restrictedAccountsOpen, setRestrictedAccountsOpen] = React.useState(false);
+  const [restrictedAccounts, setRestrictedAccounts] = React.useState([]);
+  const [restrictedAccountsLoading, setRestrictedAccountsLoading] = React.useState(false);
+  const [restrictedAccountsBusy, setRestrictedAccountsBusy] = React.useState(false);
+  const [viewedProfileRestricted, setViewedProfileRestricted] = React.useState(false);
+  const [viewedProfileRestrictBusy, setViewedProfileRestrictBusy] = React.useState(false);
   const [privacyBusy, setPrivacyBusy] = React.useState(false);
   const [privacySettings, setPrivacySettings] = React.useState({
     isPrivate: false,
@@ -2019,6 +2068,23 @@ export default function App() {
     }
   };
 
+
+  const handleApproveReelComment = async (commentId) => {
+    const id = Number(selectedReel?.id);
+    if (!Number.isSafeInteger(id) || id <= 0 || reelCommentsBusy) return;
+    setReelCommentsBusy(true);
+    try {
+      await approveReelComment(id, commentId);
+      setReelComments(items => items.map(item =>
+        String(item.id) === String(commentId) ? { ...item, isPending: false } : item
+      ));
+    } catch (e) {
+      Alert.alert('Comment approval', e.message || 'Could not approve reel comment.');
+    } finally {
+      setReelCommentsBusy(false);
+    }
+  };
+
   const handleOpenSavedScreen = async () => {
     setSavedScreenOpen(true);
     setSavedContentBusy(true);
@@ -2162,6 +2228,14 @@ export default function App() {
     try {
       const result = await loadProfile(target, viewer);
       setViewedProfile(result.profile || result);
+      try {
+        const restricted = await loadRestrictedAccounts();
+        setViewedProfileRestricted(
+          restricted.some(item => String(item.username).toLowerCase() === target.toLowerCase())
+        );
+      } catch (restrictionError) {
+        console.log('RESTRICTED_STATUS_LOAD_ERROR:', restrictionError?.message);
+      }
     } catch (e) {
       if (!cachedLoaded) {
         setViewedProfileOpen(false);
@@ -2240,6 +2314,83 @@ export default function App() {
       Alert.alert('Notifications', e.message || 'Could not save notification settings.');
     } finally {
       setNotificationsBusy(false);
+    }
+  };
+
+  const openBlockedAccounts = async () => {
+    setSettingsHubOpen(false);
+    setBlockedAccountsOpen(true);
+    setBlockedAccountsLoading(true);
+    try {
+      setBlockedAccounts(await loadBlockedAccounts());
+    } catch (error) {
+      Alert.alert('Blocked Accounts', error.message || 'Could not load blocked accounts.');
+    } finally {
+      setBlockedAccountsLoading(false);
+    }
+  };
+
+  const handleUnblockAccount = async (username) => {
+    setBlockedAccountsBusy(true);
+    try {
+      await unblockAccount(username);
+      setBlockedAccounts(current => current.filter(item => item.username !== username));
+    } catch (error) {
+      Alert.alert('Unblock failed', error.message || 'Could not unblock this account.');
+    } finally {
+      setBlockedAccountsBusy(false);
+    }
+  };
+
+  const openRestrictedAccounts = async () => {
+    setSettingsHubOpen(false);
+    setRestrictedAccountsOpen(true);
+    setRestrictedAccountsLoading(true);
+    try {
+      setRestrictedAccounts(await loadRestrictedAccounts());
+    } catch (error) {
+      Alert.alert('Restricted Accounts', error.message || 'Could not load restricted accounts.');
+    } finally {
+      setRestrictedAccountsLoading(false);
+    }
+  };
+
+  const handleUnrestrictAccount = async (username) => {
+    setRestrictedAccountsBusy(true);
+    try {
+      await unrestrictAccount(username);
+      setRestrictedAccounts(current => current.filter(item =>
+        String(item.username).toLowerCase() !== String(username).toLowerCase()
+      ));
+      if (String(viewedProfile?.username || '').toLowerCase() === String(username).toLowerCase()) {
+        setViewedProfileRestricted(false);
+      }
+    } catch (error) {
+      Alert.alert('Unrestrict failed', error.message || 'Could not unrestrict this account.');
+    } finally {
+      setRestrictedAccountsBusy(false);
+    }
+  };
+
+  const handleToggleViewedProfileRestriction = async () => {
+    const username = String(viewedProfile?.username || '').trim();
+    if (!username || viewedProfileRestrictBusy) return;
+    setViewedProfileRestrictBusy(true);
+    try {
+      if (viewedProfileRestricted) {
+        await unrestrictAccount(username);
+        setViewedProfileRestricted(false);
+        setRestrictedAccounts(current => current.filter(item =>
+          String(item.username).toLowerCase() !== username.toLowerCase()
+        ));
+      } else {
+        await restrictAccount(username);
+        setViewedProfileRestricted(true);
+      }
+    } catch (error) {
+      Alert.alert('Restriction update failed', error.message || 'Could not update restriction.');
+    } finally {
+      setViewedProfileRestrictBusy(false);
     }
   };
 
@@ -4552,6 +4703,8 @@ const refreshProfile = React.useCallback(async () => {
               { title: 'Notifications', subtitle: 'Choose which alerts you receive', icon: '♧', color: '#DBEAFE', action: () => { setSettingsHubOpen(false); openNotificationSettings(); } },
               { title: 'Account Security', subtitle: 'Change your password', icon: '▣', color: '#F3E8FF', action: () => { setSettingsHubOpen(false); setPasswordOpen(true); } },
               { title: 'Privacy', subtitle: 'Manage account visibility and messages', icon: '◈', color: '#D1FAE5', action: () => { setSettingsHubOpen(false); openPrivacySettings(); } },
+              { title: 'Blocked Accounts', subtitle: 'View blocked people and unblock accounts', icon: '⊘', color: '#FEE2E2', action: openBlockedAccounts },
+              { title: 'Restricted Accounts', subtitle: 'Manage accounts you have restricted', icon: '◉', color: '#EDE9FE', action: openRestrictedAccounts },
               { title: 'Account Settings', subtitle: 'Update your email and phone number', icon: '◎', color: '#FEF3C7', action: () => { setSettingsHubOpen(false); openAccountSettings(); } },
               { title: 'Log Out', subtitle: 'Sign out of this account', icon: '↪', color: '#FEE2E2', action: handleSettingsLogout },
               { title: 'About & App Updates', subtitle: 'Version, updates, download and share', icon: 'ⓘ', color: '#E0E7FF', action: openAboutApp },
@@ -4582,7 +4735,92 @@ const refreshProfile = React.useCallback(async () => {
         </View>
       </Modal>
 
-      {/* SOCIALAPP_PRIVACY_SCREEN_V1 */}
+      <Modal
+          visible={blockedAccountsOpen}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setBlockedAccountsOpen(false)}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.55)', justifyContent: 'flex-end' }}>
+            <View style={{ backgroundColor: '#F7F9FD', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 28, maxHeight: '82%' }}>
+              <Text style={{ color: '#172554', fontSize: 22, fontWeight: '900', marginBottom: 5 }}>Blocked Accounts</Text>
+              <Text style={{ color: '#64748B', fontSize: 13, marginBottom: 16 }}>Accounts you have blocked cannot follow or contact you.</Text>
+              {blockedAccountsLoading ? (
+                <Text style={{ color: '#64748B', textAlign: 'center', paddingVertical: 28 }}>Loading blocked accounts...</Text>
+              ) : blockedAccounts.length === 0 ? (
+                <Text style={{ color: '#64748B', textAlign: 'center', paddingVertical: 28 }}>You have not blocked anyone.</Text>
+              ) : (
+                <ScrollView keyboardShouldPersistTaps="handled" style={{ flexGrow: 0 }}>
+                  {blockedAccounts.map(item => (
+                    <View key={item.username} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, padding: 12, marginBottom: 9, borderWidth: 1, borderColor: '#E7ECF5' }}>
+                      {item.avatarUrl ? (
+                        <Image source={{ uri: item.avatarUrl }} style={{ width: 42, height: 42, borderRadius: 21, marginRight: 11 }} />
+                      ) : (
+                        <View style={{ width: 42, height: 42, borderRadius: 21, marginRight: 11, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' }}>
+                          <Text style={{ color: '#475569', fontWeight: '800' }}>{String(item.displayName || item.username).slice(0, 1).toUpperCase()}</Text>
+                        </View>
+                      )}
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: '#1E293B', fontWeight: '800', fontSize: 14 }}>{item.displayName || item.username}</Text>
+                        <Text style={{ color: '#64748B', fontSize: 12, marginTop: 2 }}>@{item.username}</Text>
+                      </View>
+                      <TouchableOpacity
+                        disabled={blockedAccountsBusy}
+                        onPress={() => handleUnblockAccount(item.username)}
+                        style={{ backgroundColor: '#172554', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, opacity: blockedAccountsBusy ? 0.55 : 1 }}
+                      >
+                        <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '800' }}>{blockedAccountsBusy ? 'Please wait' : 'Unblock'}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </ScrollView>
+              )}
+              <TouchableOpacity onPress={() => setBlockedAccountsOpen(false)} style={{ alignItems: 'center', paddingVertical: 14, marginTop: 8 }}>
+                <Text style={{ color: '#475569', fontWeight: '800', fontSize: 14 }}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+      <Modal visible={restrictedAccountsOpen} transparent animationType="slide" onRequestClose={() => setRestrictedAccountsOpen(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.55)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: '#F7F9FD', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 28, maxHeight: '82%' }}>
+            <Text style={{ color: '#172554', fontSize: 22, fontWeight: '900', marginBottom: 5 }}>Restricted Accounts</Text>
+            <Text style={{ color: '#64748B', fontSize: 13, marginBottom: 16 }}>Manage people whose interactions with you are limited.</Text>
+            {restrictedAccountsLoading ? (
+              <Text style={{ color: '#64748B', textAlign: 'center', paddingVertical: 28 }}>Loading restricted accounts...</Text>
+            ) : restrictedAccounts.length === 0 ? (
+              <Text style={{ color: '#64748B', textAlign: 'center', paddingVertical: 28 }}>You have not restricted anyone.</Text>
+            ) : (
+              <ScrollView keyboardShouldPersistTaps="handled" style={{ flexGrow: 0 }}>
+                {restrictedAccounts.map(item => (
+                  <View key={item.username} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, padding: 12, marginBottom: 9, borderWidth: 1, borderColor: '#E7ECF5' }}>
+                    {item.avatarUrl ? <Image source={{ uri: item.avatarUrl }} style={{ width: 42, height: 42, borderRadius: 21, marginRight: 11 }} /> : (
+                      <View style={{ width: 42, height: 42, borderRadius: 21, marginRight: 11, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ color: '#475569', fontWeight: '800' }}>{String(item.displayName || item.username).slice(0, 1).toUpperCase()}</Text>
+                      </View>
+                    )}
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: '#1E293B', fontWeight: '800', fontSize: 14 }}>{item.displayName || item.username}</Text>
+                      <Text style={{ color: '#64748B', fontSize: 12, marginTop: 2 }}>@{item.username}</Text>
+                    </View>
+                    <TouchableOpacity disabled={restrictedAccountsBusy} onPress={() => handleUnrestrictAccount(item.username)} style={{ backgroundColor: '#172554', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, opacity: restrictedAccountsBusy ? 0.55 : 1 }}>
+                      <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '800' }}>{restrictedAccountsBusy ? 'Please wait' : 'Unrestrict'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+            <TouchableOpacity onPress={() => setRestrictedAccountsOpen(false)} style={{ alignItems: 'center', paddingVertical: 14, marginTop: 8 }}>
+              <Text style={{ color: '#475569', fontWeight: '800', fontSize: 14 }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+
+
+        {/* SOCIALAPP_PRIVACY_SCREEN_V1 */}
       <Modal
         visible={privacyOpen}
         transparent
@@ -5283,6 +5521,14 @@ const refreshProfile = React.useCallback(async () => {
             <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 17, fontWeight: '800', color: '#171717' }}>{viewedProfile.followersCount || 0}</Text><Text style={{ color: '#777777', fontSize: 12 }}>Followers</Text></View>
             <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 17, fontWeight: '800', color: '#171717' }}>{viewedProfile.followingCount || 0}</Text><Text style={{ color: '#777777', fontSize: 12 }}>Following</Text></View>
           </View>
+          {String(viewedProfile.username || '').toLowerCase() !== String(authSession?.username || '').toLowerCase() ? (
+            <TouchableOpacity disabled={viewedProfileRestrictBusy} onPress={handleToggleViewedProfileRestriction}
+              style={{ marginTop: 20, width: '100%', paddingVertical: 12, borderRadius: 12, alignItems: 'center', backgroundColor: viewedProfileRestricted ? '#EEEFF3' : '#172554', opacity: viewedProfileRestrictBusy ? 0.6 : 1 }}>
+              <Text style={{ color: viewedProfileRestricted ? '#172554' : '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
+                {viewedProfileRestrictBusy ? 'Please wait...' : viewedProfileRestricted ? 'Unrestrict Account' : 'Restrict Account'}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -5304,6 +5550,9 @@ const refreshProfile = React.useCallback(async () => {
                 <View key={String(item.id || index)} style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
                   <Text style={{ color: '#222222', fontSize: 14, lineHeight: 21 }}><Text style={{ fontWeight: '800' }}>@{item.username || 'user'} </Text>{item.text}</Text>
                   {!!item.createdAt ? <Text style={{ color: '#999999', fontSize: 10, marginTop: 4 }}>{new Date(item.createdAt).toLocaleString()}</Text> : null}
+                  {item.isPending ? <Text style={{ color: '#B7791F', fontSize: 11, marginTop: 4 }}>Pending approval</Text> : null}
+                  {item.isPending && item.canApprove ? <TouchableOpacity onPress={() => handleApproveReelComment(item.id)} disabled={reelCommentsBusy} style={{ alignSelf: 'flex-start', marginTop: 6, paddingVertical: 5, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#E8F2FC' }}><Text style={{ color: '#1685D9', fontSize: 12, fontWeight: '800' }}>Approve</Text></TouchableOpacity> : null}
+
                 </View>
               ))}
               {!reelCommentsBusy && reelComments.length === 0 ? <Text style={{ color: '#888888', textAlign: 'center', padding: 28 }}>No comments yet. Be the first to comment.</Text> : null}
