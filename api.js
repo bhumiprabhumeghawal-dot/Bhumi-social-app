@@ -744,6 +744,33 @@ export async function markAllNotificationsRead() {
   return data;
 }
 
+export async function loadUserNotes() {
+  const response = await fetch(`${API_BASE_URL}/api/notes`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load notes.');
+  return data;
+}
+
+export async function saveUserNote(text) {
+  const response = await fetch(`${API_BASE_URL}/api/notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not save note.');
+  return data;
+}
+
+export async function deleteUserNote() {
+  const response = await fetch(`${API_BASE_URL}/api/notes`, {
+    method: 'DELETE',
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not delete note.');
+  return data;
+}
+
 export async function loadMessageConversations() {
   const response = await fetch(`${API_BASE_URL}/api/messages/conversations`);
   const data = await response.json();

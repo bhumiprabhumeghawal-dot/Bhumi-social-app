@@ -26,7 +26,7 @@ import {
   loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails,
   togglePostLike, loadPostById, loadPostComments, createPostComment, toggleReelLike, loadReelComments, createReelComment, loadSavedContent, toggleSavedContent,
   registerAccount, loginAccount, logoutAccount, getAuthSession, clearAuthSession,
-  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadFollowRequests, acceptFollowRequest, rejectFollowRequest, loadMessageConversations, loadDirectMessages, sendDirectMessage, unsendDirectMessage, uploadChatPhoto, updateChatTyping, loadChatTyping, loadNotifications, markNotificationRead, markAllNotificationsRead} from './api';
+  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadFollowRequests, acceptFollowRequest, rejectFollowRequest, loadMessageConversations, loadUserNotes, saveUserNote, deleteUserNote, loadDirectMessages, sendDirectMessage, unsendDirectMessage, uploadChatPhoto, updateChatTyping, loadChatTyping, loadNotifications, markNotificationRead, markAllNotificationsRead} from './api';
 import {
   SafeAreaView,
   ScrollView,
@@ -1458,6 +1458,14 @@ export default function App() {
   const [chatError, setChatError] = React.useState('');
   const [chatSearchQuery, setChatSearchQuery] = React.useState('');
   const [newChatComposerOpen, setNewChatComposerOpen] = React.useState(false);
+  const [ownNote, setOwnNote] = React.useState(null);
+  const [friendsNotes, setFriendsNotes] = React.useState([]);
+  const [noteComposerOpen, setNoteComposerOpen] = React.useState(false);
+  const [noteViewer, setNoteViewer] = React.useState(null);
+  const [noteDraft, setNoteDraft] = React.useState('');
+  const [noteBusy, setNoteBusy] = React.useState(false);
+  const [noteError, setNoteError] = React.useState('');
+
   const directMessagesScrollRef = React.useRef(null);
 
   const [chatPeopleResults, setChatPeopleResults] = React.useState([]);
@@ -1532,6 +1540,49 @@ export default function App() {
     setChatEmojiOpen(false);
   };
 
+  const refreshUserNotes = async () => {
+    try {
+      const data = await loadUserNotes();
+      setOwnNote(data.ownNote || null);
+      setFriendsNotes(Array.isArray(data.friendsNotes) ? data.friendsNotes : []);
+    } catch (error) {
+      setNoteError(error?.message || 'Could not load notes.');
+    }
+  };
+
+  const submitUserNote = async () => {
+    const text = noteDraft.trim();
+    if (!text || noteBusy) return;
+    setNoteBusy(true);
+    setNoteError('');
+    try {
+      await saveUserNote(text);
+      setNoteDraft('');
+      setNoteComposerOpen(false);
+      await refreshUserNotes();
+    } catch (error) {
+      setNoteError(error?.message || 'Could not save note.');
+    } finally {
+      setNoteBusy(false);
+    }
+  };
+
+  const removeUserNote = async () => {
+    if (noteBusy) return;
+    setNoteBusy(true);
+    setNoteError('');
+    try {
+      await deleteUserNote();
+      setOwnNote(null);
+      setNoteDraft('');
+      setNoteComposerOpen(false);
+    } catch (error) {
+      setNoteError(error?.message || 'Could not delete note.');
+    } finally {
+      setNoteBusy(false);
+    }
+  };
+
   const openMessages = async () => {
     setMessagesOpen(true);
     setSelectedChatUser('');
@@ -1547,6 +1598,7 @@ export default function App() {
     setChatBusy(true);
     try {
       setMessageConversations(await loadMessageConversations());
+      await refreshUserNotes();
     } catch (error) {
       setChatError(error?.message || 'Could not load conversations.');
     } finally {
@@ -4784,197 +4836,183 @@ const refreshProfile = React.useCallback(async () => {
         onRequestClose={closeMessages}
       >
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}><SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#E6EDF5', backgroundColor: '#FFFFFF', minHeight: 78, elevation: 3 }}>
-            {selectedChatUser ? (
-              <TouchableOpacity onPress={() => { setSelectedChatUser(''); setChatError(''); }} style={{ paddingRight: 14 }}>
-                <Ionicons name="arrow-back" size={25} color="#171717" />
-              </TouchableOpacity>
-            ) : null}
-            {selectedChatUser ? (
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#EAF2FA', borderWidth: 1, borderColor: '#DCE8F4', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                  {messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase())?.avatarUrl ? (
-                    <Image
-                      source={{ uri: String(messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl).startsWith('http') ? messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl : `https://bhumi-social-app-1.onrender.com${messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl}` }}
-                      style={{ width: 48, height: 48, borderRadius: 24 }}
-                    />
-                  ) : (
-                    <Text style={{ color: '#1685E8', fontSize: 18, fontWeight: '800' }}>{selectedChatUser.slice(0, 1).toUpperCase()}</Text>
-                  )}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text numberOfLines={1} style={{ fontSize: 17, fontWeight: '800', color: '#182331', letterSpacing: -0.4 }}>{messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase())?.displayName || selectedChatUser}</Text>
-                  <Text style={{ fontSize: 12, color: '#8A929B', marginTop: 3 }}>@{selectedChatUser}</Text>
-                </View>
-              </View>
-            ) : (
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 27, fontWeight: '900', color: '#182331', letterSpacing: -1 }}>Messages</Text>
-                <Text style={{ fontSize: 12, color: '#888888', marginTop: 2 }}>Messages and chats</Text>
-              </View>
-            )}
-            {!selectedChatUser ? (
-              <TouchableOpacity
-                onPress={() => setNewChatComposerOpen(v => !v)}
-                accessibilityLabel="New message"
-                style={{ paddingHorizontal: 12 }}
-              >
-                <Ionicons name="create-outline" size={25} color="#171717" />
-              </TouchableOpacity>
-            ) : null}
-            <TouchableOpacity onPress={closeMessages} accessibilityLabel="Close messages">
-              <Ionicons name="close" size={27} color="#171717" />
-            </TouchableOpacity>
-          </View>
 
-          {!selectedChatUser ? (
-            <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 12, backgroundColor: '#FFFFFF' }}>
-              {chatError ? <Text style={{ color: '#D93025', marginBottom: 10 }}>{chatError}</Text> : null}
-              {chatBusy ? <Text style={{ color: '#777777', paddingVertical: 12 }}>Loading messages...</Text> : null}
-              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F8FC', borderRadius: 19, paddingHorizontal: 17, marginBottom: 17, borderWidth: 1, borderColor: '#E4ECF5', minHeight: 54, elevation: 1 }}>
-                    <Ionicons name="search-outline" size={20} color="#777777" />
-                    <TextInput
-                      value={chatSearchQuery}
-                      onChangeText={setChatSearchQuery}
-                      placeholder="Search"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      style={{ flex: 1, paddingHorizontal: 9, paddingVertical: 11, color: '#171717' }}
-                    />
-                    {chatSearchQuery ? <TouchableOpacity onPress={() => setChatSearchQuery('')}><Ionicons name="close-circle" size={19} color="#777777" /></TouchableOpacity> : null}
-                  </View>
-              {newChatComposerOpen ? (
-                <View style={{ marginBottom: 17, backgroundColor: '#F8FBFF', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: '#E2EBF5', elevation: 2 }}>
-                  <Text style={{ color: '#171717', fontSize: 13, fontWeight: '800', letterSpacing: 0.8, marginBottom: 12 }}>NEW MESSAGE</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F4F6F8', borderRadius: 15, paddingHorizontal: 13, borderWidth: 1, borderColor: '#EDF0F2' }}>
-                    <Ionicons name="search-outline" size={19} color="#777777" />
-                    <TextInput
-                      value={newChatUsername}
-                      onChangeText={setNewChatUsername}
-                      placeholder="Search people by name or username"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      autoFocus
-                      style={{ flex: 1, paddingHorizontal: 10, paddingVertical: 12, color: '#171717' }}
-                    />
-                    {newChatUsername ? (
-                      <TouchableOpacity onPress={() => setNewChatUsername('')} accessibilityLabel="Clear people search">
-                        <Ionicons name="close-circle" size={19} color="#777777" />
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                  {chatPeopleBusy ? (
-                    <Text style={{ color: '#888888', padding: 12 }}>Searching people...</Text>
-                  ) : null}
-                  {chatPeopleError ? (
-                    <Text style={{ color: '#D93025', padding: 10 }}>{chatPeopleError}</Text>
-                  ) : null}
-                  {chatPeopleResults.map((person, index) => (
-                    <TouchableOpacity
-                      key={String(person.username || index)}
-                      onPress={() => {
-                        setNewChatComposerOpen(false);
-                        setNewChatUsername('');
-                        setChatPeopleResults([]);
-                        openDirectChat(person.username);
-                      }}
-                      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 5, borderBottomWidth: 1, borderBottomColor: '#EAF0F6', gap: 14 }}
-                    >
-                      <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#EAF2FA', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                        {person.avatarUrl ? (
-                          <Image
-                            source={{ uri: String(person.avatarUrl).startsWith('http') ? person.avatarUrl : `https://bhumi-social-app-1.onrender.com${person.avatarUrl}` }}
-                            style={{ width: 52, height: 52, borderRadius: 26 }}
-                          />
-                        ) : (
-                          <Text style={{ color: '#333333', fontSize: 19, fontWeight: '800' }}>{String(person.username || '?').slice(0, 1).toUpperCase()}</Text>
-                        )}
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text numberOfLines={1} style={{ color: '#171717', fontSize: 14, fontWeight: '700' }}>{person.displayName || person.username}</Text>
-                        <Text numberOfLines={1} style={{ color: '#888888', fontSize: 12, marginTop: 3 }}>@{person.username}</Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={18} color="#A0A0A0" />
-                    </TouchableOpacity>
-                  ))}
-                  {newChatUsername.trim().length >= 2 && !chatPeopleBusy && !chatPeopleError && chatPeopleResults.length === 0 ? (
-                    <Text style={{ color: '#888888', textAlign: 'center', padding: 14 }}>No people found</Text>
-                  ) : null}
-                  {newChatUsername.trim().length < 2 ? (
-                    <Text style={{ color: '#999999', fontSize: 12, paddingTop: 9 }}>Type at least 2 characters to find people</Text>
-                  ) : null}
-                </View>
-              ) : null}
-              <ScrollView keyboardShouldPersistTaps="handled">
-                {messageConversations.filter(conversation => {
-                  const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
-                  const term = chatSearchQuery.trim().toLowerCase();
-                  return !term || String(username).toLowerCase().includes(term) || String(conversation.displayName || '').toLowerCase().includes(term) || String(conversation.lastMessage || '').toLowerCase().includes(term);
-                }).map((conversation, index) => {
-                  const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
-                  if (!username) return null;
-                                        const unreadCount = Number(conversation.unreadCount || 0);
-                  return (
-                    <TouchableOpacity
-                      key={String(username) + index}
-                      onPress={() => openDirectChat(username)}
-                      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 17, borderBottomWidth: 1, borderBottomColor: '#EAF0F6', gap: 15 }}
-                    >
-                      <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#EAF2FA', borderWidth: 1, borderColor: '#DCE8F4', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                        {conversation.avatarUrl ? (
-                          <Image
-                            source={{ uri: String(conversation.avatarUrl).startsWith('http') ? conversation.avatarUrl : `https://bhumi-social-app-1.onrender.com${conversation.avatarUrl}` }}
-                            style={{ width: 58, height: 58, borderRadius: 29 }}
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Text style={{ fontSize: 22, fontWeight: '900', color: '#333333' }}>{String(username).slice(0, 1).toUpperCase()}</Text>
-                        )}
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text numberOfLines={1} style={{ fontSize: 15, fontWeight: '800', color: '#182331', letterSpacing: -0.2 }}>{conversation.displayName || username}</Text>
-                        <Text numberOfLines={1} style={{ color: '#718096', marginTop: 5, fontSize: 13 }}>{conversation.lastMessage || 'Start a conversation'}</Text>
-                        {String(conversation.lastMessageSender || '').toLowerCase() === String(authSession?.username || '').toLowerCase() ? (
-                          <Text style={{ color: conversation.readAt ? '#1685D9' : '#8E8E8E', fontSize: 10, fontWeight: '700', marginTop: 3 }}>
-                            {conversation.readAt ? '✓✓ Seen' : conversation.deliveredAt ? '✓✓ Delivered' : '✓ Sent'}
-                          </Text>
-                        ) : null}
-                      </View>
-                      <View style={{ alignItems: 'flex-end', justifyContent: 'flex-start', minWidth: 48, paddingTop: 3 }}>
-                        <Text style={{ color: '#8E8E8E', fontSize: 11 }}>
-                          {conversation.lastMessageAt ? (() => {
-                            const date = new Date(conversation.lastMessageAt);
-                            const diff = Math.max(0, Date.now() - date.getTime());
-                            const minutes = Math.floor(diff / 60000);
-                            if (minutes < 1) return 'अभी';
-                            if (minutes < 60) return `${minutes}m`;
-                            if (minutes < 1440) return `${Math.floor(minutes / 60)}h`;
-                            if (minutes < 2880) return 'कल';
-                            return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
-                          })() : ''}
-                        </Text>
-                            {unreadCount > 0 ? (
-                              <View style={{ minWidth: 24, height: 24, borderRadius: 12, backgroundColor: '#1685D9', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 7, marginTop: 10, elevation: 2 }}>
-                                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '800' }}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
-                              </View>
-                            ) : null}
+<View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingTop: 12, paddingBottom: 16, backgroundColor: '#FFFFFF', minHeight: 76 }}>
+  {selectedChatUser ? (
+    <TouchableOpacity onPress={() => { setSelectedChatUser(''); setChatError(''); }} style={{ paddingRight: 14 }}>
+      <Ionicons name="arrow-back" size={25} color="#262626" />
+    </TouchableOpacity>
+  ) : (
+    <TouchableOpacity style={{ paddingRight: 18 }}>
+      <Ionicons name="briefcase-outline" size={27} color="#111111" />
+    </TouchableOpacity>
+  )}
+  {selectedChatUser ? (
+    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <View style={{ width: 43, height: 43, borderRadius: 22, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        {messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase())?.avatarUrl ? (
+          <Image source={{ uri: String(messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl).startsWith('http') ? messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl : `https://bhumi-social-app-1.onrender.com${messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl}` }} style={{ width: 43, height: 43, borderRadius: 22 }} />
+        ) : <Text style={{ color: '#262626', fontSize: 17, fontWeight: '700' }}>{selectedChatUser.slice(0, 1).toUpperCase()}</Text>}
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text numberOfLines={1} style={{ fontSize: 17, fontWeight: '700', color: '#262626' }}>{messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase())?.displayName || selectedChatUser}</Text>
+        <Text style={{ fontSize: 12, color: '#A7A9AE', marginTop: 2 }}>@{selectedChatUser}</Text>
+      </View>
+    </View>
+  ) : (
+    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+      <TouchableOpacity onPress={() => closeMessages()} style={{ paddingHorizontal: 7 }}>
+        <Ionicons name="trending-up-outline" size={29} color="#111111" />
+      </TouchableOpacity>
+      <View style={{ flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
+        <Text numberOfLines={1} style={{ color: '#262626', fontSize: 23, fontWeight: '900', letterSpacing: -0.7 }}>{authSession?.username || 'Messages'}</Text>
+        <Ionicons name="chevron-down" size={21} color="#262626" style={{ marginLeft: 7 }} />
+        <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: '#F32655', marginLeft: 8 }} />
+      </View>
+      <TouchableOpacity onPress={closeMessages} style={{ paddingHorizontal: 8 }}>
+        <Ionicons name="ellipsis-horizontal" size={27} color="#262626" />
+      </TouchableOpacity>
+    </View>
+  )}
+  {!selectedChatUser ? (
+    <TouchableOpacity onPress={() => setNewChatComposerOpen(v => !v)} accessibilityLabel="New message" style={{ paddingLeft: 13 }}>
+      <Ionicons name="create-outline" size={23} color="#6B7280" />
+    </TouchableOpacity>
+  ) : null}
+</View>
 
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-                {!chatBusy && !chatError && messageConversations.filter(conversation => {
-                  const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
-                  const term = chatSearchQuery.trim().toLowerCase();
-                  return !term || String(username).toLowerCase().includes(term) || String(conversation.displayName || '').toLowerCase().includes(term) || String(conversation.lastMessage || '').toLowerCase().includes(term);
-                }).length === 0 ? (
-                  <Text style={{ color: '#777777', textAlign: 'center', padding: 22 }}>
-                    {chatSearchQuery.trim() ? 'No results found' : 'No conversations yet. Start a new chat.'}
-                  </Text>
-                ) : null}
-              </ScrollView>
+{!selectedChatUser ? (
+  <View style={{ flex: 1, backgroundColor: '#FFFFFF', paddingTop: 12 }}>
+    {chatError ? <Text style={{ color: '#FF6B6B', paddingHorizontal: 20, paddingBottom: 8 }}>{chatError}</Text> : null}
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 25, marginHorizontal: 14, marginBottom: 17, height: 44, borderRadius: 24, backgroundColor: '#F5F5F5' }}>
+      <Ionicons name="search" size={23} color="#6B7280" />
+      <TextInput value={chatSearchQuery} onChangeText={setChatSearchQuery} placeholder="Search or ask Meta AI" placeholderTextColor="#65676B" autoCapitalize="none" autoCorrect={false} style={{ flex: 1, paddingHorizontal: 13, color: '#111318', fontSize: 18 }} />
+      {chatSearchQuery ? <TouchableOpacity onPress={() => setChatSearchQuery('')}><Ionicons name="close-circle" size={19} color="#A7A9B2" /></TouchableOpacity> : null}
+    </View>
+    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 24, marginTop: -52, marginBottom: 31 }}>
+      <TouchableOpacity onPress={() => setChatSearchQuery('')}><Text style={{ color: '#168FF0', fontSize: 16, fontWeight: '700' }}>Filter</Text></TouchableOpacity>
+    </View>
+
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 18, gap: 16 }}>
+      <TouchableOpacity
+  onPress={() => {
+    setNoteDraft(ownNote?.text || '');
+    setNoteError('');
+    setNoteComposerOpen(true);
+  }}
+  style={{ width: 76, alignItems: 'center' }}
+>
+  <View style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: ownNote ? '#C13584' : '#D8D8D8', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
+    {profile?.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={{ width: 64, height: 64, borderRadius: 32 }} /> : <Ionicons name="happy-outline" size={48} color="#8E8E93" />}
+    {ownNote?.text ? <View style={{ position: 'absolute', top: -13, left: -8, right: -8, minHeight: 29, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E5E5', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}><Text numberOfLines={2} style={{ color: '#262626', fontSize: 9, textAlign: 'center' }}>{ownNote.text}</Text></View> : null}
+    <View style={{ position: 'absolute', right: 0, bottom: 0, width: 24, height: 24, borderRadius: 12, backgroundColor: '#168FF0', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFFFFF' }}>
+      <Ionicons name="add" size={17} color="#FFFFFF" />
+    </View>
+  </View>
+  <Text numberOfLines={1} style={{ color: '#111318', fontSize: 12, marginTop: 7 }}>Your note</Text>
+</TouchableOpacity>
+{friendsNotes.map((note, i) => (
+  <TouchableOpacity key={String(note.username) + '-note-' + i} onPress={() => setNoteViewer(note)} style={{ width: 76, alignItems: 'center' }}>
+    <View style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: '#C13584', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
+      {note.avatarUrl ? <Image source={{ uri: String(note.avatarUrl).startsWith('http') ? note.avatarUrl : `https://bhumi-social-app-1.onrender.com${note.avatarUrl}` }} style={{ width: 64, height: 64, borderRadius: 32 }} /> : <Text style={{ color: '#111318', fontSize: 25, fontWeight: '800' }}>{String(note.username || '?').slice(0, 1).toUpperCase()}</Text>}
+      <View style={{ position: 'absolute', top: -13, left: -8, right: -8, minHeight: 29, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E5E5', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+        <Text numberOfLines={2} style={{ color: '#262626', fontSize: 9, textAlign: 'center' }}>{note.text}</Text>
+      </View>
+    </View>
+    <Text numberOfLines={1} style={{ color: '#111318', fontSize: 12, marginTop: 7 }}>{note.displayName || note.username}</Text>
+  </TouchableOpacity>
+))}
+</ScrollView>
+
+    <View style={{ flexDirection: 'row', paddingHorizontal: 14, gap: 9, paddingBottom: 17 }}>
+      {['All', 'Primary', 'General', 'Requests'].map((tab, i) => (
+        <View key={tab} style={{ flex: i === 0 ? 0.75 : 1.25, height: 44, borderRadius: 13, backgroundColor: i === 0 ? '#EAF0FF' : '#F1F2F5', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}>
+          <Text style={{ color: '#111318', fontSize: 14, fontWeight: '700' }}>{tab}</Text>
+          {tab === 'Requests' ? <Ionicons name="chevron-forward" size={18} color="#6B7280" style={{ marginLeft: 3 }} /> : null}
+        </View>
+      ))}
+    </View>
+
+    {newChatComposerOpen ? (
+      <View style={{ marginHorizontal: 15, marginBottom: 12, padding: 14, borderRadius: 15, backgroundColor: '#FFFFFF' }}>
+        <Text style={{ color: '#111318', fontSize: 14, fontWeight: '800', marginBottom: 10 }}>New message</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F5', borderRadius: 22, paddingHorizontal: 13 }}>
+          <Ionicons name="search-outline" size={19} color="#AAAAAA" />
+          <TextInput value={newChatUsername} onChangeText={setNewChatUsername} placeholder="Search people by name or username" placeholderTextColor="#A7A9B2" autoCapitalize="none" autoCorrect={false} autoFocus style={{ flex: 1, paddingHorizontal: 10, paddingVertical: 12, color: '#111318' }} />
+          {newChatUsername ? <TouchableOpacity onPress={() => setNewChatUsername('')}><Ionicons name="close-circle" size={19} color="#AAAAAA" /></TouchableOpacity> : null}
+        </View>
+        {chatPeopleBusy ? <Text style={{ color: '#AAAAAA', padding: 10 }}>Searching people...</Text> : null}
+        {chatPeopleError ? <Text style={{ color: '#FF7777', padding: 10 }}>{chatPeopleError}</Text> : null}
+        {chatPeopleResults.map((person, index) => (
+          <TouchableOpacity key={String(person.username || index)} onPress={() => { setNewChatComposerOpen(false); setNewChatUsername(''); setChatPeopleResults([]); openDirectChat(person.username); }} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, gap: 12 }}>
+            <View style={{ width: 42, height: 42, borderRadius: 22, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {person.avatarUrl ? <Image source={{ uri: String(person.avatarUrl).startsWith('http') ? person.avatarUrl : `https://bhumi-social-app-1.onrender.com${person.avatarUrl}` }} style={{ width: 42, height: 42, borderRadius: 22 }} /> : <Text style={{ color: '#111318', fontWeight: '800' }}>{String(person.username || '?').slice(0, 1).toUpperCase()}</Text>}
             </View>
-          ) : (
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#111318', fontWeight: '700' }}>{person.displayName || person.username}</Text>
+              <Text style={{ color: '#6B7280', fontSize: 18 }}>@{person.username}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+        {newChatUsername.trim().length >= 2 && !chatPeopleBusy && !chatPeopleError && chatPeopleResults.length === 0 ? <Text style={{ color: '#AAAAAA', textAlign: 'center', padding: 12 }}>No people found</Text> : null}
+      </View>
+    ) : null}
+
+    {chatBusy ? <Text style={{ color: '#6B7280', paddingHorizontal: 20, paddingVertical: 8 }}>Loading messages...</Text> : null}
+    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 10 }}>
+      {messageConversations.filter(conversation => {
+        const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
+        const term = chatSearchQuery.trim().toLowerCase();
+        return !term || String(username).toLowerCase().includes(term) || String(conversation.displayName || '').toLowerCase().includes(term) || String(conversation.lastMessage || '').toLowerCase().includes(term);
+      }).map((conversation, index) => {
+        const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
+        if (!username) return null;
+        const unreadCount = Number(conversation.unreadCount || 0);
+        return (
+          <TouchableOpacity key={String(username) + index} onPress={() => openDirectChat(username)} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }}>
+            <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1, borderColor: '#EFEFEF' }}>
+              {conversation.avatarUrl ? <Image source={{ uri: String(conversation.avatarUrl).startsWith('http') ? conversation.avatarUrl : `https://bhumi-social-app-1.onrender.com${conversation.avatarUrl}` }} style={{ width: 58, height: 58, borderRadius: 29 }} resizeMode="cover" /> : <Text style={{ color: '#111318', fontSize: 22, fontWeight: '800' }}>{String(username).slice(0, 1).toUpperCase()}</Text>}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text numberOfLines={1} style={{ color: '#111318', fontSize: 15, fontWeight: '600' }}>{conversation.displayName || username}</Text>
+              <Text numberOfLines={1} style={{ color: '#6B7280', marginTop: 3, fontSize: 13 }}>
+                {conversation.lastMessage || 'Start a conversation'}
+                {String(conversation.lastMessageSender || '').toLowerCase() === String(authSession?.username || '').toLowerCase() ? (conversation.readAt ? ' · Seen' : conversation.deliveredAt ? ' · Delivered' : ' · Sent') : ''}
+              </Text>
+            </View>
+            <View style={{ alignItems: 'flex-end', minWidth: 35 }}>
+              <Text style={{ color: '#6B7280', fontSize: 18 }}>
+                {conversation.lastMessageAt ? (() => {
+                  const date = new Date(conversation.lastMessageAt);
+                  const diff = Math.max(0, Date.now() - date.getTime());
+                  const minutes = Math.floor(diff / 60000);
+                  if (minutes < 1) return 'now';
+                  if (minutes < 60) return `${minutes}m`;
+                  if (minutes < 1440) return `${Math.floor(minutes / 60)}h`;
+                  if (minutes < 2880) return 'Yesterday';
+                  return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+                })() : ''}
+              </Text>
+              {unreadCount > 0 ? <View style={{ minWidth: 19, height: 19, borderRadius: 10, backgroundColor: '#168FF0', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5, marginTop: 5 }}><Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800' }}>{unreadCount > 99 ? '99+' : unreadCount}</Text></View> : null}
+            </View>
+          </TouchableOpacity>
+        );
+      })}
+      {!chatBusy && !chatError && messageConversations.length === 0 ? <Text style={{ color: '#6B7280', textAlign: 'center', padding: 28 }}>No conversations yet. Start a new chat.</Text> : null}
+    </ScrollView>
+
+    <View style={{ height: 65, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#EFEFEF' }}>
+      <Ionicons name="home-outline" size={27} color="#111111" />
+      <Ionicons name="play-circle-outline" size={28} color="#111111" />
+      <View style={{ width: 57, height: 48, borderRadius: 25, backgroundColor: '#F1F2F5', alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name="paper-plane" size={25} color="#000000" />
+      </View>
+      <Ionicons name="search-outline" size={28} color="#111111" />
+      <Ionicons name="person-circle-outline" size={29} color="#111111" />
+    </View>
+  </View>
+) : (
+
             <View style={{ flex: 1 }}>
               <ScrollView
                 ref={directMessagesScrollRef}
@@ -4991,10 +5029,10 @@ const refreshProfile = React.useCallback(async () => {
                   const mine = String(message.sender || '').toLowerCase() === String(authSession?.username || '').toLowerCase();
                   return (
                     <View key={String(message.id || index)} style={{ width: '100%', flexDirection: 'row', alignItems: 'flex-end', justifyContent: mine ? 'flex-end' : 'flex-start', paddingHorizontal: 2, marginVertical: 6 }}>
-                      <TouchableOpacity activeOpacity={0.9} onLongPress={() => { setChatReplyTo(null); setChatUnsendTarget(message); }} style={{ maxWidth: '82%', backgroundColor: mine ? '#1677E8' : '#F0F3F7', borderRadius: 22, borderTopRightRadius: mine ? 7 : 22, borderTopLeftRadius: mine ? 22 : 7, paddingHorizontal: 16, paddingVertical: 13, elevation: mine ? 2 : 0 }}>
+                      <TouchableOpacity activeOpacity={0.9} onLongPress={() => { setChatReplyTo(null); setChatUnsendTarget(message); }} style={{ maxWidth: '82%', backgroundColor: mine ? '#3797F0' : '#EFEFEF', borderRadius: 20, borderTopRightRadius: mine ? 5 : 20, borderTopLeftRadius: mine ? 20 : 5, paddingHorizontal: 16, paddingVertical: 13, elevation: mine ? 2 : 0 }}>
                         {message.replyToId ? (
-                          <View style={{ borderLeftWidth: 3, borderLeftColor: mine ? '#D8EDFF' : '#1685E8', backgroundColor: mine ? 'rgba(255,255,255,0.14)' : '#E4EAF0', borderRadius: 8, padding: 8, marginBottom: 8 }}>
-                            <Text numberOfLines={1} style={{ color: mine ? '#FFFFFF' : '#1685E8', fontSize: 11, fontWeight: '800' }}>@{message.replySender || selectedChatUser}</Text>
+                          <View style={{ borderLeftWidth: 3, borderLeftColor: mine ? '#D8EDFF' : '#0095F6', backgroundColor: mine ? 'rgba(255,255,255,0.14)' : '#E4EAF0', borderRadius: 8, padding: 8, marginBottom: 8 }}>
+                            <Text numberOfLines={1} style={{ color: mine ? '#FFFFFF' : '#0095F6', fontSize: 11, fontWeight: '800' }}>@{message.replySender || selectedChatUser}</Text>
                             <Text numberOfLines={2} style={{ color: mine ? '#F0F7FF' : '#505A64', fontSize: 12 }}>{message.replyText || 'Message unavailable'}</Text>
                           </View>
                         ) : null}
@@ -5006,11 +5044,11 @@ const refreshProfile = React.useCallback(async () => {
                         </View>
                       </TouchableOpacity>
                       {mine ? (
-                        <View style={{ width: 30, height: 30, borderRadius: 15, marginLeft: 7, marginBottom: 2, backgroundColor: '#EAF2FA', borderWidth: 1, borderColor: '#DCE8F2', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                        <View style={{ width: 30, height: 30, borderRadius: 15, marginLeft: 7, marginBottom: 2, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#EFEFEF', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                           {profile?.avatarUrl ? (
                             <Image source={{ uri: profile.avatarUrl }} style={{ width: 30, height: 30, borderRadius: 15 }} />
                           ) : (
-                            <Text style={{ color: '#1685E8', fontSize: 12, fontWeight: '800' }}>{String(authSession?.username || 'Y').slice(0, 1).toUpperCase()}</Text>
+                            <Text style={{ color: '#0095F6', fontSize: 12, fontWeight: '800' }}>{String(authSession?.username || 'Y').slice(0, 1).toUpperCase()}</Text>
                           )}
                         </View>
                       ) : null}
@@ -5021,12 +5059,12 @@ const refreshProfile = React.useCallback(async () => {
                   <Text style={{ color: '#7F8B99', textAlign: 'center', paddingHorizontal: 24, paddingVertical: 44, fontSize: 14, fontWeight: '600' }}>No messages yet. Say hello! 👋</Text>
                 ) : null}
               </ScrollView>
-              {chatPeerTyping ? <Text style={{ color: '#1477C9', fontSize: 12, fontWeight: '700', paddingHorizontal: 18, paddingVertical: 7 }}>Typing…</Text> : null}
+              {chatPeerTyping ? <Text style={{ color: '#0095F6', fontSize: 12, fontWeight: '700', paddingHorizontal: 18, paddingVertical: 7 }}>Typing…</Text> : null}
               {chatUnsendTarget ? (
                   <View style={{ marginHorizontal: 14, marginTop: 9, marginBottom: 3, padding: 15, borderRadius: 18, backgroundColor: '#F7FAFF', borderWidth: 1, borderColor: '#DCEAF7', elevation: 2 }}>
                     <Text style={{ color: '#344454', fontSize: 12, fontWeight: '700', marginBottom: 9 }}>Message options</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <TouchableOpacity onPress={() => { setChatReplyTo(chatUnsendTarget); setChatUnsendTarget(null); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 17, paddingVertical: 10, borderRadius: 20, backgroundColor: '#1685D9', elevation: 1 }}>
+                      <TouchableOpacity onPress={() => { setChatReplyTo(chatUnsendTarget); setChatUnsendTarget(null); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 17, paddingVertical: 10, borderRadius: 20, backgroundColor: '#0095F6', elevation: 1 }}>
                         <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 12 }}>Reply</Text>
                       </TouchableOpacity>
                       {String(chatUnsendTarget.sender || '').toLowerCase() === String(authSession?.username || '').toLowerCase() ? (
@@ -5043,7 +5081,7 @@ const refreshProfile = React.useCallback(async () => {
                 {chatReplyTo ? (
                 <View style={{ marginHorizontal: 14, marginTop: 9, marginBottom: 3, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 16, backgroundColor: '#F2F8FF', borderWidth: 1, borderColor: '#DCEAF7', flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: '#1477C9', fontSize: 11, fontWeight: '800' }}>Replying to @{chatReplyTo.sender || selectedChatUser}</Text>
+                    <Text style={{ color: '#0095F6', fontSize: 11, fontWeight: '800' }}>Replying to @{chatReplyTo.sender || selectedChatUser}</Text>
                     <Text numberOfLines={1} style={{ color: '#526171', fontSize: 12, marginTop: 4 }}>{chatReplyTo.text || (chatReplyTo.imageUrl ? 'Photo' : 'Message')}</Text>
                   </View>
                   <TouchableOpacity onPress={() => setChatReplyTo(null)} accessibilityLabel="Cancel reply"><Ionicons name="close-circle" size={22} color="#7C8995" /></TouchableOpacity>
@@ -5058,7 +5096,7 @@ const refreshProfile = React.useCallback(async () => {
                                 </View>
                                 <View style={{ flex: 1, justifyContent: 'center', gap: 5 }}>
                                   <Text style={{ color: '#202B38', fontSize: 14, fontWeight: '800' }}>Photo attached</Text>
-                                  <Text style={{ color: '#718096', fontSize: 11, fontWeight: '500' }}>Ready to share in this chat</Text>
+                                  <Text style={{ color: '#737373', fontSize: 11, fontWeight: '500' }}>Ready to share in this chat</Text>
                                 </View>
                                 <TouchableOpacity onPress={() => setChatMediaDraft(null)} accessibilityLabel="Remove attached photo" style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FDECEC' }}>
                                   <Ionicons name="close" size={19} color="#D93025" />
@@ -5072,12 +5110,12 @@ const refreshProfile = React.useCallback(async () => {
                                 ))}
                               </View>
                             ) : null}
-                            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#E5EDF5', backgroundColor: '#FFFFFF', gap: 11, elevation: 7 }}>
-                              <TouchableOpacity onPress={() => chooseChatMedia(false)} accessibilityLabel="Choose photo from gallery"><Ionicons name="images-outline" size={25} color="#1685D9" /></TouchableOpacity>
-                              <TouchableOpacity onPress={() => chooseChatMedia(true)} accessibilityLabel="Take a photo"><Ionicons name="camera-outline" size={25} color="#1685D9" /></TouchableOpacity>
-                              <TouchableOpacity onPress={() => setChatEmojiOpen(v => !v)} accessibilityLabel="Open emoji picker"><Ionicons name="happy-outline" size={25} color="#1685D9" /></TouchableOpacity>
-                              <TextInput value={chatDraft} onChangeText={handleChatDraftChange} placeholder="Message..." multiline maxLength={5000} style={{ flex: 1, maxHeight: 110, backgroundColor: '#F4F7FB', borderWidth: 1, borderColor: '#E1EAF3', borderRadius: 25, paddingHorizontal: 18, paddingVertical: 13, color: '#202B38', fontSize: 15 }} />
-                              <TouchableOpacity onPress={sendChatDraft} disabled={chatBusy || (!chatDraft.trim() && !chatMediaDraft)} accessibilityLabel="Send message" style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: chatBusy || (!chatDraft.trim() && !chatMediaDraft) ? '#A7D5F5' : '#1685E8', elevation: 3 }}><Ionicons name="send" size={19} color="#FFFFFF" /></TouchableOpacity>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 9, borderTopWidth: 1, borderTopColor: '#EFEFEF', backgroundColor: '#FFFFFF', gap: 11, elevation: 7 }}>
+                              <TouchableOpacity onPress={() => chooseChatMedia(false)} accessibilityLabel="Choose photo from gallery"><Ionicons name="images-outline" size={25} color="#0095F6" /></TouchableOpacity>
+                              <TouchableOpacity onPress={() => chooseChatMedia(true)} accessibilityLabel="Take a photo"><Ionicons name="camera-outline" size={25} color="#0095F6" /></TouchableOpacity>
+                              <TouchableOpacity onPress={() => setChatEmojiOpen(v => !v)} accessibilityLabel="Open emoji picker"><Ionicons name="happy-outline" size={25} color="#0095F6" /></TouchableOpacity>
+                              <TextInput value={chatDraft} onChangeText={handleChatDraftChange} placeholder="Message..." multiline maxLength={5000} style={{ flex: 1, maxHeight: 110, backgroundColor: '#EFEFEF', borderWidth: 1, borderColor: '#E1EAF3', borderRadius: 25, paddingHorizontal: 18, paddingVertical: 13, color: '#202B38', fontSize: 15 }} />
+                              <TouchableOpacity onPress={sendChatDraft} disabled={chatBusy || (!chatDraft.trim() && !chatMediaDraft)} accessibilityLabel="Send message" style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: chatBusy || (!chatDraft.trim() && !chatMediaDraft) ? '#A7D5F5' : '#0095F6', elevation: 3 }}><Ionicons name="send" size={19} color="#FFFFFF" /></TouchableOpacity>
                             </View>
                           </View>
             </View>
@@ -5085,6 +5123,62 @@ const refreshProfile = React.useCallback(async () => {
         </SafeAreaView></KeyboardAvoidingView>
 
       </Modal>
+
+
+<Modal visible={noteComposerOpen} transparent animationType="fade" onRequestClose={() => setNoteComposerOpen(false)}>
+  <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', paddingHorizontal: 24 }}>
+    <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 20 }}>
+      <Text style={{ fontSize: 19, fontWeight: '700', color: '#111111', marginBottom: 14 }}>Your note</Text>
+      <TextInput
+        value={noteDraft}
+        onChangeText={setNoteDraft}
+        placeholder="Share a thought..."
+        placeholderTextColor="#999999"
+        maxLength={60}
+        multiline
+        autoFocus
+        style={{ minHeight: 90, borderWidth: 1, borderColor: '#E5E5E5', borderRadius: 12, padding: 12, color: '#111111', fontSize: 16, textAlignVertical: 'top' }}
+      />
+      <Text style={{ color: '#888888', textAlign: 'right', marginTop: 6 }}>{noteDraft.length}/60</Text>
+      {!!noteError && <Text style={{ color: '#D93025', marginTop: 8 }}>{noteError}</Text>}
+      <TouchableOpacity
+        onPress={submitUserNote}
+        disabled={!noteDraft.trim() || noteBusy}
+        style={{ backgroundColor: '#0095F6', borderRadius: 10, paddingVertical: 12, alignItems: 'center', marginTop: 14, opacity: (!noteDraft.trim() || noteBusy) ? 0.5 : 1 }}
+      >
+        <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{noteBusy ? 'Please wait...' : 'Share note'}</Text>
+      </TouchableOpacity>
+      {ownNote && (
+        <TouchableOpacity onPress={removeUserNote} disabled={noteBusy} style={{ paddingVertical: 12, alignItems: 'center' }}>
+          <Text style={{ color: '#D93025', fontWeight: '600' }}>Delete note</Text>
+        </TouchableOpacity>
+      )}
+      <TouchableOpacity onPress={() => setNoteComposerOpen(false)} style={{ paddingVertical: 10, alignItems: 'center' }}>
+        <Text style={{ color: '#555555', fontWeight: '600' }}>Cancel</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+<Modal visible={!!noteViewer} transparent animationType="fade" onRequestClose={() => setNoteViewer(null)}>
+  <TouchableOpacity
+    activeOpacity={1}
+    onPress={() => setNoteViewer(null)}
+    style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', paddingHorizontal: 24 }}
+  >
+    <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 22 }}>
+      <Text style={{ fontSize: 16, fontWeight: '700', color: '#111111', marginBottom: 14 }}>
+        {noteViewer?.displayName || noteViewer?.username || 'Note'}
+      </Text>
+      <Text style={{ fontSize: 18, color: '#222222', lineHeight: 26 }}>
+        {noteViewer?.text || ''}
+      </Text>
+      <TouchableOpacity onPress={() => setNoteViewer(null)} style={{ alignSelf: 'flex-end', marginTop: 20, paddingVertical: 8, paddingHorizontal: 14 }}>
+        <Text style={{ color: '#0095F6', fontWeight: '700' }}>Close</Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  </TouchableOpacity>
+</Modal>
 
 <Modal visible={viewedProfileOpen} transparent animationType="slide" onRequestClose={() => setViewedProfileOpen(false)}>
   <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}>

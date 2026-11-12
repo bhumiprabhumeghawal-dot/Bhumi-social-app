@@ -2138,6 +2138,93 @@ def _chat_current_user():
     return username
 
 
+
+# SOCIALAPP_NOTES_API_V1
+def init_notes_tables():
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS user_notes (
+                username TEXT PRIMARY KEY,
+                body TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL
+            )
+        """)
+        db.execute("CREATE INDEX IF NOT EXISTS idx_user_notes_expiry ON user_notes(expires_at)")
+
+
+@app.get("/api/notes")
+def get_user_notes():
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to view notes."}), 401
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        db.execute("DELETE FROM user_notes WHERE expires_at <= ?", (now,))
+        rows = db.execute("""
+            SELECT n.username, n.body, n.created_at, n.expires_at,
+                   p.display_name, p.avatar_url
+            FROM user_notes n
+            LEFT JOIN profiles p ON LOWER(p.username)=LOWER(n.username)
+            WHERE (LOWER(n.username)=LOWER(?) OR LOWER(n.username) IN
+                (SELECT LOWER(following) FROM follows WHERE LOWER(follower)=LOWER(?)))
+              AND n.expires_at > ?
+            ORDER BY n.created_at DESC
+        """, (current, current, now)).fetchall()
+    own = None
+    friends = []
+    for row in rows:
+        item = {
+            "username": row["username"], "text": row["body"],
+            "createdAt": row["created_at"], "expiresAt": row["expires_at"],
+            "displayName": row["display_name"] or row["username"],
+            "avatarUrl": row["avatar_url"]
+        }
+        if row["username"].lower() == current.lower():
+            own = item
+        else:
+            friends.append(item)
+    return jsonify({"ownNote": own, "friendsNotes": friends})
+
+
+@app.post("/api/notes")
+def save_user_note():
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to post a note."}), 401
+    data = request.get_json(silent=True) or {}
+    body = str(data.get("text") or "").strip()
+    if not body:
+        return jsonify({"error": "Note cannot be empty."}), 400
+    if len(body) > 60:
+        return jsonify({"error": "Note must be 60 characters or fewer."}), 400
+    now_dt = datetime.now(timezone.utc)
+    now = now_dt.isoformat()
+    expires = (now_dt + timedelta(hours=24)).isoformat()
+    with get_db() as db:
+        db.execute("""
+            INSERT INTO user_notes (username, body, created_at, expires_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(username) DO UPDATE SET
+                body=excluded.body, created_at=excluded.created_at,
+                expires_at=excluded.expires_at
+        """, (current, body, now, expires))
+    return jsonify({"ok": True, "note": {
+        "username": current, "text": body,
+        "createdAt": now, "expiresAt": expires
+    }})
+
+
+@app.delete("/api/notes")
+def delete_user_note():
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to delete your note."}), 401
+    with get_db() as db:
+        db.execute("DELETE FROM user_notes WHERE LOWER(username)=LOWER(?)", (current,))
+    return jsonify({"ok": True})
+
+
 @app.get("/api/messages/conversations")
 def get_message_conversations():
     current = _chat_current_user()
@@ -2561,6 +2648,7 @@ init_db()
 init_profile_tables()
 init_auth_tables()
 init_chat_tables()
+init_notes_tables()
 init_people_connect_tables()
 
 if __name__ == "__main__":
