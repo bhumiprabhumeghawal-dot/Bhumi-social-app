@@ -99,6 +99,14 @@ class CompatConnection:
         )
         query = query.replace("?", "%s")
 
+        # Prevent PostgreSQL transaction failure on existing columns.
+        query = re.sub(
+            r"\bALTER\s+TABLE(\s+\w+\s+)ADD\s+COLUMN\s+",
+            r"ALTER TABLE\1ADD COLUMN IF NOT EXISTS ",
+            query,
+            flags=re.IGNORECASE
+        )
+
         query = query.rstrip().rstrip(";").rstrip()
         if ignore_insert and not re.search(r"\bON\s+CONFLICT\b", query, re.I):
             query += " ON CONFLICT DO NOTHING"
