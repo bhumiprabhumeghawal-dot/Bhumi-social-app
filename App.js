@@ -1171,7 +1171,7 @@ export default function App() {
 
 
   const [activeTab, setActiveTab] = React.useState('Home');
-  const feedScrollGesture = useNativeGesture({ shouldActivateOnStart: true });
+  const feedScrollGesture = useNativeGesture();
   const [cameraOpen, setCameraOpen] = React.useState(false);
   const [cameraFacing, setCameraFacing] = React.useState('back');
   const [cameraMode, setCameraMode] = React.useState('video');
@@ -5152,6 +5152,35 @@ const refreshProfile = React.useCallback(async () => {
                           </View>
             </View>
           )}
+        <View style={styles.bottomNav}>
+          {[
+            { name: 'Home', icon: 'home-outline' },
+            { name: 'Search', icon: 'search-outline' },
+            { name: 'Chat', icon: 'chatbubble-ellipses-outline' },
+            { name: 'Reels', icon: 'play-circle-outline' },
+            { name: 'Profile', icon: 'person-circle-outline' }
+          ].map(tab => (
+            <TouchableOpacity
+              key={tab.name}
+              style={styles.navItem}
+              onPress={() => {
+                if (tab.name === 'Chat') return;
+                closeMessages();
+                handleTab(tab.name);
+              }}
+              accessibilityLabel={tab.name}
+            >
+              <Ionicons
+                name={tab.icon}
+                size={25}
+                color={activeTab === tab.name ? '#1685D9' : '#333333'}
+              />
+              <Text style={[styles.navLabel, activeTab === tab.name && styles.activeNavLabel]}>
+                {tab.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
         </SafeAreaView></KeyboardAvoidingView>
 
       </Modal>
@@ -5385,7 +5414,7 @@ const styles = StyleSheet.create({
   time: { marginHorizontal: 13, marginTop: 6, fontSize: 9, color: '#888888', letterSpacing: 0.6 },
   bottomNav: {
     height: Platform.OS === 'android' ? 86 : 70,
-    paddingBottom: Platform.OS === 'android' ? 24 : 8,
+    paddingBottom: Platform.OS === 'android' ? 36 : 16,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#DDDDDD', flexDirection: 'row',
     alignItems: 'center', justifyContent: 'space-around',
