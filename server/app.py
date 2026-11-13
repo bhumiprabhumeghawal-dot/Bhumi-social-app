@@ -150,6 +150,43 @@ def init_db():
             ON saved_content(username, created_at DESC)
         """)
 
+def can_view_content(db, owner, viewer=None):
+    """Allow owners, approved followers of private accounts, and non-blocked viewers."""
+    owner = str(owner or "").strip()
+    viewer = str(viewer or "").strip()
+
+    if not owner:
+        return False
+    if viewer and owner.casefold() == viewer.casefold():
+        return True
+
+    if viewer:
+        blocked = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+               OR (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+            LIMIT 1
+        """, (owner, viewer, viewer, owner)).fetchone()
+        if blocked:
+            return False
+
+    settings = db.execute(
+        "SELECT is_private FROM user_settings WHERE LOWER(username)=LOWER(?)",
+        (owner,)
+    ).fetchone()
+
+    if not settings or not bool(settings["is_private"]):
+        return True
+    if not viewer:
+        return False
+
+    return bool(db.execute("""
+        SELECT 1 FROM follows
+        WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)
+        LIMIT 1
+    """, (viewer, owner)).fetchone())
+
+
 def content_json(row, viewer=None, db=None):
     if db is None:
         with get_db() as connection:
@@ -305,6 +342,9 @@ def list_content(kind):
             (kind,),
         ).fetchall()
         viewer = getattr(g, "auth_username", None)
+
+        rows = [row for row in rows if can_view_content(db, row["username"], viewer)]
+
         items = [content_json(row, viewer, db) for row in rows]
 
     return jsonify({"items": items})
@@ -328,7 +368,7 @@ def create_content(kind):
         return jsonify({"error": "This file type is not allowed"}), 415
 
     caption = request.form.get("caption", "").strip()
-    username = request.form.get("username", "you").strip() or "you"
+    username = g.auth_username
 
     folder = UPLOAD_DIR / kind
     stored_name = f"{uuid.uuid4().hex}.{extension}"
@@ -392,6 +432,20 @@ def uploaded_file(kind, filename):
     if kind not in ALLOWED_EXTENSIONS and kind not in {"profiles", "chat"}:
         return jsonify({"error": "Unknown media type"}), 404
 
+    if kind in ALLOWED_EXTENSIONS:
+        media_url = f"/uploads/{kind}/{filename}"
+        viewer = getattr(g, "auth_username", None)
+        with get_db() as db:
+            row = db.execute(
+                "SELECT username, expires_at FROM content WHERE kind=? AND media_url=?",
+                (kind, media_url),
+            ).fetchone()
+            if row is None:
+                return jsonify({"error": "Media not found"}), 404
+            if kind == "stories" and row["expires_at"] and row["expires_at"] <= datetime.now(timezone.utc).isoformat():
+                return jsonify({"error": "Media not found"}), 404
+            if not can_view_content(db, row["username"], viewer):
+                return jsonify({"error": "Media not found"}), 404
     return send_from_directory(UPLOAD_DIR / kind, filename)
 
 
@@ -652,18 +706,30 @@ def get_profile(username):
     username = username.strip().lstrip("@")
     if not username or len(username) > 50:
         return jsonify({"error": "Invalid username"}), 400
+
+    viewer = getattr(g, "auth_username", None)
     with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+
+        if user is None:
+            return jsonify({"error": "Profile not found"}), 404
+
+        username = user["username"]
+        if not can_view_content(db, username, viewer):
+            return jsonify({"error": "Profile not found"}), 404
+
         result = profile_json(db, username)
-        viewer = getattr(g, "auth_username", None)
         result["isFollowing"] = bool(
             viewer and db.execute(
-                "SELECT 1 FROM follows WHERE follower=? AND following=?",
+                "SELECT 1 FROM follows WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)",
                 (viewer, username),
             ).fetchone()
         )
+
     return jsonify({"profile": result})
-
-
 @app.patch("/api/profile/<username>")
 def update_profile(username):
     username = username.strip().lstrip("@")
@@ -913,6 +979,49 @@ def unrestrict_account(username):
     return jsonify({"ok": True, "restricted": False, "username": target})
 
 
+@app.post("/api/settings/blocked-accounts/<username>")
+def block_account(username):
+    actor = getattr(g, "auth_username", None)
+    target = str(username or "").strip().lstrip("@")
+
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+    if not target or target.casefold() == actor.casefold():
+        return jsonify({"error": "Invalid account."}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (target,)
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
+        target = user["username"]
+        db.execute("""
+            INSERT OR IGNORE INTO people_blocks (blocker, blocked, created_at)
+            VALUES (?, ?, ?)
+        """, (actor, target, now))
+
+        # Blocking ends the existing follow connection in both directions.
+        db.execute("""
+            DELETE FROM follows
+            WHERE (LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?))
+               OR (LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?))
+        """, (actor, target, target, actor))
+
+        db.execute("""
+            UPDATE follow_requests
+            SET status='cancelled', updated_at=?
+            WHERE status='pending'
+              AND ((LOWER(requester)=LOWER(?) AND LOWER(target)=LOWER(?))
+                OR (LOWER(requester)=LOWER(?) AND LOWER(target)=LOWER(?)))
+        """, (now, actor, target, target, actor))
+
+    return jsonify({"ok": True, "blocked": True, "username": target})
+
+
 @app.get("/api/settings/blocked-accounts")
 def get_blocked_accounts():
     username = getattr(g, "auth_username", None)
@@ -1102,25 +1211,49 @@ def mark_all_people_notifications_read():
 @app.get("/api/profile/<username>/followers")
 def list_followers(username):
     username = username.strip().lstrip("@")
+    viewer = getattr(g, "auth_username", None)
+
     with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if user is None:
+            return jsonify({"error": "Profile not found"}), 404
+
+        username = user["username"]
+        if not can_view_content(db, username, viewer):
+            return jsonify({"error": "Profile not found"}), 404
+
         rows = db.execute(
-            "SELECT follower FROM follows WHERE following=? ORDER BY created_at DESC",
+            "SELECT follower FROM follows WHERE LOWER(following)=LOWER(?) ORDER BY created_at DESC",
             (username,),
         ).fetchall()
+
     return jsonify({"users": [r["follower"] for r in rows]})
-
-
 @app.get("/api/profile/<username>/following")
 def list_following(username):
     username = username.strip().lstrip("@")
+    viewer = getattr(g, "auth_username", None)
+
     with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if user is None:
+            return jsonify({"error": "Profile not found"}), 404
+
+        username = user["username"]
+        if not can_view_content(db, username, viewer):
+            return jsonify({"error": "Profile not found"}), 404
+
         rows = db.execute(
-            "SELECT following FROM follows WHERE follower=? ORDER BY created_at DESC",
+            "SELECT following FROM follows WHERE LOWER(follower)=LOWER(?) ORDER BY created_at DESC",
             (username,),
         ).fetchall()
+
     return jsonify({"users": [r["following"] for r in rows]})
-
-
 # SOCIALAPP_PRIVACY_SETTINGS_V1
 @app.get("/api/profile/<username>/settings")
 def get_user_settings(username):
@@ -1206,6 +1339,8 @@ def toggle_post_like(content_id):
         ).fetchone()
         if post is None:
             return jsonify({"error": "Post not found"}), 404
+        if not can_view_content(db, post["username"], username):
+            return jsonify({"error": "Post not found"}), 404
 
         existing = db.execute(
             "SELECT id FROM post_likes WHERE content_id=? AND username=?",
@@ -1236,16 +1371,19 @@ def toggle_post_like(content_id):
 
 @app.get("/api/posts/<int:content_id>")
 def get_post_by_id(content_id):
+    viewer = getattr(g, "auth_username", None)
     with get_db() as db:
         row = db.execute(
             "SELECT * FROM content WHERE id=? AND kind='posts'",
             (content_id,),
         ).fetchone()
 
-    if row is None:
-        return jsonify({"error": "Post not found"}), 404
+        if row is None or not can_view_content(db, row["username"], viewer):
+            return jsonify({"error": "Post not found"}), 404
 
-    return jsonify({"ok": True, "item": content_json(row)})
+        item = content_json(row, viewer, db)
+
+    return jsonify({"ok": True, "item": item})
 
 
 @app.get("/api/posts/<int:content_id>/comments")
@@ -1257,6 +1395,8 @@ def list_post_comments(content_id):
             (content_id,),
         ).fetchone()
         if post is None:
+            return jsonify({"error": "Post not found"}), 404
+        if not can_view_content(db, post["username"], viewer):
             return jsonify({"error": "Post not found"}), 404
 
         rows = db.execute("""
@@ -1303,6 +1443,8 @@ def create_post_comment(content_id):
             (content_id,),
         ).fetchone()
         if post is None:
+            return jsonify({"error": "Post not found"}), 404
+        if not can_view_content(db, post["username"], username):
             return jsonify({"error": "Post not found"}), 404
 
         restricted = db.execute("""
@@ -1372,6 +1514,8 @@ def toggle_reel_like(content_id):
         ).fetchone()
         if reel is None:
             return jsonify({"error": "Reel not found"}), 404
+        if not can_view_content(db, reel["username"], username):
+            return jsonify({"error": "Reel not found"}), 404
 
         existing = db.execute(
             "SELECT id FROM reel_likes WHERE content_id=? AND username=?",
@@ -1408,6 +1552,8 @@ def list_reel_comments(content_id):
             (content_id,),
         ).fetchone()
         if reel is None:
+            return jsonify({"error": "Reel not found"}), 404
+        if not can_view_content(db, reel["username"], viewer):
             return jsonify({"error": "Reel not found"}), 404
 
         rows = db.execute("""
@@ -1454,6 +1600,8 @@ def create_reel_comment(content_id):
             (content_id,),
         ).fetchone()
         if reel is None:
+            return jsonify({"error": "Reel not found"}), 404
+        if not can_view_content(db, reel["username"], username):
             return jsonify({"error": "Reel not found"}), 404
 
         restricted = db.execute("""
@@ -1523,6 +1671,8 @@ def list_saved_content():
                ORDER BY s.created_at DESC""",
             (username,)
         ).fetchall()
+        rows = [row for row in rows if can_view_content(db, row["username"], username)]
+
         items = [content_json(row, username, db) for row in rows]
         return jsonify({"ok": True, "items": items})
 
@@ -1536,10 +1686,10 @@ def save_content_item(kind, content_id):
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as db:
         item = db.execute(
-            "SELECT id FROM content WHERE id=? AND kind=?",
+            "SELECT id, username FROM content WHERE id=? AND kind=?",
             (content_id, kind)
         ).fetchone()
-        if item is None:
+        if item is None or not can_view_content(db, item["username"], username):
             return jsonify({"error": "Content not found"}), 404
 
         existing = db.execute(
