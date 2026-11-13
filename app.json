@@ -53,6 +53,12 @@
         "projectId": "8c9ddb30-5746-4914-bb36-37a4c109f052"
       }
     },
-    "scheme": "bhumisocial"
+    "scheme": "bhumisocial",
+    "androidStatusBar": {
+      "backgroundColor": "#FFFFFF",
+      "barStyle": "dark-content",
+      "hidden": false,
+      "translucent": false
+    }
   }
 }

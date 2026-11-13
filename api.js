@@ -928,7 +928,12 @@ export async function toggleReelLike(reelId) {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not update reel like.');
-  return data;
+  return {
+    ...data,
+    likesCount: Number.isFinite(Number(data.likesCount ?? data.likes))
+      ? Number(data.likesCount ?? data.likes)
+      : 0,
+  };
 }
 
 export async function loadReelComments(reelId) {
@@ -946,7 +951,7 @@ export async function createReelComment(reelId, text) {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not create reel comment.');
-  return data.comment;
+  return data;
 }
 
 export async function approveReelComment(reelId, commentId) {

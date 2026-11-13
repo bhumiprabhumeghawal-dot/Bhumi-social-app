@@ -198,6 +198,24 @@ def content_json(row, viewer=None, db=None):
     ).fetchone()
     avatar_url = profile["avatar_url"] if profile else None
     extra = {}
+    if row["kind"] in ("posts", "reels"):
+        comment_table = "reel_comments" if row["kind"] == "reels" else "post_comments"
+        if row["kind"] == "posts":
+            likes = db.execute(
+                "SELECT COUNT(*) AS total FROM post_likes WHERE content_id=?",
+                (row["id"],)
+            ).fetchone()
+            extra["likesCount"] = int(likes["total"] or 0)
+        comments = db.execute(
+            f"SELECT COUNT(*) AS total FROM {comment_table} WHERE content_id=? AND approved=1",
+            (row["id"],)
+        ).fetchone()
+        saves = db.execute(
+            "SELECT COUNT(*) AS total FROM saved_content WHERE content_id=? AND kind=?",
+            (row["id"], row["kind"])
+        ).fetchone()
+        extra["commentsCount"] = int(comments["total"] or 0)
+        extra["savesCount"] = int(saves["total"] or 0)
 
     if row["kind"] == "reels":
         likes = db.execute(
@@ -1624,6 +1642,11 @@ def create_reel_comment(content_id):
         if approved:
             _people_notification(db, reel["username"], username, "comment", cursor.lastrowid, now)
 
+        comments_count = db.execute(
+            "SELECT COUNT(*) AS total FROM reel_comments WHERE content_id=? AND approved=1",
+            (content_id,),
+        ).fetchone()["total"]
+
         return jsonify({
             "ok": True,
             "comment": {
@@ -1634,6 +1657,7 @@ def create_reel_comment(content_id):
                 "isPending": not bool(row["approved"]),
                 "canApprove": False,
             },
+            "commentsCount": int(comments_count or 0),
         }), 201
 
 @app.post("/api/reels/<int:content_id>/comments/<int:comment_id>/approve")
@@ -1656,7 +1680,17 @@ def approve_reel_comment(content_id, comment_id):
         if cursor.rowcount == 0:
             return jsonify({"error": "Comment not found."}), 404
 
-    return jsonify({"ok": True, "approved": True, "commentId": comment_id})
+        comments_count = db.execute(
+            "SELECT COUNT(*) AS total FROM reel_comments WHERE content_id=? AND approved=1",
+            (content_id,),
+        ).fetchone()["total"]
+
+    return jsonify({
+        "ok": True,
+        "approved": True,
+        "commentId": comment_id,
+        "commentsCount": int(comments_count or 0),
+    })
 
 
 @app.get("/api/saved")

@@ -27,7 +27,7 @@ import {Alert as NativeAlert,
   Share,
   Dimensions,
   KeyboardAvoidingView,
-  Platform} from "react-native";
+  Platform, Modal } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
 import {
   applyZoomEffect,
@@ -247,19 +247,6 @@ function ZoomableImage({ uri, style, onZoomChange }) {
       savedX.value = translateX.value;
       savedY.value = translateY.value;
     });
-
-  const doubleTap = Gesture.Tap()
-    .numberOfTaps(2)
-    .onEnd(() => {
-      if (scale.value > 1) {
-        resetZoom();
-      } else {
-        scale.value = 2.5;
-        savedScale.value = 2.5;
-        setZoomLevel(2.5);
-      }
-    })
-    .runOnJS(true);
 
   const gesture = pinch;
 
@@ -486,26 +473,6 @@ function PinchZoomImage({
       savedY.value = translateY.value;
     });
 
-  const doubleTap = Gesture.Tap()
-    .numberOfTaps(2)
-    .onEnd(() => {
-      if (scale.value > 1) {
-        scale.value = 1;
-        savedScale.value = 1;
-        translateX.value = 0;
-        translateY.value = 0;
-        savedX.value = 0;
-        savedY.value = 0;
-        setZoomLevel(1);
-        onZoomChange?.(1);
-      } else {
-        scale.value = 2.5;
-        savedScale.value = 2.5;
-        setZoomLevel(2.5);
-        onZoomChange?.(2.5);
-      }
-    });
-
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
@@ -541,14 +508,12 @@ function PinchZoomImage({
               ? Gesture.Simultaneous(
                   pinch,
                   pan.enabled(zoomLevel > 1),
-                  doubleTap,
                 )
                   .runOnJS(true)
                   .simultaneousWithExternalGesture(nativeScrollGesture)
               : Gesture.Simultaneous(
                   pinch,
                   pan.enabled(zoomLevel > 1),
-                  doubleTap,
                 ).runOnJS(true)
           }
         >
@@ -792,34 +757,10 @@ function ReelVideoZoomable({
       savedY.value = translateY.value;
     });
 
-  const doubleTap = Gesture.Tap()
-    .numberOfTaps(2)
-    .maxDuration(250)
-    .maxDelay(350)
-    .maxDistance(12)
-    .onEnd(() => {
-      if (scale.value > 1) {
-        scale.value = 1;
-        savedScale.value = 1;
-        setZoomLevel(1);
-        onZoomChange?.(1);
-        translateX.value = 0;
-        translateY.value = 0;
-        savedX.value = 0;
-        savedY.value = 0;
-      } else {
-        scale.value = 2.5;
-        savedScale.value = 2.5;
-        setZoomLevel(2.5);
-        onZoomChange?.(2.5);
-      }
-    });
-
   const videoGestures = zoomEnabled
     ? Gesture.Simultaneous(
         pinch,
         pan.enabled(zoomLevel > 1),
-        doubleTap,
       ).runOnJS(true)
     : null;
   const gesture =
@@ -2238,6 +2179,27 @@ export default function App() {
     setReelZoomed(false);
   }, [activeTab]);
   const [reelViewportHeight, setReelViewportHeight] = React.useState(0);
+  const [pendingSavedReelIndex, setPendingSavedReelIndex] = React.useState(null);
+
+  React.useEffect(() => {
+    if (
+      activeTab !== "Reels" ||
+      pendingSavedReelIndex === null ||
+      reelViewportHeight <= 0 ||
+      !reelListRef.current
+    ) return;
+
+    try {
+      reelListRef.current.scrollToOffset({
+        offset: reelViewportHeight * pendingSavedReelIndex,
+        animated: false,
+      });
+      setActiveReelIndex(pendingSavedReelIndex);
+      setPendingSavedReelIndex(null);
+    } catch (error) {
+      console.warn("Saved Reel navigation failed:", error);
+    }
+  }, [activeTab, pendingSavedReelIndex, reelViewportHeight, reels.length]);
   const [mutedReels, setMutedReels] = React.useState(true);
   const [reelLikeState, setReelLikeState] = React.useState({});
   const [reelSavedState, setReelSavedState] = React.useState({});
@@ -3099,8 +3061,22 @@ export default function App() {
       return;
     setReelCommentsBusy(true);
     try {
-      const created = await createReelComment(id, message);
+      const result = await createReelComment(id, message);
+      const created = result?.comment;
       setReelComments((current) => [...current, created]);
+      if (Number.isFinite(Number(result?.commentsCount))) {
+        const count = Number(result.commentsCount);
+        setReels((items) =>
+          items.map((item) =>
+            Number(item.id) === id ? { ...item, commentsCount: count } : item,
+          ),
+        );
+        setSelectedReel((item) =>
+          item && Number(item.id) === id
+            ? { ...item, commentsCount: count }
+            : item,
+        );
+      }
       setReelCommentDraft("");
     } catch (e) {
       Alert.alert("Reel comment", e.message || "Could not post comment.");
@@ -3114,7 +3090,7 @@ export default function App() {
     if (!Number.isSafeInteger(id) || id <= 0 || reelCommentsBusy) return;
     setReelCommentsBusy(true);
     try {
-      await approveReelComment(id, commentId);
+      const result = await approveReelComment(id, commentId);
       setReelComments((items) =>
         items.map((item) =>
           String(item.id) === String(commentId)
@@ -3122,6 +3098,19 @@ export default function App() {
             : item,
         ),
       );
+      if (Number.isFinite(Number(result?.commentsCount))) {
+        const count = Number(result.commentsCount);
+        setReels((items) =>
+          items.map((item) =>
+            Number(item.id) === id ? { ...item, commentsCount: count } : item,
+          ),
+        );
+        setSelectedReel((item) =>
+          item && Number(item.id) === id
+            ? { ...item, commentsCount: count }
+            : item,
+        );
+      }
     } catch (e) {
       Alert.alert(
         "Comment approval",
@@ -3171,20 +3160,9 @@ export default function App() {
         setReels(rows);
       }
 
+      setPendingSavedReelIndex(index);
       setActiveReelIndex(index);
       setActiveTab("Reels");
-      const targetIndex = index;
-      const scrollToSavedReel = () => {
-        if (!reelListRef.current || reelViewportHeight <= 0) return;
-        try {
-          reelListRef.current.scrollToOffset({
-            offset: reelViewportHeight * targetIndex,
-            animated: false,
-          });
-        } catch (e) {}
-      };
-      setTimeout(scrollToSavedReel, 300);
-      setTimeout(scrollToSavedReel, 800);
       return;
     }
 
@@ -4299,54 +4277,75 @@ export default function App() {
         <Ionicons name="paper-plane-outline" size={26} color="#171717" />
       </TouchableOpacity>
       {headerCreateMenuOpen ? (
-        <View
-          style={{
-            position: "absolute",
-            top: 72,
-            left: 8,
-            zIndex: 1000,
-            elevation: 20,
-            minWidth: 215,
-            backgroundColor: "#202027",
-            borderRadius: 14,
-            paddingVertical: 6,
-            paddingHorizontal: 8,
-          }}
+        <Modal
+          visible={headerCreateMenuOpen}
+          transparent
+          animationType="fade"
+          statusBarTranslucent={false}
+          onRequestClose={() => setHeaderCreateMenuOpen(false)}
         >
-          {[
-            ["live-camera", "Go Live", "radio-outline"],
-      ["reel-camera", "Record Reel", "videocam-outline"],
-            ["reel-photos", "Reel from Photos", "images-outline"],
-            ["photo-post", "Photo Post", "camera-outline"],
-            ["video-post", "Video Post", "film-outline"],
-            ["story-camera", "Story from Camera", "camera"],
-            ["story-gallery", "Story from Gallery", "images"],
-            ["post-gallery", "Post from Gallery", "image-outline"],
-          ].map(([action, label, iconName]) => (
+          <View style={{ flex: 1 }}>
             <TouchableOpacity
-              key={action}
-              onPress={() => runHeaderCreateAction(action)}
+              activeOpacity={1}
+              onPress={() => setHeaderCreateMenuOpen(false)}
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                paddingVertical: 11,
-                paddingHorizontal: 9,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
+            <View
+              style={{
+                position: "absolute",
+                top: 72,
+                left: 8,
+                zIndex: 1000,
+                elevation: 20,
+                minWidth: 215,
+                backgroundColor: "#202027",
+                borderRadius: 14,
+                paddingVertical: 6,
+                paddingHorizontal: 8,
               }}
             >
-              <Ionicons name={iconName} size={19} color="#FFFFFF" />
-              <Text
-                style={{
-                  color: "#FFFFFF",
-                  fontSize: 14,
-                  marginLeft: 12,
-                  fontWeight: "600",
-                }}
-              >
-                {label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+              {[
+                ["live-camera", "Go Live", "radio-outline"],
+                ["reel-camera", "Record Reel", "videocam-outline"],
+                ["reel-photos", "Reel from Photos", "images-outline"],
+                ["photo-post", "Photo Post", "camera-outline"],
+                ["video-post", "Video Post", "film-outline"],
+                ["story-camera", "Story from Camera", "camera"],
+                ["story-gallery", "Story from Gallery", "images"],
+                ["post-gallery", "Post from Gallery", "image-outline"],
+              ].map(([action, label, iconName]) => (
+                <TouchableOpacity
+                  key={action}
+                  onPress={() => runHeaderCreateAction(action)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingVertical: 11,
+                    paddingHorizontal: 9,
+                  }}
+                >
+                  <Ionicons name={iconName} size={19} color="#FFFFFF" />
+                  <Text
+                    style={{
+                      color: "#FFFFFF",
+                      fontSize: 14,
+                      marginLeft: 12,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </Modal>
       ) : null}
     </View>
   );
@@ -4481,7 +4480,7 @@ export default function App() {
   if (!authReady) {
     return (
       <SafeAreaView style={styles.screen}>
-        <StatusBar style="dark" />
+        <StatusBar style="dark" hidden={false} translucent={false} />
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
@@ -4568,7 +4567,7 @@ export default function App() {
 
     return (
       <SafeAreaView style={styles.screen}>
-        <StatusBar style="dark" />
+        <StatusBar style="dark" hidden={false} translucent={false} />
         <View
           style={{ flex: 1, justifyContent: "center", paddingHorizontal: 28 }}
         >
@@ -4752,7 +4751,7 @@ export default function App() {
   if (authReady && welcomeChecked && !authSession && !welcomeSeen) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#101827" }}>
-        <StatusBar style="light" />
+        <StatusBar style="light" hidden={false} translucent={false} />
         <View
           style={{
             flex: 1,
@@ -4924,7 +4923,7 @@ export default function App() {
   if (!authSession) {
     return (
       <SafeAreaView style={styles.screen}>
-        <StatusBar style="dark" />
+        <StatusBar style="dark" hidden={false} translucent={false} />
         <View
           style={{ flex: 1, justifyContent: "center", paddingHorizontal: 28 }}
         >
@@ -5156,7 +5155,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style="dark" hidden={false} translucent={false} />
 
 
       <Modal
@@ -6388,7 +6387,6 @@ export default function App() {
                         muted={mutedReels}
                         contentFit="cover"
                         zoomEnabled={false}
-                        onZoomChange={(level) => setReelZoomed(level > 1.01)}
                       />
                     ) : null}
                     <View
@@ -6544,7 +6542,7 @@ export default function App() {
                                 marginTop: 3,
                               }}
                             >
-                              Comment
+                              {Number(r.commentsCount || 0)}
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
