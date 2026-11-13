@@ -1,32 +1,106 @@
-import { Ionicons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
-import appConfig from './app.json';
-import * as SecureStore from 'expo-secure-store';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as IntentLauncher from 'expo-intent-launcher';
-import React from 'react';
-import { useEvent } from 'expo';
-import * as ImagePicker from 'expo-image-picker';
-import * as MediaLibrary from 'expo-media-library';
-import { CameraView, useCameraPermissions } from 'expo-camera';
-import * as DocumentPicker from 'expo-document-picker';
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { Gesture, GestureDetector, ScrollView as GestureScrollView, useNativeGesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSequence, withSpring } from 'react-native-reanimated';
-import { Alert as NativeAlert, Share, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
-import { VideoView, useVideoPlayer } from 'expo-video';
-import { applyZoomEffect, createVideoFromPhotos, addMusicToVideo } from './videoEditor';
-import { editPhotoAsset } from './photoEditor';
+import { Ionicons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
+import appConfig from "./app.json";
+import * as SecureStore from "expo-secure-store";
+import * as FileSystem from "expo-file-system/legacy";
+import * as IntentLauncher from "expo-intent-launcher";
+import React from "react";
+import { useEvent, useEventListener } from "expo";
+import * as ImagePicker from "expo-image-picker";
+import * as MediaLibrary from "expo-media-library";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import * as DocumentPicker from "expo-document-picker";
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import {
-  loadContent, getCachedContent, getCachedProfile, uploadContent, checkServer,
-  loadProfile, updateProfile, uploadProfileAvatar,
-  deleteProfileAvatar, loadProfileConnections, followProfile, unfollowProfile,
-  loadPrivacySettings, savePrivacySettings, loadBlockedAccounts, unblockAccount, loadRestrictedAccounts, restrictAccount, unrestrictAccount, changeAccountPassword, logoutOtherSessions,
-  loadAccountSettings, saveAccountSettings,
-  loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails,
-  togglePostLike, loadPostById, loadPostComments, createPostComment, approvePostComment, toggleReelLike, loadReelComments, createReelComment, approveReelComment, loadSavedContent, toggleSavedContent,
-  registerAccount, loginAccount, logoutAccount, getAuthSession, clearAuthSession,
-  requestPasswordReset, verifyPasswordReset, resetPasswordWithToken, verifyAuthSession, searchUsers, loadFollowRequests, acceptFollowRequest, rejectFollowRequest, loadMessageConversations, loadUserNotes, saveUserNote, deleteUserNote, loadDirectMessages, sendDirectMessage, unsendDirectMessage, uploadChatPhoto, updateChatTyping, loadChatTyping, loadNotifications, markNotificationRead, markAllNotificationsRead} from './api';
+  Gesture,
+  GestureDetector,
+  ScrollView as GestureScrollView,
+  useNativeGesture,
+} from "react-native-gesture-handler";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withSpring,
+} from "react-native-reanimated";
+import {Alert as NativeAlert,
+  Share,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform} from "react-native";
+import { VideoView, useVideoPlayer } from "expo-video";
+import {
+  applyZoomEffect,
+  createVideoFromPhotos,
+  addMusicToVideo,
+} from "./videoEditor";
+import { editPhotoAsset } from "./photoEditor";
+import {
+  loadContent,
+  getCachedContent,
+  getCachedProfile,
+  uploadContent,
+  checkServer,
+  loadProfile,
+  updateProfile,
+  uploadProfileAvatar,
+  deleteProfileAvatar,
+  loadProfileConnections,
+  followProfile,
+  unfollowProfile,
+  loadPrivacySettings,
+  savePrivacySettings,
+  loadBlockedAccounts,
+  unblockAccount,
+  loadRestrictedAccounts,
+  restrictAccount,
+  unrestrictAccount,
+  changeAccountPassword,
+  logoutOtherSessions,
+  loadAccountSettings,
+  saveAccountSettings,
+  loadNotificationPreference,
+  saveNotificationPreference,
+  loadNotificationDetails,
+  saveNotificationDetails,
+  togglePostLike,
+  loadPostById,
+  loadPostComments,
+  createPostComment,
+  approvePostComment,
+  toggleReelLike,
+  loadReelComments,
+  createReelComment,
+  approveReelComment,
+  loadSavedContent,
+  toggleSavedContent,
+  registerAccount,
+  loginAccount,
+  logoutAccount,
+  getAuthSession,
+  clearAuthSession,
+  requestPasswordReset,
+  verifyPasswordReset,
+  resetPasswordWithToken,
+  verifyAuthSession,
+  searchUsers,
+  loadFollowRequests,
+  acceptFollowRequest,
+  rejectFollowRequest,
+  loadMessageConversations,
+  loadUserNotes,
+  saveUserNote,
+  deleteUserNote,
+  loadDirectMessages,
+  sendDirectMessage,
+  unsendDirectMessage,
+  uploadChatPhoto,
+  updateChatTyping,
+  loadChatTyping,
+  loadNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from "./api";
 import {
   SafeAreaView,
   ScrollView,
@@ -40,13 +114,15 @@ import {
   Switch,
   Modal,
   Linking,
-} from 'react-native';
-
-
+} from "react-native";
 
 function isVersionNewer(latest, current) {
-  const a = String(latest || '0').split('.').map(n => parseInt(n, 10) || 0);
-  const b = String(current || '0').split('.').map(n => parseInt(n, 10) || 0);
+  const a = String(latest || "0")
+    .split(".")
+    .map((n) => parseInt(n, 10) || 0);
+  const b = String(current || "0")
+    .split(".")
+    .map((n) => parseInt(n, 10) || 0);
   for (let i = 0; i < Math.max(a.length, b.length); i++) {
     const x = a[i] || 0;
     const y = b[i] || 0;
@@ -57,49 +133,64 @@ function isVersionNewer(latest, current) {
 }
 
 const stories = [
-  { name: 'Your story', color: '#DDE7F5', own: true },
-  { name: 'alex', color: '#F3C6B8' },
-  { name: 'sophia', color: '#D7C4F1' },
-  { name: 'mike', color: '#B8DCCB' },
-  { name: 'emma', color: '#F1D69B' },
-  { name: 'noah', color: '#B9D8EF' },
+  { name: "Your story", color: "#DDE7F5", own: true },
+  { name: "alex", color: "#F3C6B8" },
+  { name: "sophia", color: "#D7C4F1" },
+  { name: "mike", color: "#B8DCCB" },
+  { name: "emma", color: "#F1D69B" },
+  { name: "noah", color: "#B9D8EF" },
 ];
 
 const posts = [
   {
-    user: 'alex.morgan',
-    location: 'San Francisco, CA',
-    color: '#D8E7DF',
-    emoji: '🌿',
-    caption: 'Finding beauty in the little things.',
-    likes: '1,284',
+    user: "alex.morgan",
+    location: "San Francisco, CA",
+    color: "#D8E7DF",
+    emoji: "🌿",
+    caption: "Finding beauty in the little things.",
+    likes: "1,284",
   },
   {
-    user: 'sophia.lee',
-    location: 'At the coast',
-    color: '#D5E5F4',
-    emoji: '🌊',
-    caption: 'A little escape from the everyday.',
-    likes: '856',
+    user: "sophia.lee",
+    location: "At the coast",
+    color: "#D5E5F4",
+    emoji: "🌊",
+    caption: "A little escape from the everyday.",
+    likes: "856",
   },
 ];
 
-
 function Story({ item, onPress }) {
   return (
-    <TouchableOpacity style={styles.story} activeOpacity={0.8} onPress={onPress}>
+    <TouchableOpacity
+      style={styles.story}
+      activeOpacity={0.8}
+      onPress={onPress}
+    >
       <View style={[styles.storyRing, item.own && styles.ownRing]}>
-        <View style={[styles.storyAvatar, { backgroundColor: item.color || '#DDE7F5' }]}>
+        <View
+          style={[
+            styles.storyAvatar,
+            { backgroundColor: item.color || "#DDE7F5" },
+          ]}
+        >
           {item.uri ? (
-            <Image source={{ uri: item.uri }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+            <Image
+              source={{ uri: item.uri }}
+              style={{ width: 52, height: 52, borderRadius: 26 }}
+            />
           ) : item.own ? (
             <Text style={styles.plus}>＋</Text>
           ) : (
-            <Text style={styles.avatarLetter}>{(item.name || 'U').charAt(0).toUpperCase()}</Text>
+            <Text style={styles.avatarLetter}>
+              {(item.name || "U").charAt(0).toUpperCase()}
+            </Text>
           )}
         </View>
       </View>
-      <Text style={styles.storyName} numberOfLines={1}>{item.name}</Text>
+      <Text style={styles.storyName} numberOfLines={1}>
+        {item.name}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -112,7 +203,7 @@ function ZoomableImage({ uri, style, onZoomChange }) {
   const translateY = useSharedValue(0);
   const savedX = useSharedValue(0);
   const savedY = useSharedValue(0);
-  const [fitMode, setFitMode] = React.useState('fit');
+  const [fitMode, setFitMode] = React.useState("fit");
   const [zoomLevel, setZoomLevel] = React.useState(1);
 
   React.useEffect(() => {
@@ -130,7 +221,7 @@ function ZoomableImage({ uri, style, onZoomChange }) {
   };
 
   const pinch = Gesture.Pinch()
-    .onUpdate(event => {
+    .onUpdate((event) => {
       scale.value = Math.max(1, Math.min(savedScale.value * event.scale, 5));
     })
     .onEnd(() => {
@@ -146,7 +237,7 @@ function ZoomableImage({ uri, style, onZoomChange }) {
     .runOnJS(true);
 
   const pan = Gesture.Pan()
-    .onUpdate(event => {
+    .onUpdate((event) => {
       if (scale.value > 1) {
         translateX.value = savedX.value + event.translationX;
         translateY.value = savedY.value + event.translationY;
@@ -180,7 +271,7 @@ function ZoomableImage({ uri, style, onZoomChange }) {
     ],
   }));
 
-  const setZoom = value => {
+  const setZoom = (value) => {
     const next = Math.max(1, Math.min(Number(value) || 1, 5));
     scale.value = next;
     savedScale.value = next;
@@ -194,50 +285,115 @@ function ZoomableImage({ uri, style, onZoomChange }) {
   };
 
   return (
-    <View style={[{ width: '100%', alignItems: 'center' }, style]}>
+    <View style={[{ width: "100%", alignItems: "center" }, style]}>
       <GestureDetector gesture={gesture}>
         <Animated.Image
           source={{ uri }}
-          style={[{ width: '100%', height: '82%' }, animatedStyle]}
-          resizeMode={fitMode === 'fit' ? 'contain' : 'cover'}
+          style={[{ width: "100%", height: "82%" }, animatedStyle]}
+          resizeMode={fitMode === "fit" ? "contain" : "cover"}
         />
       </GestureDetector>
-      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', paddingVertical: 6 }}>
-        <TouchableOpacity onPress={resetZoom} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 12 }}>Reset Zoom</Text>
+      <View
+        style={{
+          width: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          flexWrap: "wrap",
+          paddingVertical: 6,
+        }}
+      >
+        <TouchableOpacity
+          onPress={resetZoom}
+          style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+        >
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Reset Zoom</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setFitMode('fit')} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 12 }}>Fit</Text>
+        <TouchableOpacity
+          onPress={() => setFitMode("fit")}
+          style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+        >
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Fit</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setFitMode('fill')} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 12 }}>Fill</Text>
+        <TouchableOpacity
+          onPress={() => setFitMode("fill")}
+          style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+        >
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Fill</Text>
         </TouchableOpacity>
-        <Text style={{ color: '#FFFFFF', fontSize: 12, marginHorizontal: 6 }}>{zoomLevel.toFixed(1)}×</Text>
-        <TouchableOpacity onPress={() => setZoom(zoomLevel - 0.5)} style={{ paddingHorizontal: 8, paddingVertical: 5 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 16 }}>−</Text>
+        <Text style={{ color: "#FFFFFF", fontSize: 12, marginHorizontal: 6 }}>
+          {zoomLevel.toFixed(1)}×
+        </Text>
+        <TouchableOpacity
+          onPress={() => setZoom(zoomLevel - 0.5)}
+          style={{ paddingHorizontal: 8, paddingVertical: 5 }}
+        >
+          <Text style={{ color: "#FFFFFF", fontSize: 16 }}>−</Text>
         </TouchableOpacity>
-        <View style={{ width: 90, justifyContent: 'center' }}>
-          <View style={{ height: 4, backgroundColor: '#777777', borderRadius: 2 }}>
-            <View style={{ width: `${((zoomLevel - 1) / 4) * 100}%`, height: 4, backgroundColor: '#1685D9', borderRadius: 2 }} />
+        <View style={{ width: 90, justifyContent: "center" }}>
+          <View
+            style={{ height: 4, backgroundColor: "#777777", borderRadius: 2 }}
+          >
+            <View
+              style={{
+                width: `${((zoomLevel - 1) / 4) * 100}%`,
+                height: 4,
+                backgroundColor: "#1685D9",
+                borderRadius: 2,
+              }}
+            />
           </View>
-          <View style={{ position: 'absolute', left: 0, right: 0, top: -9, bottom: -9, flexDirection: 'row', justifyContent: 'space-between' }}>
-            {[1, 2, 3, 4, 5].map(value => (
-              <TouchableOpacity key={value} onPress={() => setZoom(value)} style={{ width: 16, alignItems: 'center', justifyContent: 'center' }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: zoomLevel >= value ? '#1685D9' : '#BBBBBB' }} />
+          <View
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: -9,
+              bottom: -9,
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
+            {[1, 2, 3, 4, 5].map((value) => (
+              <TouchableOpacity
+                key={value}
+                onPress={() => setZoom(value)}
+                style={{
+                  width: 16,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: zoomLevel >= value ? "#1685D9" : "#BBBBBB",
+                  }}
+                />
               </TouchableOpacity>
             ))}
           </View>
         </View>
-        <TouchableOpacity onPress={() => setZoom(zoomLevel + 0.5)} style={{ paddingHorizontal: 8, paddingVertical: 5 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 16 }}>＋</Text>
+        <TouchableOpacity
+          onPress={() => setZoom(zoomLevel + 0.5)}
+          style={{ paddingHorizontal: 8, paddingVertical: 5 }}
+        >
+          <Text style={{ color: "#FFFFFF", fontSize: 16 }}>＋</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
 
-
-function PinchZoomImage({ uri, style, resizeMode = "contain", nativeScrollGesture, onZoomChange }) {
+function PinchZoomImage({
+  uri,
+  style,
+  resizeMode = "contain",
+  nativeScrollGesture,
+  onZoomChange,
+}) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -251,18 +407,29 @@ function PinchZoomImage({ uri, style, resizeMode = "contain", nativeScrollGestur
   React.useEffect(() => {
     let active = true;
     if (uri) {
-      Image.getSize(uri, (width, height) => {
-        if (active && width > 0 && height > 0) setImageAspectRatio(width / height);
-      }, () => {
-        if (active) setImageAspectRatio(1);
-      });
+      Image.getSize(
+        uri,
+        (width, height) => {
+          if (active && width > 0 && height > 0)
+            setImageAspectRatio(width / height);
+        },
+        () => {
+          if (active) setImageAspectRatio(1);
+        },
+      );
     }
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [uri]);
 
-  const imageHeight = viewportWidth > 0
-    ? Math.min(viewportWidth / imageAspectRatio, Dimensions.get("window").height * 0.68)
-    : 320;
+  const imageHeight =
+    viewportWidth > 0
+      ? Math.min(
+          viewportWidth / imageAspectRatio,
+          Dimensions.get("window").height * 0.68,
+        )
+      : 320;
 
   const resetZoom = () => {
     onZoomChange?.(1);
@@ -275,7 +442,7 @@ function PinchZoomImage({ uri, style, resizeMode = "contain", nativeScrollGestur
     setZoomLevel(1);
   };
 
-  const setZoom = value => {
+  const setZoom = (value) => {
     const next = Math.max(1, Math.min(Number(value) || 1, 5));
     scale.value = next;
     savedScale.value = next;
@@ -290,7 +457,7 @@ function PinchZoomImage({ uri, style, resizeMode = "contain", nativeScrollGestur
   };
 
   const pinch = Gesture.Pinch()
-    .onUpdate(event => {
+    .onUpdate((event) => {
       scale.value = Math.max(1, Math.min(savedScale.value * event.scale, 5));
     })
     .onEnd(() => {
@@ -308,7 +475,7 @@ function PinchZoomImage({ uri, style, resizeMode = "contain", nativeScrollGestur
     });
 
   const pan = Gesture.Pan()
-    .onUpdate(event => {
+    .onUpdate((event) => {
       if (scale.value > 1) {
         translateX.value = savedX.value + event.translationX;
         translateY.value = savedY.value + event.translationY;
@@ -349,13 +516,42 @@ function PinchZoomImage({ uri, style, resizeMode = "contain", nativeScrollGestur
 
   return (
     <View
-      onLayout={event => setViewportWidth(event.nativeEvent.layout.width)}
-      style={[style, { width: "100%", aspectRatio: undefined, overflow: "visible", backgroundColor: "#080B14" }]}
+      onLayout={(event) => setViewportWidth(event.nativeEvent.layout.width)}
+      style={[
+        style,
+        {
+          width: "100%",
+          aspectRatio: undefined,
+          overflow: "visible",
+          backgroundColor: "#080B14",
+        },
+      ]}
     >
-      <View style={{ width: "100%", height: imageHeight, overflow: "hidden", backgroundColor: "#080B14" }}>
-        <GestureDetector gesture={(nativeScrollGesture
-            ? Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true).simultaneousWithExternalGesture(nativeScrollGesture)
-            : Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true))}>
+      <View
+        style={{
+          width: "100%",
+          height: imageHeight,
+          overflow: "hidden",
+          backgroundColor: "#080B14",
+        }}
+      >
+        <GestureDetector
+          gesture={
+            nativeScrollGesture
+              ? Gesture.Simultaneous(
+                  pinch,
+                  pan.enabled(zoomLevel > 1),
+                  doubleTap,
+                )
+                  .runOnJS(true)
+                  .simultaneousWithExternalGesture(nativeScrollGesture)
+              : Gesture.Simultaneous(
+                  pinch,
+                  pan.enabled(zoomLevel > 1),
+                  doubleTap,
+                ).runOnJS(true)
+          }
+        >
           <Animated.Image
             source={{ uri }}
             style={[{ width: "100%", height: "100%" }, animatedStyle]}
@@ -363,15 +559,34 @@ function PinchZoomImage({ uri, style, resizeMode = "contain", nativeScrollGestur
           />
         </GestureDetector>
       </View>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 5, backgroundColor: "#080B14" }}>
-        <TouchableOpacity onPress={resetZoom} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          paddingVertical: 5,
+          backgroundColor: "#080B14",
+        }}
+      >
+        <TouchableOpacity
+          onPress={resetZoom}
+          style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+        >
           <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Reset</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setZoom(zoomLevel - 0.5)} style={{ paddingHorizontal: 9, paddingVertical: 5 }}>
+        <TouchableOpacity
+          onPress={() => setZoom(zoomLevel - 0.5)}
+          style={{ paddingHorizontal: 9, paddingVertical: 5 }}
+        >
           <Text style={{ color: "#FFFFFF", fontSize: 16 }}>−</Text>
         </TouchableOpacity>
-        <Text style={{ color: "#FFFFFF", fontSize: 12, marginHorizontal: 6 }}>{zoomLevel.toFixed(1)}×</Text>
-        <TouchableOpacity onPress={() => setZoom(zoomLevel + 0.5)} style={{ paddingHorizontal: 9, paddingVertical: 5 }}>
+        <Text style={{ color: "#FFFFFF", fontSize: 12, marginHorizontal: 6 }}>
+          {zoomLevel.toFixed(1)}×
+        </Text>
+        <TouchableOpacity
+          onPress={() => setZoom(zoomLevel + 0.5)}
+          style={{ paddingHorizontal: 9, paddingVertical: 5 }}
+        >
           <Text style={{ color: "#FFFFFF", fontSize: 16 }}>＋</Text>
         </TouchableOpacity>
       </View>
@@ -390,13 +605,20 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
   height = 420,
   active = true,
   muted = false,
-  contentFit = 'contain',
+  contentFit = "contain",
+  loop = true,
+  onPlayToEnd,
+  onTimeUpdate,
 }) {
-  const player = useVideoPlayer({ uri, useCaching: true }, p => {
-    p.loop = true;
+  const player = useVideoPlayer({ uri, useCaching: true }, (p) => {
+    p.loop = loop;
     p.muted = muted;
   });
-  const { status, error } = useEvent(player, 'statusChange', {
+  useEventListener(player, "playToEnd", onPlayToEnd || (() => {}));
+  useEventListener(player, "timeUpdate", (event) => {
+    onTimeUpdate?.(event.currentTime, player.duration);
+  });
+  const { status, error } = useEvent(player, "statusChange", {
     status: player.status,
   });
 
@@ -405,53 +627,76 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
       if (active) player.play();
       else player.pause();
     } catch (error) {
-      console.log('PLAIN_REEL_PLAYBACK_ERROR:', error?.message);
+      console.log("PLAIN_REEL_PLAYBACK_ERROR:", error?.message);
     }
     return () => {
-      try { player.pause(); } catch (error) {}
+      try {
+        player.pause();
+      } catch (error) {}
     };
   }, [active, player]);
 
   React.useEffect(() => {
-    try { player.muted = muted; } catch (error) {}
+    try {
+      player.muted = muted;
+    } catch (error) {}
   }, [muted, player]);
 
   return (
-    <View style={{ width: '100%', alignItems: 'center' }}>
-      <View style={{
-        width: '100%',
-        height,
-        backgroundColor: '#000',
-        overflow: 'hidden',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
+    <View style={{ width: "100%", alignItems: "center" }}>
+      <View
+        style={{
+          width: "100%",
+          height,
+          backgroundColor: "#000",
+          overflow: "hidden",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <VideoView
           player={player}
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: "100%", height: "100%" }}
           contentFit={contentFit}
           nativeControls={false}
         />
-        {status === 'loading' && (
-          <View pointerEvents="none" style={{
-            position: 'absolute',
-            top: 0, left: 0, right: 0, bottom: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <Text style={{ color: '#FFFFFF', fontSize: 14 }}>Loading video...</Text>
+        {status === "loading" && (
+          <View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "#FFFFFF", fontSize: 14 }}>
+              Loading video...
+            </Text>
           </View>
         )}
-        {status === 'error' && (
-          <View pointerEvents="none" style={{
-            position: 'absolute',
-            top: 0, left: 0, right: 0, bottom: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-          }}>
-            <Text style={{ color: '#FFFFFF', fontSize: 14, textAlign: 'center' }}>
-              Video unavailable: {error?.message || 'Could not load this video.'}
+        {status === "error" && (
+          <View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20,
+            }}
+          >
+            <Text
+              style={{ color: "#FFFFFF", fontSize: 14, textAlign: "center" }}
+            >
+              Video unavailable:{" "}
+              {error?.message || "Could not load this video."}
             </Text>
           </View>
         )}
@@ -460,20 +705,44 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
   );
 });
 
-function ReelVideoZoomable({ uri, zoomControls = false, height = 420, active = true, muted = false, contentFit = 'contain', nativeScrollGesture, onZoomChange, zoomEnabled = true }) {
-  const player = useVideoPlayer({ uri, useCaching: true }, p => { p.loop = true; p.muted = muted; });
-  const { status, error } = useEvent(player, 'statusChange', { status: player.status });
+function ReelVideoZoomable({
+  uri,
+  zoomControls = false,
+  height = 420,
+  active = true,
+  muted = false,
+  contentFit = "contain",
+  nativeScrollGesture,
+  onZoomChange,
+  zoomEnabled = true,
+  loop = true,
+  onPlayToEnd,
+  onTimeUpdate,
+}) {
+  const player = useVideoPlayer({ uri, useCaching: true }, (p) => {
+    p.loop = loop;
+    p.muted = muted;
+  });
+  useEventListener(player, "playToEnd", onPlayToEnd || (() => {}));
+  useEventListener(player, "timeUpdate", (event) => {
+    onTimeUpdate?.(event.currentTime, player.duration);
+  });
+  const { status, error } = useEvent(player, "statusChange", {
+    status: player.status,
+  });
 
   React.useEffect(() => {
     try {
       if (active) player.play();
       else player.pause();
     } catch (error) {
-      console.log('REEL_PLAYBACK_STATE_ERROR:', error?.message);
+      console.log("REEL_PLAYBACK_STATE_ERROR:", error?.message);
     }
     return () => {
-      try { player.pause(); } catch (error) {
-        console.log('REEL_PAUSE_CLEANUP_ERROR:', error?.message);
+      try {
+        player.pause();
+      } catch (error) {
+        console.log("REEL_PAUSE_CLEANUP_ERROR:", error?.message);
       }
     };
   }, [active, player]);
@@ -482,7 +751,7 @@ function ReelVideoZoomable({ uri, zoomControls = false, height = 420, active = t
     try {
       player.muted = muted;
     } catch (error) {
-      console.log('REEL_MUTE_STATE_ERROR:', error?.message);
+      console.log("REEL_MUTE_STATE_ERROR:", error?.message);
     }
   }, [muted, player]);
   const scale = useSharedValue(1);
@@ -494,7 +763,7 @@ function ReelVideoZoomable({ uri, zoomControls = false, height = 420, active = t
   const [zoomLevel, setZoomLevel] = React.useState(1);
 
   const pinch = Gesture.Pinch()
-    .onUpdate(event => {
+    .onUpdate((event) => {
       scale.value = Math.max(1, Math.min(savedScale.value * event.scale, 5));
     })
     .onEnd(() => {
@@ -512,7 +781,7 @@ function ReelVideoZoomable({ uri, zoomControls = false, height = 420, active = t
     });
 
   const pan = Gesture.Pan()
-    .onUpdate(event => {
+    .onUpdate((event) => {
       if (scale.value > 1) {
         translateX.value = savedX.value + event.translationX;
         translateY.value = savedY.value + event.translationY;
@@ -547,11 +816,16 @@ function ReelVideoZoomable({ uri, zoomControls = false, height = 420, active = t
     });
 
   const videoGestures = zoomEnabled
-    ? Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1), doubleTap).runOnJS(true)
+    ? Gesture.Simultaneous(
+        pinch,
+        pan.enabled(zoomLevel > 1),
+        doubleTap,
+      ).runOnJS(true)
     : null;
-  const gesture = videoGestures && nativeScrollGesture
-    ? videoGestures.simultaneousWithExternalGesture(nativeScrollGesture)
-    : videoGestures;
+  const gesture =
+    videoGestures && nativeScrollGesture
+      ? videoGestures.simultaneousWithExternalGesture(nativeScrollGesture)
+      : videoGestures;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
@@ -560,7 +834,7 @@ function ReelVideoZoomable({ uri, zoomControls = false, height = 420, active = t
     ],
   }));
 
-  const setZoom = value => {
+  const setZoom = (value) => {
     const next = Math.max(1, Math.min(Number(value) || 1, 5));
     scale.value = next;
     savedScale.value = next;
@@ -575,42 +849,129 @@ function ReelVideoZoomable({ uri, zoomControls = false, height = 420, active = t
   };
 
   return (
-    <View style={{ width: '100%', alignItems: 'center' }}>
-      <View style={{ width: '100%', height, backgroundColor: '#000', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
-      {zoomEnabled ? (
-        <GestureDetector gesture={gesture}>
-          <Animated.View style={[{ width: '100%', height: '100%', backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }, animatedStyle]}>
-            <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit={contentFit} nativeControls={false} />
-          </Animated.View>
-        </GestureDetector>
-      ) : (
-        <View style={{ width: '100%', height: '100%', backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
-          <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit={contentFit} nativeControls={false} />
-        </View>
-      )}
+    <View style={{ width: "100%", alignItems: "center" }}>
+      <View
+        style={{
+          width: "100%",
+          height,
+          backgroundColor: "#000",
+          overflow: "hidden",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {zoomEnabled ? (
+          <GestureDetector gesture={gesture}>
+            <Animated.View
+              style={[
+                {
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "#000",
+                  alignItems: "center",
+                  justifyContent: "center",
+                },
+                animatedStyle,
+              ]}
+            >
+              <VideoView
+                player={player}
+                style={{ width: "100%", height: "100%" }}
+                contentFit={contentFit}
+                nativeControls={false}
+              />
+            </Animated.View>
+          </GestureDetector>
+        ) : (
+          <View
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundColor: "#000",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <VideoView
+              player={player}
+              style={{ width: "100%", height: "100%" }}
+              contentFit={contentFit}
+              nativeControls={false}
+            />
+          </View>
+        )}
 
-      {status === 'loading' && (
-        <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 14 }}>Loading video...</Text>
-        </View>
-      )}
-      {status === 'error' && (
-        <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 14, textAlign: 'center' }}>Video unavailable: {error?.message || 'Could not load this video.'}</Text>
-        </View>
-      )}
+        {status === "loading" && (
+          <View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "#FFFFFF", fontSize: 14 }}>
+              Loading video...
+            </Text>
+          </View>
+        )}
+        {status === "error" && (
+          <View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20,
+            }}
+          >
+            <Text
+              style={{ color: "#FFFFFF", fontSize: 14, textAlign: "center" }}
+            >
+              Video unavailable:{" "}
+              {error?.message || "Could not load this video."}
+            </Text>
+          </View>
+        )}
       </View>
       {zoomControls && (
-        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 6 }}>
-          <TouchableOpacity onPress={() => setZoom(1)} style={{ paddingHorizontal: 10, paddingVertical: 5 }}>
-            <Text style={{ color: '#FFFFFF', fontSize: 12 }}>Reset Zoom</Text>
+        <View
+          style={{
+            width: "100%",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingVertical: 6,
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => setZoom(1)}
+            style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+          >
+            <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Reset Zoom</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setZoom(zoomLevel - 0.5)} style={{ paddingHorizontal: 8, paddingVertical: 5 }}>
-            <Text style={{ color: '#FFFFFF', fontSize: 16 }}>−</Text>
+          <TouchableOpacity
+            onPress={() => setZoom(zoomLevel - 0.5)}
+            style={{ paddingHorizontal: 8, paddingVertical: 5 }}
+          >
+            <Text style={{ color: "#FFFFFF", fontSize: 16 }}>−</Text>
           </TouchableOpacity>
-          <Text style={{ color: '#FFFFFF', fontSize: 12, marginHorizontal: 6 }}>{zoomLevel.toFixed(1)}×</Text>
-          <TouchableOpacity onPress={() => setZoom(zoomLevel + 0.5)} style={{ paddingHorizontal: 8, paddingVertical: 5 }}>
-            <Text style={{ color: '#FFFFFF', fontSize: 16 }}>＋</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 12, marginHorizontal: 6 }}>
+            {zoomLevel.toFixed(1)}×
+          </Text>
+          <TouchableOpacity
+            onPress={() => setZoom(zoomLevel + 0.5)}
+            style={{ paddingHorizontal: 8, paddingVertical: 5 }}
+          >
+            <Text style={{ color: "#FFFFFF", fontSize: 16 }}>＋</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -619,19 +980,19 @@ function ReelVideoZoomable({ uri, zoomControls = false, height = 420, active = t
 }
 
 function formatPostTime(createdAt) {
-  if (!createdAt) return '';
+  if (!createdAt) return "";
   const date = new Date(createdAt);
-  if (Number.isNaN(date.getTime())) return '';
+  if (Number.isNaN(date.getTime())) return "";
 
   const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
-  if (seconds < 60) return 'Just now';
+  if (seconds < 60) return "Just now";
   if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
-  if (seconds < 172800) return 'Yesterday';
+  if (seconds < 172800) return "Yesterday";
   if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
   return `${date.toLocaleDateString()} · ${date.toLocaleTimeString([], {
-    hour: 'numeric',
-    minute: '2-digit',
+    hour: "numeric",
+    minute: "2-digit",
   })}`;
 }
 
@@ -640,7 +1001,7 @@ function groupPostItems(items) {
   const groups = new Map();
 
   for (const item of items) {
-    if (item.type !== 'posts' || !item.groupId) {
+    if (item.type !== "posts" || !item.groupId) {
       result.push({ ...item, mediaItems: [item] });
       continue;
     }
@@ -662,42 +1023,51 @@ function groupPostItems(items) {
   return result;
 }
 
-function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () => {}, pageHeight = 0, active = true }) {
+function PostCard({
+  post,
+  authSession,
+  onOpen = () => {},
+  onCreateAction = () => {},
+  pageHeight = 0,
+  active = true,
+}) {
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
 
   const [liked, setLiked] = React.useState(false);
   const [likeCount, setLikeCount] = React.useState(
-    Number(String(post.likes || '0').replace(/,/g, '')) || 0
+    Number(String(post.likes || "0").replace(/,/g, "")) || 0,
   );
   const [saved, setSaved] = React.useState(false);
   const [commentsOpen, setCommentsOpen] = React.useState(false);
   const [comments, setComments] = React.useState([]);
-  const [commentDraft, setCommentDraft] = React.useState('');
+  const [commentDraft, setCommentDraft] = React.useState("");
   const [interactionBusy, setInteractionBusy] = React.useState(false);
   const [postFooterHeight, setPostFooterHeight] = React.useState(150);
-  const mediaHeight = pageHeight > 0
-    ? Math.max(0, pageHeight - 58 - postFooterHeight)
-    : 420;
-
-
+  const mediaHeight =
+    pageHeight > 0 ? Math.max(0, pageHeight - 58 - postFooterHeight) : 420;
 
   const sharePost = async () => {
     try {
-      const postLink = post?.id ? `bhumisocial://post/${post.id}` : '';
-      const message = `${post?.user || 'Bhumi Social'}: ${post?.caption || 'Check out this post on Bhumi Social AI'}${postLink ? `\\n\\nOpen post: ${postLink}` : ''}`;
+      const postLink = post?.id ? `bhumisocial://post/${post.id}` : "";
+      const message = `${post?.user || "Bhumi Social"}: ${post?.caption || "Check out this post on Bhumi Social AI"}${postLink ? `\\n\\nOpen post: ${postLink}` : ""}`;
       await Share.share({ message });
     } catch (error) {
-      Alert.alert('Share', error.message || 'Could not share this post.');
+      Alert.alert("Share", error.message || "Could not share this post.");
     }
   };
 
   const handleLike = async () => {
     if (interactionBusy) return;
 
-    if (!post.id || (post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) {
-      setLiked(previous => {
-        setLikeCount(count => Math.max(0, count + (previous ? -1 : 1)));
+    if (
+      !post.id ||
+      post?.isStarterPost ||
+      post?.isStarterReel ||
+      String(post?.id || "").startsWith("bhumi-starter-")
+    ) {
+      setLiked((previous) => {
+        setLikeCount((count) => Math.max(0, count + (previous ? -1 : 1)));
         return !previous;
       });
       return;
@@ -709,7 +1079,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
       setLiked(Boolean(result.liked));
       setLikeCount(Number(result.likes) || 0);
     } catch (error) {
-      Alert.alert('Like failed', error.message || 'Could not update like.');
+      Alert.alert("Like failed", error.message || "Could not update like.");
     } finally {
       setInteractionBusy(false);
     }
@@ -717,7 +1087,12 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
 
   const openComments = async () => {
     setCommentsOpen(true);
-    if (!post.id || (post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) {
+    if (
+      !post.id ||
+      post?.isStarterPost ||
+      post?.isStarterReel ||
+      String(post?.id || "").startsWith("bhumi-starter-")
+    ) {
       setComments([]);
       return;
     }
@@ -726,7 +1101,7 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
       const result = await loadPostComments(post.id);
       setComments(result);
     } catch (error) {
-      Alert.alert('Comments', error.message || 'Could not load comments.');
+      Alert.alert("Comments", error.message || "Could not load comments.");
     }
   };
 
@@ -734,27 +1109,37 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
     const text = commentDraft.trim();
     if (!text || interactionBusy) return;
 
-    if ((post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) {
-      setComments(previous => [...previous, {
-        id: `local-${Date.now()}`,
-        username: authSession?.username || 'you',
-        text,
-      }]);
-      setCommentDraft('');
+    if (
+      post?.isStarterPost ||
+      post?.isStarterReel ||
+      String(post?.id || "").startsWith("bhumi-starter-")
+    ) {
+      setComments((previous) => [
+        ...previous,
+        {
+          id: `local-${Date.now()}`,
+          username: authSession?.username || "you",
+          text,
+        },
+      ]);
+      setCommentDraft("");
       return;
     }
     if (!post.id) {
-      Alert.alert('Comments', 'Save this post to the server before commenting.');
+      Alert.alert(
+        "Comments",
+        "Save this post to the server before commenting.",
+      );
       return;
     }
 
     setInteractionBusy(true);
     try {
       const comment = await createPostComment(post.id, text);
-      setComments(previous => [...previous, comment]);
-      setCommentDraft('');
+      setComments((previous) => [...previous, comment]);
+      setCommentDraft("");
     } catch (error) {
-      Alert.alert('Comment failed', error.message || 'Could not post comment.');
+      Alert.alert("Comment failed", error.message || "Could not post comment.");
     } finally {
       setInteractionBusy(false);
     }
@@ -765,54 +1150,96 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
     setInteractionBusy(true);
     try {
       await approvePostComment(post.id, commentId);
-      setComments(items => items.map(item =>
-        String(item.id) === String(commentId) ? { ...item, isPending: false } : item
-      ));
+      setComments((items) =>
+        items.map((item) =>
+          String(item.id) === String(commentId)
+            ? { ...item, isPending: false }
+            : item,
+        ),
+      );
     } catch (error) {
-      Alert.alert('Comment approval', error.message || 'Could not approve comment.');
+      Alert.alert(
+        "Comment approval",
+        error.message || "Could not approve comment.",
+      );
     } finally {
       setInteractionBusy(false);
     }
   };
 
   return (
-    <View style={[styles.post, pageHeight > 0 ? { height: pageHeight, marginBottom: 0 } : null]}>
-      <View style={[styles.postHeader, {
-        position: 'absolute', top: 0, left: 0, right: 0,
-        zIndex: 10, backgroundColor: 'rgba(0,0,0,0.42)'
-      }]}>
+    <View
+      style={[
+        styles.post,
+        pageHeight > 0 ? { height: pageHeight, marginBottom: 0 } : null,
+      ]}
+    >
+      <View
+        style={[
+          styles.postHeader,
+          {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            backgroundColor: "rgba(0,0,0,0.42)",
+          },
+        ]}
+      >
         <View style={styles.smallAvatar}>
           {post.avatarUrl ? (
-            <Image source={{ uri: post.avatarUrl }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+            <Image
+              source={{ uri: post.avatarUrl }}
+              style={{ width: 40, height: 40, borderRadius: 20 }}
+            />
           ) : (
-            <Text style={styles.smallAvatarText}>{(post.user || 'U').charAt(0).toUpperCase()}</Text>
+            <Text style={styles.smallAvatarText}>
+              {(post.user || "U").charAt(0).toUpperCase()}
+            </Text>
           )}
         </View>
         <View style={styles.postUserInfo}>
-          <Text style={[styles.username, { color: "#FFFFFF" }]}>{post.user || 'you'}</Text>
-          {!!post.location && <Text style={[styles.location, { color: "#FFFFFF" }]}>{post.location}</Text>}
+          <Text style={[styles.username, { color: "#FFFFFF" }]}>
+            {post.user || "you"}
+          </Text>
+          {!!post.location && (
+            <Text style={[styles.location, { color: "#FFFFFF" }]}>
+              {post.location}
+            </Text>
+          )}
         </View>
-        <TouchableOpacity><Text style={styles.more}>•••</Text></TouchableOpacity>
+        <TouchableOpacity>
+          <Text style={styles.more}>•••</Text>
+        </TouchableOpacity>
       </View>
 
       <View
-        onLayout={event => setMediaWidth(event.nativeEvent.layout.width)}
+        onLayout={(event) => setMediaWidth(event.nativeEvent.layout.width)}
         style={{
-          position: 'absolute', top: 58, left: 0, right: 0,
-          height: mediaHeight, overflow: 'hidden', backgroundColor: '#000000'
+          position: "absolute",
+          top: 58,
+          left: 0,
+          right: 0,
+          height: mediaHeight,
+          overflow: "hidden",
+          backgroundColor: "#000000",
         }}
       >
-        {(post.mediaItems?.length > 1) ? (
+        {post.mediaItems?.length > 1 ? (
           <ScrollView
             horizontal
             pagingEnabled
             nestedScrollEnabled
             showsHorizontalScrollIndicator={false}
             style={{ height: mediaHeight }}
-            onMomentumScrollEnd={event => {
-              const width = mediaWidth || event.nativeEvent.layoutMeasurement.width;
+            onMomentumScrollEnd={(event) => {
+              const width =
+                mediaWidth || event.nativeEvent.layoutMeasurement.width;
               if (width > 0) {
-                setMediaIndex(Math.round(event.nativeEvent.contentOffset.x / width));
+                setMediaIndex(
+                  Math.round(event.nativeEvent.contentOffset.x / width),
+                );
               }
             }}
           >
@@ -824,79 +1251,156 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
                 onPress={onOpen}
                 style={{ width: mediaWidth || 320, height: mediaHeight }}
               >
-                {media.uri && media.mediaType === 'video' ? (
-                  <ReelVideo uri={media.uri} height={mediaHeight} active={active && mediaIndex === index} contentFit="cover" zoomEnabled={false}
-                   />
+                {media.uri && media.mediaType === "video" ? (
+                  <ReelVideo
+                    uri={media.uri}
+                    height={mediaHeight}
+                    active={active && mediaIndex === index}
+                    contentFit="cover"
+                    zoomEnabled={false}
+                  />
                 ) : media.uri ? (
                   <Image
                     source={{ uri: media.uri }}
-                    style={[styles.postImage, { width: mediaWidth || '100%', height: mediaHeight, aspectRatio: undefined }]}
+                    style={[
+                      styles.postImage,
+                      {
+                        width: mediaWidth || "100%",
+                        height: mediaHeight,
+                        aspectRatio: undefined,
+                      },
+                    ]}
                     resizeMode="cover"
                   />
                 ) : (
-                  <View style={[styles.postImage, { height: mediaHeight, aspectRatio: undefined, backgroundColor: post.color || '#D8E7DF' }]}>
-                    <Text style={styles.postEmoji}>{post.emoji || '🌿'}</Text>
+                  <View
+                    style={[
+                      styles.postImage,
+                      {
+                        height: mediaHeight,
+                        aspectRatio: undefined,
+                        backgroundColor: post.color || "#D8E7DF",
+                      },
+                    ]}
+                  >
+                    <Text style={styles.postEmoji}>{post.emoji || "🌿"}</Text>
                   </View>
                 )}
               </TouchableOpacity>
             ))}
           </ScrollView>
         ) : (
-          <TouchableOpacity activeOpacity={0.95} delayPressIn={180} onPress={onOpen} style={{ width: "100%", height: mediaHeight }}>
-            {post.uri && post.mediaType === 'video' ? (
-              <ReelVideo uri={post.uri} height={mediaHeight} active={active} contentFit="cover" zoomEnabled={false}
-                   />
+          <TouchableOpacity
+            activeOpacity={0.95}
+            delayPressIn={180}
+            onPress={onOpen}
+            style={{ width: "100%", height: mediaHeight }}
+          >
+            {post.uri && post.mediaType === "video" ? (
+              <ReelVideo
+                uri={post.uri}
+                height={mediaHeight}
+                active={active}
+                contentFit="cover"
+                zoomEnabled={false}
+              />
             ) : post.uri ? (
-              <Image source={{ uri: post.uri }} style={[styles.postImage, { height: mediaHeight, aspectRatio: undefined }]} resizeMode="cover" />
+              <Image
+                source={{ uri: post.uri }}
+                style={[
+                  styles.postImage,
+                  { height: mediaHeight, aspectRatio: undefined },
+                ]}
+                resizeMode="cover"
+              />
             ) : (
-              <View style={[styles.postImage, { backgroundColor: post.color || '#D8E7DF' }]}>
-                <Text style={styles.postEmoji}>{post.emoji || '🌿'}</Text>
+              <View
+                style={[
+                  styles.postImage,
+                  { backgroundColor: post.color || "#D8E7DF" },
+                ]}
+              >
+                <Text style={styles.postEmoji}>{post.emoji || "🌿"}</Text>
               </View>
             )}
           </TouchableOpacity>
         )}
-        {(post.mediaItems?.length > 1) && (
-          <Text style={{ textAlign: 'center', paddingVertical: 5, color: '#777777', fontSize: 12 }}>
+        {post.mediaItems?.length > 1 && (
+          <Text
+            style={{
+              textAlign: "center",
+              paddingVertical: 5,
+              color: "#777777",
+              fontSize: 12,
+            }}
+          >
             {mediaIndex + 1} / {post.mediaItems.length}
           </Text>
         )}
       </View>
 
-      <View onLayout={event => {
-        const height = event.nativeEvent.layout.height;
-        if (height > 0 && height !== postFooterHeight) setPostFooterHeight(height);
-      }} style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        zIndex: 30, backgroundColor: 'rgba(0,0,0,0.42)',
-        paddingBottom: 10, paddingTop: 6
-      }}>
-      <View style={styles.actions}>
-        <TouchableOpacity onPress={handleLike} disabled={interactionBusy}>
-          <Ionicons name={liked ? "heart" : "heart-outline"} size={27} color={liked ? "#ED4956" : "#FFFFFF"} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={openComments}>
-          <Ionicons name="chatbubble-outline" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={sharePost}>
-          <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
-        </TouchableOpacity>
-        <View style={styles.actionSpacer} />
-        <TouchableOpacity onPress={() => setSaved(!saved)}>
-          <Ionicons name={saved ? "bookmark" : "bookmark-outline"} size={25} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+      <View
+        onLayout={(event) => {
+          const height = event.nativeEvent.layout.height;
+          if (height > 0 && height !== postFooterHeight)
+            setPostFooterHeight(height);
+        }}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 30,
+          backgroundColor: "rgba(0,0,0,0.42)",
+          paddingBottom: 10,
+          paddingTop: 6,
+        }}
+      >
+        <View style={styles.actions}>
+          <TouchableOpacity onPress={handleLike} disabled={interactionBusy}>
+            <Ionicons
+              name={liked ? "heart" : "heart-outline"}
+              size={27}
+              color={liked ? "#ED4956" : "#FFFFFF"}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={openComments}>
+            <Ionicons name="chatbubble-outline" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={sharePost}>
+            <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
+          </TouchableOpacity>
+          <View style={styles.actionSpacer} />
+          <TouchableOpacity onPress={() => setSaved(!saved)}>
+            <Ionicons
+              name={saved ? "bookmark" : "bookmark-outline"}
+              size={25}
+              color="#FFFFFF"
+            />
+          </TouchableOpacity>
+        </View>
 
-      <Text style={[styles.likes, { color: "#FFFFFF" }]}>{likeCount.toLocaleString()} likes</Text>
-      {!!post.caption && (
-        <Text style={[styles.caption, { color: "#FFFFFF" }]}>
-          <Text style={[styles.username, { color: "#FFFFFF" }]}>{post.user || 'you'} </Text>{post.caption}
+        <Text style={[styles.likes, { color: "#FFFFFF" }]}>
+          {likeCount.toLocaleString()} likes
         </Text>
-      )}
-      <TouchableOpacity onPress={openComments}>
-        <Text style={[styles.comments, { color: "#FFFFFF" }]}>View all comments</Text>
-      </TouchableOpacity>
-      {!!post.createdAt && <Text style={[styles.time, { color: "#FFFFFF" }]}>{formatPostTime(post.createdAt)}</Text>}
-
+        {!!post.caption && (
+          <Text style={[styles.caption, { color: "#FFFFFF" }]}>
+            <Text style={[styles.username, { color: "#FFFFFF" }]}>
+              {post.user || "you"}{" "}
+            </Text>
+            {post.caption}
+          </Text>
+        )}
+        <TouchableOpacity onPress={openComments}>
+          <Text style={[styles.comments, { color: "#FFFFFF" }]}>
+            View all comments
+          </Text>
+        </TouchableOpacity>
+        {!!post.createdAt && (
+          <Text style={[styles.time, { color: "#FFFFFF" }]}>
+            {formatPostTime(post.createdAt)}
+          </Text>
+        )}
       </View>
       <Modal
         visible={commentsOpen}
@@ -904,60 +1408,153 @@ function PostCard({ post, authSession, onOpen = () => {}, onCreateAction = () =>
         transparent
         onRequestClose={() => setCommentsOpen(false)}
       >
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-<View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' }}>
-          <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 18, maxHeight: '75%' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <Text style={{ fontSize: 18, fontWeight: '600', color: '#222222' }}>Comments</Text>
-              <TouchableOpacity onPress={() => setCommentsOpen(false)}>
-                <Text style={{ fontSize: 22, color: '#222222' }}>×</Text>
-              </TouchableOpacity>
-            </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "flex-end",
+              backgroundColor: "rgba(0,0,0,0.35)",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderTopLeftRadius: 18,
+                borderTopRightRadius: 18,
+                padding: 18,
+                maxHeight: "75%",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 12,
+                }}
+              >
+                <Text
+                  style={{ fontSize: 18, fontWeight: "600", color: "#222222" }}
+                >
+                  Comments
+                </Text>
+                <TouchableOpacity onPress={() => setCommentsOpen(false)}>
+                  <Text style={{ fontSize: 22, color: "#222222" }}>×</Text>
+                </TouchableOpacity>
+              </View>
 
-            <ScrollView style={{ flexGrow: 0, maxHeight: 360 }}>
-              {comments.length === 0 ? (
-                <Text style={{ color: '#777777', paddingVertical: 12 }}>No comments yet.</Text>
-              ) : comments.map(comment => (
-                <View key={String(comment.id)} style={{ paddingVertical: 8 }}>
-                  <Text style={{ color: '#222222' }}>
-                    <Text style={{ fontWeight: '600' }}>{comment.username || 'you'} </Text>
-                    {comment.text}
+              <ScrollView style={{ flexGrow: 0, maxHeight: 360 }}>
+                {comments.length === 0 ? (
+                  <Text style={{ color: "#777777", paddingVertical: 12 }}>
+                    No comments yet.
                   </Text>
+                ) : (
+                  comments.map((comment) => (
+                    <View
+                      key={String(comment.id)}
+                      style={{ paddingVertical: 8 }}
+                    >
+                      <Text style={{ color: "#222222" }}>
+                        <Text style={{ fontWeight: "600" }}>
+                          {comment.username || "you"}{" "}
+                        </Text>
+                        {comment.text}
+                      </Text>
 
-                  {comment.isPending ? <Text style={{ color: '#B7791F', fontSize: 11, marginTop: 4 }}>Pending approval</Text> : null}
-                  {comment.isPending && comment.canApprove ? <TouchableOpacity onPress={() => handleApproveComment(comment.id)} disabled={interactionBusy} style={{ alignSelf: 'flex-start', marginTop: 6, paddingVertical: 5, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#E8F2FC' }}><Text style={{ color: '#1685D9', fontSize: 12, fontWeight: '800' }}>Approve</Text></TouchableOpacity> : null}
-                </View>
-              ))}
-            </ScrollView>
+                      {comment.isPending ? (
+                        <Text
+                          style={{
+                            color: "#B7791F",
+                            fontSize: 11,
+                            marginTop: 4,
+                          }}
+                        >
+                          Pending approval
+                        </Text>
+                      ) : null}
+                      {comment.isPending && comment.canApprove ? (
+                        <TouchableOpacity
+                          onPress={() => handleApproveComment(comment.id)}
+                          disabled={interactionBusy}
+                          style={{
+                            alignSelf: "flex-start",
+                            marginTop: 6,
+                            paddingVertical: 5,
+                            paddingHorizontal: 12,
+                            borderRadius: 8,
+                            backgroundColor: "#E8F2FC",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#1685D9",
+                              fontSize: 12,
+                              fontWeight: "800",
+                            }}
+                          >
+                            Approve
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  ))
+                )}
+              </ScrollView>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
-              <TextInput
-                value={commentDraft}
-                onChangeText={setCommentDraft}
-                placeholder="Write a comment..."
-                maxLength={2000}
-                editable={!interactionBusy}
-                style={{ flex: 1, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9, color: '#222222' }}
-              />
-              <TouchableOpacity onPress={submitComment} disabled={interactionBusy || !commentDraft.trim()} style={{ padding: 10 }}>
-                <Text style={{ color: '#0095F6', fontWeight: '600' }}>Post</Text>
-              </TouchableOpacity>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginTop: 12,
+                }}
+              >
+                <TextInput
+                  value={commentDraft}
+                  onChangeText={setCommentDraft}
+                  placeholder="Write a comment..."
+                  maxLength={2000}
+                  editable={!interactionBusy}
+                  style={{
+                    flex: 1,
+                    borderWidth: 1,
+                    borderColor: "#DDDDDD",
+                    borderRadius: 20,
+                    paddingHorizontal: 14,
+                    paddingVertical: 9,
+                    color: "#222222",
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={submitComment}
+                  disabled={interactionBusy || !commentDraft.trim()}
+                  style={{ padding: 10 }}
+                >
+                  <Text style={{ color: "#0095F6", fontWeight: "600" }}>
+                    Post
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-</KeyboardAvoidingView>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
 }
 
-
 function PostDetailActions({ post, authSession }) {
   const [liked, setLiked] = React.useState(false);
-  const [likeCount, setLikeCount] = React.useState(Number(String(post?.likes || '0').replace(/,/g, '')) || 0);
+  const [likeCount, setLikeCount] = React.useState(
+    Number(String(post?.likes || "0").replace(/,/g, "")) || 0,
+  );
   const [comments, setComments] = React.useState([]);
-  const [commentCount, setCommentCount] = React.useState(Number(post?.commentsCount || post?.commentCount || 0));
-  const [draft, setDraft] = React.useState('');
+  const [commentCount, setCommentCount] = React.useState(
+    Number(post?.commentsCount || post?.commentCount || 0),
+  );
+  const [draft, setDraft] = React.useState("");
   const [commentsOpen, setCommentsOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const likeScale = useSharedValue(1);
@@ -967,10 +1564,10 @@ function PostDetailActions({ post, authSession }) {
 
   React.useEffect(() => {
     setLiked(false);
-    setLikeCount(Number(String(post?.likes || '0').replace(/,/g, '')) || 0);
+    setLikeCount(Number(String(post?.likes || "0").replace(/,/g, "")) || 0);
     setComments([]);
     setCommentCount(Number(post?.commentsCount || post?.commentCount || 0));
-    setDraft('');
+    setDraft("");
     setCommentsOpen(false);
   }, [post?.id]);
 
@@ -978,11 +1575,16 @@ function PostDetailActions({ post, authSession }) {
     if (busy) return;
     likeScale.value = withSequence(
       withSpring(1.4, { damping: 5, stiffness: 220 }),
-      withSpring(1, { damping: 7, stiffness: 180 })
+      withSpring(1, { damping: 7, stiffness: 180 }),
     );
-    if (!post?.id || (post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) {
-      setLiked(old => {
-        setLikeCount(count => Math.max(0, count + (old ? -1 : 1)));
+    if (
+      !post?.id ||
+      post?.isStarterPost ||
+      post?.isStarterReel ||
+      String(post?.id || "").startsWith("bhumi-starter-")
+    ) {
+      setLiked((old) => {
+        setLikeCount((count) => Math.max(0, count + (old ? -1 : 1)));
         return !old;
       });
       return;
@@ -993,7 +1595,7 @@ function PostDetailActions({ post, authSession }) {
       setLiked(Boolean(result.liked));
       setLikeCount(Number(result.likes) || 0);
     } catch (error) {
-      Alert.alert('Like failed', error.message || 'Could not update like.');
+      Alert.alert("Like failed", error.message || "Could not update like.");
     } finally {
       setBusy(false);
     }
@@ -1001,41 +1603,54 @@ function PostDetailActions({ post, authSession }) {
 
   const openComments = async () => {
     setCommentsOpen(true);
-    if (!post?.id || (post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) return;
+    if (
+      !post?.id ||
+      post?.isStarterPost ||
+      post?.isStarterReel ||
+      String(post?.id || "").startsWith("bhumi-starter-")
+    )
+      return;
     try {
       const loadedComments = await loadPostComments(post.id);
       setComments(loadedComments);
       setCommentCount(loadedComments.length);
     } catch (error) {
-      Alert.alert('Comments', error.message || 'Could not load comments.');
+      Alert.alert("Comments", error.message || "Could not load comments.");
     }
   };
 
   const submitComment = async () => {
     const value = draft.trim();
     if (!value || busy) return;
-    if ((post?.isStarterPost || post?.isStarterReel || String(post?.id || '').startsWith('bhumi-starter-'))) {
-      setComments(old => [...old, {
-        id: `local-${Date.now()}`,
-        username: authSession?.username || 'you',
-        text: value,
-      }]);
-      setCommentCount(count => count + 1);
-      setDraft('');
+    if (
+      post?.isStarterPost ||
+      post?.isStarterReel ||
+      String(post?.id || "").startsWith("bhumi-starter-")
+    ) {
+      setComments((old) => [
+        ...old,
+        {
+          id: `local-${Date.now()}`,
+          username: authSession?.username || "you",
+          text: value,
+        },
+      ]);
+      setCommentCount((count) => count + 1);
+      setDraft("");
       return;
     }
     if (!post?.id) {
-      Alert.alert('Comments', 'This post is not saved on the server yet.');
+      Alert.alert("Comments", "This post is not saved on the server yet.");
       return;
     }
     setBusy(true);
     try {
       const comment = await createPostComment(post.id, value);
-      setComments(old => [...old, comment]);
-      setCommentCount(count => count + 1);
-      setDraft('');
+      setComments((old) => [...old, comment]);
+      setCommentCount((count) => count + 1);
+      setDraft("");
     } catch (error) {
-      Alert.alert('Comment failed', error.message || 'Could not post comment.');
+      Alert.alert("Comment failed", error.message || "Could not post comment.");
     } finally {
       setBusy(false);
     }
@@ -1046,11 +1661,18 @@ function PostDetailActions({ post, authSession }) {
     setBusy(true);
     try {
       await approvePostComment(post.id, commentId);
-      setComments(items => items.map(item =>
-        String(item.id) === String(commentId) ? { ...item, isPending: false } : item
-      ));
+      setComments((items) =>
+        items.map((item) =>
+          String(item.id) === String(commentId)
+            ? { ...item, isPending: false }
+            : item,
+        ),
+      );
     } catch (error) {
-      Alert.alert('Comment approval', error.message || 'Could not approve comment.');
+      Alert.alert(
+        "Comment approval",
+        error.message || "Could not approve comment.",
+      );
     } finally {
       setBusy(false);
     }
@@ -1058,65 +1680,187 @@ function PostDetailActions({ post, authSession }) {
 
   const sharePost = async () => {
     try {
-      const postLink = post?.id ? `bhumisocial://post/${post.id}` : '';
-      const message = `${post?.user || 'Bhumi Social'}: ${post?.caption || 'Check out this post on Bhumi Social AI'}${postLink ? `\n\nOpen post: ${postLink}` : ''}`;
+      const postLink = post?.id ? `bhumisocial://post/${post.id}` : "";
+      const message = `${post?.user || "Bhumi Social"}: ${post?.caption || "Check out this post on Bhumi Social AI"}${postLink ? `\n\nOpen post: ${postLink}` : ""}`;
       await Share.share({ message });
     } catch (error) {
-      Alert.alert('Share', error.message || 'Could not share this post.');
+      Alert.alert("Share", error.message || "Could not share this post.");
     }
   };
 
   return (
     <View style={{ marginHorizontal: 16, marginTop: 14, marginBottom: 8 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 28 }}>
-        <TouchableOpacity onPress={handleLike} disabled={busy} style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 28 }}>
+        <TouchableOpacity
+          onPress={handleLike}
+          disabled={busy}
+          style={{ flexDirection: "row", alignItems: "center", gap: 7 }}
+        >
           <Animated.View style={likeAnimatedStyle}>
-            <Ionicons name={liked ? 'heart' : 'heart-outline'} size={29} color={liked ? '#FF4968' : '#FFFFFF'} />
+            <Ionicons
+              name={liked ? "heart" : "heart-outline"}
+              size={29}
+              color={liked ? "#FF4968" : "#FFFFFF"}
+            />
           </Animated.View>
-          <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{likeCount.toLocaleString()}</Text>
+          <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+            {likeCount.toLocaleString()}
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={openComments} style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+        <TouchableOpacity
+          onPress={openComments}
+          style={{ flexDirection: "row", alignItems: "center", gap: 7 }}
+        >
           <Ionicons name="chatbubble-outline" size={26} color="#FFFFFF" />
-          <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{commentCount.toLocaleString()}</Text>
+          <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+            {commentCount.toLocaleString()}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={sharePost}>
           <Ionicons name="paper-plane-outline" size={26} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
-      <Modal visible={commentsOpen} transparent animationType="slide" onRequestClose={() => setCommentsOpen(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-<View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' }}>
-          <View style={{ backgroundColor: '#151D2E', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 18, maxHeight: '75%' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '800' }}>Comments</Text>
-              <TouchableOpacity onPress={() => setCommentsOpen(false)}>
-                <Ionicons name="close" size={26} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={{ maxHeight: 360 }}>
-              {comments.length === 0 ? (
-                <Text style={{ color: '#AAB6CC', paddingVertical: 14 }}>No comments yet. Be the first to comment.</Text>
-              ) : comments.map((item, index) => (
-                <View key={String(item.id || index)} style={{ paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#29344B' }}>
-                  <Text style={{ color: '#FFFFFF', lineHeight: 21 }}>
-                    <Text style={{ fontWeight: '800' }}>{item.username || 'you'} </Text>
-                    {item.text}
+      <Modal
+        visible={commentsOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCommentsOpen(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "flex-end",
+              backgroundColor: "rgba(0,0,0,0.55)",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#151D2E",
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                padding: 18,
+                maxHeight: "75%",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 14,
+                }}
+              >
+                <Text
+                  style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}
+                >
+                  Comments
+                </Text>
+                <TouchableOpacity onPress={() => setCommentsOpen(false)}>
+                  <Ionicons name="close" size={26} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={{ maxHeight: 360 }}>
+                {comments.length === 0 ? (
+                  <Text style={{ color: "#AAB6CC", paddingVertical: 14 }}>
+                    No comments yet. Be the first to comment.
                   </Text>
+                ) : (
+                  comments.map((item, index) => (
+                    <View
+                      key={String(item.id || index)}
+                      style={{
+                        paddingVertical: 10,
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#29344B",
+                      }}
+                    >
+                      <Text style={{ color: "#FFFFFF", lineHeight: 21 }}>
+                        <Text style={{ fontWeight: "800" }}>
+                          {item.username || "you"}{" "}
+                        </Text>
+                        {item.text}
+                      </Text>
 
-                            {item.isPending ? <Text style={{ color: '#F6C66A', fontSize: 11, marginTop: 4 }}>Pending approval</Text> : null}
-                            {item.isPending && item.canApprove ? <TouchableOpacity onPress={() => handleApproveComment(item.id)} disabled={busy} style={{ alignSelf: 'flex-start', marginTop: 6, paddingVertical: 5, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#263B59' }}><Text style={{ color: '#60A5FA', fontSize: 12, fontWeight: '800' }}>Approve</Text></TouchableOpacity> : null}
-                                </View>
-              ))}
-            </ScrollView>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14, gap: 8 }}>
-              <TextInput value={draft} onChangeText={setDraft} placeholder="Write a comment..." placeholderTextColor="#8793AA" maxLength={2000} editable={!busy} style={{ flex: 1, color: '#FFFFFF', backgroundColor: '#202B40', borderRadius: 22, paddingHorizontal: 15, paddingVertical: 11 }} />
-              <TouchableOpacity onPress={submitComment} disabled={busy || !draft.trim()} style={{ padding: 10 }}>
-                <Text style={{ color: '#60A5FA', fontWeight: '800' }}>Post</Text>
-              </TouchableOpacity>
+                      {item.isPending ? (
+                        <Text
+                          style={{
+                            color: "#F6C66A",
+                            fontSize: 11,
+                            marginTop: 4,
+                          }}
+                        >
+                          Pending approval
+                        </Text>
+                      ) : null}
+                      {item.isPending && item.canApprove ? (
+                        <TouchableOpacity
+                          onPress={() => handleApproveComment(item.id)}
+                          disabled={busy}
+                          style={{
+                            alignSelf: "flex-start",
+                            marginTop: 6,
+                            paddingVertical: 5,
+                            paddingHorizontal: 12,
+                            borderRadius: 8,
+                            backgroundColor: "#263B59",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#60A5FA",
+                              fontSize: 12,
+                              fontWeight: "800",
+                            }}
+                          >
+                            Approve
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  ))
+                )}
+              </ScrollView>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginTop: 14,
+                  gap: 8,
+                }}
+              >
+                <TextInput
+                  value={draft}
+                  onChangeText={setDraft}
+                  placeholder="Write a comment..."
+                  placeholderTextColor="#8793AA"
+                  maxLength={2000}
+                  editable={!busy}
+                  style={{
+                    flex: 1,
+                    color: "#FFFFFF",
+                    backgroundColor: "#202B40",
+                    borderRadius: 22,
+                    paddingHorizontal: 15,
+                    paddingVertical: 11,
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={submitComment}
+                  disabled={busy || !draft.trim()}
+                  style={{ padding: 10 }}
+                >
+                  <Text style={{ color: "#60A5FA", fontWeight: "800" }}>
+                    Post
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-</KeyboardAvoidingView>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -1136,9 +1880,10 @@ function CustomAlertHost() {
   React.useEffect(() => {
     const handler = (title, message, buttons, options) => {
       setAlertData({
-        title: String(title || 'Bhumi Social AI'),
-        message: message == null ? '' : String(message),
-        buttons: Array.isArray(buttons) && buttons.length ? buttons : [{ text: 'OK' }],
+        title: String(title || "Bhumi Social AI"),
+        message: message == null ? "" : String(message),
+        buttons:
+          Array.isArray(buttons) && buttons.length ? buttons : [{ text: "OK" }],
         options: options || {},
       });
     };
@@ -1149,39 +1894,159 @@ function CustomAlertHost() {
   }, []);
 
   if (!alertData) return null;
-  const words = (alertData.title + ' ' + alertData.message).toLowerCase();
+  const words = (alertData.title + " " + alertData.message).toLowerCase();
   const error = /error|failed|विफल|गलत|समस्या|त्रुटि/.test(words);
-  const success = /success|successful|सफल|saved|हो गया|भेज दिया|अपलोड/.test(words);
-  const danger = /delete|remove|logout|log out|डिलीट|हटाएं|हटाएँ|मिटाएं/.test(words);
-  const accent = error ? '#D93636' : success ? '#159957' : danger ? '#D97706' : '#0095F6';
-  const icon = error ? 'alert-circle' : success ? 'checkmark-circle' : danger ? 'warning' : 'information-circle';
+  const success = /success|successful|सफल|saved|हो गया|भेज दिया|अपलोड/.test(
+    words,
+  );
+  const danger = /delete|remove|logout|log out|डिलीट|हटाएं|हटाएँ|मिटाएं/.test(
+    words,
+  );
+  const accent = error
+    ? "#D93636"
+    : success
+      ? "#159957"
+      : danger
+        ? "#D97706"
+        : "#0095F6";
+  const icon = error
+    ? "alert-circle"
+    : success
+      ? "checkmark-circle"
+      : danger
+        ? "warning"
+        : "information-circle";
   const close = () => setAlertData(null);
 
   return (
-    <Modal transparent visible animationType="fade" statusBarTranslucent
-      onRequestClose={() => { if (alertData.options.cancelable !== false) close(); }}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(10,18,30,0.52)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-        <View style={{ width: '100%', maxWidth: 390, backgroundColor: '#FFFFFF', borderRadius: 25, padding: 22, alignItems: 'center', elevation: 14 }}>
-          <View style={{ width: 62, height: 62, borderRadius: 31, backgroundColor: accent + '18', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+    <Modal
+      transparent
+      visible
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={() => {
+        if (alertData.options.cancelable !== false) close();
+      }}
+    >
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(10,18,30,0.52)",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 24,
+        }}
+      >
+        <View
+          style={{
+            width: "100%",
+            maxWidth: 390,
+            backgroundColor: "#FFFFFF",
+            borderRadius: 25,
+            padding: 22,
+            alignItems: "center",
+            elevation: 14,
+          }}
+        >
+          <View
+            style={{
+              width: 62,
+              height: 62,
+              borderRadius: 31,
+              backgroundColor: accent + "18",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 14,
+            }}
+          >
             <Ionicons name={icon} size={35} color={accent} />
           </View>
-          <Text style={{ color: '#172033', fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 8 }}>{alertData.title}</Text>
-          {!!alertData.message && <Text style={{ color: '#5D6678', fontSize: 15, lineHeight: 22, textAlign: 'center', marginBottom: 20 }}>{alertData.message}</Text>}
-          <View style={{ width: '100%', flexDirection: alertData.buttons.length > 1 ? 'row' : 'column', gap: 10, marginTop: alertData.message ? 0 : 10 }}>
+          <Text
+            style={{
+              color: "#172033",
+              fontSize: 20,
+              fontWeight: "800",
+              textAlign: "center",
+              marginBottom: 8,
+            }}
+          >
+            {alertData.title}
+          </Text>
+          {!!alertData.message && (
+            <Text
+              style={{
+                color: "#5D6678",
+                fontSize: 15,
+                lineHeight: 22,
+                textAlign: "center",
+                marginBottom: 20,
+              }}
+            >
+              {alertData.message}
+            </Text>
+          )}
+          <View
+            style={{
+              width: "100%",
+              flexDirection: alertData.buttons.length > 1 ? "row" : "column",
+              gap: 10,
+              marginTop: alertData.message ? 0 : 10,
+            }}
+          >
             {alertData.buttons.map((button, index) => {
-              const cancel = button.style === 'cancel';
-              const destructive = button.style === 'destructive';
-              const primary = !cancel && (destructive || index === alertData.buttons.length - 1);
+              const cancel = button.style === "cancel";
+              const destructive = button.style === "destructive";
+              const primary =
+                !cancel &&
+                (destructive || index === alertData.buttons.length - 1);
               return (
-                <TouchableOpacity key={`${button.text || 'button'}-${index}`} accessibilityRole="button"
-                  onPress={() => { close(); if (typeof button.onPress === 'function') Promise.resolve().then(() => button.onPress()); }}
-                  style={{ flex: alertData.buttons.length > 1 ? 1 : undefined, minHeight: 47, paddingHorizontal: 12, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: primary ? (destructive ? '#D93636' : accent) : '#F0F3F8' }}>
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: primary ? '#FFFFFF' : '#344054', textAlign: 'center' }}>{button.text || 'OK'}</Text>
+                <TouchableOpacity
+                  key={`${button.text || "button"}-${index}`}
+                  accessibilityRole="button"
+                  onPress={() => {
+                    close();
+                    if (typeof button.onPress === "function")
+                      Promise.resolve().then(() => button.onPress());
+                  }}
+                  style={{
+                    flex: alertData.buttons.length > 1 ? 1 : undefined,
+                    minHeight: 47,
+                    paddingHorizontal: 12,
+                    borderRadius: 15,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: primary
+                      ? destructive
+                        ? "#D93636"
+                        : accent
+                      : "#F0F3F8",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: "700",
+                      color: primary ? "#FFFFFF" : "#344054",
+                      textAlign: "center",
+                    }}
+                  >
+                    {button.text || "OK"}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-          <Text style={{ marginTop: 15, color: '#A0A8B5', fontSize: 11, fontWeight: '600', letterSpacing: 0.5 }}>BHUMI SOCIAL AI</Text>
+          <Text
+            style={{
+              marginTop: 15,
+              color: "#A0A8B5",
+              fontSize: 11,
+              fontWeight: "600",
+              letterSpacing: 0.5,
+            }}
+          >
+            BHUMI SOCIAL AI
+          </Text>
         </View>
       </View>
     </Modal>
@@ -1189,37 +2054,40 @@ function CustomAlertHost() {
 }
 
 export default function App() {
-
   // BHUMI_CRASH_DISPLAY
   React.useEffect(() => {
     let active = true;
-    SecureStore.getItemAsync('bhumi_last_crash_report')
+    SecureStore.getItemAsync("bhumi_last_crash_report")
       .then(async (report) => {
         if (!report || !active) return;
-        await SecureStore.deleteItemAsync('bhumi_last_crash_report');
+        await SecureStore.deleteItemAsync("bhumi_last_crash_report");
         if (active) {
-          NativeAlert.alert('पिछली बार ऐप क्यों बंद हुआ', report);
+          NativeAlert.alert("पिछली बार ऐप क्यों बंद हुआ", report);
         }
       })
-      .catch((error) => console.error('Crash report read failed:', error));
+      .catch((error) => console.error("Crash report read failed:", error));
 
     return () => {
       active = false;
     };
   }, []);
 
-
-  const [activeTab, setActiveTab] = React.useState('Home');
+  const [activeTab, setActiveTab] = React.useState("Home");
   const feedScrollGesture = useNativeGesture();
   const [cameraOpen, setCameraOpen] = React.useState(false);
-  const [cameraFacing, setCameraFacing] = React.useState('back');
-  const [cameraMode, setCameraMode] = React.useState('video');
-  const [cameraTargetKind, setCameraTargetKind] = React.useState('reels');
+  const [cameraFacing, setCameraFacing] = React.useState("back");
+  const [cameraMode, setCameraMode] = React.useState("video");
+  const [cameraTargetKind, setCameraTargetKind] = React.useState("reels");
   const [isRecording, setIsRecording] = React.useState(false);
   const [recordedVideo, setRecordedVideo] = React.useState(null);
   const [recordedPhoto, setRecordedPhoto] = React.useState(null);
   const cameraRef = React.useRef(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [liveCameraOpen, setLiveCameraOpen] = React.useState(false);
+  const [liveTitle, setLiveTitle] = React.useState("");
+  const [liveLink, setLiveLink] = React.useState("");
+  const [liveAudience, setLiveAudience] = React.useState("Public");
+  const liveCameraRef = React.useRef(null);
 
   const [updateInfo, setUpdateInfo] = React.useState(null);
   const [updatePromptVisible, setUpdatePromptVisible] = React.useState(false);
@@ -1234,14 +2102,14 @@ export default function App() {
       checking = true;
       try {
         const response = await fetch(
-          'https://bhumi-social-app-1.onrender.com/api/app-version',
-          { headers: { Accept: 'application/json' } }
+          "https://bhumi-social-app-1.onrender.com/api/app-version",
+          { headers: { Accept: "application/json" } },
         );
-        if (!response.ok) throw new Error('Version check failed');
+        if (!response.ok) throw new Error("Version check failed");
         const info = await response.json();
         if (!active) return;
 
-        if (isVersionNewer(info.version, appConfig.expo?.version || '1.0.0')) {
+        if (isVersionNewer(info.version, appConfig.expo?.version || "1.0.0")) {
           setUpdateInfo(info);
           setUpdatePromptVisible(true);
         } else {
@@ -1264,39 +2132,51 @@ export default function App() {
     };
   }, []);
 
-
   const downloadAndInstallUpdate = async () => {
-    const apkUrl = updateInfo?.apk_url || 'https://github.com/bhumiprabhumeghawal-dot/Bhumi-social-app/releases/latest/download/SocialApp.apk';
+    const apkUrl =
+      updateInfo?.apk_url ||
+      "https://github.com/bhumiprabhumeghawal-dot/Bhumi-social-app/releases/latest/download/SocialApp.apk";
     if (updateDownloading) return;
-    if (Platform.OS !== 'android') {
-      Linking.openURL(apkUrl).catch(() => NativeAlert.alert('Update', 'Unable to open the download link.'));
+    if (Platform.OS !== "android") {
+      Linking.openURL(apkUrl).catch(() =>
+        NativeAlert.alert("Update", "Unable to open the download link."),
+      );
       return;
     }
     setUpdateDownloading(true);
     try {
-      if (!FileSystem.documentDirectory) throw new Error('App storage is unavailable.');
-      const apkUri = FileSystem.documentDirectory + 'BhumiSocialAI-update.apk';
+      if (!FileSystem.documentDirectory)
+        throw new Error("App storage is unavailable.");
+      const apkUri = FileSystem.documentDirectory + "BhumiSocialAI-update.apk";
       const download = await FileSystem.downloadAsync(apkUrl, apkUri);
-      if (download.status !== 200) throw new Error('APK download failed. Please try again.');
+      if (download.status !== 200)
+        throw new Error("APK download failed. Please try again.");
       const info = await FileSystem.getInfoAsync(download.uri);
       if (!info.exists || !info.size || info.size < 10000000) {
-        await FileSystem.deleteAsync(download.uri, { idempotent: true }).catch(() => {});
-        throw new Error('Downloaded file is incomplete. Please try again later.');
+        await FileSystem.deleteAsync(download.uri, { idempotent: true }).catch(
+          () => {},
+        );
+        throw new Error(
+          "Downloaded file is incomplete. Please try again later.",
+        );
       }
       const contentUri = await FileSystem.getContentUriAsync(download.uri);
       setUpdatePromptVisible(false);
-      await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+      await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
         data: contentUri,
-        type: 'application/vnd.android.package-archive',
+        type: "application/vnd.android.package-archive",
         flags: 1,
       });
     } catch (error) {
-      NativeAlert.alert('Update download', error?.message || 'Could not download or open the installer. Please try again.');
+      NativeAlert.alert(
+        "Update download",
+        error?.message ||
+          "Could not download or open the installer. Please try again.",
+      );
     } finally {
       setUpdateDownloading(false);
     }
   };
-
 
   const [feedPosts, setFeedPosts] = React.useState(posts);
   const [feedViewportHeight, setFeedViewportHeight] = React.useState(0);
@@ -1307,6 +2187,7 @@ export default function App() {
   const [storyQueue, setStoryQueue] = React.useState([]);
   const [storyIndex, setStoryIndex] = React.useState(0);
   const [storyImageZoomed, setStoryImageZoomed] = React.useState(false);
+  const [storyProgress, setStoryProgress] = React.useState(0);
   const [selectedPost, setSelectedPost] = React.useState(null);
   const [selectedPostMediaIndex, setSelectedPostMediaIndex] = React.useState(0);
 
@@ -1314,7 +2195,7 @@ export default function App() {
     let active = true;
 
     const openSharedPost = async (url) => {
-      const match = String(url || '').match(/^bhumisocial:\/\/post\/(\d+)/i);
+      const match = String(url || "").match(/^bhumisocial:\/\/post\/(\d+)/i);
       if (!match) return;
 
       try {
@@ -1324,13 +2205,18 @@ export default function App() {
         setSelectedPostMediaIndex(0);
       } catch (error) {
         if (active) {
-          NativeAlert.alert('Post unavailable', error?.message || 'Could not open this shared post.');
+          NativeAlert.alert(
+            "Post unavailable",
+            error?.message || "Could not open this shared post.",
+          );
         }
       }
     };
 
-    Linking.getInitialURL().then(openSharedPost).catch(() => {});
-    const subscription = Linking.addEventListener('url', ({ url }) => {
+    Linking.getInitialURL()
+      .then(openSharedPost)
+      .catch(() => {});
+    const subscription = Linking.addEventListener("url", ({ url }) => {
       openSharedPost(url);
     });
 
@@ -1357,7 +2243,7 @@ export default function App() {
   const [reelCommentsOpen, setReelCommentsOpen] = React.useState(false);
   const [selectedReel, setSelectedReel] = React.useState(null);
   const [reelComments, setReelComments] = React.useState([]);
-  const [reelCommentDraft, setReelCommentDraft] = React.useState('');
+  const [reelCommentDraft, setReelCommentDraft] = React.useState("");
   const [reelCommentsBusy, setReelCommentsBusy] = React.useState(false);
   const [savedContent, setSavedContent] = React.useState([]);
   const [savedContentBusy, setSavedContentBusy] = React.useState(false);
@@ -1368,7 +2254,7 @@ export default function App() {
   const [busy, setBusy] = React.useState(false);
   const [mediaDraft, setMediaDraft] = React.useState(null);
   const [mediaDraftIndex, setMediaDraftIndex] = React.useState(0);
-  const [mediaDraftCaption, setMediaDraftCaption] = React.useState('');
+  const [mediaDraftCaption, setMediaDraftCaption] = React.useState("");
   const [zoomEffectEnabled, setZoomEffectEnabled] = React.useState(false);
   const [zoomEffectLevel, setZoomEffectLevel] = React.useState(1.5);
   const [zoomEffectDuration, setZoomEffectDuration] = React.useState(3);
@@ -1379,15 +2265,14 @@ export default function App() {
   const musicPlayer = useAudioPlayer(null);
   const musicPlayerStatus = useAudioPlayerStatus(musicPlayer);
 
-
   // SOCIALAPP_AUTH_SCREEN_V1
   // SOCIALAPP_FIRST_WELCOME_V1
   const [welcomeChecked, setWelcomeChecked] = React.useState(false);
   const [welcomeSeen, setWelcomeSeen] = React.useState(false);
 
   React.useEffect(() => {
-    SecureStore.getItemAsync('socialapp_welcome_seen')
-      .then(value => setWelcomeSeen(value === 'true'))
+    SecureStore.getItemAsync("socialapp_welcome_seen")
+      .then((value) => setWelcomeSeen(value === "true"))
       .catch(() => setWelcomeSeen(true))
       .finally(() => setWelcomeChecked(true));
   }, []);
@@ -1396,29 +2281,28 @@ export default function App() {
     setWelcomeSeen(true);
     setAuthMode(mode);
     try {
-      await SecureStore.setItemAsync('socialapp_welcome_seen', 'true');
+      await SecureStore.setItemAsync("socialapp_welcome_seen", "true");
     } catch (error) {
-      console.warn('Could not save welcome screen preference.');
+      console.warn("Could not save welcome screen preference.");
     }
   };
 
   const [authReady, setAuthReady] = React.useState(false);
   const [authSession, setAuthSession] = React.useState(null);
-  const [authMode, setAuthMode] = React.useState('login');
-  const [authUsername, setAuthUsername] = React.useState('');
-  const [authFullName, setAuthFullName] = React.useState('');
-  const [authEmail, setAuthEmail] = React.useState('');
-  const [authPassword, setAuthPassword] = React.useState('');
-  const [authPhoneNumber, setAuthPhoneNumber] = React.useState('');
-  const [authConfirmPassword, setAuthConfirmPassword] = React.useState('');
+  const [authMode, setAuthMode] = React.useState("login");
+  const [authUsername, setAuthUsername] = React.useState("");
+  const [authFullName, setAuthFullName] = React.useState("");
+  const [authEmail, setAuthEmail] = React.useState("");
+  const [authPassword, setAuthPassword] = React.useState("");
+  const [authPhoneNumber, setAuthPhoneNumber] = React.useState("");
+  const [authConfirmPassword, setAuthConfirmPassword] = React.useState("");
   const [authBusy, setAuthBusy] = React.useState(false);
-  const [forgotStep, setForgotStep] = React.useState('email');
-  const [forgotEmail, setForgotEmail] = React.useState('');
-  const [forgotOtp, setForgotOtp] = React.useState('');
-  const [forgotResetToken, setForgotResetToken] = React.useState('');
-  const [forgotNewPassword, setForgotNewPassword] = React.useState('');
-  const [forgotConfirmPassword, setForgotConfirmPassword] = React.useState('');
-
+  const [forgotStep, setForgotStep] = React.useState("email");
+  const [forgotEmail, setForgotEmail] = React.useState("");
+  const [forgotOtp, setForgotOtp] = React.useState("");
+  const [forgotResetToken, setForgotResetToken] = React.useState("");
+  const [forgotNewPassword, setForgotNewPassword] = React.useState("");
+  const [forgotConfirmPassword, setForgotConfirmPassword] = React.useState("");
 
   React.useEffect(() => {
     let mounted = true;
@@ -1447,13 +2331,21 @@ export default function App() {
             await clearAuthSession();
             if (mounted) setAuthSession(null);
           } else {
-            console.warn('Session retained because verification did not return 401.');
+            console.warn(
+              "Session retained because verification did not return 401.",
+            );
           }
         } catch (error) {
-          console.warn('Session retained after a temporary verification failure:', error?.message || error);
+          console.warn(
+            "Session retained after a temporary verification failure:",
+            error?.message || error,
+          );
         }
       } catch (error) {
-        console.error('Could not restore saved auth session:', error?.message || error);
+        console.error(
+          "Could not restore saved auth session:",
+          error?.message || error,
+        );
         if (mounted) {
           setAuthSession(null);
           setAuthReady(true);
@@ -1467,10 +2359,10 @@ export default function App() {
   }, []);
 
   // SOCIALAPP_PROFILE_SCREEN_V1
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchQuery, setSearchQuery] = React.useState("");
   const [searchResults, setSearchResults] = React.useState([]);
   const [searchLoading, setSearchLoading] = React.useState(false);
-  const [searchError, setSearchError] = React.useState('');
+  const [searchError, setSearchError] = React.useState("");
   const [searchFollowBusy, setSearchFollowBusy] = React.useState({});
 
   const [profile, setProfile] = React.useState(null);
@@ -1479,7 +2371,10 @@ export default function App() {
   const [followRequestAction, setFollowRequestAction] = React.useState({});
 
   const [profileEditing, setProfileEditing] = React.useState(false);
-  const [profileDraft, setProfileDraft] = React.useState({ displayName: '', bio: '' });
+  const [profileDraft, setProfileDraft] = React.useState({
+    displayName: "",
+    bio: "",
+  });
   const [profileBusy, setProfileBusy] = React.useState(false);
   const [viewedProfileOpen, setViewedProfileOpen] = React.useState(false);
   const [viewedProfile, setViewedProfile] = React.useState(null);
@@ -1488,32 +2383,32 @@ export default function App() {
   // SOCIALAPP_DIRECT_MESSAGES_V1
   const [messagesOpen, setMessagesOpen] = React.useState(false);
   const [messageConversations, setMessageConversations] = React.useState([]);
-  const [selectedChatUser, setSelectedChatUser] = React.useState('');
+  const [selectedChatUser, setSelectedChatUser] = React.useState("");
   const [directMessages, setDirectMessages] = React.useState([]);
-  const [newChatUsername, setNewChatUsername] = React.useState('');
-  const [chatDraft, setChatDraft] = React.useState('');
+  const [newChatUsername, setNewChatUsername] = React.useState("");
+  const [chatDraft, setChatDraft] = React.useState("");
   const [chatMediaDraft, setChatMediaDraft] = React.useState(null);
   const [chatEmojiOpen, setChatEmojiOpen] = React.useState(false);
   const [chatReplyTo, setChatReplyTo] = React.useState(null);
   const [chatUnsendTarget, setChatUnsendTarget] = React.useState(null);
   const [chatPeerTyping, setChatPeerTyping] = React.useState(false);
   const [chatBusy, setChatBusy] = React.useState(false);
-  const [chatError, setChatError] = React.useState('');
-  const [chatSearchQuery, setChatSearchQuery] = React.useState('');
+  const [chatError, setChatError] = React.useState("");
+  const [chatSearchQuery, setChatSearchQuery] = React.useState("");
   const [newChatComposerOpen, setNewChatComposerOpen] = React.useState(false);
   const [ownNote, setOwnNote] = React.useState(null);
   const [friendsNotes, setFriendsNotes] = React.useState([]);
   const [noteComposerOpen, setNoteComposerOpen] = React.useState(false);
   const [noteViewer, setNoteViewer] = React.useState(null);
-  const [noteDraft, setNoteDraft] = React.useState('');
+  const [noteDraft, setNoteDraft] = React.useState("");
   const [noteBusy, setNoteBusy] = React.useState(false);
-  const [noteError, setNoteError] = React.useState('');
+  const [noteError, setNoteError] = React.useState("");
 
   const directMessagesScrollRef = React.useRef(null);
 
   const [chatPeopleResults, setChatPeopleResults] = React.useState([]);
   const [chatPeopleBusy, setChatPeopleBusy] = React.useState(false);
-  const [chatPeopleError, setChatPeopleError] = React.useState('');
+  const [chatPeopleError, setChatPeopleError] = React.useState("");
 
   React.useEffect(() => {
     if (!messagesOpen || !selectedChatUser) {
@@ -1539,24 +2434,29 @@ export default function App() {
 
   React.useEffect(() => {
     const term = newChatUsername.trim();
-    if (!messagesOpen || selectedChatUser || !newChatComposerOpen || term.length < 2) {
+    if (
+      !messagesOpen ||
+      selectedChatUser ||
+      !newChatComposerOpen ||
+      term.length < 2
+    ) {
       setChatPeopleResults([]);
       setChatPeopleBusy(false);
-      setChatPeopleError('');
+      setChatPeopleError("");
       return undefined;
     }
 
     let active = true;
     const timer = setTimeout(async () => {
       setChatPeopleBusy(true);
-      setChatPeopleError('');
+      setChatPeopleError("");
       try {
         const results = await searchUsers(term);
         if (active) setChatPeopleResults(results);
       } catch (error) {
         if (active) {
           setChatPeopleResults([]);
-          setChatPeopleError(error?.message || 'People search failed.');
+          setChatPeopleError(error?.message || "People search failed.");
         }
       } finally {
         if (active) setChatPeopleBusy(false);
@@ -1569,17 +2469,17 @@ export default function App() {
     };
   }, [newChatUsername, messagesOpen, selectedChatUser, newChatComposerOpen]);
 
-
   const closeMessages = () => {
-    if (selectedChatUser) updateChatTyping(selectedChatUser, false).catch(() => {});
+    if (selectedChatUser)
+      updateChatTyping(selectedChatUser, false).catch(() => {});
     setChatPeerTyping(false);
     setChatReplyTo(null);
     setMessagesOpen(false);
     setNewChatComposerOpen(false);
-    setNewChatUsername('');
+    setNewChatUsername("");
     setChatPeopleResults([]);
     setChatPeopleBusy(false);
-    setChatPeopleError('');
+    setChatPeopleError("");
     setChatEmojiOpen(false);
   };
 
@@ -1587,9 +2487,11 @@ export default function App() {
     try {
       const data = await loadUserNotes();
       setOwnNote(data.ownNote || null);
-      setFriendsNotes(Array.isArray(data.friendsNotes) ? data.friendsNotes : []);
+      setFriendsNotes(
+        Array.isArray(data.friendsNotes) ? data.friendsNotes : [],
+      );
     } catch (error) {
-      setNoteError(error?.message || 'Could not load notes.');
+      setNoteError(error?.message || "Could not load notes.");
     }
   };
 
@@ -1597,14 +2499,14 @@ export default function App() {
     const text = noteDraft.trim();
     if (!text || noteBusy) return;
     setNoteBusy(true);
-    setNoteError('');
+    setNoteError("");
     try {
       await saveUserNote(text);
-      setNoteDraft('');
+      setNoteDraft("");
       setNoteComposerOpen(false);
       await refreshUserNotes();
     } catch (error) {
-      setNoteError(error?.message || 'Could not save note.');
+      setNoteError(error?.message || "Could not save note.");
     } finally {
       setNoteBusy(false);
     }
@@ -1613,14 +2515,14 @@ export default function App() {
   const removeUserNote = async () => {
     if (noteBusy) return;
     setNoteBusy(true);
-    setNoteError('');
+    setNoteError("");
     try {
       await deleteUserNote();
       setOwnNote(null);
-      setNoteDraft('');
+      setNoteDraft("");
       setNoteComposerOpen(false);
     } catch (error) {
-      setNoteError(error?.message || 'Could not delete note.');
+      setNoteError(error?.message || "Could not delete note.");
     } finally {
       setNoteBusy(false);
     }
@@ -1628,48 +2530,48 @@ export default function App() {
 
   const openMessages = async () => {
     setMessagesOpen(true);
-    setSelectedChatUser('');
-    setChatSearchQuery('');
-    setNewChatUsername('');
+    setSelectedChatUser("");
+    setChatSearchQuery("");
+    setNewChatUsername("");
     setNewChatComposerOpen(false);
     setChatPeopleResults([]);
-    setChatPeopleError('');
-    setChatDraft('');
+    setChatPeopleError("");
+    setChatDraft("");
     setChatMediaDraft(null);
     setChatEmojiOpen(false);
-    setChatError('');
+    setChatError("");
     setChatBusy(true);
     try {
       setMessageConversations(await loadMessageConversations());
       await refreshUserNotes();
     } catch (error) {
-      setChatError(error?.message || 'Could not load conversations.');
+      setChatError(error?.message || "Could not load conversations.");
     } finally {
       setChatBusy(false);
     }
   };
 
   const openDirectChat = async (username) => {
-    const target = String(username || '').trim();
+    const target = String(username || "").trim();
     if (!target) {
-      setChatError('Enter a username to start a chat.');
+      setChatError("Enter a username to start a chat.");
       return;
     }
     setSelectedChatUser(target);
     setNewChatUsername(target);
     setDirectMessages([]);
-    setChatDraft('');
+    setChatDraft("");
     setChatMediaDraft(null);
     setChatEmojiOpen(false);
     setChatReplyTo(null);
     setChatPeerTyping(false);
-    setChatError('');
+    setChatError("");
     setChatBusy(true);
     try {
       setDirectMessages(await loadDirectMessages(target));
       setMessageConversations(await loadMessageConversations());
     } catch (error) {
-      setChatError(error?.message || 'Could not load messages.');
+      setChatError(error?.message || "Could not load messages.");
     } finally {
       setChatBusy(false);
     }
@@ -1677,9 +2579,13 @@ export default function App() {
 
   // SOCIALAPP_CHAT_MEDIA_CONTROLS_V1
   const chooseChatMedia = async (useCamera = false) => {
-    setChatError('');
+    setChatError("");
     try {
-      const options = { mediaTypes: ['images'], allowsEditing: true, quality: 0.85 };
+      const options = {
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        quality: 0.85,
+      };
       const result = useCamera
         ? await ImagePicker.launchCameraAsync(options)
         : await ImagePicker.launchImageLibraryAsync(options);
@@ -1687,14 +2593,18 @@ export default function App() {
         setChatMediaDraft(result.assets[0]);
       }
     } catch (error) {
-      setChatError(error?.message || 'Photo selection failed. Please try again.');
+      setChatError(
+        error?.message || "Photo selection failed. Please try again.",
+      );
     }
   };
 
   const handleChatDraftChange = (value) => {
     setChatDraft(value);
     if (selectedChatUser) {
-      updateChatTyping(selectedChatUser, !!String(value || '').trim()).catch(() => {});
+      updateChatTyping(selectedChatUser, !!String(value || "").trim()).catch(
+        () => {},
+      );
     }
   };
 
@@ -1702,66 +2612,74 @@ export default function App() {
     const text = chatDraft.trim();
     if ((!text && !chatMediaDraft) || !selectedChatUser || chatBusy) return;
     setChatBusy(true);
-    setChatError('');
+    setChatError("");
     try {
       let imageUrl = null;
       if (chatMediaDraft) imageUrl = await uploadChatPhoto(chatMediaDraft);
-      const message = await sendDirectMessage(selectedChatUser, text, imageUrl, chatReplyTo?.id || null);
-      setDirectMessages(previous => [...previous, message]);
-      setChatDraft('');
+      const message = await sendDirectMessage(
+        selectedChatUser,
+        text,
+        imageUrl,
+        chatReplyTo?.id || null,
+      );
+      setDirectMessages((previous) => [...previous, message]);
+      setChatDraft("");
       setChatMediaDraft(null);
       setChatEmojiOpen(false);
       setChatReplyTo(null);
       updateChatTyping(selectedChatUser, false).catch(() => {});
       setMessageConversations(await loadMessageConversations());
     } catch (error) {
-      setChatError(error?.message || 'Could not send message.');
+      setChatError(error?.message || "Could not send message.");
     } finally {
       setChatBusy(false);
     }
   };
 
-
   const handleUnsendChatMessage = async () => {
-  const target = chatUnsendTarget;
-  if (!target?.id || !selectedChatUser || chatBusy) return;
+    const target = chatUnsendTarget;
+    if (!target?.id || !selectedChatUser || chatBusy) return;
 
-  setChatBusy(true);
-  setChatError('');
-  try {
-    await unsendDirectMessage(selectedChatUser, target.id);
-    setDirectMessages(previous => previous.filter(message => String(message.id) !== String(target.id)));
-    setChatUnsendTarget(null);
-    setChatReplyTo(previous => String(previous?.id) === String(target.id) ? null : previous);
-    setMessageConversations(await loadMessageConversations());
-  } catch (error) {
-    setChatError(error?.message || 'Could not unsend message.');
-  } finally {
-    setChatBusy(false);
-  }
-};
+    setChatBusy(true);
+    setChatError("");
+    try {
+      await unsendDirectMessage(selectedChatUser, target.id);
+      setDirectMessages((previous) =>
+        previous.filter((message) => String(message.id) !== String(target.id)),
+      );
+      setChatUnsendTarget(null);
+      setChatReplyTo((previous) =>
+        String(previous?.id) === String(target.id) ? null : previous,
+      );
+      setMessageConversations(await loadMessageConversations());
+    } catch (error) {
+      setChatError(error?.message || "Could not unsend message.");
+    } finally {
+      setChatBusy(false);
+    }
+  };
 
-// SEARCH_USERS_EFFECT_V1
+  // SEARCH_USERS_EFFECT_V1
   React.useEffect(() => {
     const term = searchQuery.trim();
-    if (activeTab !== 'Search' || term.length < 2) {
+    if (activeTab !== "Search" || term.length < 2) {
       setSearchResults([]);
       setSearchLoading(false);
-      setSearchError('');
+      setSearchError("");
       return undefined;
     }
 
     let active = true;
     const timer = setTimeout(async () => {
       setSearchLoading(true);
-      setSearchError('');
+      setSearchError("");
       try {
         const results = await searchUsers(term);
         if (active) setSearchResults(results);
       } catch (error) {
         if (active) {
           setSearchResults([]);
-          setSearchError(error?.message || 'Search failed.');
+          setSearchError(error?.message || "Search failed.");
         }
       } finally {
         if (active) setSearchLoading(false);
@@ -1777,23 +2695,28 @@ export default function App() {
   const groupedStories = React.useMemo(() => {
     const groups = new Map();
     const currentUsername = String(
-      profile?.username || profile?.user?.username || ''
-    ).trim().toLowerCase();
+      profile?.username || profile?.user?.username || "",
+    )
+      .trim()
+      .toLowerCase();
 
     serverStories.forEach((item, index) => {
-      const username = String(item.user || item.name || `story${index + 1}`).trim();
+      const username = String(
+        item.user || item.name || `story${index + 1}`,
+      ).trim();
       const normalizedUsername = username.toLowerCase();
-      const own = !!item.own ||
-        normalizedUsername === 'you' ||
+      const own =
+        !!item.own ||
+        normalizedUsername === "you" ||
         (!!currentUsername && normalizedUsername === currentUsername);
-      const key = own ? '__own__' : normalizedUsername;
+      const key = own ? "__own__" : normalizedUsername;
 
       if (!groups.has(key)) {
         groups.set(key, {
           key,
-          name: own ? 'Your story' : username,
+          name: own ? "Your story" : username,
           own,
-          items: []
+          items: [],
         });
       }
 
@@ -1812,48 +2735,87 @@ export default function App() {
     setSelectedStory(items[0]);
   };
 
-  const moveStory = (direction) => {
-    setStoryImageZoomed(false);
-    const nextIndex = storyIndex + direction;
+  const moveStory = React.useCallback(
+    (direction) => {
+      setStoryImageZoomed(false);
+      const nextIndex = storyIndex + direction;
 
-    if (nextIndex < 0) return;
+      if (nextIndex < 0) return;
 
-    if (nextIndex >= storyQueue.length) {
-      setSelectedStory(null);
-      setStoryQueue([]);
-      setStoryIndex(0);
+      if (nextIndex >= storyQueue.length) {
+        setSelectedStory(null);
+        setStoryQueue([]);
+        setStoryIndex(0);
+        setStoryProgress(0);
+        return;
+      }
+
+      setStoryIndex(nextIndex);
+      setSelectedStory(storyQueue[nextIndex]);
+      setStoryProgress(0);
+    },
+    [storyIndex, storyQueue],
+  );
+
+  const storySwipeGesture = React.useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetY([-12, 12])
+        .onEnd((event) => {
+          if (storyImageZoomed) return;
+          if (event.translationY < -60) moveStory(1);
+          else if (event.translationY > 60) moveStory(-1);
+        })
+        .runOnJS(true),
+    [moveStory, storyImageZoomed],
+  );
+
+  React.useEffect(() => {
+    if (!selectedStory || selectedStory.mediaType === "video") {
+      setStoryProgress(0);
       return;
     }
 
-    setStoryIndex(nextIndex);
-    setSelectedStory(storyQueue[nextIndex]);
-  };
+    setStoryProgress(0);
+    if (storyImageZoomed) return;
 
-  const storySwipeGesture = React.useMemo(
-    () => Gesture.Pan()
-      .activeOffsetY([-12, 12])
-      .onEnd((event) => {
-        if (storyImageZoomed) return;
-        if (event.translationY < -60) moveStory(1);
-        else if (event.translationY > 60) moveStory(-1);
-      })
-      .runOnJS(true),
-    [storyIndex, storyQueue, storyImageZoomed]
-  );
+    const startedAt = Date.now();
+    const duration = 5000;
+    const timer = setInterval(() => {
+      const progress = Math.min(
+        100,
+        ((Date.now() - startedAt) / duration) * 100,
+      );
+      setStoryProgress(progress);
+
+      if (progress >= 100) {
+        clearInterval(timer);
+        moveStory(1);
+      }
+    }, 50);
+
+    return () => clearInterval(timer);
+  }, [selectedStory, storyIndex, storyImageZoomed, moveStory]);
 
   // SOCIALAPP_PRIVACY_SCREEN_V1
   const [privacyOpen, setPrivacyOpen] = React.useState(false);
   const [settingsHubOpen, setSettingsHubOpen] = React.useState(false);
   const [blockedAccountsOpen, setBlockedAccountsOpen] = React.useState(false);
   const [blockedAccounts, setBlockedAccounts] = React.useState([]);
-  const [blockedAccountsLoading, setBlockedAccountsLoading] = React.useState(false);
+  const [blockedAccountsLoading, setBlockedAccountsLoading] =
+    React.useState(false);
   const [blockedAccountsBusy, setBlockedAccountsBusy] = React.useState(false);
-  const [restrictedAccountsOpen, setRestrictedAccountsOpen] = React.useState(false);
+  const [restrictedAccountsOpen, setRestrictedAccountsOpen] =
+    React.useState(false);
   const [restrictedAccounts, setRestrictedAccounts] = React.useState([]);
-  const [restrictedAccountsLoading, setRestrictedAccountsLoading] = React.useState(false);
-  const [restrictedAccountsBusy, setRestrictedAccountsBusy] = React.useState(false);
-  const [viewedProfileRestricted, setViewedProfileRestricted] = React.useState(false);
-  const [viewedProfileRestrictBusy, setViewedProfileRestrictBusy] = React.useState(false);
+  const [restrictedAccountsLoading, setRestrictedAccountsLoading] =
+    React.useState(false);
+  const [restrictedAccountsBusy, setRestrictedAccountsBusy] =
+    React.useState(false);
+  const [viewedProfileRestricted, setViewedProfileRestricted] =
+    React.useState(false);
+  const [viewedProfileRestrictBusy, setViewedProfileRestrictBusy] =
+    React.useState(false);
   const [privacyBusy, setPrivacyBusy] = React.useState(false);
   const [privacySettings, setPrivacySettings] = React.useState({
     isPrivate: false,
@@ -1862,37 +2824,43 @@ export default function App() {
   });
   const [passwordOpen, setPasswordOpen] = React.useState(false);
   const [passwordBusy, setPasswordBusy] = React.useState(false);
-  const [oldPassword, setOldPassword] = React.useState('');
-  const [newPassword, setNewPassword] = React.useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = React.useState('');
+  const [oldPassword, setOldPassword] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = React.useState("");
   const [accountSettingsOpen, setAccountSettingsOpen] = React.useState(false);
   const [accountSettingsBusy, setAccountSettingsBusy] = React.useState(false);
-  const [accountEmail, setAccountEmail] = React.useState('');
-  const [accountPhone, setAccountPhone] = React.useState('');
+  const [accountEmail, setAccountEmail] = React.useState("");
+  const [accountPhone, setAccountPhone] = React.useState("");
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [notificationsBusy, setNotificationsBusy] = React.useState(false);
- const [notificationsListOpen, setNotificationsListOpen] = React.useState(false);
- const [notificationsList, setNotificationsList] = React.useState([]);
- const [unreadNotificationCount, setUnreadNotificationCount] = React.useState(0);
- const [notificationsLoading, setNotificationsLoading] = React.useState(false);
-  const [notificationDetailsOpen, setNotificationDetailsOpen] = React.useState(false);
+  const [notificationsListOpen, setNotificationsListOpen] =
+    React.useState(false);
+  const [notificationsList, setNotificationsList] = React.useState([]);
+  const [unreadNotificationCount, setUnreadNotificationCount] =
+    React.useState(0);
+  const [notificationsLoading, setNotificationsLoading] = React.useState(false);
+  const [notificationDetailsOpen, setNotificationDetailsOpen] =
+    React.useState(false);
   const [notificationDetails, setNotificationDetails] = React.useState({
-    likes: true, comments: true, follows: true, messages: true, system_alerts: true,
+    likes: true,
+    comments: true,
+    follows: true,
+    messages: true,
+    system_alerts: true,
   });
-
-
-
-
 
   const openAccountSettings = async () => {
     setAccountSettingsBusy(true);
     try {
       const data = await loadAccountSettings();
-      setAccountEmail(data.email || '');
-      setAccountPhone(data.phone_number || '');
+      setAccountEmail(data.email || "");
+      setAccountPhone(data.phone_number || "");
       setAccountSettingsOpen(true);
     } catch (e) {
-      Alert.alert('Account Settings', e.message || 'Could not load account settings.');
+      Alert.alert(
+        "Account Settings",
+        e.message || "Could not load account settings.",
+      );
     } finally {
       setAccountSettingsBusy(false);
     }
@@ -1903,9 +2871,12 @@ export default function App() {
     try {
       await saveAccountSettings(accountEmail, accountPhone);
       setAccountSettingsOpen(false);
-      Alert.alert('Success', 'Account details saved.');
+      Alert.alert("Success", "Account details saved.");
     } catch (e) {
-      Alert.alert('Save failed', e.message || 'Could not save account details.');
+      Alert.alert(
+        "Save failed",
+        e.message || "Could not save account details.",
+      );
     } finally {
       setAccountSettingsBusy(false);
     }
@@ -1917,7 +2888,10 @@ export default function App() {
       const saved = await saveNotificationPreference(enabled);
       setNotificationsEnabled(saved);
     } catch (e) {
-      Alert.alert('Notifications', e.message || 'Could not save notification preference.');
+      Alert.alert(
+        "Notifications",
+        e.message || "Could not save notification preference.",
+      );
     } finally {
       setNotificationsBusy(false);
     }
@@ -1929,10 +2903,13 @@ export default function App() {
       const enabled = await loadNotificationPreference();
       const details = await loadNotificationDetails();
       setNotificationsEnabled(enabled);
-      setNotificationDetails(current => ({ ...current, ...details }));
-      setNotificationDetailsOpen(value => !value);
+      setNotificationDetails((current) => ({ ...current, ...details }));
+      setNotificationDetailsOpen((value) => !value);
     } catch (e) {
-      Alert.alert('Notifications', e.message || 'Could not load notification settings.');
+      Alert.alert(
+        "Notifications",
+        e.message || "Could not load notification settings.",
+      );
     } finally {
       setNotificationsBusy(false);
     }
@@ -1942,74 +2919,122 @@ export default function App() {
     let active = true;
     if (!authSession) {
       setUnreadNotificationCount(0);
-      return () => { active = false; };
+      return () => {
+        active = false;
+      };
     }
-    Promise.all([loadNotifications(), loadNotificationPreference(), loadNotificationDetails()])
+    Promise.all([
+      loadNotifications(),
+      loadNotificationPreference(),
+      loadNotificationDetails(),
+    ])
       .then(([notifications, enabled, details]) => {
         if (!active) return;
         setUnreadNotificationCount(Number(notifications.unreadCount || 0));
         setNotificationsEnabled(Boolean(enabled));
-        setNotificationDetails(current => ({ ...current, ...details }));
+        setNotificationDetails((current) => ({ ...current, ...details }));
       })
-      .catch(error => console.warn("Could not load notification settings:", error?.message || error));
-    return () => { active = false; };
+      .catch((error) =>
+        console.warn(
+          "Could not load notification settings:",
+          error?.message || error,
+        ),
+      );
+    return () => {
+      active = false;
+    };
   }, [authSession]);
-
 
   const handleReelLike = async (reel) => {
     const id = Number(reel?.id);
     if (!Number.isSafeInteger(id) || id <= 0 || reelBusyState[id]) return;
-    setReelBusyState(prev => ({ ...prev, [id]: true }));
+    setReelBusyState((prev) => ({ ...prev, [id]: true }));
     try {
       const result = await toggleReelLike(id);
-      setReelLikeState(prev => ({ ...prev, [id]: !!result.liked }));
-      setReels(prev => prev.map(item => Number(item.id) === id ? { ...item, isLiked: !!result.liked, likesCount: result.likesCount } : item));
+      setReelLikeState((prev) => ({ ...prev, [id]: !!result.liked }));
+      setReels((prev) =>
+        prev.map((item) =>
+          Number(item.id) === id
+            ? {
+                ...item,
+                isLiked: !!result.liked,
+                likesCount: result.likesCount,
+              }
+            : item,
+        ),
+      );
     } catch (e) {
       Alert.alert("Reel Like", e.message || "Could not update like.");
     } finally {
-      setReelBusyState(prev => ({ ...prev, [id]: false }));
+      setReelBusyState((prev) => ({ ...prev, [id]: false }));
     }
   };
 
   const handleReelSave = async (reel) => {
     const id = Number(reel?.id);
-    if (!Number.isSafeInteger(id) || id <= 0 || reelBusyState[`save-${id}`]) return;
-    setReelBusyState(prev => ({ ...prev, [`save-${id}`]: true }));
+    if (!Number.isSafeInteger(id) || id <= 0 || reelBusyState[`save-${id}`])
+      return;
+    setReelBusyState((prev) => ({ ...prev, [`save-${id}`]: true }));
     try {
       const result = await toggleSavedContent("reels", id);
-      setReelSavedState(prev => ({ ...prev, [id]: !!result.saved }));
-      setReels(prev => prev.map(item => Number(item.id) === id ? { ...item, isSaved: !!result.saved } : item));
+      setReelSavedState((prev) => ({ ...prev, [id]: !!result.saved }));
+      setReels((prev) =>
+        prev.map((item) =>
+          Number(item.id) === id ? { ...item, isSaved: !!result.saved } : item,
+        ),
+      );
     } catch (e) {
       Alert.alert("Saved", e.message || "Could not update Saved.");
     } finally {
-      setReelBusyState(prev => ({ ...prev, [`save-${id}`]: false }));
+      setReelBusyState((prev) => ({ ...prev, [`save-${id}`]: false }));
     }
   };
 
   const handleReelFollow = async (reel) => {
-    const username = String(reel?.user || reel?.username || "").replace(/^@/, "").trim();
-    if (!username || username === authSession?.username || reelBusyState[`follow-${username}`]) return;
-    setReelBusyState(prev => ({ ...prev, [`follow-${username}`]: true }));
+    const username = String(reel?.user || reel?.username || "")
+      .replace(/^@/, "")
+      .trim();
+    if (
+      !username ||
+      username === authSession?.username ||
+      reelBusyState[`follow-${username}`]
+    )
+      return;
+    setReelBusyState((prev) => ({ ...prev, [`follow-${username}`]: true }));
     try {
       const following = reelFollowState[username] ?? !!reel.isFollowing;
       const result = following
         ? await unfollowProfile(username, authSession?.username || "you")
         : await followProfile(username, authSession?.username || "you");
-      const status = result?.status || (following ? "not_following" : "following");
-      setReelFollowState(prev => ({ ...prev, [username]: status === "following" }));
-      setReels(prev => prev.map(item => (item.user || item.username) === username
-        ? { ...item, isFollowing: status === "following", followRequestStatus: status === "requested" ? "pending" : "" }
-        : item));
+      const status =
+        result?.status || (following ? "not_following" : "following");
+      setReelFollowState((prev) => ({
+        ...prev,
+        [username]: status === "following",
+      }));
+      setReels((prev) =>
+        prev.map((item) =>
+          (item.user || item.username) === username
+            ? {
+                ...item,
+                isFollowing: status === "following",
+                followRequestStatus: status === "requested" ? "pending" : "",
+              }
+            : item,
+        ),
+      );
     } catch (e) {
       Alert.alert("Follow", e.message || "Could not update follow.");
     } finally {
-      setReelBusyState(prev => ({ ...prev, [`follow-${username}`]: false }));
+      setReelBusyState((prev) => ({ ...prev, [`follow-${username}`]: false }));
     }
   };
 
   const handleReelShare = async (reel) => {
     try {
-      await Share.share({ message: `${reel.caption || "Watch this reel"}\n${reel.uri || ""}` });
+      await Share.share({
+        message: `${reel.caption || "Watch this reel"}\n${reel.uri || ""}`,
+      });
     } catch (e) {
       Alert.alert("Share", e.message || "Could not share this reel.");
     }
@@ -2018,26 +3043,39 @@ export default function App() {
   const handleReelDownload = async (reel) => {
     if (!reel?.uri) return;
     try {
-      const permission = await MediaLibrary.requestPermissionsAsync(true, ["video"]);
+      const permission = await MediaLibrary.requestPermissionsAsync(true, [
+        "video",
+      ]);
       if (!permission.granted) {
-        Alert.alert("Gallery permission", "Allow video access to save this reel to your Gallery.");
+        Alert.alert(
+          "Gallery permission",
+          "Allow video access to save this reel to your Gallery.",
+        );
         return;
       }
-      const safeId = String(reel.id || Date.now()).replace(/[^a-zA-Z0-9_-]/g, "_");
+      const safeId = String(reel.id || Date.now()).replace(
+        /[^a-zA-Z0-9_-]/g,
+        "_",
+      );
       const localPath = `${FileSystem.cacheDirectory}Bhumi-Reel-${safeId}.mp4`;
       const downloaded = await FileSystem.downloadAsync(reel.uri, localPath);
       await MediaLibrary.saveToLibraryAsync(downloaded.uri);
-      Alert.alert("Saved to Gallery", "The original video file was saved to your phone Gallery.");
+      Alert.alert(
+        "Saved to Gallery",
+        "The original video file was saved to your phone Gallery.",
+      );
     } catch (e) {
-      Alert.alert("Download", e.message || "Could not save this reel to Gallery.");
+      Alert.alert(
+        "Download",
+        e.message || "Could not save this reel to Gallery.",
+      );
     }
   };
-
 
   const handleOpenReelComments = async (reel) => {
     setSelectedReel(reel);
     setReelComments([]);
-    setReelCommentDraft('');
+    setReelCommentDraft("");
     setReelCommentsOpen(true);
     const id = Number(reel?.id);
     if (!Number.isSafeInteger(id) || id <= 0) return;
@@ -2046,7 +3084,7 @@ export default function App() {
       const rows = await loadReelComments(id);
       setReelComments(Array.isArray(rows) ? rows : []);
     } catch (e) {
-      Alert.alert('Reel comments', e.message || 'Could not load comments.');
+      Alert.alert("Reel comments", e.message || "Could not load comments.");
     } finally {
       setReelCommentsBusy(false);
     }
@@ -2055,19 +3093,19 @@ export default function App() {
   const handleSubmitReelComment = async () => {
     const id = Number(selectedReel?.id);
     const message = reelCommentDraft.trim();
-    if (!Number.isSafeInteger(id) || id <= 0 || !message || reelCommentsBusy) return;
+    if (!Number.isSafeInteger(id) || id <= 0 || !message || reelCommentsBusy)
+      return;
     setReelCommentsBusy(true);
     try {
       const created = await createReelComment(id, message);
-      setReelComments(current => [...current, created]);
-      setReelCommentDraft('');
+      setReelComments((current) => [...current, created]);
+      setReelCommentDraft("");
     } catch (e) {
-      Alert.alert('Reel comment', e.message || 'Could not post comment.');
+      Alert.alert("Reel comment", e.message || "Could not post comment.");
     } finally {
       setReelCommentsBusy(false);
     }
   };
-
 
   const handleApproveReelComment = async (commentId) => {
     const id = Number(selectedReel?.id);
@@ -2075,11 +3113,18 @@ export default function App() {
     setReelCommentsBusy(true);
     try {
       await approveReelComment(id, commentId);
-      setReelComments(items => items.map(item =>
-        String(item.id) === String(commentId) ? { ...item, isPending: false } : item
-      ));
+      setReelComments((items) =>
+        items.map((item) =>
+          String(item.id) === String(commentId)
+            ? { ...item, isPending: false }
+            : item,
+        ),
+      );
     } catch (e) {
-      Alert.alert('Comment approval', e.message || 'Could not approve reel comment.');
+      Alert.alert(
+        "Comment approval",
+        e.message || "Could not approve reel comment.",
+      );
     } finally {
       setReelCommentsBusy(false);
     }
@@ -2092,7 +3137,7 @@ export default function App() {
       const items = await loadSavedContent();
       setSavedContent(Array.isArray(items) ? items : []);
     } catch (e) {
-      Alert.alert('Saved', e.message || 'Could not load Saved items.');
+      Alert.alert("Saved", e.message || "Could not load Saved items.");
     } finally {
       setSavedContentBusy(false);
     }
@@ -2107,13 +3152,13 @@ export default function App() {
 
     if (kind === "reels") {
       let rows = reels;
-      let index = rows.findIndex(row => Number(row.id) === id);
+      let index = rows.findIndex((row) => Number(row.id) === id);
 
       if (index < 0) {
         try {
           rows = await loadContent("reels");
           if (!Array.isArray(rows)) rows = [];
-          index = rows.findIndex(row => Number(row.id) === id);
+          index = rows.findIndex((row) => Number(row.id) === id);
         } catch (e) {
           rows = [];
         }
@@ -2142,17 +3187,19 @@ export default function App() {
     }
 
     if (kind === "posts") {
-      let post = feedPosts.find(row =>
-        Number(row.id) === id ||
-        (row.mediaItems || []).some(media => Number(media.id) === id)
+      let post = feedPosts.find(
+        (row) =>
+          Number(row.id) === id ||
+          (row.mediaItems || []).some((media) => Number(media.id) === id),
       );
 
       if (!post) {
         try {
           const rows = await loadContent("posts");
-          post = (Array.isArray(rows) ? rows : []).find(row =>
-            Number(row.id) === id ||
-            (row.mediaItems || []).some(media => Number(media.id) === id)
+          post = (Array.isArray(rows) ? rows : []).find(
+            (row) =>
+              Number(row.id) === id ||
+              (row.mediaItems || []).some((media) => Number(media.id) === id),
           );
         } catch (e) {}
       }
@@ -2165,19 +3212,30 @@ export default function App() {
     Alert.alert("Saved", "This saved item type is not supported.");
   };
 
-    const handleRemoveSavedItem = async (item) => {
+  const handleRemoveSavedItem = async (item) => {
     const kind = item?.kind;
     const id = Number(item?.id);
-    if (!['posts', 'reels'].includes(kind) || !Number.isSafeInteger(id) || id <= 0) return;
+    if (
+      !["posts", "reels"].includes(kind) ||
+      !Number.isSafeInteger(id) ||
+      id <= 0
+    )
+      return;
     try {
       await toggleSavedContent(kind, id);
-      setSavedContent(current => current.filter(row => !(row.kind === kind && Number(row.id) === id)));
-      if (kind === 'reels') {
-        setReels(current => current.map(row => Number(row.id) === id ? { ...row, isSaved: false } : row));
-        setReelSavedState(current => ({ ...current, [id]: false }));
+      setSavedContent((current) =>
+        current.filter((row) => !(row.kind === kind && Number(row.id) === id)),
+      );
+      if (kind === "reels") {
+        setReels((current) =>
+          current.map((row) =>
+            Number(row.id) === id ? { ...row, isSaved: false } : row,
+          ),
+        );
+        setReelSavedState((current) => ({ ...current, [id]: false }));
       }
     } catch (e) {
-      Alert.alert('Saved', e.message || 'Could not remove this item.');
+      Alert.alert("Saved", e.message || "Could not remove this item.");
     }
   };
 
@@ -2186,10 +3244,15 @@ export default function App() {
     setNotificationsLoading(true);
     try {
       const data = await loadNotifications();
-      setNotificationsList(Array.isArray(data.notifications) ? data.notifications : []);
+      setNotificationsList(
+        Array.isArray(data.notifications) ? data.notifications : [],
+      );
       setUnreadNotificationCount(Number(data.unreadCount || 0));
     } catch (e) {
-      Alert.alert("Notifications", e.message || "Could not load notifications.");
+      Alert.alert(
+        "Notifications",
+        e.message || "Could not load notifications.",
+      );
     } finally {
       setNotificationsLoading(false);
     }
@@ -2198,17 +3261,28 @@ export default function App() {
   const handleReadNotification = async (notificationId) => {
     try {
       await markNotificationRead(notificationId);
-      setNotificationsList(current => current.map(item => String(item.id) === String(notificationId) ? { ...item, isRead: true } : item));
-      setUnreadNotificationCount(current => Math.max(0, current - 1));
+      setNotificationsList((current) =>
+        current.map((item) =>
+          String(item.id) === String(notificationId)
+            ? { ...item, isRead: true }
+            : item,
+        ),
+      );
+      setUnreadNotificationCount((current) => Math.max(0, current - 1));
     } catch (e) {
-      Alert.alert("Notifications", e.message || "Could not mark notification as read.");
+      Alert.alert(
+        "Notifications",
+        e.message || "Could not mark notification as read.",
+      );
     }
   };
 
   const openUserProfile = async (username) => {
-    const target = String(username || '').replace(/^@/, '').trim();
+    const target = String(username || "")
+      .replace(/^@/, "")
+      .trim();
     if (!target) return;
-    const viewer = authSession?.username || '';
+    const viewer = authSession?.username || "";
     setNotificationsListOpen(false);
     setViewedProfile(null);
     setViewedProfileOpen(true);
@@ -2222,7 +3296,7 @@ export default function App() {
         cachedLoaded = true;
       }
     } catch (e) {
-      console.log('VIEWED_PROFILE_CACHE_READ_ERROR:', e?.message);
+      console.log("VIEWED_PROFILE_CACHE_READ_ERROR:", e?.message);
     }
 
     try {
@@ -2231,15 +3305,18 @@ export default function App() {
       try {
         const restricted = await loadRestrictedAccounts();
         setViewedProfileRestricted(
-          restricted.some(item => String(item.username).toLowerCase() === target.toLowerCase())
+          restricted.some(
+            (item) =>
+              String(item.username).toLowerCase() === target.toLowerCase(),
+          ),
         );
       } catch (restrictionError) {
-        console.log('RESTRICTED_STATUS_LOAD_ERROR:', restrictionError?.message);
+        console.log("RESTRICTED_STATUS_LOAD_ERROR:", restrictionError?.message);
       }
     } catch (e) {
       if (!cachedLoaded) {
         setViewedProfileOpen(false);
-        Alert.alert('Profile', e.message || 'Could not load profile.');
+        Alert.alert("Profile", e.message || "Could not load profile.");
       }
     } finally {
       setViewedProfileBusy(false);
@@ -2251,37 +3328,47 @@ export default function App() {
     if (!item.isRead) {
       try {
         await markNotificationRead(item.id);
-        setNotificationsList(current => current.map(n => String(n.id) === String(item.id) ? { ...n, isRead: true } : n));
-        setUnreadNotificationCount(current => Math.max(0, current - 1));
+        setNotificationsList((current) =>
+          current.map((n) =>
+            String(n.id) === String(item.id) ? { ...n, isRead: true } : n,
+          ),
+        );
+        setUnreadNotificationCount((current) => Math.max(0, current - 1));
       } catch (e) {
-        Alert.alert('Notifications', e.message || 'Could not mark notification as read.');
+        Alert.alert(
+          "Notifications",
+          e.message || "Could not mark notification as read.",
+        );
       }
     }
 
     setNotificationsListOpen(false);
-    const kind = String(item.kind || '');
-    const actor = String(item.actor || '').trim();
+    const kind = String(item.kind || "");
+    const actor = String(item.actor || "").trim();
 
-    if (kind === 'like' || kind === 'comment') {
+    if (kind === "like" || kind === "comment") {
       if (!item.referenceId) {
-        Alert.alert('Post unavailable', 'This notification does not contain a post reference.');
+        Alert.alert(
+          "Post unavailable",
+          "This notification does not contain a post reference.",
+        );
         return;
       }
       try {
         const post = await loadPostById(item.referenceId);
         if (!post) {
-          Alert.alert('Post unavailable', 'This post may have been deleted.');
+          Alert.alert("Post unavailable", "This post may have been deleted.");
           return;
         }
         setSelectedPostMediaIndex(0);
         setSelectedPost(post);
       } catch (e) {
-        Alert.alert('Post', e.message || 'Could not open this post.');
+        Alert.alert("Post", e.message || "Could not open this post.");
       }
       return;
     }
 
-    if (kind === 'message') {
+    if (kind === "message") {
       if (!actor) return;
       setMessagesOpen(true);
       await openDirectChat(actor);
@@ -2294,10 +3381,15 @@ export default function App() {
   const handleReadAllNotifications = async () => {
     try {
       await markAllNotificationsRead();
-      setNotificationsList(current => current.map(item => ({ ...item, isRead: true })));
+      setNotificationsList((current) =>
+        current.map((item) => ({ ...item, isRead: true })),
+      );
       setUnreadNotificationCount(0);
     } catch (e) {
-      Alert.alert("Notifications", e.message || "Could not mark notifications as read.");
+      Alert.alert(
+        "Notifications",
+        e.message || "Could not mark notifications as read.",
+      );
     }
   };
 
@@ -2308,10 +3400,13 @@ export default function App() {
     setNotificationsBusy(true);
     try {
       const saved = await saveNotificationDetails({ [key]: value });
-      setNotificationDetails(current => ({ ...current, ...saved }));
+      setNotificationDetails((current) => ({ ...current, ...saved }));
     } catch (e) {
       setNotificationDetails(previous);
-      Alert.alert('Notifications', e.message || 'Could not save notification settings.');
+      Alert.alert(
+        "Notifications",
+        e.message || "Could not save notification settings.",
+      );
     } finally {
       setNotificationsBusy(false);
     }
@@ -2324,7 +3419,10 @@ export default function App() {
     try {
       setBlockedAccounts(await loadBlockedAccounts());
     } catch (error) {
-      Alert.alert('Blocked Accounts', error.message || 'Could not load blocked accounts.');
+      Alert.alert(
+        "Blocked Accounts",
+        error.message || "Could not load blocked accounts.",
+      );
     } finally {
       setBlockedAccountsLoading(false);
     }
@@ -2334,9 +3432,14 @@ export default function App() {
     setBlockedAccountsBusy(true);
     try {
       await unblockAccount(username);
-      setBlockedAccounts(current => current.filter(item => item.username !== username));
+      setBlockedAccounts((current) =>
+        current.filter((item) => item.username !== username),
+      );
     } catch (error) {
-      Alert.alert('Unblock failed', error.message || 'Could not unblock this account.');
+      Alert.alert(
+        "Unblock failed",
+        error.message || "Could not unblock this account.",
+      );
     } finally {
       setBlockedAccountsBusy(false);
     }
@@ -2349,7 +3452,10 @@ export default function App() {
     try {
       setRestrictedAccounts(await loadRestrictedAccounts());
     } catch (error) {
-      Alert.alert('Restricted Accounts', error.message || 'Could not load restricted accounts.');
+      Alert.alert(
+        "Restricted Accounts",
+        error.message || "Could not load restricted accounts.",
+      );
     } finally {
       setRestrictedAccountsLoading(false);
     }
@@ -2359,36 +3465,53 @@ export default function App() {
     setRestrictedAccountsBusy(true);
     try {
       await unrestrictAccount(username);
-      setRestrictedAccounts(current => current.filter(item =>
-        String(item.username).toLowerCase() !== String(username).toLowerCase()
-      ));
-      if (String(viewedProfile?.username || '').toLowerCase() === String(username).toLowerCase()) {
+      setRestrictedAccounts((current) =>
+        current.filter(
+          (item) =>
+            String(item.username).toLowerCase() !==
+            String(username).toLowerCase(),
+        ),
+      );
+      if (
+        String(viewedProfile?.username || "").toLowerCase() ===
+        String(username).toLowerCase()
+      ) {
         setViewedProfileRestricted(false);
       }
     } catch (error) {
-      Alert.alert('Unrestrict failed', error.message || 'Could not unrestrict this account.');
+      Alert.alert(
+        "Unrestrict failed",
+        error.message || "Could not unrestrict this account.",
+      );
     } finally {
       setRestrictedAccountsBusy(false);
     }
   };
 
   const handleToggleViewedProfileRestriction = async () => {
-    const username = String(viewedProfile?.username || '').trim();
+    if (Object.values(followRequestAction || {}).some(Boolean)) return;
+    const username = String(viewedProfile?.username || "").trim();
     if (!username || viewedProfileRestrictBusy) return;
     setViewedProfileRestrictBusy(true);
     try {
       if (viewedProfileRestricted) {
         await unrestrictAccount(username);
         setViewedProfileRestricted(false);
-        setRestrictedAccounts(current => current.filter(item =>
-          String(item.username).toLowerCase() !== username.toLowerCase()
-        ));
+        setRestrictedAccounts((current) =>
+          current.filter(
+            (item) =>
+              String(item.username).toLowerCase() !== username.toLowerCase(),
+          ),
+        );
       } else {
         await restrictAccount(username);
         setViewedProfileRestricted(true);
       }
     } catch (error) {
-      Alert.alert('Restriction update failed', error.message || 'Could not update restriction.');
+      Alert.alert(
+        "Restriction update failed",
+        error.message || "Could not update restriction.",
+      );
     } finally {
       setViewedProfileRestrictBusy(false);
     }
@@ -2405,35 +3528,59 @@ export default function App() {
       });
       setPrivacyOpen(true);
     } catch (e) {
-      Alert.alert('Privacy settings unavailable', e.message || 'Check the server connection.');
+      Alert.alert(
+        "Privacy settings unavailable",
+        e.message || "Check the server connection.",
+      );
     } finally {
       setPrivacyBusy(false);
     }
   };
 
   const openAboutApp = () => {
-    Alert.alert('Bhumi Social AI', 'Version: ' + (appConfig.expo?.version || '1.0.0'), [
-      { text: 'Check Updates', onPress: () => Linking.openURL('https://bhumi-social-app-1.onrender.com/api/app-version') },
-      { text: 'Download App', onPress: () => Linking.openURL('https://bhumi-social-app-1.onrender.com/download') },
-      { text: 'Share App', onPress: () => Share.share({ message: 'Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download' }) },
-      { text: 'Close', style: 'cancel' },
-    ]);
+    Alert.alert(
+      "Bhumi Social AI",
+      "Version: " + (appConfig.expo?.version || "1.0.0"),
+      [
+        {
+          text: "Check Updates",
+          onPress: () =>
+            Linking.openURL(
+              "https://bhumi-social-app-1.onrender.com/api/app-version",
+            ),
+        },
+        {
+          text: "Download App",
+          onPress: () =>
+            Linking.openURL("https://bhumi-social-app-1.onrender.com/download"),
+        },
+        {
+          text: "Share App",
+          onPress: () =>
+            Share.share({
+              message:
+                "Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download",
+            }),
+        },
+        { text: "Close", style: "cancel" },
+      ],
+    );
   };
 
   const handleSettingsLogout = () => {
-    Alert.alert('Log out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Log out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Log out',
-        style: 'destructive',
+        text: "Log out",
+        style: "destructive",
         onPress: async () => {
           try {
             await logoutAccount();
           } catch (error) {
-            console.warn('Server logout failed:', error?.message || error);
+            console.warn("Server logout failed:", error?.message || error);
           } finally {
             setSettingsHubOpen(false);
-            setAuthMode('login');
+            setAuthMode("login");
             setAuthSession(null);
           }
         },
@@ -2444,18 +3591,21 @@ export default function App() {
   const persistPrivacySettings = async () => {
     setPrivacyBusy(true);
     try {
-      const settings = await savePrivacySettings(privacySettings, authSession.username);
+      const settings = await savePrivacySettings(
+        privacySettings,
+        authSession.username,
+      );
       setPrivacySettings(settings);
       setPrivacyOpen(false);
-      Alert.alert('Saved', 'Privacy settings have been saved.');
+      Alert.alert("Saved", "Privacy settings have been saved.");
     } catch (e) {
-      Alert.alert('Save failed', e.message || 'Check the server connection.');
+      Alert.alert("Save failed", e.message || "Check the server connection.");
     } finally {
       setPrivacyBusy(false);
     }
   };
 
-const refreshProfile = React.useCallback(async () => {
+  const refreshProfile = React.useCallback(async () => {
     if (!authSession?.username) return;
     const username = authSession.username;
     let cachedLoaded = false;
@@ -2466,13 +3616,13 @@ const refreshProfile = React.useCallback(async () => {
         const item = cached.profile;
         setProfile(item);
         setProfileDraft({
-          displayName: item.displayName || 'you',
-          bio: item.bio || '',
+          displayName: item.displayName || "you",
+          bio: item.bio || "",
         });
         cachedLoaded = true;
       }
     } catch (e) {
-      console.log('PROFILE_CACHE_READ_ERROR:', e?.message);
+      console.log("PROFILE_CACHE_READ_ERROR:", e?.message);
     }
 
     try {
@@ -2480,12 +3630,12 @@ const refreshProfile = React.useCallback(async () => {
       const item = result.profile || result;
       setProfile(item);
       setProfileDraft({
-        displayName: item.displayName || 'you',
-        bio: item.bio || '',
+        displayName: item.displayName || "you",
+        bio: item.bio || "",
       });
     } catch (e) {
       if (!cachedLoaded) {
-        Alert.alert('प्रोफ़ाइल लोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+        Alert.alert("प्रोफ़ाइल लोड नहीं हुई", e.message || "सर्वर कनेक्शन जाँचें।");
       }
     }
   }, [authSession]);
@@ -2505,13 +3655,13 @@ const refreshProfile = React.useCallback(async () => {
       const item = result.profile || result;
       setProfile(item);
       setProfileDraft({
-        displayName: item.displayName || 'you',
-        bio: item.bio || '',
+        displayName: item.displayName || "you",
+        bio: item.bio || "",
       });
       setProfileEditing(false);
-      Alert.alert('सफल', 'प्रोफ़ाइल सेव हो गई।');
+      Alert.alert("सफल", "प्रोफ़ाइल सेव हो गई।");
     } catch (e) {
-      Alert.alert('सेव नहीं हुआ', e.message || 'सर्वर कनेक्शन जाँचें।');
+      Alert.alert("सेव नहीं हुआ", e.message || "सर्वर कनेक्शन जाँचें।");
     } finally {
       setProfileBusy(false);
     }
@@ -2519,13 +3669,14 @@ const refreshProfile = React.useCallback(async () => {
 
   const chooseProfilePhoto = async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('अनुमति चाहिए', 'Gallery की अनुमति दें।');
+        Alert.alert("अनुमति चाहिए", "Gallery की अनुमति दें।");
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -2535,27 +3686,27 @@ const refreshProfile = React.useCallback(async () => {
       setProfileBusy(true);
       await uploadProfileAvatar(result.assets[0], authSession.username);
       await refreshProfile();
-      Alert.alert('सफल', 'प्रोफ़ाइल फ़ोटो अपडेट हो गई।');
+      Alert.alert("सफल", "प्रोफ़ाइल फ़ोटो अपडेट हो गई।");
     } catch (e) {
-      Alert.alert('फ़ोटो अपलोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+      Alert.alert("फ़ोटो अपलोड नहीं हुई", e.message || "सर्वर कनेक्शन जाँचें।");
     } finally {
       setProfileBusy(false);
     }
   };
 
   const removeProfilePhoto = () => {
-    Alert.alert('Remove Photo?', 'क्या प्रोफ़ाइल फ़ोटो हटानी है?', [
-      { text: 'रद्द करें', style: 'cancel' },
+    Alert.alert("Remove Photo?", "क्या प्रोफ़ाइल फ़ोटो हटानी है?", [
+      { text: "रद्द करें", style: "cancel" },
       {
-        text: 'हटाएँ',
-        style: 'destructive',
+        text: "हटाएँ",
+        style: "destructive",
         onPress: async () => {
           setProfileBusy(true);
           try {
             await deleteProfileAvatar(authSession.username);
             await refreshProfile();
           } catch (e) {
-            Alert.alert('फ़ोटो नहीं हटी', e.message || 'फिर से कोशिश करें।');
+            Alert.alert("फ़ोटो नहीं हटी", e.message || "फिर से कोशिश करें।");
           } finally {
             setProfileBusy(false);
           }
@@ -2568,15 +3719,17 @@ const refreshProfile = React.useCallback(async () => {
     try {
       const result = await loadProfileConnections(authSession.username, type);
       const items = result.items || result.users || result[type] || [];
-      const names = items.map(x => '@' + (x.username || x.user || x)).join('\n');
-      Alert.alert(type === 'followers' ? 'Followers' : 'Following',
-        names || 'अभी सूची खाली है।');
+      const names = items
+        .map((x) => "@" + (x.username || x.user || x))
+        .join("\n");
+      Alert.alert(
+        type === "followers" ? "Followers" : "Following",
+        names || "अभी सूची खाली है।",
+      );
     } catch (e) {
-      Alert.alert('सूची लोड नहीं हुई', e.message || 'सर्वर कनेक्शन जाँचें।');
+      Alert.alert("सूची लोड नहीं हुई", e.message || "सर्वर कनेक्शन जाँचें।");
     }
   };
-
-
 
   const refreshFollowRequests = React.useCallback(async () => {
     if (!authSession?.username) return;
@@ -2584,30 +3737,37 @@ const refreshProfile = React.useCallback(async () => {
     try {
       setFollowRequests(await loadFollowRequests());
     } catch (e) {
-      Alert.alert('Follow Requests', e.message || 'Requests load नहीं हुईं।');
+      Alert.alert("Follow Requests", e.message || "Requests load नहीं हुईं।");
     } finally {
       setFollowRequestsBusy(false);
     }
   }, [authSession?.username]);
 
   React.useEffect(() => {
-    if (activeTab === 'Profile' && authSession?.username) refreshFollowRequests();
+    if (activeTab === "Profile" && authSession?.username)
+      refreshFollowRequests();
   }, [activeTab, authSession?.username, refreshFollowRequests]);
 
   const resolveFollowRequest = async (requestId, decision) => {
     if (followRequestAction[requestId]) return;
-    setFollowRequestAction(prev => ({ ...prev, [requestId]: true }));
+    setFollowRequestAction((prev) => ({ ...prev, [requestId]: true }));
     try {
-      if (decision === 'accept') await acceptFollowRequest(requestId);
+      if (decision === "accept") await acceptFollowRequest(requestId);
       else await rejectFollowRequest(requestId);
-      setFollowRequests(prev => prev.filter(item => String(item.id) !== String(requestId)));
+      setFollowRequests((prev) =>
+        prev.filter((item) => String(item.id) !== String(requestId)),
+      );
       await refreshProfile();
-      Alert.alert(decision === 'accept' ? 'Request accepted' : 'Request rejected',
-        decision === 'accept' ? 'अब यह user आपका follower है।' : 'Follow request reject कर दी गई।');
+      Alert.alert(
+        decision === "accept" ? "Request accepted" : "Request rejected",
+        decision === "accept"
+          ? "अब यह user आपका follower है।"
+          : "Follow request reject कर दी गई।",
+      );
     } catch (e) {
-      Alert.alert('Follow Request', e.message || 'Action पूरा नहीं हुआ।');
+      Alert.alert("Follow Request", e.message || "Action पूरा नहीं हुआ।");
     } finally {
-      setFollowRequestAction(prev => ({ ...prev, [requestId]: false }));
+      setFollowRequestAction((prev) => ({ ...prev, [requestId]: false }));
     }
   };
 
@@ -2615,9 +3775,9 @@ const refreshProfile = React.useCallback(async () => {
     let freshLoaded = false;
 
     const cachePromise = Promise.all([
-      getCachedContent('posts'),
-      getCachedContent('stories'),
-      getCachedContent('reels')
+      getCachedContent("posts"),
+      getCachedContent("stories"),
+      getCachedContent("reels"),
     ]).then(([cachedPosts, cachedStories, cachedReels]) => {
       if (freshLoaded) return;
 
@@ -2625,16 +3785,22 @@ const refreshProfile = React.useCallback(async () => {
         setFeedPosts(cachedPosts);
       }
       if (Array.isArray(cachedStories)) {
-        setServerStories(cachedStories.map((item, i) => ({
-          ...item, name: item.user || `story${i + 1}`, color: '#DDE7F5'
-        })));
+        setServerStories(
+          cachedStories.map((item, i) => ({
+            ...item,
+            name: item.user || `story${i + 1}`,
+            color: "#DDE7F5",
+          })),
+        );
       }
       if (Array.isArray(cachedReels)) setReels(cachedReels);
     });
 
     try {
       const [p, s, r] = await Promise.all([
-        loadContent('posts'), loadContent('stories'), loadContent('reels')
+        loadContent("posts"),
+        loadContent("stories"),
+        loadContent("reels"),
       ]);
 
       freshLoaded = true;
@@ -2642,18 +3808,38 @@ const refreshProfile = React.useCallback(async () => {
 
       setServerOnline(true);
       setFeedPosts(p.length ? p : posts);
-      setServerStories(s.map((item, i) => ({
-        ...item, name: item.user || `story${i + 1}`, color: '#DDE7F5'
-      })));
+      setServerStories(
+        s.map((item, i) => ({
+          ...item,
+          name: item.user || `story${i + 1}`,
+          color: "#DDE7F5",
+        })),
+      );
       setReels(r);
     } catch (e) {
       await cachePromise;
       setServerOnline(false);
-      console.error('Server load failed:', e);
+      console.error("Server load failed:", e);
     }
   }, []);
 
-  React.useEffect(() => { refreshContent(); }, [refreshContent]);
+  React.useEffect(() => {
+    refreshContent();
+  }, [refreshContent]);
+
+  const openLiveCamera = async () => {
+    try {
+      let permission = cameraPermission;
+      if (!permission?.granted) permission = await requestCameraPermission();
+      if (!permission?.granted) {
+        Alert.alert("Camera permission required", "Allow camera access to start Live.");
+        return;
+      }
+      setLiveCameraOpen(true);
+    } catch (e) {
+      Alert.alert("Camera unavailable", e.message || "Please try again.");
+    }
+  };
 
   const openReelCamera = async () => {
     try {
@@ -2662,16 +3848,19 @@ const refreshProfile = React.useCallback(async () => {
         permission = await requestCameraPermission();
       }
       if (!permission?.granted) {
-        Alert.alert('Camera permission required', 'Allow camera access to record a Reel.');
+        Alert.alert(
+          "Camera permission required",
+          "Allow camera access to record a Reel.",
+        );
         return;
       }
       setRecordedVideo(null);
       setRecordedPhoto(null);
-      setCameraMode('video');
-      setCameraTargetKind('reels');
+      setCameraMode("video");
+      setCameraTargetKind("reels");
       setCameraOpen(true);
     } catch (e) {
-      Alert.alert('Camera unavailable', e.message || 'Please try again.');
+      Alert.alert("Camera unavailable", e.message || "Please try again.");
     }
   };
 
@@ -2683,7 +3872,7 @@ const refreshProfile = React.useCallback(async () => {
       const result = await cameraRef.current.recordAsync({ maxDuration: 1200 });
       if (result?.uri) setRecordedVideo(result.uri);
     } catch (e) {
-      Alert.alert('Recording failed', e.message || 'Please try again.');
+      Alert.alert("Recording failed", e.message || "Please try again.");
     } finally {
       setIsRecording(false);
     }
@@ -2699,24 +3888,26 @@ const refreshProfile = React.useCallback(async () => {
       const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
       if (photo?.uri) setRecordedPhoto(photo.uri);
     } catch (e) {
-      Alert.alert('Photo capture failed', e.message || 'Please try again.');
+      Alert.alert("Photo capture failed", e.message || "Please try again.");
     }
   };
 
   const useRecordedPhoto = () => {
     if (!recordedPhoto) return;
-    const kind = cameraTargetKind === 'stories' ? 'stories' : 'posts';
+    const kind = cameraTargetKind === "stories" ? "stories" : "posts";
     setMediaDraft({
       kind,
-      assets: [{
-        uri: recordedPhoto,
-        type: 'image',
-        fileName: `camera-photo-${Date.now()}.jpg`,
-        mimeType: 'image/jpeg',
-      }],
+      assets: [
+        {
+          uri: recordedPhoto,
+          type: "image",
+          fileName: `camera-photo-${Date.now()}.jpg`,
+          mimeType: "image/jpeg",
+        },
+      ],
     });
     setMediaDraftIndex(0);
-    setMediaDraftCaption('');
+    setMediaDraftCaption("");
     setCameraOpen(false);
     setRecordedPhoto(null);
   };
@@ -2726,7 +3917,10 @@ const refreshProfile = React.useCallback(async () => {
       let permission = cameraPermission;
       if (!permission?.granted) permission = await requestCameraPermission();
       if (!permission?.granted) {
-        Alert.alert('Camera permission required', 'Allow camera access to capture media.');
+        Alert.alert(
+          "Camera permission required",
+          "Allow camera access to capture media.",
+        );
         return;
       }
       setCameraTargetKind(kind);
@@ -2735,7 +3929,7 @@ const refreshProfile = React.useCallback(async () => {
       setRecordedVideo(null);
       setCameraOpen(true);
     } catch (e) {
-      Alert.alert('Camera unavailable', e.message || 'Please try again.');
+      Alert.alert("Camera unavailable", e.message || "Please try again.");
     }
   };
 
@@ -2743,81 +3937,100 @@ const refreshProfile = React.useCallback(async () => {
     if (!recordedVideo) return;
     setMediaDraft({
       kind: cameraTargetKind,
-      assets: [{
-        uri: recordedVideo,
-        type: 'video',
-        fileName: 'recorded-reel.mp4',
-        mimeType: 'video/mp4',
-      }],
+      assets: [
+        {
+          uri: recordedVideo,
+          type: "video",
+          fileName: "recorded-reel.mp4",
+          mimeType: "video/mp4",
+        },
+      ],
     });
     setMediaDraftIndex(0);
-    setMediaDraftCaption('');
+    setMediaDraftCaption("");
     setMusicAsset(null);
     setMusicStart(0);
     setCameraOpen(false);
     setRecordedVideo(null);
   };
 
-  const chooseMedia = async (kind, mediaMode = 'default') => {
+  const chooseMedia = async (kind, mediaMode = "default") => {
     if (busy || mediaDraft) return;
-    if (kind === 'reels' && mediaMode === 'default') {
-      Alert.alert('Create Reel', 'Choose your media', [
-        { text: 'Record with Camera', onPress: openReelCamera },
-        { text: 'Select Video', onPress: () => chooseMedia('reels', 'video') },
-        { text: 'Create Video from Photos', onPress: createReelFromPhotos },
-        { text: 'Cancel', style: 'cancel' },
+    if (kind === "reels" && mediaMode === "default") {
+      Alert.alert("Create Reel", "Choose your media", [
+        { text: "Record with Camera", onPress: openReelCamera },
+        { text: "Select Video", onPress: () => chooseMedia("reels", "video") },
+        { text: "Create Video from Photos", onPress: createReelFromPhotos },
+        { text: "Cancel", style: "cancel" },
       ]);
       return;
     }
     try {
-      const video = kind === 'reels' && mediaMode !== 'camera-gallery';
+      const video = kind === "reels" && mediaMode !== "camera-gallery";
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: video ? ['videos'] : ['images', 'videos'],
-        allowsMultipleSelection: kind === 'posts',
-        selectionLimit: kind === 'posts' ? 10 : 1,
+        mediaTypes: video ? ["videos"] : ["images", "videos"],
+        allowsMultipleSelection: kind === "posts",
+        selectionLimit: kind === "posts" ? 10 : 1,
         allowsEditing: false,
         quality: 1,
-        ...(kind === 'reels' ? { videoMaxDuration: 1200 } : kind === 'stories' ? { videoMaxDuration: 1200 } : kind === 'posts' ? { videoMaxDuration: 7200 } : {}),
+        ...(kind === "reels"
+          ? { videoMaxDuration: 1200 }
+          : kind === "stories"
+            ? { videoMaxDuration: 1200 }
+            : kind === "posts"
+              ? { videoMaxDuration: 7200 }
+              : {}),
       });
       if (result.canceled || !result.assets?.length) return;
-      const normalizedAssets = result.assets.map(asset => {
-        const uri = asset.uri || '';
-        const videoByType = asset.type === 'video';
-        const videoByName = /\.(mp4|mov|webm|m4v|3gp|mkv)(?:[?#].*)?$/i.test(asset.fileName || uri);
+      const normalizedAssets = result.assets.map((asset) => {
+        const uri = asset.uri || "";
+        const videoByType = asset.type === "video";
+        const videoByName = /\.(mp4|mov|webm|m4v|3gp|mkv)(?:[?#].*)?$/i.test(
+          asset.fileName || uri,
+        );
         return {
           ...asset,
-          type: videoByType || videoByName ? 'video' : (asset.type || 'image'),
+          type: videoByType || videoByName ? "video" : asset.type || "image",
         };
       });
-      const maxBytes = kind === 'posts' ? 1024 * 1024 * 1024 : 500 * 1024 * 1024;
-      const oversizedAsset = normalizedAssets.find(asset => Number(asset.fileSize || 0) > maxBytes);
+      const maxBytes =
+        kind === "posts" ? 1024 * 1024 * 1024 : 500 * 1024 * 1024;
+      const oversizedAsset = normalizedAssets.find(
+        (asset) => Number(asset.fileSize || 0) > maxBytes,
+      );
       if (oversizedAsset) {
         const limitMB = Math.floor(maxBytes / (1024 * 1024));
-        Alert.alert('फ़ाइल बहुत बड़ी है', `इस अपलोड की अधिकतम सीमा ${limitMB} MB है। छोटी फ़ाइल चुनें।`);
+        Alert.alert(
+          "फ़ाइल बहुत बड़ी है",
+          `इस अपलोड की अधिकतम सीमा ${limitMB} MB है। छोटी फ़ाइल चुनें।`,
+        );
         return;
       }
       setMediaDraft({ kind, assets: normalizedAssets });
       setMediaDraftIndex(0);
-      setMediaDraftCaption('');
+      setMediaDraftCaption("");
     } catch (e) {
-      console.error('Media selection failed:', e);
-      Alert.alert('मीडिया नहीं खुला', e.message || 'कृपया फिर कोशिश करें।');
+      console.error("Media selection failed:", e);
+      Alert.alert("मीडिया नहीं खुला", e.message || "कृपया फिर कोशिश करें।");
     }
   };
 
   const chooseMusicFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'audio/*',
+        type: "audio/*",
         copyToCacheDirectory: true,
         multiple: false,
       });
       if (result.canceled || !result.assets?.length) return;
       setMusicAsset(result.assets[0]);
       musicPlayer.replace({ uri: result.assets[0].uri });
-      Alert.alert('Music selected', result.assets[0].name || 'Audio file selected');
+      Alert.alert(
+        "Music selected",
+        result.assets[0].name || "Audio file selected",
+      );
     } catch (e) {
-      Alert.alert('Music selection failed', e.message || 'Please try again.');
+      Alert.alert("Music selection failed", e.message || "Please try again.");
     }
   };
 
@@ -2825,7 +4038,7 @@ const refreshProfile = React.useCallback(async () => {
     if (busy || mediaDraft) return;
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ["images"],
         allowsMultipleSelection: true,
         selectionLimit: 20,
         orderedSelection: true,
@@ -2834,19 +4047,24 @@ const refreshProfile = React.useCallback(async () => {
       });
       if (result.canceled || !result.assets?.length) return;
       if (result.assets.length < 2) {
-        Alert.alert('Select photos', 'Please select at least 2 photos to create a video.');
+        Alert.alert(
+          "Select photos",
+          "Please select at least 2 photos to create a video.",
+        );
         return;
       }
       setBusy(true);
-      const videoAsset = await createVideoFromPhotos(result.assets, { secondsPerPhoto: 3 });
-      setMediaDraft({ kind: 'reels', assets: [videoAsset] });
+      const videoAsset = await createVideoFromPhotos(result.assets, {
+        secondsPerPhoto: 3,
+      });
+      setMediaDraft({ kind: "reels", assets: [videoAsset] });
       setMediaDraftIndex(0);
-      setMediaDraftCaption('');
+      setMediaDraftCaption("");
       setMusicAsset(null);
       setMusicStart(0);
     } catch (e) {
-      console.error('Photo video creation failed:', e);
-      Alert.alert('Video creation failed', e.message || 'Please try again.');
+      console.error("Photo video creation failed:", e);
+      Alert.alert("Video creation failed", e.message || "Please try again.");
     } finally {
       setBusy(false);
     }
@@ -2857,19 +4075,27 @@ const refreshProfile = React.useCallback(async () => {
 
     const index = mediaDraftIndex;
     const asset = mediaDraft.assets?.[index];
-    const isVideo = asset?.type === 'video' || /\.(mp4|mov|webm)(\?|$)/i.test(asset?.uri || '');
+    const isVideo =
+      asset?.type === "video" ||
+      /\.(mp4|mov|webm)(\?|$)/i.test(asset?.uri || "");
 
     if (!asset || isVideo) return;
 
     setBusy(true);
     try {
       const editedAsset = await editPhotoAsset(asset, action);
-      setMediaDraft(current => current ? {
-        ...current,
-        assets: current.assets.map((item, i) => i === index ? editedAsset : item),
-      } : current);
+      setMediaDraft((current) =>
+        current
+          ? {
+              ...current,
+              assets: current.assets.map((item, i) =>
+                i === index ? editedAsset : item,
+              ),
+            }
+          : current,
+      );
     } catch (e) {
-      Alert.alert('Photo editing failed', e.message || 'Please try again.');
+      Alert.alert("Photo editing failed", e.message || "Please try again.");
     } finally {
       setBusy(false);
     }
@@ -2881,21 +4107,24 @@ const refreshProfile = React.useCallback(async () => {
     setBusy(true);
     try {
       const uploadedItems = [];
-      const groupId = kind === 'posts' && assets.length > 1
-        ? `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-        : '';
+      const groupId =
+        kind === "posts" && assets.length > 1
+          ? `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+          : "";
       for (const asset of assets) {
         let uploadAsset = asset;
-        const assetIsVideo = asset.type === 'video' || /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || '');
+        const assetIsVideo =
+          asset.type === "video" ||
+          /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || "");
 
-        if (kind === 'reels' && assetIsVideo && zoomEffectEnabled) {
+        if (kind === "reels" && assetIsVideo && zoomEffectEnabled) {
           uploadAsset = await applyZoomEffect(asset.uri, {
             zoom: zoomEffectLevel,
             duration: zoomEffectDuration,
           });
         }
 
-        if (kind === 'reels' && assetIsVideo && musicAsset?.uri) {
+        if (kind === "reels" && assetIsVideo && musicAsset?.uri) {
           uploadAsset = await addMusicToVideo(uploadAsset.uri, musicAsset.uri, {
             musicVolume,
             musicStart,
@@ -2903,14 +4132,19 @@ const refreshProfile = React.useCallback(async () => {
           });
         }
         uploadedItems.push(
-          await uploadContent(kind, uploadAsset, mediaDraftCaption.trim(), groupId)
+          await uploadContent(
+            kind,
+            uploadAsset,
+            mediaDraftCaption.trim(),
+            groupId,
+          ),
         );
       }
       const item = uploadedItems[0];
       setMediaDraft(null);
       musicPlayer.pause();
       setMediaDraftIndex(0);
-      setMediaDraftCaption('');
+      setMediaDraftCaption("");
       setZoomEffectEnabled(false);
       setZoomEffectLevel(1.5);
       setZoomEffectDuration(3);
@@ -2918,23 +4152,34 @@ const refreshProfile = React.useCallback(async () => {
       setMusicStart(0);
       setMusicVolume(0.8);
       setKeepOriginalAudio(true);
-      if (kind === 'posts') {
+      if (kind === "posts") {
         await refreshContent();
-        setActiveTab('Home');
-      } else if (kind === 'stories') {
-        setServerStories(current => [{ ...item, name: item.user || 'you', own: true, color: '#DDE7F5' }, ...current]);
-        setActiveTab('Home');
+        setActiveTab("Home");
+      } else if (kind === "stories") {
+        setServerStories((current) => [
+          { ...item, name: item.user || "you", own: true, color: "#DDE7F5" },
+          ...current,
+        ]);
+        setActiveTab("Home");
       } else {
-        setReels(current => [item, ...current]);
-        setActiveTab('Reels');
+        setReels((current) => [item, ...current]);
+        setActiveTab("Reels");
       }
-    Alert.alert(
-      kind === 'posts' ? 'Post published!' : kind === 'stories' ? 'Story shared!' : 'Reel published!',
-      kind === 'posts' ? 'Your post is now live on Bhumi Social AI.' : kind === 'stories' ? 'Your story is now live.' : 'Your reel is now live.'
-    );
+      Alert.alert(
+        kind === "posts"
+          ? "Post published!"
+          : kind === "stories"
+            ? "Story shared!"
+            : "Reel published!",
+        kind === "posts"
+          ? "Your post is now live on Bhumi Social AI."
+          : kind === "stories"
+            ? "Your story is now live."
+            : "Your reel is now live.",
+      );
     } catch (e) {
-      console.error('Upload failed:', e);
-      Alert.alert('अपलोड विफल', e.message || 'सर्वर कनेक्शन जाँचें।');
+      console.error("Upload failed:", e);
+      Alert.alert("अपलोड विफल", e.message || "सर्वर कनेक्शन जाँचें।");
     } finally {
       setBusy(false);
     }
@@ -2944,7 +4189,7 @@ const refreshProfile = React.useCallback(async () => {
     setMediaDraft(null);
     musicPlayer.pause();
     setMediaDraftIndex(0);
-    setMediaDraftCaption('');
+    setMediaDraftCaption("");
     setZoomEffectEnabled(false);
     setZoomEffectLevel(1.5);
     setZoomEffectDuration(3);
@@ -2954,54 +4199,123 @@ const refreshProfile = React.useCallback(async () => {
     setKeepOriginalAudio(true);
   };
 
-  const pickImage = () => chooseMedia('posts');
-  const createStory = () => chooseMedia('stories');
-  const createReel = () => chooseMedia('reels');
+  const pickImage = () => chooseMedia("posts");
+  const createStory = () => chooseMedia("stories");
+  const createReel = () => chooseMedia("reels");
 
   const runHeaderCreateAction = (action) => {
     setHeaderCreateMenuOpen(false);
-    if (action === 'reel-camera') openReelCamera();
-    else if (action === 'reel-photos') createReelFromPhotos();
-    else if (action === 'photo-post') openCaptureCamera('posts', 'picture');
-    else if (action === 'video-post') openCaptureCamera('posts', 'video');
-    else if (action === 'story-camera') openCaptureCamera('stories', 'picture');
-    else if (action === 'story-gallery') createStory();
-    else if (action === 'post-gallery') pickImage();
+    if (action === "live-camera") openLiveCamera();
+  else if (action === "reel-camera") openReelCamera();
+    else if (action === "reel-photos") createReelFromPhotos();
+    else if (action === "photo-post") openCaptureCamera("posts", "picture");
+    else if (action === "video-post") openCaptureCamera("posts", "video");
+    else if (action === "story-camera") openCaptureCamera("stories", "picture");
+    else if (action === "story-gallery") createStory();
+    else if (action === "post-gallery") pickImage();
   };
 
   const renderAppHeader = () => (
-    <View style={[styles.header, { justifyContent: 'flex-start', gap: 10, position: 'relative' }]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <TouchableOpacity onPress={() => setHeaderCreateMenuOpen(value => !value)} accessibilityLabel="Create menu" style={{ padding: 3 }}>
+    <View
+      style={[
+        styles.header,
+        { justifyContent: "flex-start", gap: 10, position: "relative" },
+      ]}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <TouchableOpacity
+          onPress={() => setHeaderCreateMenuOpen((value) => !value)}
+          accessibilityLabel="Create menu"
+          style={{ padding: 3 }}
+        >
           <Ionicons name="add-circle-outline" size={28} color="#171717" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={openNotifications} accessibilityLabel="Notifications" style={{ position: 'relative', padding: 3 }}>
+        <TouchableOpacity
+          onPress={openNotifications}
+          accessibilityLabel="Notifications"
+          style={{ position: "relative", padding: 3 }}
+        >
           <Ionicons name="heart-outline" size={27} color="#171717" />
           {unreadNotificationCount > 0 ? (
-            <View style={{ position: 'absolute', right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: '#E1306C', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
-              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>{unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}</Text>
+            <View
+              style={{
+                position: "absolute",
+                right: -5,
+                top: -5,
+                minWidth: 17,
+                height: 17,
+                borderRadius: 9,
+                backgroundColor: "#E1306C",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingHorizontal: 3,
+              }}
+            >
+              <Text
+                style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}
+              >
+                {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+              </Text>
             </View>
           ) : null}
         </TouchableOpacity>
       </View>
-      <Text style={[styles.brand, { flex: 1 }]} numberOfLines={1}>Bhumi Social AI</Text>
-      <TouchableOpacity onPress={openMessages} accessibilityLabel="Messages" style={{ padding: 3 }}>
+      <Text style={[styles.brand, { flex: 1 }]} numberOfLines={1}>
+        Bhumi Social AI
+      </Text>
+      <TouchableOpacity
+        onPress={openMessages}
+        accessibilityLabel="Messages"
+        style={{ padding: 3 }}
+      >
         <Ionicons name="paper-plane-outline" size={26} color="#171717" />
       </TouchableOpacity>
       {headerCreateMenuOpen ? (
-        <View style={{ position: 'absolute', top: 72, left: 8, zIndex: 1000, elevation: 20, minWidth: 215, backgroundColor: '#202027', borderRadius: 14, paddingVertical: 6, paddingHorizontal: 8 }}>
+        <View
+          style={{
+            position: "absolute",
+            top: 72,
+            left: 8,
+            zIndex: 1000,
+            elevation: 20,
+            minWidth: 215,
+            backgroundColor: "#202027",
+            borderRadius: 14,
+            paddingVertical: 6,
+            paddingHorizontal: 8,
+          }}
+        >
           {[
-            ['reel-camera', 'Record Reel', 'videocam-outline'],
-            ['reel-photos', 'Reel from Photos', 'images-outline'],
-            ['photo-post', 'Photo Post', 'camera-outline'],
-            ['video-post', 'Video Post', 'film-outline'],
-            ['story-camera', 'Story from Camera', 'camera'],
-            ['story-gallery', 'Story from Gallery', 'images'],
-            ['post-gallery', 'Post from Gallery', 'image-outline'],
+            ["live-camera", "Go Live", "radio-outline"],
+      ["reel-camera", "Record Reel", "videocam-outline"],
+            ["reel-photos", "Reel from Photos", "images-outline"],
+            ["photo-post", "Photo Post", "camera-outline"],
+            ["video-post", "Video Post", "film-outline"],
+            ["story-camera", "Story from Camera", "camera"],
+            ["story-gallery", "Story from Gallery", "images"],
+            ["post-gallery", "Post from Gallery", "image-outline"],
           ].map(([action, label, iconName]) => (
-            <TouchableOpacity key={action} onPress={() => runHeaderCreateAction(action)} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 9 }}>
+            <TouchableOpacity
+              key={action}
+              onPress={() => runHeaderCreateAction(action)}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 11,
+                paddingHorizontal: 9,
+              }}
+            >
               <Ionicons name={iconName} size={19} color="#FFFFFF" />
-              <Text style={{ color: '#FFFFFF', fontSize: 14, marginLeft: 12, fontWeight: '600' }}>{label}</Text>
+              <Text
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: 14,
+                  marginLeft: 12,
+                  fontWeight: "600",
+                }}
+              >
+                {label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -3009,41 +4323,51 @@ const refreshProfile = React.useCallback(async () => {
     </View>
   );
 
-
   const handleTab = (name) => {
-    if (name === 'Chat') {
+    if (name === "Chat") {
       openMessages();
       return;
     }
-    if (name === 'Create') {
-      Alert.alert('Create', 'Choose what you want to create', [
-        { text: 'Photo Post', onPress: () => openCaptureCamera('posts', 'picture') },
-        { text: 'Video Post', onPress: () => openCaptureCamera('posts', 'video') },
-        { text: 'Story from Camera', onPress: () => openCaptureCamera('stories', 'picture') },
-        { text: 'Story from Gallery', onPress: createStory },
-        { text: 'Record Reel', onPress: openReelCamera },
-        { text: 'Reel from Gallery', onPress: createReel },
-        { text: 'Reel from Photos', onPress: createReelFromPhotos },
-        { text: 'Post from Gallery', onPress: pickImage },
-        { text: 'Cancel', style: 'cancel' },
+    if (name === "Create") {
+      Alert.alert("Create", "Choose what you want to create", [
+        { text: "Go Live", onPress: openLiveCamera },
+        {
+          text: "Photo Post",
+          onPress: () => openCaptureCamera("posts", "picture"),
+        },
+        {
+          text: "Video Post",
+          onPress: () => openCaptureCamera("posts", "video"),
+        },
+        {
+          text: "Story from Camera",
+          onPress: () => openCaptureCamera("stories", "picture"),
+        },
+        { text: "Story from Gallery", onPress: createStory },
+        { text: "Record Reel", onPress: openReelCamera },
+        { text: "Reel from Gallery", onPress: createReel },
+        { text: "Reel from Photos", onPress: createReelFromPhotos },
+        { text: "Post from Gallery", onPress: pickImage },
+        { text: "Cancel", style: "cancel" },
       ]);
     } else {
       setActiveTab(name);
-      if (name === 'Home') refreshContent();
-      if (name === 'Reels' && reels.length === 0) {
-        Alert.alert('Reels', 'No reels yet.', [
-          { text: 'रील अपलोड करें', onPress: createReel },
-          { text: 'ठीक है', style: 'cancel' },
+      if (name === "Home") refreshContent();
+      if (name === "Reels" && reels.length === 0) {
+        Alert.alert("Reels", "No reels yet.", [
+          { text: "रील अपलोड करें", onPress: createReel },
+          { text: "ठीक है", style: "cancel" },
         ]);
       }
     }
   };
 
-
   React.useEffect(() => {
     if (authSession?.token) {
       setWelcomeSeen(true);
-      SecureStore.setItemAsync('socialapp_welcome_seen', 'true').catch(() => {});
+      SecureStore.setItemAsync("socialapp_welcome_seen", "true").catch(
+        () => {},
+      );
     }
   }, [authSession]);
 
@@ -3053,46 +4377,74 @@ const refreshProfile = React.useCallback(async () => {
     const fullName = authFullName.trim();
     const email = authEmail.trim().toLowerCase();
     if (!username || !authPassword) {
-      Alert.alert('Required', 'Enter your username and password.');
+      Alert.alert("Required", "Enter your username and password.");
       return;
     }
-    if (authMode === 'register') {
+    if (authMode === "register") {
       if (!fullName) {
-        Alert.alert('Required', 'Enter your full name.');
+        Alert.alert("Required", "Enter your full name.");
         return;
       }
       if (!/^[a-zA-Z0-9_.]{3,50}$/.test(username)) {
-        Alert.alert('Invalid username', 'Use 3 to 50 letters, numbers, dots, or underscores.');
+        Alert.alert(
+          "Invalid username",
+          "Use 3 to 50 letters, numbers, dots, or underscores.",
+        );
         return;
       }
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        Alert.alert('Invalid email', 'Enter a valid email address or leave it blank.');
+        Alert.alert(
+          "Invalid email",
+          "Enter a valid email address or leave it blank.",
+        );
         return;
       }
-      const phoneDigits = authPhoneNumber.replace(/\D/g, '');
-      if (authPhoneNumber.trim() && (phoneDigits.length < 10 || phoneDigits.length > 15)) {
-        Alert.alert('Invalid mobile number', 'Enter a valid mobile number or leave it blank.');
+      const phoneDigits = authPhoneNumber.replace(/\D/g, "");
+      if (
+        authPhoneNumber.trim() &&
+        (phoneDigits.length < 10 || phoneDigits.length > 15)
+      ) {
+        Alert.alert(
+          "Invalid mobile number",
+          "Enter a valid mobile number or leave it blank.",
+        );
         return;
       }
       if (authPassword.length < 4 || authPassword.length > 24) {
-        Alert.alert('Invalid password', 'Password must be 4 to 24 characters.');
+        Alert.alert("Invalid password", "Password must be 4 to 24 characters.");
         return;
       }
       if (authPassword !== authConfirmPassword) {
-        Alert.alert('Password mismatch', 'Password and confirm password do not match.');
+        Alert.alert(
+          "Password mismatch",
+          "Password and confirm password do not match.",
+        );
         return;
       }
     }
     setAuthBusy(true);
     try {
-      const result = authMode === 'register'
-        ? await registerAccount(username, authPassword, authPhoneNumber, email, fullName)
-        : await loginAccount(username, authPassword);
+      const result =
+        authMode === "register"
+          ? await registerAccount(
+              username,
+              authPassword,
+              authPhoneNumber,
+              email,
+              fullName,
+            )
+          : await loginAccount(username, authPassword);
       setAuthSession({ token: result.token, username: result.username });
-      setAuthPassword('');
-      Alert.alert('Success', authMode === 'register' ? 'Account created.' : 'Login successful.');
+      setAuthPassword("");
+      Alert.alert(
+        "Success",
+        authMode === "register" ? "Account created." : "Login successful.",
+      );
     } catch (error) {
-      Alert.alert('Authentication failed', error.message || 'Please check the server connection.');
+      Alert.alert(
+        "Authentication failed",
+        error.message || "Please check the server connection.",
+      );
     } finally {
       setAuthBusy(false);
     }
@@ -3102,73 +4454,85 @@ const refreshProfile = React.useCallback(async () => {
     return (
       <SafeAreaView style={styles.screen}>
         <StatusBar style="dark" />
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: '#555555' }}>Loading...</Text>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text style={{ color: "#555555" }}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   // SOCIALAPP_FORGOT_PASSWORD_SCREEN_V1
-  if (authReady && !authSession && authMode === 'forgot') {
+  if (authReady && !authSession && authMode === "forgot") {
     const fieldStyle = {
       borderWidth: 1,
-      borderColor: '#DDDDDD',
+      borderColor: "#DDDDDD",
       borderRadius: 8,
       padding: 13,
       marginBottom: 12,
-      color: '#222222',
+      color: "#222222",
     };
 
     const forgotAction = async (action) => {
       if (authBusy) return;
 
-      if (action === 'request' && !forgotEmail.trim().includes('@')) {
-        Alert.alert('Email required', 'Enter your registered email address.');
+      if (action === "request" && !forgotEmail.trim().includes("@")) {
+        Alert.alert("Email required", "Enter your registered email address.");
         return;
       }
 
-      if (action === 'reset') {
+      if (action === "reset") {
         if (forgotNewPassword.length < 4 || forgotNewPassword.length > 24) {
-          Alert.alert('Invalid password', 'Password must be 4 to 24 characters.');
+          Alert.alert(
+            "Invalid password",
+            "Password must be 4 to 24 characters.",
+          );
           return;
         }
         if (forgotNewPassword !== forgotConfirmPassword) {
-          Alert.alert('Password mismatch', 'The passwords do not match.');
+          Alert.alert("Password mismatch", "The passwords do not match.");
           return;
         }
       }
 
       setAuthBusy(true);
       try {
-        if (action === 'request') {
+        if (action === "request") {
           await requestPasswordReset(forgotEmail);
-          setForgotStep('otp');
-          Alert.alert('Check your email', 'If the account exists, a reset code has been sent.');
-        } else if (action === 'verify') {
+          setForgotStep("otp");
+          Alert.alert(
+            "Check your email",
+            "If the account exists, a reset code has been sent.",
+          );
+        } else if (action === "verify") {
           const result = await verifyPasswordReset(forgotEmail, forgotOtp);
           const token = result.reset_token || result.resetToken;
-          if (!token) throw new Error('The server did not return a reset token.');
+          if (!token)
+            throw new Error("The server did not return a reset token.");
           setForgotResetToken(token);
-          setForgotStep('reset');
-        } else if (action === 'reset') {
+          setForgotStep("reset");
+        } else if (action === "reset") {
           await resetPasswordWithToken(
             forgotEmail,
             forgotResetToken,
             forgotNewPassword,
-            forgotConfirmPassword
+            forgotConfirmPassword,
           );
-          setForgotStep('email');
-          setForgotOtp('');
-          setForgotResetToken('');
-          setForgotNewPassword('');
-          setForgotConfirmPassword('');
-          setAuthPassword('');
-          setAuthMode('login');
-          Alert.alert('Password updated', 'Log in with your new password.');
+          setForgotStep("email");
+          setForgotOtp("");
+          setForgotResetToken("");
+          setForgotNewPassword("");
+          setForgotConfirmPassword("");
+          setAuthPassword("");
+          setAuthMode("login");
+          Alert.alert("Password updated", "Log in with your new password.");
         }
       } catch (error) {
-        Alert.alert('Password reset', error.message || 'Could not complete the password reset.');
+        Alert.alert(
+          "Password reset",
+          error.message || "Could not complete the password reset.",
+        );
       } finally {
         setAuthBusy(false);
       }
@@ -3177,22 +4541,58 @@ const refreshProfile = React.useCallback(async () => {
     return (
       <SafeAreaView style={styles.screen}>
         <StatusBar style="dark" />
-        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
-          <Text style={{ fontSize: 30, fontWeight: '800', color: '#171717', marginBottom: 8 }}>Bhumi Social AI</Text>
-          <Text style={{ color: '#777777', marginBottom: 22 }}>Forgot password</Text>
+        <View
+          style={{ flex: 1, justifyContent: "center", paddingHorizontal: 28 }}
+        >
+          <Text
+            style={{
+              fontSize: 30,
+              fontWeight: "800",
+              color: "#171717",
+              marginBottom: 8,
+            }}
+          >
+            Bhumi Social AI
+          </Text>
+          <Text style={{ color: "#777777", marginBottom: 22 }}>
+            Forgot password
+          </Text>
 
-          <View style={{ flexDirection: 'row', marginBottom: 18 }}>
-            <View style={{ flex: 1, backgroundColor: '#0095F6', borderRadius: 8, padding: 12, alignItems: 'center', marginRight: 8 }}>
-              <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Email</Text>
+          <View style={{ flexDirection: "row", marginBottom: 18 }}>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: "#0095F6",
+                borderRadius: 8,
+                padding: 12,
+                alignItems: "center",
+                marginRight: 8,
+              }}
+            >
+              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>Email</Text>
             </View>
-            <View style={{ flex: 1, backgroundColor: '#EEEEEE', borderRadius: 8, padding: 12, alignItems: 'center' }}>
-              <Text style={{ color: '#888888', fontWeight: '600' }}>Mobile (SMS unavailable)</Text>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: "#EEEEEE",
+                borderRadius: 8,
+                padding: 12,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#888888", fontWeight: "600" }}>
+                Mobile (SMS unavailable)
+              </Text>
             </View>
           </View>
 
-          {forgotStep === 'email' && (
+          {forgotStep === "email" && (
             <>
-              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Registered email</Text>
+              <Text
+                style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+              >
+                Registered email
+              </Text>
               <TextInput
                 value={forgotEmail}
                 onChangeText={setForgotEmail}
@@ -3203,18 +4603,29 @@ const refreshProfile = React.useCallback(async () => {
                 style={fieldStyle}
               />
               <TouchableOpacity
-                onPress={() => forgotAction('request')}
+                onPress={() => forgotAction("request")}
                 disabled={authBusy}
-                style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center' }}
+                style={{
+                  backgroundColor: "#0095F6",
+                  borderRadius: 8,
+                  padding: 14,
+                  alignItems: "center",
+                }}
               >
-                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{authBusy ? 'Please wait...' : 'Send email code'}</Text>
+                <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                  {authBusy ? "Please wait..." : "Send email code"}
+                </Text>
               </TouchableOpacity>
             </>
           )}
 
-          {forgotStep === 'otp' && (
+          {forgotStep === "otp" && (
             <>
-              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Email verification code</Text>
+              <Text
+                style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+              >
+                Email verification code
+              </Text>
               <TextInput
                 value={forgotOtp}
                 onChangeText={setForgotOtp}
@@ -3224,25 +4635,37 @@ const refreshProfile = React.useCallback(async () => {
                 style={fieldStyle}
               />
               <TouchableOpacity
-                onPress={() => forgotAction('verify')}
+                onPress={() => forgotAction("verify")}
                 disabled={authBusy}
-                style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center', marginBottom: 8 }}
+                style={{
+                  backgroundColor: "#0095F6",
+                  borderRadius: 8,
+                  padding: 14,
+                  alignItems: "center",
+                  marginBottom: 8,
+                }}
               >
-                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{authBusy ? 'Please wait...' : 'Verify code'}</Text>
+                <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                  {authBusy ? "Please wait..." : "Verify code"}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => forgotAction('request')}
+                onPress={() => forgotAction("request")}
                 disabled={authBusy}
-                style={{ padding: 12, alignItems: 'center' }}
+                style={{ padding: 12, alignItems: "center" }}
               >
-                <Text style={{ color: '#1685D9' }}>Resend code</Text>
+                <Text style={{ color: "#1685D9" }}>Resend code</Text>
               </TouchableOpacity>
             </>
           )}
 
-          {forgotStep === 'reset' && (
+          {forgotStep === "reset" && (
             <>
-              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>New password (4 to 24 characters)</Text>
+              <Text
+                style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+              >
+                New password (4 to 24 characters)
+              </Text>
               <TextInput
                 value={forgotNewPassword}
                 onChangeText={setForgotNewPassword}
@@ -3252,7 +4675,11 @@ const refreshProfile = React.useCallback(async () => {
                 editable={!authBusy}
                 style={fieldStyle}
               />
-              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Confirm new password</Text>
+              <Text
+                style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+              >
+                Confirm new password
+              </Text>
               <TextInput
                 value={forgotConfirmPassword}
                 onChangeText={setForgotConfirmPassword}
@@ -3263,21 +4690,31 @@ const refreshProfile = React.useCallback(async () => {
                 style={fieldStyle}
               />
               <TouchableOpacity
-                onPress={() => forgotAction('reset')}
+                onPress={() => forgotAction("reset")}
                 disabled={authBusy}
-                style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center' }}
+                style={{
+                  backgroundColor: "#0095F6",
+                  borderRadius: 8,
+                  padding: 14,
+                  alignItems: "center",
+                }}
               >
-                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{authBusy ? 'Please wait...' : 'Set new password'}</Text>
+                <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                  {authBusy ? "Please wait..." : "Set new password"}
+                </Text>
               </TouchableOpacity>
             </>
           )}
 
           <TouchableOpacity
-            onPress={() => { setAuthMode('login'); setForgotStep('email'); }}
+            onPress={() => {
+              setAuthMode("login");
+              setForgotStep("email");
+            }}
             disabled={authBusy}
-            style={{ padding: 16, alignItems: 'center' }}
+            style={{ padding: 16, alignItems: "center" }}
           >
-            <Text style={{ color: '#1685D9' }}>Back to login</Text>
+            <Text style={{ color: "#1685D9" }}>Back to login</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -3286,36 +4723,169 @@ const refreshProfile = React.useCallback(async () => {
 
   if (authReady && welcomeChecked && !authSession && !welcomeSeen) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#101827' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#101827" }}>
         <StatusBar style="light" />
-        <View style={{ flex: 1, paddingHorizontal: 28, paddingTop: 30, paddingBottom: 24, alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ alignItems: 'center', marginTop: 24 }}>
-            <View style={{ width: 112, height: 112, borderRadius: 34, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', padding: 8, marginBottom: 20 }}>
-              <Image source={require('./assets/icon.png')} style={{ width: 96, height: 96, borderRadius: 28 }} resizeMode="contain" />
+        <View
+          style={{
+            flex: 1,
+            paddingHorizontal: 28,
+            paddingTop: 30,
+            paddingBottom: 24,
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <View style={{ alignItems: "center", marginTop: 24 }}>
+            <View
+              style={{
+                width: 112,
+                height: 112,
+                borderRadius: 34,
+                backgroundColor: "#FFFFFF",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 8,
+                marginBottom: 20,
+              }}
+            >
+              <Image
+                source={require("./assets/icon.png")}
+                style={{ width: 96, height: 96, borderRadius: 28 }}
+                resizeMode="contain"
+              />
             </View>
-            <Text style={{ color: '#FFFFFF', fontSize: 29, fontWeight: '800', textAlign: 'center', letterSpacing: -0.5 }}>Bhumi Social AI</Text>
-            <Text style={{ color: '#AFC7E8', fontSize: 13, fontWeight: '700', letterSpacing: 3, marginTop: 9 }}>CONNECT · SHARE · DISCOVER</Text>
+            <Text
+              style={{
+                color: "#FFFFFF",
+                fontSize: 29,
+                fontWeight: "800",
+                textAlign: "center",
+                letterSpacing: -0.5,
+              }}
+            >
+              Bhumi Social AI
+            </Text>
+            <Text
+              style={{
+                color: "#AFC7E8",
+                fontSize: 13,
+                fontWeight: "700",
+                letterSpacing: 3,
+                marginTop: 9,
+              }}
+            >
+              CONNECT · SHARE · DISCOVER
+            </Text>
           </View>
 
-          <View style={{ width: '100%', alignItems: 'center', paddingVertical: 24 }}>
-            <View style={{ width: 190, height: 190, borderRadius: 95, backgroundColor: '#1D3554', alignItems: 'center', justifyContent: 'center', marginBottom: 28, borderWidth: 1, borderColor: '#355578' }}>
-              <View style={{ width: 142, height: 142, borderRadius: 71, backgroundColor: '#284A70', alignItems: 'center', justifyContent: 'center' }}>
+          <View
+            style={{ width: "100%", alignItems: "center", paddingVertical: 24 }}
+          >
+            <View
+              style={{
+                width: 190,
+                height: 190,
+                borderRadius: 95,
+                backgroundColor: "#1D3554",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 28,
+                borderWidth: 1,
+                borderColor: "#355578",
+              }}
+            >
+              <View
+                style={{
+                  width: 142,
+                  height: 142,
+                  borderRadius: 71,
+                  backgroundColor: "#284A70",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 <Ionicons name="people" size={70} color="#FFFFFF" />
-                <View style={{ position: 'absolute', right: 8, bottom: 12, width: 48, height: 48, borderRadius: 24, backgroundColor: '#4DA8FF', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#284A70' }}>
-                  <Ionicons name="chatbubble-ellipses" size={23} color="#FFFFFF" />
+                <View
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    bottom: 12,
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: "#4DA8FF",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: 3,
+                    borderColor: "#284A70",
+                  }}
+                >
+                  <Ionicons
+                    name="chatbubble-ellipses"
+                    size={23}
+                    color="#FFFFFF"
+                  />
                 </View>
               </View>
             </View>
-            <Text style={{ color: '#FFFFFF', fontSize: 27, lineHeight: 34, fontWeight: '800', textAlign: 'center' }}>Your world,{"\n"}your people.</Text>
-            <Text style={{ color: '#C2CDDD', fontSize: 15, lineHeight: 23, textAlign: 'center', marginTop: 14 }}>Share your moments, discover Reels, and stay connected with your community.</Text>
+            <Text
+              style={{
+                color: "#FFFFFF",
+                fontSize: 27,
+                lineHeight: 34,
+                fontWeight: "800",
+                textAlign: "center",
+              }}
+            >
+              Your world,{"\n"}your people.
+            </Text>
+            <Text
+              style={{
+                color: "#C2CDDD",
+                fontSize: 15,
+                lineHeight: 23,
+                textAlign: "center",
+                marginTop: 14,
+              }}
+            >
+              Share your moments, discover Reels, and stay connected with your
+              community.
+            </Text>
           </View>
 
-          <View style={{ width: '100%', gap: 12 }}>
-            <TouchableOpacity onPress={() => finishWelcome('register')} activeOpacity={0.85} style={{ backgroundColor: '#4DA8FF', borderRadius: 16, paddingVertical: 17, alignItems: 'center' }}>
-              <Text style={{ color: '#101827', fontSize: 16, fontWeight: '800' }}>Get Started</Text>
+          <View style={{ width: "100%", gap: 12 }}>
+            <TouchableOpacity
+              onPress={() => finishWelcome("register")}
+              activeOpacity={0.85}
+              style={{
+                backgroundColor: "#4DA8FF",
+                borderRadius: 16,
+                paddingVertical: 17,
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{ color: "#101827", fontSize: 16, fontWeight: "800" }}
+              >
+                Get Started
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => finishWelcome('login')} activeOpacity={0.85} style={{ borderWidth: 1, borderColor: '#526782', borderRadius: 16, paddingVertical: 16, alignItems: 'center' }}>
-              <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>Already have an account? Log In</Text>
+            <TouchableOpacity
+              onPress={() => finishWelcome("login")}
+              activeOpacity={0.85}
+              style={{
+                borderWidth: 1,
+                borderColor: "#526782",
+                borderRadius: 16,
+                paddingVertical: 16,
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}
+              >
+                Already have an account? Log In
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -3327,23 +4897,51 @@ const refreshProfile = React.useCallback(async () => {
     return (
       <SafeAreaView style={styles.screen}>
         <StatusBar style="dark" />
-        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
-          <Text style={{ fontSize: 30, fontWeight: '800', color: '#171717', marginBottom: 8 }}>Bhumi Social AI</Text>
-          <Text style={{ color: '#777777', marginBottom: 26 }}>
-            {authMode === 'register' ? 'Create your account' : 'Sign in to your account'}
+        <View
+          style={{ flex: 1, justifyContent: "center", paddingHorizontal: 28 }}
+        >
+          <Text
+            style={{
+              fontSize: 30,
+              fontWeight: "800",
+              color: "#171717",
+              marginBottom: 8,
+            }}
+          >
+            Bhumi Social AI
           </Text>
-          {authMode === 'register' ? (
+          <Text style={{ color: "#777777", marginBottom: 26 }}>
+            {authMode === "register"
+              ? "Create your account"
+              : "Sign in to your account"}
+          </Text>
+          {authMode === "register" ? (
             <>
-              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Full Name</Text>
+              <Text
+                style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+              >
+                Full Name
+              </Text>
               <TextInput
                 value={authFullName}
                 onChangeText={setAuthFullName}
                 placeholder="Full Name"
                 autoCapitalize="words"
                 editable={!authBusy}
-                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#DDDDDD",
+                  borderRadius: 8,
+                  padding: 13,
+                  marginBottom: 12,
+                  color: "#222222",
+                }}
               />
-              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Username</Text>
+              <Text
+                style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+              >
+                Username
+              </Text>
               <TextInput
                 value={authUsername}
                 onChangeText={setAuthUsername}
@@ -3351,9 +4949,20 @@ const refreshProfile = React.useCallback(async () => {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!authBusy}
-                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#DDDDDD",
+                  borderRadius: 8,
+                  padding: 13,
+                  marginBottom: 12,
+                  color: "#222222",
+                }}
               />
-              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Email address</Text>
+              <Text
+                style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+              >
+                Email address
+              </Text>
               <TextInput
                 value={authEmail}
                 onChangeText={setAuthEmail}
@@ -3362,12 +4971,23 @@ const refreshProfile = React.useCallback(async () => {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!authBusy}
-                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#DDDDDD",
+                  borderRadius: 8,
+                  padding: 13,
+                  marginBottom: 12,
+                  color: "#222222",
+                }}
               />
             </>
           ) : (
             <>
-              <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Email or username</Text>
+              <Text
+                style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+              >
+                Email or username
+              </Text>
               <TextInput
                 value={authUsername}
                 onChangeText={setAuthUsername}
@@ -3375,24 +4995,46 @@ const refreshProfile = React.useCallback(async () => {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!authBusy}
-                style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#DDDDDD",
+                  borderRadius: 8,
+                  padding: 13,
+                  marginBottom: 12,
+                  color: "#222222",
+                }}
               />
             </>
           )}
-          {authMode === 'register' && (
+          {authMode === "register" && (
             <>
-            <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Mobile number</Text>
-            <TextInput
-              value={authPhoneNumber}
-              onChangeText={setAuthPhoneNumber}
-              placeholder="Mobile number"
-              keyboardType="phone-pad"
-              editable={!authBusy}
-              style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 12, color: '#222222' }}
-            />
+              <Text
+                style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+              >
+                Mobile number
+              </Text>
+              <TextInput
+                value={authPhoneNumber}
+                onChangeText={setAuthPhoneNumber}
+                placeholder="Mobile number"
+                keyboardType="phone-pad"
+                editable={!authBusy}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#DDDDDD",
+                  borderRadius: 8,
+                  padding: 13,
+                  marginBottom: 12,
+                  color: "#222222",
+                }}
+              />
             </>
           )}
-          <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Password (4 to 24 characters)</Text>
+          <Text
+            style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+          >
+            Password (4 to 24 characters)
+          </Text>
           <TextInput
             value={authPassword}
             onChangeText={setAuthPassword}
@@ -3401,51 +5043,82 @@ const refreshProfile = React.useCallback(async () => {
             autoCapitalize="none"
             editable={!authBusy}
             onSubmitEditing={submitAuth}
-            style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 16, color: '#222222' }}
+            style={{
+              borderWidth: 1,
+              borderColor: "#DDDDDD",
+              borderRadius: 8,
+              padding: 13,
+              marginBottom: 16,
+              color: "#222222",
+            }}
           />
-          {authMode === 'register' && (
+          {authMode === "register" && (
             <>
-            <Text style={{ color: '#333333', fontWeight: '600', marginBottom: 6 }}>Confirm password</Text>
-            <TextInput
-              value={authConfirmPassword}
-              onChangeText={setAuthConfirmPassword}
-              placeholder="Confirm password"
-              secureTextEntry
-              autoCapitalize="none"
-              editable={!authBusy}
-              style={{ borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8, padding: 13, marginBottom: 16, color: '#222222' }}
-            />
+              <Text
+                style={{ color: "#333333", fontWeight: "600", marginBottom: 6 }}
+              >
+                Confirm password
+              </Text>
+              <TextInput
+                value={authConfirmPassword}
+                onChangeText={setAuthConfirmPassword}
+                placeholder="Confirm password"
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!authBusy}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#DDDDDD",
+                  borderRadius: 8,
+                  padding: 13,
+                  marginBottom: 16,
+                  color: "#222222",
+                }}
+              />
             </>
           )}
           <TouchableOpacity
             onPress={submitAuth}
             disabled={authBusy}
-            style={{ backgroundColor: '#0095F6', borderRadius: 8, padding: 14, alignItems: 'center' }}
+            style={{
+              backgroundColor: "#0095F6",
+              borderRadius: 8,
+              padding: 14,
+              alignItems: "center",
+            }}
           >
-            <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>
-              {authBusy ? 'Please wait...' : authMode === 'register' ? 'Create account' : 'Log in'}
+            <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+              {authBusy
+                ? "Please wait..."
+                : authMode === "register"
+                  ? "Create account"
+                  : "Log in"}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+            onPress={() =>
+              setAuthMode(authMode === "login" ? "register" : "login")
+            }
             disabled={authBusy}
-            style={{ padding: 16, alignItems: 'center' }}
+            style={{ padding: 16, alignItems: "center" }}
           >
-            {authMode === 'login' && (
+            {authMode === "login" && (
               <TouchableOpacity
                 onPress={() => {
                   setForgotEmail(authEmail);
-                  setForgotStep('email');
-                  setAuthMode('forgot');
+                  setForgotStep("email");
+                  setAuthMode("forgot");
                 }}
                 disabled={authBusy}
-                style={{ padding: 8, alignItems: 'center' }}
+                style={{ padding: 8, alignItems: "center" }}
               >
-                <Text style={{ color: '#1685D9' }}>Forgot password?</Text>
+                <Text style={{ color: "#1685D9" }}>Forgot password?</Text>
               </TouchableOpacity>
             )}
-            <Text style={{ color: '#1685D9' }}>
-              {authMode === 'login' ? 'Create a new account' : 'Already have an account? Log in'}
+            <Text style={{ color: "#1685D9" }}>
+              {authMode === "login"
+                ? "Create a new account"
+                : "Already have an account? Log in"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -3456,6 +5129,48 @@ const refreshProfile = React.useCallback(async () => {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="dark" />
+
+
+      <Modal
+        visible={liveCameraOpen}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setLiveCameraOpen(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 18, paddingVertical: 14 }}>
+            <TouchableOpacity onPress={() => setLiveCameraOpen(false)}>
+              <Ionicons name="close" size={28} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>Live</Text>
+            <TouchableOpacity onPress={() => setCameraFacing(v => v === "back" ? "front" : "back")}>
+              <Ionicons name="camera-reverse-outline" size={27} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          <View style={{ flex: 1, backgroundColor: "#111111" }}>
+            <CameraView ref={liveCameraRef} style={{ flex: 1 }} facing={cameraFacing} mode="video" />
+            <View style={{ position: "absolute", top: 16, left: 16, right: 16, gap: 10 }}>
+              <TextInput value={liveLink} onChangeText={setLiveLink} placeholder="Add a link" placeholderTextColor="#BBBBBB" autoCapitalize="none" style={{ color: "#FFFFFF", backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 14 }} />
+              <TextInput value={liveTitle} onChangeText={setLiveTitle} placeholder="Add a title" placeholderTextColor="#BBBBBB" style={{ color: "#FFFFFF", backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 14 }} />
+              <View style={{ backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 12 }}>
+                <Text style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 10 }}>Audience</Text>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {["Public", "Followers", "Close Friends"].map(item => (
+                    <TouchableOpacity key={item} onPress={() => setLiveAudience(item)} style={{ flex: 1, padding: 10, borderRadius: 20, alignItems: "center", backgroundColor: liveAudience === item ? "#1877F2" : "#444444" }}>
+                      <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{item}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+            <View style={{ position: "absolute", bottom: 22, left: 0, right: 0, alignItems: "center" }}>
+              <TouchableOpacity onPress={() => Alert.alert("Live streaming unavailable", "A streaming server/provider must be connected before broadcasting can start.")} style={{ width: "88%", minHeight: 54, borderRadius: 28, backgroundColor: "#E53945", alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "800" }}>Start Live</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </Modal>
 
       <Modal
         visible={cameraOpen}
@@ -3468,66 +5183,120 @@ const refreshProfile = React.useCallback(async () => {
           setRecordedPhoto(null);
         }}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#090909' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 }}>
-            <TouchableOpacity onPress={() => {
-              if (isRecording) cameraRef.current?.stopRecording();
-              setCameraOpen(false);
-              setRecordedVideo(null);
-              setRecordedPhoto(null);
-            }} style={{ padding: 8 }}>
-              <Text style={{ color: '#FFFFFF', fontSize: 16 }}>Cancel</Text>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#090909" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                if (isRecording) cameraRef.current?.stopRecording();
+                setCameraOpen(false);
+                setRecordedVideo(null);
+                setRecordedPhoto(null);
+              }}
+              style={{ padding: 8 }}
+            >
+              <Text style={{ color: "#FFFFFF", fontSize: 16 }}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '700' }}>
-              {cameraTargetKind === 'reels' ? 'Create Reel' : cameraTargetKind === 'stories' ? 'Create Story' : 'Create Post'}
+            <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "700" }}>
+              {cameraTargetKind === "reels"
+                ? "Create Reel"
+                : cameraTargetKind === "stories"
+                  ? "Create Story"
+                  : "Create Post"}
             </Text>
             <TouchableOpacity
-              onPress={() => setCameraFacing(current => current === 'back' ? 'front' : 'back')}
+              onPress={() =>
+                setCameraFacing((current) =>
+                  current === "back" ? "front" : "back",
+                )
+              }
               disabled={isRecording || !!recordedVideo || !!recordedPhoto}
               style={{ padding: 8 }}
             >
-              <Text style={{ color: '#FFFFFF', fontSize: 15 }}>Flip</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 15 }}>Flip</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'center', paddingVertical: 10, gap: 12 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              paddingVertical: 10,
+              gap: 12,
+            }}
+          >
             {[
-              { label: 'Photo', value: 'picture' },
-              { label: 'Video', value: 'video' },
-            ].map(option => (
+              { label: "Photo", value: "picture" },
+              { label: "Video", value: "video" },
+            ].map((option) => (
               <TouchableOpacity
                 key={option.value}
-                disabled={isRecording || !!recordedVideo || !!recordedPhoto || cameraTargetKind === 'reels'}
+                disabled={
+                  isRecording ||
+                  !!recordedVideo ||
+                  !!recordedPhoto ||
+                  cameraTargetKind === "reels"
+                }
                 onPress={() => setCameraMode(option.value)}
                 style={{
                   paddingHorizontal: 22,
                   paddingVertical: 9,
                   borderRadius: 22,
-                  backgroundColor: cameraMode === option.value ? '#1685D9' : '#292929',
-                  opacity: cameraTargetKind === 'reels' ? 0.55 : 1,
+                  backgroundColor:
+                    cameraMode === option.value ? "#1685D9" : "#292929",
+                  opacity: cameraTargetKind === "reels" ? 0.55 : 1,
                 }}
               >
-                <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{option.label}</Text>
+                <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                  {option.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
 
           <TouchableOpacity
-  accessibilityRole="button"
-  accessibilityLabel="Choose photo or video from gallery"
-  onPress={() => {
-    const target = cameraTargetKind;
-    setCameraOpen(false);
-    setTimeout(() => chooseMedia(target, 'camera-gallery'), 300);
-  }}
-  style={{ marginHorizontal: 20, marginVertical: 8, minHeight: 48, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#202B3C', borderWidth: 1, borderColor: '#53647A', gap: 9 }}
->
-  <Ionicons name="images-outline" size={23} color="#FFFFFF" />
-  <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700' }}>Choose from Gallery</Text>
-</TouchableOpacity>
-<View style={{ flex: 1, backgroundColor: '#000000', overflow: 'hidden' }}>
+            accessibilityRole="button"
+            accessibilityLabel="Choose photo or video from gallery"
+            onPress={() => {
+              const target = cameraTargetKind;
+              setCameraOpen(false);
+              setTimeout(() => chooseMedia(target, "camera-gallery"), 300);
+            }}
+            style={{
+              marginHorizontal: 20,
+              marginVertical: 8,
+              minHeight: 48,
+              borderRadius: 16,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#202B3C",
+              borderWidth: 1,
+              borderColor: "#53647A",
+              gap: 9,
+            }}
+          >
+            <Ionicons name="images-outline" size={23} color="#FFFFFF" />
+            <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "700" }}>
+              Choose from Gallery
+            </Text>
+          </TouchableOpacity>
+          <View
+            style={{ flex: 1, backgroundColor: "#000000", overflow: "hidden" }}
+          >
             {recordedPhoto ? (
-              <Image source={{ uri: recordedPhoto }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+              <Image
+                source={{ uri: recordedPhoto }}
+                style={{ width: "100%", height: "100%" }}
+                resizeMode="contain"
+              />
             ) : recordedVideo ? (
               <ReelVideo key={recordedVideo} uri={recordedVideo} />
             ) : (
@@ -3540,8 +5309,17 @@ const refreshProfile = React.useCallback(async () => {
             )}
           </View>
 
-          <View style={{ minHeight: 112, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', paddingHorizontal: 16, paddingVertical: 18 }}>
-            {(recordedPhoto || recordedVideo) ? (
+          <View
+            style={{
+              minHeight: 112,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-evenly",
+              paddingHorizontal: 16,
+              paddingVertical: 18,
+            }}
+          >
+            {recordedPhoto || recordedVideo ? (
               <>
                 <TouchableOpacity
                   onPress={() => {
@@ -3550,30 +5328,73 @@ const refreshProfile = React.useCallback(async () => {
                   }}
                   style={{ padding: 14 }}
                 >
-                  <Text style={{ color: '#FFFFFF', fontSize: 16 }}>Retake</Text>
+                  <Text style={{ color: "#FFFFFF", fontSize: 16 }}>Retake</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={recordedPhoto ? useRecordedPhoto : useRecordedVideo}
-                  style={{ backgroundColor: '#1685D9', borderRadius: 24, paddingHorizontal: 26, paddingVertical: 13 }}
+                  style={{
+                    backgroundColor: "#1685D9",
+                    borderRadius: 24,
+                    paddingHorizontal: 26,
+                    paddingVertical: 13,
+                  }}
                 >
-                  <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
-                    {recordedPhoto ? 'Use Photo' : 'Use Video'}
+                  <Text
+                    style={{
+                      color: "#FFFFFF",
+                      fontSize: 16,
+                      fontWeight: "700",
+                    }}
+                  >
+                    {recordedPhoto ? "Use Photo" : "Use Video"}
                   </Text>
                 </TouchableOpacity>
               </>
-            ) : cameraMode === 'picture' ? (
+            ) : cameraMode === "picture" ? (
               <TouchableOpacity
                 onPress={takeCameraPhoto}
-                style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 5, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: 36,
+                  borderWidth: 5,
+                  borderColor: "#FFFFFF",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#FFFFFF' }} />
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: "#FFFFFF",
+                  }}
+                />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                onPress={isRecording ? stopCameraRecording : startCameraRecording}
-                style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 5, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}
+                onPress={
+                  isRecording ? stopCameraRecording : startCameraRecording
+                }
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: 36,
+                  borderWidth: 5,
+                  borderColor: "#FFFFFF",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <View style={{ width: isRecording ? 27 : 48, height: isRecording ? 27 : 48, borderRadius: isRecording ? 6 : 24, backgroundColor: '#E53945' }} />
+                <View
+                  style={{
+                    width: isRecording ? 27 : 48,
+                    height: isRecording ? 27 : 48,
+                    borderRadius: isRecording ? 6 : 24,
+                    backgroundColor: "#E53945",
+                  }}
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -3586,437 +5407,1200 @@ const refreshProfile = React.useCallback(async () => {
         animationType="slide"
         onRequestClose={cancelDraftMedia}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
-            <TouchableOpacity onPress={cancelDraftMedia} style={{ paddingVertical: 8, paddingRight: 12 }}>
-              <Text style={{ color: '#1685D9', fontSize: 16 }}>Cancel</Text>
+        <SafeAreaView
+          style={{
+            flex: 1,
+            backgroundColor:
+              mediaDraft?.kind === "stories" ? "#000000" : "#FFFFFF",
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: "#EEEEEE",
+              display: mediaDraft?.kind === "stories" ? "none" : "flex",
+            }}
+          >
+            <TouchableOpacity
+              onPress={cancelDraftMedia}
+              style={{ paddingVertical: 8, paddingRight: 12 }}
+            >
+              <Text style={{ color: "#1685D9", fontSize: 16 }}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ color: '#222222', fontSize: 17, fontWeight: '700' }}>Edit media</Text>
+            <Text style={{ color: "#222222", fontSize: 17, fontWeight: "700" }}>
+              {mediaDraft?.kind === "stories"
+                ? "Edit Story"
+                : mediaDraft?.kind === "reels"
+                  ? "New Reel"
+                  : "New Post"}
+            </Text>
             <View style={{ width: 54 }} />
           </View>
 
-          {mediaDraft && (() => {
-            const assets = mediaDraft.assets || [];
-            const asset = assets[mediaDraftIndex];
-            if (!asset) return null;
-            const isVideo = asset.type === 'video' || /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || '');
-            return (
-              <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 6 }} keyboardShouldPersistTaps="handled">
-                <View style={{
-                  height: Math.max(360, Dimensions.get('window').height - 190),
-                  width: '100%',
-                  backgroundColor: '#080808',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  overflow: 'hidden',
-                  position: 'relative',
-                }}>
-                  {isVideo ? (
-                    <ReelVideo uri={asset.uri} height={Math.max(360, Dimensions.get('window').height - 190)} />
-                  ) : (
-                    <Image
-                      source={{ uri: asset.uri }}
-                      style={{ width: '100%', height: '100%' }}
-                      resizeMode="contain"
-                    />
-                  )}
-                  <View style={{
-                    position: 'absolute',
-                    top: 12,
-                    left: 8,
-                    right: 8,
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    flexWrap: 'wrap',
-                  }}>
-                    {!isVideo ? (
-                      [
-                        { label: 'Crop', action: 'crop' },
-                        { label: 'Rotate', action: 'rotate' },
-                        { label: 'Flip', action: 'flip' },
-                        { label: 'Filter', action: 'filter' },
-                        { label: 'Brightness +', action: 'brightness' },
-                      ].map(tool => (
-                        <TouchableOpacity
-                          key={tool.action}
-                          disabled={busy}
-                          onPress={() => handlePhotoEdit(tool.action)}
-                          style={{ backgroundColor: 'rgba(0,0,0,0.78)', paddingVertical: 10, paddingHorizontal: 11, margin: 3, borderRadius: 20, opacity: busy ? 0.5 : 1 }}
-                        >
-                          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 12 }}>{tool.label}</Text>
-                        </TouchableOpacity>
-                      ))
-                    ) : (
-                      <>
-                        <TouchableOpacity
-                          disabled={busy}
-                          onPress={() => setZoomEffectEnabled(v => !v)}
-                          style={{ backgroundColor: 'rgba(0,0,0,0.78)', paddingVertical: 10, paddingHorizontal: 13, margin: 3, borderRadius: 20 }}
-                        >
-                          <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>{zoomEffectEnabled ? 'Zoom ON' : 'Zoom Effect'}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          disabled={busy}
-                          onPress={chooseMusicFile}
-                          style={{ backgroundColor: 'rgba(0,0,0,0.78)', paddingVertical: 10, paddingHorizontal: 13, margin: 3, borderRadius: 20 }}
-                        >
-                          <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>{musicAsset ? 'Change Music' : 'Choose Music'}</Text>
-                        </TouchableOpacity>
-                      </>
-                    )}
-                  </View>
-                </View>
-                {assets.length > 1 && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 }}>
-                    <TouchableOpacity
-                      disabled={mediaDraftIndex === 0}
-                      onPress={() => {
-                        setMediaDraftIndex(index => Math.max(0, index - 1));
-                        setZoomEffectEnabled(false);
-                        setZoomEffectLevel(1.5);
-                        setZoomEffectDuration(3);
-                        setMusicAsset(null);
-                        setMusicStart(0);
-                      }}
-                      style={{ padding: 10 }}
-                    >
-                      <Text style={{ color: '#1685D9', fontSize: 16 }}>Previous</Text>
-                    </TouchableOpacity>
-                    <Text style={{ color: '#555555' }}>{mediaDraftIndex + 1} / {assets.length}</Text>
-                    <TouchableOpacity
-                      disabled={mediaDraftIndex >= assets.length - 1}
-                      onPress={() => {
-                        setMediaDraftIndex(index => Math.min(assets.length - 1, index + 1));
-                        setZoomEffectEnabled(false);
-                        setZoomEffectLevel(1.5);
-                        setZoomEffectDuration(3);
-                        setMusicAsset(null);
-                        setMusicStart(0);
-                      }}
-                      style={{ padding: 10 }}
-                    >
-                      <Text style={{ color: '#1685D9', fontSize: 16 }}>Next</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+          {mediaDraft &&
+            (() => {
+              const assets = mediaDraft.assets || [];
+              const asset = assets[mediaDraftIndex];
+              if (!asset) return null;
+              const isVideo =
+                asset.type === "video" ||
+                /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || "");
 
-                <TextInput
-                  value={mediaDraftCaption}
-                  onChangeText={setMediaDraftCaption}
-                  placeholder="Write a caption..."
-                  multiline
-                  maxLength={2200}
-                  style={{ minHeight: 48, maxHeight: 110, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 10, padding: 12, marginTop: 8, color: '#222222' }}
-                />
-                {mediaDraft.kind === 'reels' && isVideo && (
-                  <View style={{ paddingTop: 10, paddingBottom: 8 }}>
-                    <TouchableOpacity
-                      disabled={busy}
-                      onPress={chooseMusicFile}
-                      style={{ padding: 11, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}
+              if (mediaDraft.kind === "stories") {
+                return (
+                  <View style={{ flex: 1, backgroundColor: "#000000" }}>
+                    <View
+                      style={{
+                        flex: 1,
+                        position: "relative",
+                        overflow: "hidden",
+                        backgroundColor: "#000000",
+                      }}
                     >
-                      <Text style={{ color: '#1685D9', fontWeight: '600' }}>
-                        {musicAsset ? `Music: ${musicAsset.name || 'Selected'} · Change Music` : '♫ Choose Music File'}
-                      </Text>
-                    </TouchableOpacity>
-                    {musicAsset && (
+                      {isVideo ? (
+                        <ReelVideo
+                          uri={asset.uri}
+                          height={Dimensions.get("window").height}
+                        />
+                      ) : (
+                        <Image
+                          source={{ uri: asset.uri }}
+                          style={{ width: "100%", height: "100%" }}
+                          resizeMode="cover"
+                        />
+                      )}
+
                       <TouchableOpacity
-                        onPress={() => {
-                          if (musicPlayerStatus.playing) {
-                            musicPlayer.pause();
-                          } else {
-                            musicPlayer.play();
-                          }
+                        onPress={cancelDraftMedia}
+                        disabled={busy}
+                        style={{
+                          position: "absolute",
+                          top: 14,
+                          left: 14,
+                          width: 42,
+                          height: 42,
+                          borderRadius: 21,
+                          backgroundColor: "rgba(0,0,0,0.58)",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
-                        style={{ marginTop: 8, padding: 10, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}
                       >
-                        <Text style={{ color: '#1685D9', fontWeight: '600' }}>
-                          {musicPlayerStatus.playing ? 'Ⅱ Pause Music Preview' : '▶ Preview Music'}
-                        </Text>
+                        <Ionicons name="arrow-back" size={23} color="#FFFFFF" />
                       </TouchableOpacity>
-                    )}
-                    {musicAsset && (
-                      <View style={{ paddingTop: 8 }}>
-                        <Text style={{ color: '#333333' }}>Music volume: {Math.round(musicVolume * 100)}%</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <TouchableOpacity onPress={() => setMusicVolume(v => Math.max(0, Number((v - 0.1).toFixed(1))))} style={{ padding: 10, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
-                            <Text style={{ color: '#1685D9' }}>−</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => setMusicVolume(v => Math.min(1, Number((v + 0.1).toFixed(1))))} style={{ padding: 10, marginLeft: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
-                            <Text style={{ color: '#1685D9' }}>＋</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => { musicPlayer.pause(); setMusicAsset(null); setMusicStart(0); }} style={{ padding: 10, marginLeft: 8 }}>
-                            <Text style={{ color: '#D93025' }}>Remove Music</Text>
-                          </TouchableOpacity>
+
+                      {!isVideo && (
+                        <View
+                          style={{
+                            position: "absolute",
+                            top: 72,
+                            right: 12,
+                            alignItems: "center",
+                            gap: 13,
+                          }}
+                        >
+                          {[
+                            {
+                              icon: "crop-outline",
+                              action: "crop",
+                              label: "Crop",
+                            },
+                            {
+                              icon: "refresh-outline",
+                              action: "rotate",
+                              label: "Rotate",
+                            },
+                            {
+                              icon: "swap-horizontal-outline",
+                              action: "flip",
+                              label: "Flip",
+                            },
+                            {
+                              icon: "color-filter-outline",
+                              action: "filter",
+                              label: "Filter",
+                            },
+                          ].map((tool) => (
+                            <TouchableOpacity
+                              key={tool.action}
+                              disabled={busy}
+                              onPress={() => handlePhotoEdit(tool.action)}
+                              style={{
+                                width: 43,
+                                height: 43,
+                                borderRadius: 22,
+                                backgroundColor: "rgba(0,0,0,0.58)",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Ionicons
+                                name={tool.icon}
+                                size={22}
+                                color="#FFFFFF"
+                              />
+                            </TouchableOpacity>
+                          ))}
                         </View>
-                        <Text style={{ color: '#333333', paddingTop: 6 }}>Music start: {musicStart}s</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <TouchableOpacity onPress={() => setMusicStart(v => Math.max(0, v - 5))} style={{ padding: 10, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
-                            <Text style={{ color: '#1685D9' }}>−5s</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => setMusicStart(v => v + 5)} style={{ padding: 10, marginLeft: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
-                            <Text style={{ color: '#1685D9' }}>＋5s</Text>
-                          </TouchableOpacity>
-                        </View>
-                        <TouchableOpacity onPress={() => setKeepOriginalAudio(v => !v)} style={{ paddingVertical: 9 }}>
-                          <Text style={{ color: '#1685D9', fontWeight: '600' }}>
-                            Original video audio: {keepOriginalAudio ? 'ON' : 'OFF'}
+                      )}
+
+                      <View
+                        style={{
+                          position: "absolute",
+                          left: 14,
+                          right: 72,
+                          bottom: 112,
+                        }}
+                      >
+                        <TextInput
+                          value={mediaDraftCaption}
+                          onChangeText={setMediaDraftCaption}
+                          placeholder="Add a caption..."
+                          placeholderTextColor="rgba(255,255,255,0.8)"
+                          multiline
+                          maxLength={2200}
+                          style={{
+                            color: "#FFFFFF",
+                            fontSize: 16,
+                            paddingHorizontal: 14,
+                            paddingVertical: 11,
+                            borderRadius: 22,
+                            backgroundColor: "rgba(0,0,0,0.48)",
+                            maxHeight: 100,
+                          }}
+                        />
+                      </View>
+
+                      <View
+                        style={{
+                          position: "absolute",
+                          left: 12,
+                          right: 12,
+                          bottom: 24,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <TouchableOpacity
+                          disabled={busy}
+                          onPress={uploadDraftMedia}
+                          style={{
+                            flex: 1,
+                            marginRight: 8,
+                            height: 48,
+                            borderRadius: 25,
+                            backgroundColor: "#FFFFFF",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#111111",
+                              fontSize: 14,
+                              fontWeight: "700",
+                            }}
+                          >
+                            Your story
                           </Text>
                         </TouchableOpacity>
+
+                        <TouchableOpacity
+                          disabled
+                          style={{
+                            flex: 1,
+                            marginHorizontal: 4,
+                            height: 48,
+                            borderRadius: 25,
+                            backgroundColor: "rgba(255,255,255,0.25)",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            opacity: 0.65,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#FFFFFF",
+                              fontSize: 13,
+                              fontWeight: "700",
+                            }}
+                          >
+                            Close Friends
+                          </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          disabled={busy}
+                          onPress={uploadDraftMedia}
+                          style={{
+                            width: 50,
+                            height: 50,
+                            marginLeft: 8,
+                            borderRadius: 25,
+                            backgroundColor: "#1688F8",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Ionicons name="arrow-up" size={25} color="#FFFFFF" />
+                        </TouchableOpacity>
                       </View>
-                    )}
+                    </View>
                   </View>
-                )}
+                );
+              }
 
-                {mediaDraft.kind === 'reels' && isVideo && (
-                  <View style={{ paddingTop: 12 }}>
-                    <TouchableOpacity
-                      onPress={() => setZoomEffectEnabled(v => !v)}
-                      style={{ padding: 10, borderRadius: 8, borderWidth: 1, borderColor: zoomEffectEnabled ? '#0095F6' : '#DDDDDD' }}
-                    >
-                      <Text style={{ color: zoomEffectEnabled ? '#0095F6' : '#333333', fontWeight: '600' }}>
-                        {zoomEffectEnabled ? 'Zoom Effect ON' : 'Enable Zoom Effect'}
-                      </Text>
-                    </TouchableOpacity>
-                    {zoomEffectEnabled && (
-                      <View style={{ paddingTop: 8 }}>
-                        <Text style={{ color: '#333333' }}>Zoom level: {zoomEffectLevel.toFixed(1)}x</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 6 }}>
-                          <TouchableOpacity onPress={() => setZoomEffectLevel(v => Math.max(1.2, Number((v - 0.1).toFixed(1))))} style={{ padding: 10, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
-                            <Text style={{ color: '#1685D9' }}>−</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => setZoomEffectLevel(v => Math.min(2.5, Number((v + 0.1).toFixed(1))))} style={{ padding: 10, marginLeft: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
-                            <Text style={{ color: '#1685D9' }}>＋</Text>
-                          </TouchableOpacity>
-                        </View>
-                        <Text style={{ color: '#333333', paddingTop: 8 }}>Effect duration: {zoomEffectDuration}s</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 6 }}>
-                          <TouchableOpacity onPress={() => setZoomEffectDuration(v => Math.max(1, v - 1))} style={{ padding: 10, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
-                            <Text style={{ color: '#1685D9' }}>−</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => setZoomEffectDuration(v => Math.min(15, v + 1))} style={{ padding: 10, marginLeft: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 8 }}>
-                            <Text style={{ color: '#1685D9' }}>＋</Text>
-                          </TouchableOpacity>
-                        </View>
-                        <Text style={{ color: '#777777', fontSize: 12, paddingTop: 6 }}>
-                          The effect is processed before upload.
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                )}
-              </ScrollView>
-            );
-          })()}
-          <View style={{ flexDirection: 'row', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 22, borderTopWidth: 1, borderTopColor: '#EEEEEE', backgroundColor: '#FFFFFF' }}>
-            <TouchableOpacity onPress={cancelDraftMedia} disabled={busy} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 13, marginRight: 8, borderWidth: 1, borderColor: '#DDDDDD', borderRadius: 10 }}>
-              <Text style={{ color: '#1685D9', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity disabled={busy} onPress={uploadDraftMedia} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 13, marginLeft: 8, backgroundColor: '#0095F6', borderRadius: 10, opacity: busy ? 0.6 : 1 }}>
-              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>{busy ? 'Please wait...' : 'Done'}</Text>
-            </TouchableOpacity>
-          </View>
-
-        </SafeAreaView>
-      </Modal>
-
-      {activeTab !== 'Reels' && activeTab !== 'Home' && renderAppHeader()}
-
-{!serverOnline && (
-        <Text style={{ paddingHorizontal: 12, paddingVertical: 4, color: '#888', fontSize: 11 }}>
-          Server connection unavailable
-        </Text>
-      )}
-      {busy && <Text style={{ padding: 5, color: '#1685D9' }}>Uploading media…</Text>}
-
-      {activeTab === 'Reels' ? (
-                <View
-                  style={{ flex: 1, backgroundColor: '#000000' }}
-                  onLayout={event => {
-                    const height = event.nativeEvent.layout.height;
-                    if (height > 0 && height !== reelViewportHeight) setReelViewportHeight(height);
-                  }}
+              return (
+                <ScrollView
+                  style={{ flex: 1 }}
+                  contentContainerStyle={{ padding: 0 }}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  {reels.length ? (
-<FlatList
-                      ref={reelListRef}
-                                   data={reels}
-                      keyExtractor={(item, index) => String(item.id || item.uri || index)}
-                      scrollEnabled={!reelZoomed}
-                      pagingEnabled
-                      snapToInterval={reelViewportHeight || undefined}
-                      snapToAlignment="start"
-                      decelerationRate="fast"
-                      nestedScrollEnabled
-                      showsVerticalScrollIndicator={false}
-                      initialNumToRender={2}
-                      maxToRenderPerBatch={2}
-                      windowSize={5}
-                      removeClippedSubviews={false}
-                      getItemLayout={(_, index) => ({
-                        length: reelViewportHeight,
-                        offset: reelViewportHeight * index,
-                        index,
-                      })}
-                      scrollEventThrottle={16}
-                      onScroll={event => {
-                        if (reelViewportHeight > 0) {
-                          const nextIndex = Math.max(0, Math.min(
-                            Math.round(event.nativeEvent.contentOffset.y / reelViewportHeight),
-                            reels.length - 1
-                          ));
-                          setActiveReelIndex(current => current === nextIndex ? current : nextIndex);
-                        }
+                  <View
+                    style={{
+                      height: Math.max(
+                        360,
+                        Dimensions.get("window").height - 190,
+                      ),
+                      width: "100%",
+                      backgroundColor: "#080808",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      overflow: "hidden",
+                      position: "relative",
+                    }}
+                  >
+                    {isVideo ? (
+                      <ReelVideo
+                        uri={asset.uri}
+                        height={Math.max(
+                          360,
+                          Dimensions.get("window").height - 190,
+                        )}
+                      />
+                    ) : (
+                      <Image
+                        source={{ uri: asset.uri }}
+                        style={{ width: "100%", height: "100%" }}
+                        resizeMode="contain"
+                      />
+                    )}
+                    <View
+                      style={{
+                        position: "absolute",
+                        top: 12,
+                        left: 8,
+                        right: 8,
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        flexWrap: "wrap",
                       }}
-                      onMomentumScrollEnd={event => {
-                        if (reelViewportHeight > 0) {
-                          const nextIndex = Math.round(event.nativeEvent.contentOffset.y / reelViewportHeight);
-                          setActiveReelIndex(Math.max(0, Math.min(nextIndex, reels.length - 1)));
-                        }
+                    >
+                      {!isVideo ? (
+                        [
+                          { label: "Crop", action: "crop" },
+                          { label: "Rotate", action: "rotate" },
+                          { label: "Flip", action: "flip" },
+                          { label: "Filter", action: "filter" },
+                          { label: "Brightness +", action: "brightness" },
+                        ].map((tool) => (
+                          <TouchableOpacity
+                            key={tool.action}
+                            disabled={busy}
+                            onPress={() => handlePhotoEdit(tool.action)}
+                            style={{
+                              backgroundColor: "rgba(0,0,0,0.78)",
+                              paddingVertical: 10,
+                              paddingHorizontal: 11,
+                              margin: 3,
+                              borderRadius: 20,
+                              opacity: busy ? 0.5 : 1,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: "#FFFFFF",
+                                fontWeight: "600",
+                                fontSize: 12,
+                              }}
+                            >
+                              {tool.label}
+                            </Text>
+                          </TouchableOpacity>
+                        ))
+                      ) : (
+                        <>
+                          <TouchableOpacity
+                            disabled={busy}
+                            onPress={() => setZoomEffectEnabled((v) => !v)}
+                            style={{
+                              backgroundColor: "rgba(0,0,0,0.78)",
+                              paddingVertical: 10,
+                              paddingHorizontal: 13,
+                              margin: 3,
+                              borderRadius: 20,
+                            }}
+                          >
+                            <Text
+                              style={{ color: "#FFFFFF", fontWeight: "600" }}
+                            >
+                              {zoomEffectEnabled ? "Zoom ON" : "Zoom Effect"}
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            disabled={busy}
+                            onPress={chooseMusicFile}
+                            style={{
+                              backgroundColor: "rgba(0,0,0,0.78)",
+                              paddingVertical: 10,
+                              paddingHorizontal: 13,
+                              margin: 3,
+                              borderRadius: 20,
+                            }}
+                          >
+                            <Text
+                              style={{ color: "#FFFFFF", fontWeight: "600" }}
+                            >
+                              {musicAsset ? "Change Music" : "Choose Music"}
+                            </Text>
+                          </TouchableOpacity>
+                        </>
+                      )}
+                    </View>
+                  </View>
+                  {assets.length > 1 && (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingVertical: 12,
                       }}
-                      renderItem={({ item: r, index }) => {
-                        const id = Number(r.id);
-                        const hasServerId = Number.isSafeInteger(id) && id > 0 && !r.isStarterReel;
-                        const username = String(r.user || r.username || "you").replace(/^@/, "");
-                        const liked = reelLikeState[id] ?? !!r.isLiked;
-                        const saved = reelSavedState[id] ?? !!r.isSaved;
-                        const following = reelFollowState[username] ?? !!r.isFollowing;
-                        const rowHeight = reelViewportHeight || Dimensions.get("window").height;
-                        return (
-                          <View style={{ width: "100%", height: rowHeight, backgroundColor: "#000000", overflow: "hidden" }}>
-                            {r.uri && Math.abs(index - activeReelIndex) <= 1 ? (
-                              <ReelVideo
-                                uri={r.uri}
-                                height={rowHeight}
-                                active={activeTab === "Reels" && index === activeReelIndex}
-                                muted={mutedReels}
-                                contentFit="cover"
-                                zoomEnabled={false}
-                                onZoomChange={(level) => setReelZoomed(level > 1.01)}
-                              />
-                            ) : null}
-                            <View pointerEvents="box-none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "space-between", paddingHorizontal: 15, paddingTop: 15, paddingBottom: 18 }}>
-                              <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-                                <TouchableOpacity onPress={() => setMutedReels(value => !value)} style={{ width: 42, height: 42, borderRadius: 22, backgroundColor: "rgba(0,0,0,0.48)", alignItems: "center", justifyContent: "center" }} accessibilityLabel={mutedReels ? "Unmute reel" : "Mute reel"}>
-                                  <Ionicons name={mutedReels ? "volume-mute" : "volume-high"} size={22} color="#FFFFFF" />
-                                </TouchableOpacity>
-                              </View>
-                              <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
-                                <View style={{ flex: 1, paddingRight: 12 }}>
-                                  <TouchableOpacity onPress={() => openUserProfile(username)} style={{ alignSelf: "flex-start", paddingVertical: 7 }}>
-                                    <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "800" }}>@{username}</Text>
-                                  </TouchableOpacity>
-                                  {!!r.caption && <Text numberOfLines={3} style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 20, textShadowColor: "#000000", textShadowRadius: 5 }}>{r.caption}</Text>}
-                                  {username !== (authSession?.username || "you") && (
-                                    <TouchableOpacity
-                                      disabled={!hasServerId || !!reelBusyState[`follow-${username}`]}
-                                      onPress={() => handleReelFollow(r)}
-                                      style={{ marginTop: 10, alignSelf: "flex-start", borderWidth: 1, borderColor: "#FFFFFF", borderRadius: 8, paddingHorizontal: 14, paddingVertical: 7, opacity: hasServerId ? 1 : 0.55 }}
-                                    >
-                                      <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>
-                                        {r.followRequestStatus === "pending" ? "Requested" : following ? "Following" : "Follow"}
-                                      </Text>
-                                    </TouchableOpacity>
-                                  )}
-                                </View>
-                                <View style={{ alignItems: "center", gap: 22, paddingBottom: 4 }}>
-                                  <TouchableOpacity disabled={!hasServerId || !!reelBusyState[id]} onPress={() => handleReelLike(r)} style={{ alignItems: "center" }}>
-                                    <Ionicons name={liked ? "heart" : "heart-outline"} size={31} color={liked ? "#FF3158" : "#FFFFFF"} />
-                                    <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>{r.likesCount ?? r.likes ?? "0"}</Text>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity onPress={() => handleOpenReelComments(r)} style={{ alignItems: "center" }}>
-                                    <Ionicons name="chatbubble-outline" size={28} color="#FFFFFF" />
-                                    <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>Comment</Text>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity onPress={() => handleReelShare(r)} style={{ alignItems: "center" }}>
-                                    <Ionicons name="paper-plane-outline" size={28} color="#FFFFFF" />
-                                    <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>Share</Text>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity disabled={!hasServerId || !!reelBusyState[`save-${id}`]} onPress={() => handleReelSave(r)} style={{ alignItems: "center" }}>
-                                    <Ionicons name={saved ? "bookmark" : "bookmark-outline"} size={28} color="#FFFFFF" />
-                                    <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>Save</Text>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity onPress={() => handleReelDownload(r)} style={{ alignItems: "center" }}>
-                                    <Ionicons name="download-outline" size={28} color="#FFFFFF" />
-                                    <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>Download</Text>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </View>
-                          </View>
-                        );
-                      }}
-                    />
-                  ) : (
-                    <View style={{ flex: 1, padding: 24, alignItems: "center", justifyContent: "center" }}>
-                      <Text style={{ color: "#FFFFFF" }}>No reels yet.</Text>
-                      <TouchableOpacity onPress={createReel} style={{ padding: 14 }}>
-                        <Text style={{ color: "#1685D9", fontWeight: "700" }}>Upload Reel</Text>
+                    >
+                      <TouchableOpacity
+                        disabled={mediaDraftIndex === 0}
+                        onPress={() => {
+                          setMediaDraftIndex((index) => Math.max(0, index - 1));
+                          setZoomEffectEnabled(false);
+                          setZoomEffectLevel(1.5);
+                          setZoomEffectDuration(3);
+                          setMusicAsset(null);
+                          setMusicStart(0);
+                        }}
+                        style={{ padding: 10 }}
+                      >
+                        <Text style={{ color: "#1685D9", fontSize: 16 }}>
+                          Previous
+                        </Text>
+                      </TouchableOpacity>
+                      <Text style={{ color: "#555555" }}>
+                        {mediaDraftIndex + 1} / {assets.length}
+                      </Text>
+                      <TouchableOpacity
+                        disabled={mediaDraftIndex >= assets.length - 1}
+                        onPress={() => {
+                          setMediaDraftIndex((index) =>
+                            Math.min(assets.length - 1, index + 1),
+                          );
+                          setZoomEffectEnabled(false);
+                          setZoomEffectLevel(1.5);
+                          setZoomEffectDuration(3);
+                          setMusicAsset(null);
+                          setMusicStart(0);
+                        }}
+                        style={{ padding: 10 }}
+                      >
+                        <Text style={{ color: "#1685D9", fontSize: 16 }}>
+                          Next
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   )}
-                </View>
-              ) : activeTab === 'Home' ? (
-        <View
-          style={styles.content}
 
-        >
-
-          <GestureDetector gesture={feedScrollGesture}>
-          <FlatList
-              ListHeaderComponent={(
-                <View
-                  onLayout={event => {
-                    const height = event.nativeEvent.layout.height;
-                    if (height > 0 && height !== feedHeaderHeight) setFeedHeaderHeight(height);
-                  }}
-                >
-          {renderAppHeader()}
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stories}>
-            {(() => {
-              const ownGroup = groupedStories.find(group => group.own);
-              return (
-                <View style={{ width: 68, alignItems: 'center' }}>
-                  <Story
-                    item={{ name: 'Your story', color: '#DDE7F5', own: true, uri: profile?.avatarUrl }}
-                    onPress={() => {
-                      if (ownGroup) openStoryGroup(ownGroup.items);
-                      else createStory();
+                  <TextInput
+                    value={mediaDraftCaption}
+                    onChangeText={setMediaDraftCaption}
+                    placeholder="Write a caption..."
+                    multiline
+                    maxLength={2200}
+                    style={{
+                      minHeight: 48,
+                      maxHeight: 110,
+                      borderWidth: 1,
+                      borderColor: "#DDDDDD",
+                      borderRadius: 10,
+                      padding: 12,
+                      marginTop: 8,
+                      color: "#222222",
                     }}
                   />
-                  <TouchableOpacity onPress={createStory} accessibilityLabel="Add Status"
-                    style={{ position: 'absolute', right: 0, bottom: 17, width: 23, height: 23, borderRadius: 12, backgroundColor: '#1685D9', borderWidth: 2, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
-                    <Ionicons name="add" size={17} color="#FFFFFF" />
-                  </TouchableOpacity>
-                </View>
+                  {mediaDraft.kind === "reels" && isVideo && (
+                    <View style={{ paddingTop: 10, paddingBottom: 8 }}>
+                      <TouchableOpacity
+                        disabled={busy}
+                        onPress={chooseMusicFile}
+                        style={{
+                          padding: 11,
+                          borderWidth: 1,
+                          borderColor: "#DDDDDD",
+                          borderRadius: 8,
+                        }}
+                      >
+                        <Text style={{ color: "#1685D9", fontWeight: "600" }}>
+                          {musicAsset
+                            ? `Music: ${musicAsset.name || "Selected"} · Change Music`
+                            : "♫ Choose Music File"}
+                        </Text>
+                      </TouchableOpacity>
+                      {musicAsset && (
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (musicPlayerStatus.playing) {
+                              musicPlayer.pause();
+                            } else {
+                              musicPlayer.play();
+                            }
+                          }}
+                          style={{
+                            marginTop: 8,
+                            padding: 10,
+                            borderWidth: 1,
+                            borderColor: "#DDDDDD",
+                            borderRadius: 8,
+                          }}
+                        >
+                          <Text style={{ color: "#1685D9", fontWeight: "600" }}>
+                            {musicPlayerStatus.playing
+                              ? "Ⅱ Pause Music Preview"
+                              : "▶ Preview Music"}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      {musicAsset && (
+                        <View style={{ paddingTop: 8 }}>
+                          <Text style={{ color: "#333333" }}>
+                            Music volume: {Math.round(musicVolume * 100)}%
+                          </Text>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                            }}
+                          >
+                            <TouchableOpacity
+                              onPress={() =>
+                                setMusicVolume((v) =>
+                                  Math.max(0, Number((v - 0.1).toFixed(1))),
+                                )
+                              }
+                              style={{
+                                padding: 10,
+                                borderWidth: 1,
+                                borderColor: "#DDDDDD",
+                                borderRadius: 8,
+                              }}
+                            >
+                              <Text style={{ color: "#1685D9" }}>−</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() =>
+                                setMusicVolume((v) =>
+                                  Math.min(1, Number((v + 0.1).toFixed(1))),
+                                )
+                              }
+                              style={{
+                                padding: 10,
+                                marginLeft: 8,
+                                borderWidth: 1,
+                                borderColor: "#DDDDDD",
+                                borderRadius: 8,
+                              }}
+                            >
+                              <Text style={{ color: "#1685D9" }}>＋</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => {
+                                musicPlayer.pause();
+                                setMusicAsset(null);
+                                setMusicStart(0);
+                              }}
+                              style={{ padding: 10, marginLeft: 8 }}
+                            >
+                              <Text style={{ color: "#D93025" }}>
+                                Remove Music
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <Text style={{ color: "#333333", paddingTop: 6 }}>
+                            Music start: {musicStart}s
+                          </Text>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                            }}
+                          >
+                            <TouchableOpacity
+                              onPress={() =>
+                                setMusicStart((v) => Math.max(0, v - 5))
+                              }
+                              style={{
+                                padding: 10,
+                                borderWidth: 1,
+                                borderColor: "#DDDDDD",
+                                borderRadius: 8,
+                              }}
+                            >
+                              <Text style={{ color: "#1685D9" }}>−5s</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => setMusicStart((v) => v + 5)}
+                              style={{
+                                padding: 10,
+                                marginLeft: 8,
+                                borderWidth: 1,
+                                borderColor: "#DDDDDD",
+                                borderRadius: 8,
+                              }}
+                            >
+                              <Text style={{ color: "#1685D9" }}>＋5s</Text>
+                            </TouchableOpacity>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => setKeepOriginalAudio((v) => !v)}
+                            style={{ paddingVertical: 9 }}
+                          >
+                            <Text
+                              style={{ color: "#1685D9", fontWeight: "600" }}
+                            >
+                              Original video audio:{" "}
+                              {keepOriginalAudio ? "ON" : "OFF"}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  )}
+
+                  {mediaDraft.kind === "reels" && isVideo && (
+                    <View style={{ paddingTop: 12 }}>
+                      <TouchableOpacity
+                        onPress={() => setZoomEffectEnabled((v) => !v)}
+                        style={{
+                          padding: 10,
+                          borderRadius: 8,
+                          borderWidth: 1,
+                          borderColor: zoomEffectEnabled
+                            ? "#0095F6"
+                            : "#DDDDDD",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: zoomEffectEnabled ? "#0095F6" : "#333333",
+                            fontWeight: "600",
+                          }}
+                        >
+                          {zoomEffectEnabled
+                            ? "Zoom Effect ON"
+                            : "Enable Zoom Effect"}
+                        </Text>
+                      </TouchableOpacity>
+                      {zoomEffectEnabled && (
+                        <View style={{ paddingTop: 8 }}>
+                          <Text style={{ color: "#333333" }}>
+                            Zoom level: {zoomEffectLevel.toFixed(1)}x
+                          </Text>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              paddingTop: 6,
+                            }}
+                          >
+                            <TouchableOpacity
+                              onPress={() =>
+                                setZoomEffectLevel((v) =>
+                                  Math.max(1.2, Number((v - 0.1).toFixed(1))),
+                                )
+                              }
+                              style={{
+                                padding: 10,
+                                borderWidth: 1,
+                                borderColor: "#DDDDDD",
+                                borderRadius: 8,
+                              }}
+                            >
+                              <Text style={{ color: "#1685D9" }}>−</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() =>
+                                setZoomEffectLevel((v) =>
+                                  Math.min(2.5, Number((v + 0.1).toFixed(1))),
+                                )
+                              }
+                              style={{
+                                padding: 10,
+                                marginLeft: 8,
+                                borderWidth: 1,
+                                borderColor: "#DDDDDD",
+                                borderRadius: 8,
+                              }}
+                            >
+                              <Text style={{ color: "#1685D9" }}>＋</Text>
+                            </TouchableOpacity>
+                          </View>
+                          <Text style={{ color: "#333333", paddingTop: 8 }}>
+                            Effect duration: {zoomEffectDuration}s
+                          </Text>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              paddingTop: 6,
+                            }}
+                          >
+                            <TouchableOpacity
+                              onPress={() =>
+                                setZoomEffectDuration((v) => Math.max(1, v - 1))
+                              }
+                              style={{
+                                padding: 10,
+                                borderWidth: 1,
+                                borderColor: "#DDDDDD",
+                                borderRadius: 8,
+                              }}
+                            >
+                              <Text style={{ color: "#1685D9" }}>−</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() =>
+                                setZoomEffectDuration((v) =>
+                                  Math.min(15, v + 1),
+                                )
+                              }
+                              style={{
+                                padding: 10,
+                                marginLeft: 8,
+                                borderWidth: 1,
+                                borderColor: "#DDDDDD",
+                                borderRadius: 8,
+                              }}
+                            >
+                              <Text style={{ color: "#1685D9" }}>＋</Text>
+                            </TouchableOpacity>
+                          </View>
+                          <Text
+                            style={{
+                              color: "#777777",
+                              fontSize: 12,
+                              paddingTop: 6,
+                            }}
+                          >
+                            The effect is processed before upload.
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </ScrollView>
               );
             })()}
-            {groupedStories.filter(group => !group.own).map(group => (
-              <Story
-                key={group.key}
-                item={{ ...group.items[0], name: group.name, own: false }}
-                onPress={() => openStoryGroup(group.items)}
-              />
-            ))}
-            {stories.filter(story => !story.own).map(story => (
-              <Story key={story.name} item={story} onPress={() => openStoryGroup([story])} />
-            ))}
-          </ScrollView>
-          <View style={styles.feedDivider} />
+          <View
+                    style={{
+                      paddingHorizontal: 12,
+                      paddingTop: 10,
+                      paddingBottom: 22,
+                      borderTopWidth: 1,
+                      borderTopColor: "#EEEEEE",
+                      backgroundColor: "#FFFFFF",
+                      display: mediaDraft?.kind === "stories" ? "none" : "flex",
+                    }}
+                  >
+                    <TouchableOpacity
+                      disabled={busy}
+                      onPress={uploadDraftMedia}
+                      style={{
+                        width: "100%",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingVertical: 14,
+                        backgroundColor: "#0095F6",
+                        borderRadius: 10,
+                        opacity: busy ? 0.6 : 1,
+                      }}
+                    >
+                      <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}>
+                        {busy ? "Sharing..." : "Share"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+        </SafeAreaView>
+      </Modal>
+
+      {activeTab !== "Reels" && activeTab !== "Home" && renderAppHeader()}
+
+      {!serverOnline && (
+        <Text
+          style={{
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+            color: "#888",
+            fontSize: 11,
+          }}
+        >
+          Server connection unavailable
+        </Text>
+      )}
+      {busy && (
+        <Text style={{ padding: 5, color: "#1685D9" }}>Uploading media…</Text>
+      )}
+
+      {activeTab === "Reels" ? (
+        <View
+          style={{ flex: 1, backgroundColor: "#000000" }}
+          onLayout={(event) => {
+            const height = event.nativeEvent.layout.height;
+            if (height > 0 && height !== reelViewportHeight)
+              setReelViewportHeight(height);
+          }}
+        >
+          {reels.length ? (
+            <FlatList
+              ref={reelListRef}
+              data={reels}
+              keyExtractor={(item, index) =>
+                String(item.id || item.uri || index)
+              }
+              scrollEnabled={!reelZoomed}
+              pagingEnabled
+              snapToInterval={reelViewportHeight || undefined}
+              snapToAlignment="start"
+              decelerationRate="fast"
+              nestedScrollEnabled
+              showsVerticalScrollIndicator={false}
+              initialNumToRender={2}
+              maxToRenderPerBatch={2}
+              windowSize={5}
+              removeClippedSubviews={false}
+              getItemLayout={(_, index) => ({
+                length: reelViewportHeight,
+                offset: reelViewportHeight * index,
+                index,
+              })}
+              scrollEventThrottle={16}
+              onScroll={(event) => {
+                if (reelViewportHeight > 0) {
+                  const nextIndex = Math.max(
+                    0,
+                    Math.min(
+                      Math.round(
+                        event.nativeEvent.contentOffset.y / reelViewportHeight,
+                      ),
+                      reels.length - 1,
+                    ),
+                  );
+                  setActiveReelIndex((current) =>
+                    current === nextIndex ? current : nextIndex,
+                  );
+                }
+              }}
+              onMomentumScrollEnd={(event) => {
+                if (reelViewportHeight > 0) {
+                  const nextIndex = Math.round(
+                    event.nativeEvent.contentOffset.y / reelViewportHeight,
+                  );
+                  setActiveReelIndex(
+                    Math.max(0, Math.min(nextIndex, reels.length - 1)),
+                  );
+                }
+              }}
+              renderItem={({ item: r, index }) => {
+                const id = Number(r.id);
+                const hasServerId =
+                  Number.isSafeInteger(id) && id > 0 && !r.isStarterReel;
+                const username = String(r.user || r.username || "you").replace(
+                  /^@/,
+                  "",
+                );
+                const liked = reelLikeState[id] ?? !!r.isLiked;
+                const saved = reelSavedState[id] ?? !!r.isSaved;
+                const following = reelFollowState[username] ?? !!r.isFollowing;
+                const rowHeight =
+                  reelViewportHeight || Dimensions.get("window").height;
+                return (
+                  <View
+                    style={{
+                      width: "100%",
+                      height: rowHeight,
+                      backgroundColor: "#000000",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {r.uri && Math.abs(index - activeReelIndex) <= 1 ? (
+                      <ReelVideo
+                        uri={r.uri}
+                        height={rowHeight}
+                        active={
+                          activeTab === "Reels" && index === activeReelIndex
+                        }
+                        muted={mutedReels}
+                        contentFit="cover"
+                        zoomEnabled={false}
+                        onZoomChange={(level) => setReelZoomed(level > 1.01)}
+                      />
+                    ) : null}
+                    <View
+                      pointerEvents="box-none"
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        justifyContent: "space-between",
+                        paddingHorizontal: 15,
+                        paddingTop: 15,
+                        paddingBottom: 18,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "flex-end",
+                        }}
+                      >
+                        <TouchableOpacity
+                          onPress={() => setMutedReels((value) => !value)}
+                          style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 22,
+                            backgroundColor: "rgba(0,0,0,0.48)",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                          accessibilityLabel={
+                            mutedReels ? "Unmute reel" : "Mute reel"
+                          }
+                        >
+                          <Ionicons
+                            name={mutedReels ? "volume-mute" : "volume-high"}
+                            size={22}
+                            color="#FFFFFF"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                      <View
+                        style={{ flexDirection: "row", alignItems: "flex-end" }}
+                      >
+                        <View style={{ flex: 1, paddingRight: 12 }}>
+                          <TouchableOpacity
+                            onPress={() => openUserProfile(username)}
+                            style={{
+                              alignSelf: "flex-start",
+                              paddingVertical: 7,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: "#FFFFFF",
+                                fontSize: 16,
+                                fontWeight: "800",
+                              }}
+                            >
+                              @{username}
+                            </Text>
+                          </TouchableOpacity>
+                          {!!r.caption && (
+                            <Text
+                              numberOfLines={3}
+                              style={{
+                                color: "#FFFFFF",
+                                fontSize: 14,
+                                lineHeight: 20,
+                                textShadowColor: "#000000",
+                                textShadowRadius: 5,
+                              }}
+                            >
+                              {r.caption}
+                            </Text>
+                          )}
+                          {username !== (authSession?.username || "you") && (
+                            <TouchableOpacity
+                              disabled={
+                                !hasServerId ||
+                                !!reelBusyState[`follow-${username}`]
+                              }
+                              onPress={() => handleReelFollow(r)}
+                              style={{
+                                marginTop: 10,
+                                alignSelf: "flex-start",
+                                borderWidth: 1,
+                                borderColor: "#FFFFFF",
+                                borderRadius: 8,
+                                paddingHorizontal: 14,
+                                paddingVertical: 7,
+                                opacity: hasServerId ? 1 : 0.55,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  color: "#FFFFFF",
+                                  fontWeight: "800",
+                                  fontSize: 12,
+                                }}
+                              >
+                                {r.followRequestStatus === "pending"
+                                  ? "Requested"
+                                  : following
+                                    ? "Following"
+                                    : "Follow"}
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                        <View
+                          style={{
+                            alignItems: "center",
+                            gap: 22,
+                            paddingBottom: 4,
+                          }}
+                        >
+                          <TouchableOpacity
+                            disabled={!hasServerId || !!reelBusyState[id]}
+                            onPress={() => handleReelLike(r)}
+                            style={{ alignItems: "center" }}
+                          >
+                            <Ionicons
+                              name={liked ? "heart" : "heart-outline"}
+                              size={31}
+                              color={liked ? "#FF3158" : "#FFFFFF"}
+                            />
+                            <Text
+                              style={{
+                                color: "#FFFFFF",
+                                fontSize: 11,
+                                marginTop: 3,
+                              }}
+                            >
+                              {r.likesCount ?? r.likes ?? "0"}
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => handleOpenReelComments(r)}
+                            style={{ alignItems: "center" }}
+                          >
+                            <Ionicons
+                              name="chatbubble-outline"
+                              size={28}
+                              color="#FFFFFF"
+                            />
+                            <Text
+                              style={{
+                                color: "#FFFFFF",
+                                fontSize: 11,
+                                marginTop: 3,
+                              }}
+                            >
+                              Comment
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => handleReelShare(r)}
+                            style={{ alignItems: "center" }}
+                          >
+                            <Ionicons
+                              name="paper-plane-outline"
+                              size={28}
+                              color="#FFFFFF"
+                            />
+                            <Text
+                              style={{
+                                color: "#FFFFFF",
+                                fontSize: 11,
+                                marginTop: 3,
+                              }}
+                            >
+                              Share
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            disabled={
+                              !hasServerId || !!reelBusyState[`save-${id}`]
+                            }
+                            onPress={() => handleReelSave(r)}
+                            style={{ alignItems: "center" }}
+                          >
+                            <Ionicons
+                              name={saved ? "bookmark" : "bookmark-outline"}
+                              size={28}
+                              color="#FFFFFF"
+                            />
+                            <Text
+                              style={{
+                                color: "#FFFFFF",
+                                fontSize: 11,
+                                marginTop: 3,
+                              }}
+                            >
+                              Save
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => handleReelDownload(r)}
+                            style={{ alignItems: "center" }}
+                          >
+                            <Ionicons
+                              name="download-outline"
+                              size={28}
+                              color="#FFFFFF"
+                            />
+                            <Text
+                              style={{
+                                color: "#FFFFFF",
+                                fontSize: 11,
+                                marginTop: 3,
+                              }}
+                            >
+                              Download
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                );
+              }}
+            />
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                padding: 24,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ color: "#FFFFFF" }}>No reels yet.</Text>
+              <TouchableOpacity onPress={createReel} style={{ padding: 14 }}>
+                <Text style={{ color: "#1685D9", fontWeight: "700" }}>
+                  Upload Reel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      ) : activeTab === "Home" ? (
+        <View style={styles.content}>
+          <GestureDetector gesture={feedScrollGesture}>
+            <FlatList
+              ListHeaderComponent={
+                <View
+                  onLayout={(event) => {
+                    const height = event.nativeEvent.layout.height;
+                    if (height > 0 && height !== feedHeaderHeight)
+                      setFeedHeaderHeight(height);
+                  }}
+                >
+                  {renderAppHeader()}
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.stories}
+                  >
+                    {(() => {
+                      const ownGroup = groupedStories.find(
+                        (group) => group.own,
+                      );
+                      return (
+                        <View style={{ width: 68, alignItems: "center" }}>
+                          <Story
+                            item={{
+                              name: "Your story",
+                              color: "#DDE7F5",
+                              own: true,
+                              uri: profile?.avatarUrl,
+                            }}
+                            onPress={() => {
+                              if (ownGroup) openStoryGroup(ownGroup.items);
+                              else createStory();
+                            }}
+                          />
+                          <TouchableOpacity
+                            onPress={createStory}
+                            accessibilityLabel="Add Status"
+                            style={{
+                              position: "absolute",
+                              right: 0,
+                              bottom: 17,
+                              width: 23,
+                              height: 23,
+                              borderRadius: 12,
+                              backgroundColor: "#1685D9",
+                              borderWidth: 2,
+                              borderColor: "#FFFFFF",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Ionicons name="add" size={17} color="#FFFFFF" />
+                          </TouchableOpacity>
+                        </View>
+                      );
+                    })()}
+                    {groupedStories
+                      .filter((group) => !group.own)
+                      .map((group) => (
+                        <Story
+                          key={group.key}
+                          item={{
+                            ...group.items[0],
+                            name: group.name,
+                            own: false,
+                          }}
+                          onPress={() => openStoryGroup(group.items)}
+                        />
+                      ))}
+                    {stories
+                      .filter((story) => !story.own)
+                      .map((story) => (
+                        <Story
+                          key={story.name}
+                          item={story}
+                          onPress={() => openStoryGroup([story])}
+                        />
+                      ))}
+                  </ScrollView>
+                  <View style={styles.feedDivider} />
                 </View>
-              )}
-                onLayout={event => {
-                  const height = event.nativeEvent.layout.height;
-                  if (height > 0 && height !== feedViewportHeight) setFeedViewportHeight(height);
-                }}
+              }
+              onLayout={(event) => {
+                const height = event.nativeEvent.layout.height;
+                if (height > 0 && height !== feedViewportHeight)
+                  setFeedViewportHeight(height);
+              }}
               data={groupPostItems(feedPosts)}
-              keyExtractor={(item, index) => String(item.groupId || item.id || `${item.user}-${index}`)}
+              keyExtractor={(item, index) =>
+                String(item.groupId || item.id || `${item.user}-${index}`)
+              }
               style={{ flex: 1 }}
-              snapToOffsets={feedViewportHeight > 0 && feedHeaderHeight > 0
-                ? Array.from({ length: groupPostItems(feedPosts).length + 1 }, (_, index) =>
-                    index === 0 ? 0 : feedHeaderHeight + (index - 1) * feedViewportHeight
-                  )
-                : undefined}
+              snapToOffsets={
+                feedViewportHeight > 0 && feedHeaderHeight > 0
+                  ? Array.from(
+                      { length: groupPostItems(feedPosts).length + 1 },
+                      (_, index) =>
+                        index === 0
+                          ? 0
+                          : feedHeaderHeight + (index - 1) * feedViewportHeight,
+                    )
+                  : undefined
+              }
               snapToAlignment="start"
               decelerationRate="fast"
               disableIntervalMomentum
@@ -4026,27 +6610,44 @@ const refreshProfile = React.useCallback(async () => {
               maxToRenderPerBatch={2}
               windowSize={3}
               removeClippedSubviews
-              getItemLayout={feedViewportHeight > 0 ? (_, index) => ({
-                length: feedViewportHeight,
-                offset: feedHeaderHeight + feedViewportHeight * index,
-                index
-              }) : undefined}
+              getItemLayout={
+                feedViewportHeight > 0
+                  ? (_, index) => ({
+                      length: feedViewportHeight,
+                      offset: feedHeaderHeight + feedViewportHeight * index,
+                      index,
+                    })
+                  : undefined
+              }
               scrollEventThrottle={16}
-              onScroll={event => {
+              onScroll={(event) => {
                 if (feedViewportHeight > 0) {
                   const count = groupPostItems(feedPosts).length;
-                  const nextIndex = Math.max(0, Math.min(
-                    Math.round((event.nativeEvent.contentOffset.y - feedHeaderHeight) / feedViewportHeight),
-                    Math.max(0, count - 1)
-                  ));
-                  setActiveFeedIndex(current => current === nextIndex ? current : nextIndex);
+                  const nextIndex = Math.max(
+                    0,
+                    Math.min(
+                      Math.round(
+                        (event.nativeEvent.contentOffset.y - feedHeaderHeight) /
+                          feedViewportHeight,
+                      ),
+                      Math.max(0, count - 1),
+                    ),
+                  );
+                  setActiveFeedIndex((current) =>
+                    current === nextIndex ? current : nextIndex,
+                  );
                 }
               }}
-              onMomentumScrollEnd={event => {
+              onMomentumScrollEnd={(event) => {
                 if (feedViewportHeight > 0) {
                   const count = groupPostItems(feedPosts).length;
-                  const nextIndex = Math.round((event.nativeEvent.contentOffset.y - feedHeaderHeight) / feedViewportHeight);
-                  setActiveFeedIndex(Math.max(0, Math.min(nextIndex, Math.max(0, count - 1))));
+                  const nextIndex = Math.round(
+                    (event.nativeEvent.contentOffset.y - feedHeaderHeight) /
+                      feedViewportHeight,
+                  );
+                  setActiveFeedIndex(
+                    Math.max(0, Math.min(nextIndex, Math.max(0, count - 1))),
+                  );
                 }
               }}
               renderItem={({ item: post, index }) => (
@@ -4054,46 +6655,76 @@ const refreshProfile = React.useCallback(async () => {
                   key={post.groupId || post.id || `${post.user}-${index}`}
                   post={{
                     ...post,
-                    avatarUrl: (post.user || 'you') === 'you'
-                      ? (profile?.avatarUrl || post.avatarUrl)
-                      : post.avatarUrl
+                    avatarUrl:
+                      (post.user || "you") === "you"
+                        ? profile?.avatarUrl || post.avatarUrl
+                        : post.avatarUrl,
                   }}
                   authSession={authSession}
                   pageHeight={feedViewportHeight}
-                  active={activeTab === 'Home' && index === activeFeedIndex}
+                  active={activeTab === "Home" && index === activeFeedIndex}
                   onOpen={() => {
                     setSelectedPostMediaIndex(0);
                     setSelectedPost(post);
                   }}
-                  onCreateAction={action => {
-                    if (action === 'reel-camera') openReelCamera();
-                    else if (action === 'reel-photos') createReelFromPhotos();
-                    else if (action === 'photo-post') openCaptureCamera('posts', 'picture');
-                    else if (action === 'video-post') openCaptureCamera('posts', 'video');
-                    else if (action === 'story-camera') openCaptureCamera('stories', 'picture');
-                    else if (action === 'story-gallery') createStory();
-                    else if (action === 'post-gallery') pickImage();
+                  onCreateAction={(action) => {
+                    if (action === "live-camera") openLiveCamera();
+  else if (action === "reel-camera") openReelCamera();
+                    else if (action === "reel-photos") createReelFromPhotos();
+                    else if (action === "photo-post")
+                      openCaptureCamera("posts", "picture");
+                    else if (action === "video-post")
+                      openCaptureCamera("posts", "video");
+                    else if (action === "story-camera")
+                      openCaptureCamera("stories", "picture");
+                    else if (action === "story-gallery") createStory();
+                    else if (action === "post-gallery") pickImage();
                   }}
                 />
               )}
               ListEmptyComponent={
-                <View style={{ flex: 1, minHeight: 260, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ color: '#777777' }}>No posts yet.</Text>
+                <View
+                  style={{
+                    flex: 1,
+                    minHeight: 260,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ color: "#777777" }}>No posts yet.</Text>
                 </View>
               }
             />
           </GestureDetector>
         </View>
-) : activeTab === 'Search' ? (
+      ) : activeTab === "Search" ? (
         <ScrollView
           style={styles.content}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ padding: 16, paddingBottom: 30 }}
         >
-          <Text style={{ color: '#171717', fontSize: 24, fontWeight: '700', marginBottom: 16 }}>
+          <Text
+            style={{
+              color: "#171717",
+              fontSize: 24,
+              fontWeight: "700",
+              marginBottom: 16,
+            }}
+          >
             Search
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F5', borderRadius: 14, paddingHorizontal: 14, marginBottom: 18, borderWidth: 1, borderColor: '#E8E8E8' }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#F5F5F5",
+              borderRadius: 14,
+              paddingHorizontal: 14,
+              marginBottom: 18,
+              borderWidth: 1,
+              borderColor: "#E8E8E8",
+            }}
+          >
             <Ionicons name="search-outline" size={20} color="#777777" />
             <TextInput
               value={searchQuery}
@@ -4103,55 +6734,116 @@ const refreshProfile = React.useCallback(async () => {
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="search"
-              style={{ flex: 1, paddingVertical: 14, paddingHorizontal: 10, color: '#171717', fontSize: 15 }}
+              style={{
+                flex: 1,
+                paddingVertical: 14,
+                paddingHorizontal: 10,
+                color: "#171717",
+                fontSize: 15,
+              }}
             />
             {!!searchQuery && (
-              <TouchableOpacity onPress={() => setSearchQuery('')} accessibilityLabel="Clear search">
+              <TouchableOpacity
+                onPress={() => setSearchQuery("")}
+                accessibilityLabel="Clear search"
+              >
                 <Ionicons name="close-circle" size={20} color="#777777" />
               </TouchableOpacity>
             )}
           </View>
           {searchQuery.trim().length < 2 ? (
-            <Text style={{ color: '#777777', paddingVertical: 12 }}>
+            <Text style={{ color: "#777777", paddingVertical: 12 }}>
               Enter at least 2 characters to search for people.
             </Text>
           ) : searchLoading ? (
-            <Text style={{ color: '#777777', paddingVertical: 12 }}>Searching...</Text>
+            <Text style={{ color: "#777777", paddingVertical: 12 }}>
+              Searching...
+            </Text>
           ) : searchError ? (
-            <Text style={{ color: '#B42318', paddingVertical: 12 }}>{searchError}</Text>
+            <Text style={{ color: "#B42318", paddingVertical: 12 }}>
+              {searchError}
+            </Text>
           ) : searchResults.length === 0 ? (
-            <Text style={{ color: '#777777', paddingVertical: 12 }}>No users found.</Text>
+            <Text style={{ color: "#777777", paddingVertical: 12 }}>
+              No users found.
+            </Text>
           ) : (
             searchResults.map((item) => (
               <View
                 key={item.username}
-                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 11,
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#EEEEEE",
+                }}
               >
                 <TouchableOpacity
                   onPress={() => openUserProfile(item.username)}
                   activeOpacity={0.75}
-                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 }}
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    minWidth: 0,
+                  }}
                 >
-                {item.avatarUrl ? (
-                  <Image
-                    source={{ uri: item.avatarUrl.startsWith('http') ? item.avatarUrl : 'https://bhumi-social-app-1.onrender.com' + item.avatarUrl }}
-                    style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#E4EAF4' }}
-                  />
-                ) : (
-                  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#DDE7F5', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: '#34415A', fontSize: 20, fontWeight: '700' }}>
-                      {(item.displayName || item.username || 'U').charAt(0).toUpperCase()}
+                  {item.avatarUrl ? (
+                    <Image
+                      source={{
+                        uri: item.avatarUrl.startsWith("http")
+                          ? item.avatarUrl
+                          : "https://bhumi-social-app-1.onrender.com" +
+                            item.avatarUrl,
+                      }}
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 24,
+                        backgroundColor: "#E4EAF4",
+                      }}
+                    />
+                  ) : (
+                    <View
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 24,
+                        backgroundColor: "#DDE7F5",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#34415A",
+                          fontSize: 20,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {(item.displayName || item.username || "U")
+                          .charAt(0)
+                          .toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text
+                      style={{
+                        color: "#171717",
+                        fontWeight: "700",
+                        fontSize: 15,
+                      }}
+                    >
+                      {item.displayName || item.username}
+                    </Text>
+                    <Text
+                      style={{ color: "#777777", fontSize: 13, marginTop: 3 }}
+                    >
+                      @{item.username}
                     </Text>
                   </View>
-                )}
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={{ color: '#171717', fontWeight: '700', fontSize: 15 }}>
-                    {item.displayName || item.username}
-                  </Text>
-                  <Text style={{ color: '#777777', fontSize: 13, marginTop: 3 }}>
-                    @{item.username}
-                  </Text>
-                </View>
                   <Ionicons name="chevron-forward" size={18} color="#999999" />
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -4159,27 +6851,67 @@ const refreshProfile = React.useCallback(async () => {
                   onPress={async () => {
                     const username = item.username;
                     if (!username || username === authSession?.username) return;
-                    setSearchFollowBusy(prev => ({ ...prev, [username]: true }));
+                    setSearchFollowBusy((prev) => ({
+                      ...prev,
+                      [username]: true,
+                    }));
                     try {
                       const currentlyFollowing = !!item.isFollowing;
-                                  const requestPending = item.followRequestStatus === 'pending';
-                                  const result = currentlyFollowing || requestPending
-                        ? await unfollowProfile(username, authSession?.username || 'you')
-                        : await followProfile(username, authSession?.username || 'you');
-                      const status = result?.status || (currentlyFollowing ? 'not_following' : 'following');
-                      setSearchResults(prev => prev.map(user =>
-                        user.username === username
-                          ? { ...user, isFollowing: status === 'following', followRequestStatus: status === 'requested' ? 'pending' : status === 'following' ? '' : '' }
-                          : user
-                      ));
+                      const requestPending =
+                        item.followRequestStatus === "pending";
+                      const result =
+                        currentlyFollowing || requestPending
+                          ? await unfollowProfile(
+                              username,
+                              authSession?.username || "you",
+                            )
+                          : await followProfile(
+                              username,
+                              authSession?.username || "you",
+                            );
+                      const status =
+                        result?.status ||
+                        (currentlyFollowing ? "not_following" : "following");
+                      setSearchResults((prev) =>
+                        prev.map((user) =>
+                          user.username === username
+                            ? {
+                                ...user,
+                                isFollowing: status === "following",
+                                followRequestStatus:
+                                  status === "requested"
+                                    ? "pending"
+                                    : status === "following"
+                                      ? ""
+                                      : "",
+                              }
+                            : user,
+                        ),
+                      );
                       Alert.alert(
-                        status === 'requested' ? 'Request sent' : status === 'following' ? 'Following' : 'Updated',
-                        status === 'requested' ? 'Private account follow request भेज दी गई।' : status === 'following' ? 'अब आप इस user को follow कर रहे हैं।' : requestPending ? 'Follow request cancel कर दी गई।' : 'Follow हट गया।'
+                        status === "requested"
+                          ? "Request sent"
+                          : status === "following"
+                            ? "Following"
+                            : "Updated",
+                        status === "requested"
+                          ? "Private account follow request भेज दी गई।"
+                          : status === "following"
+                            ? "अब आप इस user को follow कर रहे हैं।"
+                            : requestPending
+                              ? "Follow request cancel कर दी गई।"
+                              : "Follow हट गया।",
                       );
                     } catch (e) {
-                      Alert.alert('Follow नहीं हुआ', e.message || 'फिर से कोशिश करें।');
+                      Alert.alert(
+                        "Follow नहीं हुआ",
+                        e.message || "फिर से कोशिश करें।",
+                      );
                     } finally {
-                      setSearchFollowBusy(prev => ({ ...prev, [username]: false }));
+                      setSearchFollowBusy((prev) => ({
+                        ...prev,
+                        [username]: false,
+                      }));
                     }
                   }}
                   activeOpacity={0.8}
@@ -4189,219 +6921,671 @@ const refreshProfile = React.useCallback(async () => {
                     paddingHorizontal: 12,
                     paddingVertical: 8,
                     borderRadius: 10,
-                    alignItems: 'center',
-                    backgroundColor: item.isFollowing ? '#F1F1F1' : item.followRequestStatus === 'pending' ? '#F1F1F1' : '#246BFD',
-                    opacity: searchFollowBusy[item.username] ? 0.55 : 1
+                    alignItems: "center",
+                    backgroundColor: item.isFollowing
+                      ? "#F1F1F1"
+                      : item.followRequestStatus === "pending"
+                        ? "#F1F1F1"
+                        : "#246BFD",
+                    opacity: searchFollowBusy[item.username] ? 0.55 : 1,
                   }}
                 >
-                  <Text style={{ color: item.isFollowing || item.followRequestStatus === 'pending' ? '#333333' : '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
-                    {searchFollowBusy[item.username] ? '...' : item.isFollowing ? 'Following' : item.followRequestStatus === 'pending' ? 'Requested' : item.followsYou ? 'Follow Back' : 'Follow'}
+                  <Text
+                    style={{
+                      color:
+                        item.isFollowing ||
+                        item.followRequestStatus === "pending"
+                          ? "#333333"
+                          : "#FFFFFF",
+                      fontSize: 12,
+                      fontWeight: "700",
+                    }}
+                  >
+                    {searchFollowBusy[item.username]
+                      ? "..."
+                      : item.isFollowing
+                        ? "Following"
+                        : item.followRequestStatus === "pending"
+                          ? "Requested"
+                          : item.followsYou
+                            ? "Follow Back"
+                            : "Follow"}
                   </Text>
                 </TouchableOpacity>
               </View>
             ))
           )}
         </ScrollView>
-      ) : activeTab === 'Profile' ? (
-        <ScrollView style={styles.content} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      ) : activeTab === "Profile" ? (
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        >
           {!profile ? (
-            <Text style={{ color: '#777', textAlign: 'center', padding: 24 }}>
+            <Text style={{ color: "#777", textAlign: "center", padding: 24 }}>
               Loading profile…
             </Text>
           ) : (
             <View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 22, padding: 18, backgroundColor: '#F8FAFF', borderWidth: 1, borderColor: '#DCE6FA', borderRadius: 24, elevation: 3 }}>
-                <TouchableOpacity onPress={chooseProfilePhoto} disabled={profileBusy}>
-                  <View style={{ width: 116, height: 116, borderRadius: 58, borderWidth: 3, borderColor: '#7C9FF2', padding: 2, alignItems: 'center', justifyContent: 'center' }}>
-{profile.avatarUrl ? (
-                    <Image source={{ uri: profile.avatarUrl }}
-                      onError={(e) => console.log('PROFILE_AVATAR_IMAGE_ERROR:', profile.avatarUrl, e.nativeEvent?.error)}
-                      onLoad={() => console.log('PROFILE_AVATAR_IMAGE_LOADED:', profile.avatarUrl)}
-                      style={{ width: 108, height: 108, borderRadius: 54, backgroundColor: '#DDE7F5' }} />
-                  ) : (
-                    <View style={{ width: 108, height: 108, borderRadius: 54,
-                      backgroundColor: '#E8EEFA', alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ color: '#4F83CC', fontSize: 32, fontWeight: '700' }}>
-                        {(profile.displayName || 'Y').charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  )}
-</View>
-                  <Text style={{ color: '#1685D9', fontSize: 12, textAlign: 'center', marginTop: 5 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 22,
+                  padding: 18,
+                  backgroundColor: "#F8FAFF",
+                  borderWidth: 1,
+                  borderColor: "#DCE6FA",
+                  borderRadius: 24,
+                  elevation: 3,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={chooseProfilePhoto}
+                  disabled={profileBusy}
+                >
+                  <View
+                    style={{
+                      width: 116,
+                      height: 116,
+                      borderRadius: 58,
+                      borderWidth: 3,
+                      borderColor: "#7C9FF2",
+                      padding: 2,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {profile.avatarUrl ? (
+                      <Image
+                        source={{ uri: profile.avatarUrl }}
+                        onError={(e) =>
+                          console.log(
+                            "PROFILE_AVATAR_IMAGE_ERROR:",
+                            profile.avatarUrl,
+                            e.nativeEvent?.error,
+                          )
+                        }
+                        onLoad={() =>
+                          console.log(
+                            "PROFILE_AVATAR_IMAGE_LOADED:",
+                            profile.avatarUrl,
+                          )
+                        }
+                        style={{
+                          width: 108,
+                          height: 108,
+                          borderRadius: 54,
+                          backgroundColor: "#DDE7F5",
+                        }}
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          width: 108,
+                          height: 108,
+                          borderRadius: 54,
+                          backgroundColor: "#E8EEFA",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#4F83CC",
+                            fontSize: 32,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {(profile.displayName || "Y").charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text
+                    style={{
+                      color: "#1685D9",
+                      fontSize: 12,
+                      textAlign: "center",
+                      marginTop: 5,
+                    }}
+                  >
                     Change Photo
                   </Text>
                 </TouchableOpacity>
 
                 <View style={{ flex: 1, marginLeft: 22 }}>
-                  <Text style={{ color: '#171A2B', fontSize: 21, fontWeight: '800' }}>
-                    {profile.displayName || 'you'}
+                  <Text
+                    style={{
+                      color: "#171A2B",
+                      fontSize: 21,
+                      fontWeight: "800",
+                    }}
+                  >
+                    {profile.displayName || "you"}
                   </Text>
-                  <Text style={{ color: '#7B8192', marginTop: 5, fontSize: 13 }}>@{profile.username || 'you'}</Text>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 15 }}>
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={{ color: '#171C2F', fontWeight: '900', fontSize: 18 }}>{profile.postsCount ?? 0}</Text>
-                      <Text style={{ color: '#858A9B', fontSize: 11 }}>Posts</Text>
+                  <Text
+                    style={{ color: "#7B8192", marginTop: 5, fontSize: 13 }}
+                  >
+                    @{profile.username || "you"}
+                  </Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginTop: 15,
+                    }}
+                  >
+                    <View style={{ alignItems: "center" }}>
+                      <Text
+                        style={{
+                          color: "#171C2F",
+                          fontWeight: "900",
+                          fontSize: 18,
+                        }}
+                      >
+                        {profile.postsCount ?? 0}
+                      </Text>
+                      <Text style={{ color: "#858A9B", fontSize: 11 }}>
+                        Posts
+                      </Text>
                     </View>
-                    <TouchableOpacity onPress={() => showProfileConnections('followers')} style={{ alignItems: 'center' }}>
-                      <Text style={{ color: '#171C2F', fontWeight: '900', fontSize: 18 }}>{profile.followersCount ?? 0}</Text>
-                      <Text style={{ color: '#858A9B', fontSize: 11 }}>Followers</Text>
+                    <TouchableOpacity
+                      onPress={() => showProfileConnections("followers")}
+                      style={{ alignItems: "center" }}
+                    >
+                      <Text
+                        style={{
+                          color: "#171C2F",
+                          fontWeight: "900",
+                          fontSize: 18,
+                        }}
+                      >
+                        {profile.followersCount ?? 0}
+                      </Text>
+                      <Text style={{ color: "#858A9B", fontSize: 11 }}>
+                        Followers
+                      </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => showProfileConnections('following')} style={{ alignItems: 'center' }}>
-                      <Text style={{ color: '#171C2F', fontWeight: '900', fontSize: 18 }}>{profile.followingCount ?? 0}</Text>
-                      <Text style={{ color: '#858A9B', fontSize: 11 }}>Following</Text>
+                    <TouchableOpacity
+                      onPress={() => showProfileConnections("following")}
+                      style={{ alignItems: "center" }}
+                    >
+                      <Text
+                        style={{
+                          color: "#171C2F",
+                          fontWeight: "900",
+                          fontSize: 18,
+                        }}
+                      >
+                        {profile.followingCount ?? 0}
+                      </Text>
+                      <Text style={{ color: "#858A9B", fontSize: 11 }}>
+                        Following
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               </View>
 
               {!profileEditing ? (
-                <View style={{ marginBottom: 18, padding: 12, borderWidth: 1, borderColor: '#EEEEEE', borderRadius: 16 }}>
-                  <Text style={{ color: '#171717', fontSize: 15, fontWeight: '800', marginBottom: 10 }}>Your Status</Text>
+                <View
+                  style={{
+                    marginBottom: 18,
+                    padding: 12,
+                    borderWidth: 1,
+                    borderColor: "#EEEEEE",
+                    borderRadius: 16,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#171717",
+                      fontSize: 15,
+                      fontWeight: "800",
+                      marginBottom: 10,
+                    }}
+                  >
+                    Your Status
+                  </Text>
                   {(() => {
-                    const ownStoryGroup = groupedStories.find(group => group.own);
+                    const ownStoryGroup = groupedStories.find(
+                      (group) => group.own,
+                    );
                     return (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-                          {ownStoryGroup ? (
-                            <Story item={{ ...ownStoryGroup.items[0], name: 'Your story', own: true }} onPress={() => openStoryGroup(ownStoryGroup.items)} />
-                          ) : null}
-                          <TouchableOpacity onPress={createStory} accessibilityLabel="Add Status"
-                            style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 20, backgroundColor: '#EEF6FF', flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                            <Ionicons name="add-circle" size={18} color="#1685D9" />
-                            <Text style={{ color: '#1685D9', fontWeight: '700' }}>Add Status</Text>
-                          </TouchableOpacity>
-                        </View>
-                      );
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 14,
+                        }}
+                      >
+                        {ownStoryGroup ? (
+                          <Story
+                            item={{
+                              ...ownStoryGroup.items[0],
+                              name: "Your story",
+                              own: true,
+                            }}
+                            onPress={() => openStoryGroup(ownStoryGroup.items)}
+                          />
+                        ) : null}
+                        <TouchableOpacity
+                          onPress={createStory}
+                          accessibilityLabel="Add Status"
+                          style={{
+                            paddingVertical: 10,
+                            paddingHorizontal: 14,
+                            borderRadius: 20,
+                            backgroundColor: "#EEF6FF",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 5,
+                          }}
+                        >
+                          <Ionicons
+                            name="add-circle"
+                            size={18}
+                            color="#1685D9"
+                          />
+                          <Text style={{ color: "#1685D9", fontWeight: "700" }}>
+                            Add Status
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    );
                   })()}
                 </View>
               ) : null}
 
-              {!!profile.bio &&
-                <Text style={{ color: '#454B60', marginBottom: 20, lineHeight: 23, fontSize: 14 }}>{profile.bio}</Text>}
+              {!!profile.bio && (
+                <Text
+                  style={{
+                    color: "#454B60",
+                    marginBottom: 20,
+                    lineHeight: 23,
+                    fontSize: 14,
+                  }}
+                >
+                  {profile.bio}
+                </Text>
+              )}
 
               {profileEditing ? (
                 <View>
-                  <Text style={{ color: '#555', marginBottom: 5 }}>Display Name</Text>
-                  <TextInput value={profileDraft.displayName}
-                    onChangeText={v => setProfileDraft(d => ({ ...d, displayName: v }))}
-                    maxLength={60} placeholder="Display Name"
-                    style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
-                      padding: 11, color: '#222', marginBottom: 12 }} />
-                  <Text style={{ color: '#555', marginBottom: 5 }}>Username (स्थायी)</Text>
-                  <Text style={{ color: '#888', paddingVertical: 10 }}>@{profile.username || 'you'}</Text>
-                  <Text style={{ color: '#555', marginBottom: 5 }}>Bio</Text>
-                  <TextInput value={profileDraft.bio}
-                    onChangeText={v => setProfileDraft(d => ({ ...d, bio: v }))}
-                    maxLength={300} multiline placeholder="Write about yourself"
-                    style={{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8,
-                      padding: 11, minHeight: 80, color: '#222', marginBottom: 12,
-                      textAlignVertical: 'top' }} />
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity onPress={saveProfile} disabled={profileBusy}
-                      style={{ backgroundColor: '#2563EB', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 13, marginRight: 10 }}>
-                      <Text style={{ color: '#FFF', fontWeight: '700' }}>
-                        {profileBusy ? 'Saving…' : 'Save'}
+                  <Text style={{ color: "#555", marginBottom: 5 }}>
+                    Display Name
+                  </Text>
+                  <TextInput
+                    value={profileDraft.displayName}
+                    onChangeText={(v) =>
+                      setProfileDraft((d) => ({ ...d, displayName: v }))
+                    }
+                    maxLength={60}
+                    placeholder="Display Name"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: "#DDD",
+                      borderRadius: 8,
+                      padding: 11,
+                      color: "#222",
+                      marginBottom: 12,
+                    }}
+                  />
+                  <Text style={{ color: "#555", marginBottom: 5 }}>
+                    Username (स्थायी)
+                  </Text>
+                  <Text style={{ color: "#888", paddingVertical: 10 }}>
+                    @{profile.username || "you"}
+                  </Text>
+                  <Text style={{ color: "#555", marginBottom: 5 }}>Bio</Text>
+                  <TextInput
+                    value={profileDraft.bio}
+                    onChangeText={(v) =>
+                      setProfileDraft((d) => ({ ...d, bio: v }))
+                    }
+                    maxLength={300}
+                    multiline
+                    placeholder="Write about yourself"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: "#DDD",
+                      borderRadius: 8,
+                      padding: 11,
+                      minHeight: 80,
+                      color: "#222",
+                      marginBottom: 12,
+                      textAlignVertical: "top",
+                    }}
+                  />
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <TouchableOpacity
+                      onPress={saveProfile}
+                      disabled={profileBusy}
+                      style={{
+                        backgroundColor: "#2563EB",
+                        paddingVertical: 13,
+                        paddingHorizontal: 24,
+                        borderRadius: 13,
+                        marginRight: 10,
+                      }}
+                    >
+                      <Text style={{ color: "#FFF", fontWeight: "700" }}>
+                        {profileBusy ? "Saving…" : "Save"}
                       </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => {
-                      setProfileDraft({ displayName: profile.displayName || 'you', bio: profile.bio || '' });
-                      setProfileEditing(false);
-                    }} style={{ padding: 12 }}>
-                      <Text style={{ color: '#555' }}>Back</Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setProfileDraft({
+                          displayName: profile.displayName || "you",
+                          bio: profile.bio || "",
+                        });
+                        setProfileEditing(false);
+                      }}
+                      style={{ padding: 12 }}
+                    >
+                      <Text style={{ color: "#555" }}>Back</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               ) : (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <TouchableOpacity onPress={() => setProfileEditing(true)}
-                    style={{ borderWidth: 1, borderColor: '#2563EB', borderRadius: 14, backgroundColor: '#2563EB', paddingVertical: 13, paddingHorizontal: 24, marginRight: 8, marginBottom: 8 }}>
-                    <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>Edit Profile</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => setProfileEditing(true)}
+                    style={{
+                      borderWidth: 1,
+                      borderColor: "#2563EB",
+                      borderRadius: 14,
+                      backgroundColor: "#2563EB",
+                      paddingVertical: 13,
+                      paddingHorizontal: 24,
+                      marginRight: 8,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
+                      Edit Profile
+                    </Text>
                   </TouchableOpacity>
                   {!!profile.avatarUrl && (
-                    <TouchableOpacity onPress={removeProfilePhoto} disabled={profileBusy}
-                      style={{ borderWidth: 1, borderColor: '#F2B8BE', borderRadius: 14,
-                        backgroundColor: '#FFF1F2', paddingVertical: 13, paddingHorizontal: 16, marginBottom: 8 }}>
-                      <Text style={{ color: '#BE3548', fontWeight: '700' }}>Remove Photo</Text>
+                    <TouchableOpacity
+                      onPress={removeProfilePhoto}
+                      disabled={profileBusy}
+                      style={{
+                        borderWidth: 1,
+                        borderColor: "#F2B8BE",
+                        borderRadius: 14,
+                        backgroundColor: "#FFF1F2",
+                        paddingVertical: 13,
+                        paddingHorizontal: 16,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <Text style={{ color: "#BE3548", fontWeight: "700" }}>
+                        Remove Photo
+                      </Text>
                     </TouchableOpacity>
                   )}
                 </View>
               )}
 
-              <View style={{ height: 1, backgroundColor: '#E5E5E5', marginTop: 18, marginBottom: 14 }} />
-              <View style={{ marginTop: 18, marginBottom: 16, padding: 15, borderWidth: 1, borderColor: '#DCE6FA', borderRadius: 17, backgroundColor: '#FBFCFF' }}>
-  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-    <Text style={{ color: '#1B2033', fontWeight: '800', fontSize: 17 }}>Follow Requests ({followRequests.length})</Text>
-    <TouchableOpacity onPress={refreshFollowRequests} disabled={followRequestsBusy}>
-      <Text style={{ color: '#2563EB', fontWeight: '700' }}>{followRequestsBusy ? 'Loading…' : 'Refresh'}</Text>
-    </TouchableOpacity>
-  </View>
-  {followRequests.length === 0 ? (
-    <Text style={{ color: '#858A9B', paddingVertical: 8 }}>अभी कोई pending follow request नहीं है।</Text>
-  ) : followRequests.map(request => (
-    <View key={String(request.id)} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#EEF1F7' }}>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: '#20263A', fontWeight: '800' }}>{request.displayName || request.username}</Text>
-        <Text style={{ color: '#858A9B', fontSize: 12 }}>@{request.username}</Text>
-      </View>
-      <TouchableOpacity disabled={!!followRequestAction[request.id]} onPress={() => resolveFollowRequest(request.id, 'accept')} style={{ backgroundColor: '#2563EB', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 10, marginRight: 7 }}>
-        <Text style={{ color: '#FFF', fontWeight: '700' }}>Accept</Text>
-      </TouchableOpacity>
-      <TouchableOpacity disabled={!!followRequestAction[request.id]} onPress={() => resolveFollowRequest(request.id, 'reject')} style={{ backgroundColor: '#F0F2F7', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 10 }}>
-        <Text style={{ color: '#555D70', fontWeight: '700' }}>Reject</Text>
-      </TouchableOpacity>
-    </View>
-  ))}
-</View>
-{/* SOCIALAPP_PROFILE_SETTINGS_V1 */}
-              <View style={{ marginTop: 28, marginBottom: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-  <Text style={{ color: '#1B2033', fontWeight: '800', fontSize: 19 }}>Profile Settings</Text>
-  <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open Settings" onPress={() => setSettingsHubOpen(true)} style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: '#EAF1FF', borderWidth: 1, borderColor: '#D5E3FF', alignItems: 'center', justifyContent: 'center' }}>
-    <Text style={{ color: '#2563EB', fontSize: 23, fontWeight: '800' }}>⚙</Text>
-  </TouchableOpacity>
-</View>
-                <View>
-                <View style={{ borderWidth: 1, borderColor: '#DCE6FA', borderRadius: 16, paddingHorizontal: 15, paddingVertical: 15, marginBottom: 12, backgroundColor: '#FBFCFF' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: "#E5E5E5",
+                  marginTop: 18,
+                  marginBottom: 14,
+                }}
+              />
+              <View
+                style={{
+                  marginTop: 18,
+                  marginBottom: 16,
+                  padding: 15,
+                  borderWidth: 1,
+                  borderColor: "#DCE6FA",
+                  borderRadius: 17,
+                  backgroundColor: "#FBFCFF",
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 12,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#1B2033",
+                      fontWeight: "800",
+                      fontSize: 17,
+                    }}
+                  >
+                    Follow Requests ({followRequests.length})
+                  </Text>
+                  <TouchableOpacity
+                    onPress={refreshFollowRequests}
+                    disabled={followRequestsBusy}
+                  >
+                    <Text style={{ color: "#2563EB", fontWeight: "700" }}>
+                      {followRequestsBusy ? "Loading…" : "Refresh"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {followRequests.length === 0 ? (
+                  <Text style={{ color: "#858A9B", paddingVertical: 8 }}>
+                    अभी कोई pending follow request नहीं है।
+                  </Text>
+                ) : (
+                  followRequests.map((request) => (
+                    <View
+                      key={String(request.id)}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingVertical: 10,
+                        borderTopWidth: 1,
+                        borderTopColor: "#EEF1F7",
+                      }}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: "#20263A", fontWeight: "800" }}>
+                          {request.displayName || request.username}
+                        </Text>
+                        <Text style={{ color: "#858A9B", fontSize: 12 }}>
+                          @{request.username}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        disabled={!!followRequestAction[request.id]}
+                        onPress={() =>
+                          resolveFollowRequest(request.id, "accept")
+                        }
+                        style={{
+                          backgroundColor: "#2563EB",
+                          paddingHorizontal: 13,
+                          paddingVertical: 9,
+                          borderRadius: 10,
+                          marginRight: 7,
+                        }}
+                      >
+                        <Text style={{ color: "#FFF", fontWeight: "700" }}>
+                          Accept
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        disabled={!!followRequestAction[request.id]}
+                        onPress={() =>
+                          resolveFollowRequest(request.id, "reject")
+                        }
+                        style={{
+                          backgroundColor: "#F0F2F7",
+                          paddingHorizontal: 13,
+                          paddingVertical: 9,
+                          borderRadius: 10,
+                        }}
+                      >
+                        <Text style={{ color: "#555D70", fontWeight: "700" }}>
+                          Reject
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))
+                )}
+              </View>
+              {/* SOCIALAPP_PROFILE_SETTINGS_V1 */}
+              <View
+                style={{
+                  marginTop: 28,
+                  marginBottom: 18,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  style={{ color: "#1B2033", fontWeight: "800", fontSize: 19 }}
+                >
+                  Profile Settings
+                </Text>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel="Open Settings"
+                  onPress={() => setSettingsHubOpen(true)}
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 13,
+                    backgroundColor: "#EAF1FF",
+                    borderWidth: 1,
+                    borderColor: "#D5E3FF",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#2563EB",
+                      fontSize: 23,
+                      fontWeight: "800",
+                    }}
+                  >
+                    ⚙
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View>
+                <View
+                  style={{
+                    borderWidth: 1,
+                    borderColor: "#DCE6FA",
+                    borderRadius: 16,
+                    paddingHorizontal: 15,
+                    paddingVertical: 15,
+                    marginBottom: 12,
+                    backgroundColor: "#FBFCFF",
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
                     <View style={{ flex: 1, paddingRight: 12 }}>
-                      <Text style={{ color: '#26344D', fontWeight: '700', fontSize: 15 }}>Notifications</Text>
-                      <Text style={{ color: '#7A879B', fontSize: 12, marginTop: 4 }}>
-                        {notificationsEnabled ? 'Preference enabled' : 'Preference disabled'}
+                      <Text
+                        style={{
+                          color: "#26344D",
+                          fontWeight: "700",
+                          fontSize: 15,
+                        }}
+                      >
+                        Notifications
+                      </Text>
+                      <Text
+                        style={{ color: "#7A879B", fontSize: 12, marginTop: 4 }}
+                      >
+                        {notificationsEnabled
+                          ? "Preference enabled"
+                          : "Preference disabled"}
                       </Text>
                     </View>
                     <Switch
                       value={notificationsEnabled}
                       onValueChange={changeNotificationPreference}
                       disabled={notificationsBusy}
-                      trackColor={{ false: '#CBD5E1', true: '#93C5FD' }}
-                      thumbColor={notificationsEnabled ? '#2563EB' : '#F8FAFC'}
+                      trackColor={{ false: "#CBD5E1", true: "#93C5FD" }}
+                      thumbColor={notificationsEnabled ? "#2563EB" : "#F8FAFC"}
                     />
                   </View>
                 </View>
                 <TouchableOpacity
                   onPress={openNotificationSettings}
                   disabled={notificationsBusy}
-                  style={{ borderWidth: 1, borderColor: '#E8ECF4', borderRadius: 14, padding: 14, marginBottom: 11, backgroundColor: '#FFFFFF' }}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: "#E8ECF4",
+                    borderRadius: 14,
+                    padding: 14,
+                    marginBottom: 11,
+                    backgroundColor: "#FFFFFF",
+                  }}
                 >
-                  <Text style={{ color: '#26344D', fontWeight: '700' }}>
-                    {notificationDetailsOpen ? 'Hide notification options' : 'Manage notification options'}
+                  <Text style={{ color: "#26344D", fontWeight: "700" }}>
+                    {notificationDetailsOpen
+                      ? "Hide notification options"
+                      : "Manage notification options"}
                   </Text>
-                  <Text style={{ color: '#7A879B', fontSize: 12, marginTop: 4 }}>
+                  <Text
+                    style={{ color: "#7A879B", fontSize: 12, marginTop: 4 }}
+                  >
                     Likes, comments, follows, messages and system alerts
                   </Text>
                 </TouchableOpacity>
                 {notificationDetailsOpen && (
-                  <View style={{ borderWidth: 1, borderColor: '#E8ECF4', borderRadius: 14, padding: 14, marginBottom: 12, backgroundColor: '#FFFFFF' }}>
+                  <View
+                    style={{
+                      borderWidth: 1,
+                      borderColor: "#E8ECF4",
+                      borderRadius: 14,
+                      padding: 14,
+                      marginBottom: 12,
+                      backgroundColor: "#FFFFFF",
+                    }}
+                  >
                     {[
-                      { key: 'likes', label: 'Likes' },
-                      { key: 'comments', label: 'Comments' },
-                      { key: 'follows', label: 'Follows' },
-                      { key: 'messages', label: 'Messages' },
-                      { key: 'system_alerts', label: 'System Alerts' },
-                    ].map(item => (
-                      <View key={item.key} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 }}>
-                        <Text style={{ color: '#26344D', fontWeight: '600' }}>{item.label}</Text>
+                      { key: "likes", label: "Likes" },
+                      { key: "comments", label: "Comments" },
+                      { key: "follows", label: "Follows" },
+                      { key: "messages", label: "Messages" },
+                      { key: "system_alerts", label: "System Alerts" },
+                    ].map((item) => (
+                      <View
+                        key={item.key}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          paddingVertical: 8,
+                        }}
+                      >
+                        <Text style={{ color: "#26344D", fontWeight: "600" }}>
+                          {item.label}
+                        </Text>
                         <Switch
                           value={!!notificationDetails[item.key]}
-                          onValueChange={value => changeNotificationDetail(item.key, value)}
+                          onValueChange={(value) =>
+                            changeNotificationDetail(item.key, value)
+                          }
                           disabled={notificationsBusy || !notificationsEnabled}
                         />
                       </View>
@@ -4409,203 +7593,565 @@ const refreshProfile = React.useCallback(async () => {
                   </View>
                 )}
                 {[
-                  { title: 'Account Security', subtitle: 'Password and sign-in security' },
-                  { title: 'Privacy', subtitle: 'Control your privacy' },
-                  { title: 'Account Settings', subtitle: 'Manage your account' },
-                ].map(item => (
+                  {
+                    title: "Account Security",
+                    subtitle: "Password and sign-in security",
+                  },
+                  { title: "Privacy", subtitle: "Control your privacy" },
+                  {
+                    title: "Account Settings",
+                    subtitle: "Manage your account",
+                  },
+                ].map((item) => (
                   <TouchableOpacity
                     key={item.title}
                     onPress={() => {
-                      if (item.title === 'Privacy') {
+                      if (item.title === "Privacy") {
                         openPrivacySettings();
-                      } else if (item.title === 'Account Security') {
+                      } else if (item.title === "Account Security") {
                         setPasswordOpen(true);
-                      } else if (item.title === 'Account Settings') {
+                      } else if (item.title === "Account Settings") {
                         openAccountSettings();
-                      } else if (item.title === 'Notifications') {
+                      } else if (item.title === "Notifications") {
                         openNotificationSettings();
                       } else {
-                        Alert.alert(item.title, 'This setting will be added in a later step.');
+                        Alert.alert(
+                          item.title,
+                          "This setting will be added in a later step.",
+                        );
                       }
                     }}
                     style={{
                       paddingVertical: 15,
                       paddingHorizontal: 15,
                       borderWidth: 1,
-                      borderColor: '#E8ECF4',
+                      borderColor: "#E8ECF4",
                       borderRadius: 15,
                       marginBottom: 10,
-                      backgroundColor: '#FFFFFF',
+                      backgroundColor: "#FFFFFF",
                       elevation: 1,
                     }}
                   >
-                    <Text style={{ color: '#252A40', fontWeight: '700', fontSize: 15 }}>
+                    <Text
+                      style={{
+                        color: "#252A40",
+                        fontWeight: "700",
+                        fontSize: 15,
+                      }}
+                    >
                       {item.title}
                     </Text>
-                    <Text style={{ color: '#858A9B', fontSize: 11, marginTop: 4 }}>
+                    <Text
+                      style={{ color: "#858A9B", fontSize: 11, marginTop: 4 }}
+                    >
                       {item.subtitle}
                     </Text>
                   </TouchableOpacity>
                 ))}
+              </View>
 
-
-                              </View>
-
-                    <TouchableOpacity onPress={handleOpenSavedScreen} activeOpacity={0.85} style={{ marginTop: 18, marginBottom: 5, paddingHorizontal: 15, paddingVertical: 14, borderRadius: 14, backgroundColor: '#F1F7FD', borderWidth: 1, borderColor: '#DCEBFA', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <Ionicons name="bookmark" size={21} color="#1685D9" />
-                        <View>
-                          <Text style={{ color: '#1B2033', fontWeight: '800', fontSize: 15 }}>Saved</Text>
-                          <Text style={{ color: '#7A8495', fontSize: 11, marginTop: 2 }}>Your saved posts and reels</Text>
-                        </View>
-                      </View>
-                      <Ionicons name="chevron-forward" size={20} color="#1685D9" />
-                    </TouchableOpacity>
-<View style={{ marginTop: 22, marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-  <Text style={{ color: '#1B2033', fontSize: 19, fontWeight: '800' }}>Your Posts</Text>
-  <Ionicons name="grid-outline" size={21} color="#454B60" />
-</View>
-{groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).length ? (
-  <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 5 }}>
-    {groupPostItems(feedPosts.filter(p => (p.user || 'you') === 'you')).map((p, i) => {
-      const media = p.mediaItems?.[0] || p;
-      const isVideo = media.mediaType === 'video';
-      const hasMultiple = (p.mediaItems?.length || 0) > 1;
-      return (
-        <TouchableOpacity
-          key={p.groupId || p.id || `my-post-${i}`}
-          activeOpacity={0.85}
-          onPress={() => { setSelectedPostMediaIndex(0); setSelectedPost(p); }}
-          style={{ width: '32.5%', aspectRatio: 1, backgroundColor: '#E9ECF3', borderRadius: 11, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E5EAF4' }}
-        >
-          {media.uri && !isVideo && !profileImageErrors[p.groupId || p.id || `my-post-${i}`] ? (
-            <Image
-              source={{ uri: media.uri }}
-              style={{ width: '100%', height: '100%' }}
-              resizeMode="cover"
-              onError={() => setProfileImageErrors(prev => ({ ...prev, [p.groupId || p.id || `my-post-${i}`]: true }))}
-            />
-          ) : (
-            <View style={{ width: '100%', height: '100%', backgroundColor: isVideo ? '#252A3B' : (p.color || '#D8E7DF'), alignItems: 'center', justifyContent: 'center' }}>
-              {isVideo ? (
-                <Ionicons name="play-circle" size={34} color="#FFFFFF" />
+              <TouchableOpacity
+                onPress={handleOpenSavedScreen}
+                activeOpacity={0.85}
+                style={{
+                  marginTop: 18,
+                  marginBottom: 5,
+                  paddingHorizontal: 15,
+                  paddingVertical: 14,
+                  borderRadius: 14,
+                  backgroundColor: "#F1F7FD",
+                  borderWidth: 1,
+                  borderColor: "#DCEBFA",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <Ionicons name="bookmark" size={21} color="#1685D9" />
+                  <View>
+                    <Text
+                      style={{
+                        color: "#1B2033",
+                        fontWeight: "800",
+                        fontSize: 15,
+                      }}
+                    >
+                      Saved
+                    </Text>
+                    <Text
+                      style={{ color: "#7A8495", fontSize: 11, marginTop: 2 }}
+                    >
+                      Your saved posts and reels
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#1685D9" />
+              </TouchableOpacity>
+              <View
+                style={{
+                  marginTop: 22,
+                  marginBottom: 12,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  style={{ color: "#1B2033", fontSize: 19, fontWeight: "800" }}
+                >
+                  Your Posts
+                </Text>
+                <Ionicons name="grid-outline" size={21} color="#454B60" />
+              </View>
+              {groupPostItems(
+                feedPosts.filter((p) => (p.user || "you") === "you"),
+              ).length ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    justifyContent: "space-between",
+                    rowGap: 5,
+                  }}
+                >
+                  {groupPostItems(
+                    feedPosts.filter((p) => (p.user || "you") === "you"),
+                  ).map((p, i) => {
+                    const media = p.mediaItems?.[0] || p;
+                    const isVideo = media.mediaType === "video";
+                    const hasMultiple = (p.mediaItems?.length || 0) > 1;
+                    return (
+                      <TouchableOpacity
+                        key={p.groupId || p.id || `my-post-${i}`}
+                        activeOpacity={0.85}
+                        onPress={() => {
+                          setSelectedPostMediaIndex(0);
+                          setSelectedPost(p);
+                        }}
+                        style={{
+                          width: "32.5%",
+                          aspectRatio: 1,
+                          backgroundColor: "#E9ECF3",
+                          borderRadius: 11,
+                          overflow: "hidden",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderWidth: 1,
+                          borderColor: "#E5EAF4",
+                        }}
+                      >
+                        {media.uri &&
+                        !isVideo &&
+                        !profileImageErrors[
+                          p.groupId || p.id || `my-post-${i}`
+                        ] ? (
+                          <Image
+                            source={{ uri: media.uri }}
+                            style={{ width: "100%", height: "100%" }}
+                            resizeMode="cover"
+                            onError={() =>
+                              setProfileImageErrors((prev) => ({
+                                ...prev,
+                                [p.groupId || p.id || `my-post-${i}`]: true,
+                              }))
+                            }
+                          />
+                        ) : (
+                          <View
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              backgroundColor: isVideo
+                                ? "#252A3B"
+                                : p.color || "#D8E7DF",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {isVideo ? (
+                              <Ionicons
+                                name="play-circle"
+                                size={34}
+                                color="#FFFFFF"
+                              />
+                            ) : (
+                              <Text style={{ fontSize: 38 }}>
+                                {p.emoji || "🌿"}
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                        {isVideo && media.uri ? (
+                          <View
+                            style={{
+                              position: "absolute",
+                              right: 7,
+                              top: 7,
+                              width: 27,
+                              height: 27,
+                              borderRadius: 9,
+                              backgroundColor: "rgba(15, 23, 42, 0.68)",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Ionicons name="play" size={15} color="#FFFFFF" />
+                          </View>
+                        ) : null}
+                        {hasMultiple ? (
+                          <View
+                            style={{
+                              position: "absolute",
+                              right: 7,
+                              top: 7,
+                              width: 27,
+                              height: 27,
+                              borderRadius: 9,
+                              backgroundColor: "rgba(15, 23, 42, 0.68)",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Ionicons
+                              name="copy-outline"
+                              size={15}
+                              color="#FFFFFF"
+                            />
+                          </View>
+                        ) : null}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               ) : (
-                <Text style={{ fontSize: 38 }}>{p.emoji || '🌿'}</Text>
+                <View
+                  style={{
+                    alignItems: "center",
+                    paddingVertical: 28,
+                    paddingHorizontal: 18,
+                    backgroundColor: "#F8FAFF",
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: "#E5EAF4",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 58,
+                      height: 58,
+                      borderRadius: 20,
+                      backgroundColor: "#EAF1FF",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Ionicons name="images-outline" size={29} color="#2563EB" />
+                  </View>
+                  <Text
+                    style={{
+                      color: "#1B2033",
+                      fontSize: 16,
+                      fontWeight: "800",
+                      marginBottom: 6,
+                    }}
+                  >
+                    Share your first post
+                  </Text>
+                  <Text
+                    style={{
+                      color: "#858A9B",
+                      fontSize: 12,
+                      textAlign: "center",
+                      lineHeight: 18,
+                      marginBottom: 16,
+                    }}
+                  >
+                    Your photos and videos will appear here.
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleTab("Create")}
+                    activeOpacity={0.85}
+                    style={{
+                      backgroundColor: "#2563EB",
+                      paddingHorizontal: 22,
+                      paddingVertical: 11,
+                      borderRadius: 12,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#FFFFFF",
+                        fontWeight: "700",
+                        fontSize: 13,
+                      }}
+                    >
+                      Create First Post
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
-            </View>
-          )}
-          {isVideo && media.uri ? (
-            <View style={{ position: 'absolute', right: 7, top: 7, width: 27, height: 27, borderRadius: 9, backgroundColor: 'rgba(15, 23, 42, 0.68)', alignItems: 'center', justifyContent: 'center' }}>
-                        <Ionicons name="play" size={15} color="#FFFFFF" />
-                      </View>
-          ) : null}
-          {hasMultiple ? (
-            <View style={{ position: 'absolute', right: 7, top: 7, width: 27, height: 27, borderRadius: 9, backgroundColor: 'rgba(15, 23, 42, 0.68)', alignItems: 'center', justifyContent: 'center' }}>
-                        <Ionicons name="copy-outline" size={15} color="#FFFFFF" />
-                      </View>
-          ) : null}
-        </TouchableOpacity>
-      );
-    })}
-  </View>
-) : (
-  <View style={{ alignItems: 'center', paddingVertical: 28, paddingHorizontal: 18, backgroundColor: '#F8FAFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5EAF4' }}>
-  <View style={{ width: 58, height: 58, borderRadius: 20, backgroundColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-    <Ionicons name="images-outline" size={29} color="#2563EB" />
-  </View>
-  <Text style={{ color: '#1B2033', fontSize: 16, fontWeight: '800', marginBottom: 6 }}>Share your first post</Text>
-  <Text style={{ color: '#858A9B', fontSize: 12, textAlign: 'center', lineHeight: 18, marginBottom: 16 }}>Your photos and videos will appear here.</Text>
-  <TouchableOpacity onPress={() => handleTab('Create')} activeOpacity={0.85} style={{ backgroundColor: '#2563EB', paddingHorizontal: 22, paddingVertical: 11, borderRadius: 12 }}>
-    <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>Create First Post</Text>
-  </TouchableOpacity>
-</View>
-)}
             </View>
           )}
         </ScrollView>
       ) : (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: '#555' }}>{activeTab}</Text>
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <Text style={{ color: "#555" }}>{activeTab}</Text>
         </View>
       )}
 
       <View style={styles.bottomNav}>
         {[
-          { name: 'Home', icon: 'home-outline' },
-          { name: 'Search', icon: 'search-outline' },
-          { name: 'Chat', icon: 'chatbubble-ellipses-outline' },
-          { name: 'Reels', icon: 'play-circle-outline' },
-          { name: 'Profile', icon: 'person-circle-outline' }
-        ].map(tab => (
-          <TouchableOpacity key={tab.name} style={styles.navItem} onPress={() => handleTab(tab.name)} accessibilityLabel={tab.name}>
+          { name: "Home", icon: "home-outline" },
+          { name: "Search", icon: "search-outline" },
+          { name: "Chat", icon: "paper-plane-outline" },
+          { name: "Reels", icon: "play-circle-outline" },
+          { name: "Profile", icon: "person-circle-outline" },
+        ].map((tab) => (
+          <TouchableOpacity
+            key={tab.name}
+            style={styles.navItem}
+            onPress={() => handleTab(tab.name)}
+            accessibilityLabel={tab.name}
+          >
             <Ionicons
               name={tab.icon}
               size={25}
-              color={activeTab === tab.name ? '#1685D9' : '#333333'}
+              color={activeTab === tab.name ? "#1685D9" : "#333333"}
             />
-            <Text style={[styles.navLabel, activeTab === tab.name && styles.activeNavLabel]}>{tab.name}</Text>
+            <Text
+              style={[
+                styles.navLabel,
+                activeTab === tab.name && styles.activeNavLabel,
+              ]}
+            >
+              {tab.name}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
-<Modal
+      <Modal
         visible={!!selectedStory}
         transparent
         animationType="fade"
+        statusBarTranslucent
         onRequestClose={() => setSelectedStory(null)}
       >
         <GestureDetector gesture={storySwipeGesture}>
-        <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center' }}>
-          <TouchableOpacity
-            onPress={() => setSelectedStory(null)}
-            style={{ position: 'absolute', top: 38, right: 18, zIndex: 2, padding: 12 }}
-          >
-            <Text style={{ color: '#FFFFFF', fontSize: 30 }}>×</Text>
-          </TouchableOpacity>
-          {selectedStory?.uri ? (
-            selectedStory.mediaType === 'video' ? (
-              <ReelVideo uri={selectedStory.uri} zoomControls />
+          <View style={{ flex: 1, backgroundColor: "#000000" }}>
+            {selectedStory?.uri ? (
+              selectedStory.mediaType === "video" ? (
+                <ReelVideo
+                  uri={selectedStory.uri}
+                  height={Dimensions.get("window").height}
+                  zoomControls
+                  loop={false}
+                  onPlayToEnd={() => moveStory(1)}
+                  onTimeUpdate={(currentTime, duration) => {
+                    if (Number.isFinite(duration) && duration > 0) {
+                      setStoryProgress(
+                        Math.min(100, (currentTime / duration) * 100),
+                      );
+                    }
+                  }}
+                />
+              ) : (
+                <ZoomableImage
+                  key={selectedStory.uri}
+                  uri={selectedStory.uri}
+                  style={{ width: "100%", height: "100%" }}
+                  onZoomChange={(level) => setStoryImageZoomed(level > 1.01)}
+                />
+              )
             ) : (
-              <ZoomableImage
-                key={selectedStory.uri}
-                uri={selectedStory.uri}
-                style={{ width: '100%', height: '78%' }}
-                onZoomChange={(level) => setStoryImageZoomed(level > 1.01)}
-              />
-            )
-          ) : (
-            <Text style={{ color: '#FFFFFF', textAlign: 'center', padding: 24 }}>
-              Story media is unavailable.
-            </Text>
-          )}
-          {!!selectedStory?.caption && (
-            <Text style={{ color: '#FFFFFF', textAlign: 'center', padding: 16 }}>
-              {selectedStory.caption}
-            </Text>
-          )}
-          <Text style={{ color: '#BBBBBB', textAlign: 'center', paddingBottom: 24 }}>
-            {selectedStory?.name || selectedStory?.user || 'Story'}
-          </Text>
-          {!!selectedStory?.createdAt && (
-            <Text style={{ color: '#BBBBBB', textAlign: 'center', paddingBottom: 12 }}>
-              {formatPostTime(selectedStory.createdAt)}
-            </Text>
-          )}
-          <TouchableOpacity
-            accessibilityLabel="Previous story"
-            onPress={() => moveStory(-1)}
-            style={{ position: 'absolute', left: 0, top: 75, bottom: 65, width: '35%', zIndex: 1 }}
-            activeOpacity={1}
-          />
-          <TouchableOpacity
-            accessibilityLabel="Next story"
-            onPress={() => moveStory(1)}
-            style={{ position: 'absolute', right: 0, top: 75, bottom: 65, width: '65%', zIndex: 1 }}
-            activeOpacity={1}
-          />
-        </View>
+              <View style={{ flex: 1, justifyContent: "center" }}>
+                <Text
+                  style={{ color: "#FFFFFF", textAlign: "center", padding: 24 }}
+                >
+                  Story media is unavailable.
+                </Text>
+              </View>
+            )}
+
+            <View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 150,
+                backgroundColor: "rgba(0,0,0,0.32)",
+              }}
+            />
+
+            <View
+              style={{
+                position: "absolute",
+                top: 12,
+                left: 10,
+                right: 10,
+                flexDirection: "row",
+                gap: 4,
+                zIndex: 5,
+              }}
+            >
+              {storyQueue.map((story, index) => (
+                <View
+                  key={String(story.id || story.uri || index)}
+                  style={{
+                    flex: 1,
+                    height: 3,
+                    borderRadius: 3,
+                    backgroundColor: "rgba(255,255,255,0.38)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <View
+                    style={{
+                      width:
+                        index < storyIndex
+                          ? "100%"
+                          : index === storyIndex
+                            ? `${storyProgress}%`
+                            : "0%",
+                      height: "100%",
+                      borderRadius: 3,
+                      backgroundColor: "#FFFFFF",
+                    }}
+                  />
+                </View>
+              ))}
+            </View>
+
+            <View
+              style={{
+                position: "absolute",
+                top: 25,
+                left: 12,
+                right: 12,
+                height: 48,
+                flexDirection: "row",
+                alignItems: "center",
+                zIndex: 6,
+              }}
+            >
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 19,
+                  backgroundColor: "#64748B",
+                  borderWidth: 1.5,
+                  borderColor: "#FFFFFF",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 9,
+                }}
+              >
+                <Text
+                  style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}
+                >
+                  {String(selectedStory?.name || selectedStory?.user || "U")
+                    .replace(/^@/, "")
+                    .charAt(0)
+                    .toUpperCase()}
+                </Text>
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text
+                  numberOfLines={1}
+                  style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "700" }}
+                >
+                  {selectedStory?.name || selectedStory?.user || "Story"}
+                </Text>
+                {!!selectedStory?.createdAt && (
+                  <Text
+                    style={{ color: "#E5E7EB", fontSize: 11, marginTop: 2 }}
+                  >
+                    {formatPostTime(selectedStory.createdAt)}
+                  </Text>
+                )}
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setSelectedStory(null)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                style={{ padding: 8 }}
+              >
+                <Text
+                  style={{ color: "#FFFFFF", fontSize: 29, lineHeight: 32 }}
+                >
+                  ×
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {!!selectedStory?.caption && (
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: 34,
+                  left: 18,
+                  right: 18,
+                  alignItems: "center",
+                  zIndex: 4,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: 15,
+                    fontWeight: "500",
+                    textAlign: "center",
+                    textShadowColor: "rgba(0,0,0,0.8)",
+                    textShadowRadius: 5,
+                  }}
+                >
+                  {selectedStory.caption}
+                </Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              accessibilityLabel="Previous story"
+              onPress={() => moveStory(-1)}
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 85,
+                bottom: 75,
+                width: "35%",
+                zIndex: 2,
+              }}
+              activeOpacity={1}
+            />
+            <TouchableOpacity
+              accessibilityLabel="Next story"
+              onPress={() => moveStory(1)}
+              style={{
+                position: "absolute",
+                right: 0,
+                top: 85,
+                bottom: 75,
+                width: "65%",
+                zIndex: 2,
+              }}
+              activeOpacity={1}
+            />
+          </View>
         </GestureDetector>
       </Modal>
-
 
       <Modal
         visible={!!selectedPost}
@@ -4613,76 +8159,205 @@ const refreshProfile = React.useCallback(async () => {
         animationType="fade"
         onRequestClose={() => setSelectedPost(null)}
       >
-        <View style={{ flex: 1, backgroundColor: '#080B14', paddingTop: 42, paddingBottom: 18 }}>
-  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 12 }}>
-    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#26385F', borderWidth: 1.5, borderColor: '#7C9FF2', alignItems: 'center', justifyContent: 'center', marginRight: 11 }}>
-        <Ionicons name="person" size={20} color="#FFFFFF" />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>{selectedPost?.user || 'you'}</Text>
-        <Text style={{ color: '#AAB4CA', fontSize: 11, marginTop: 3 }}>Bhumi Social</Text>
-      </View>
-    </View>
-    <TouchableOpacity accessibilityLabel="Close post" onPress={() => setSelectedPost(null)} style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: '#20283A', alignItems: 'center', justifyContent: 'center' }}>
-      <Ionicons name="close" size={25} color="#FFFFFF" />
-    </TouchableOpacity>
-  </View>
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 12 }}>
-    {(selectedPost?.mediaItems?.length || 0) > 1 ? (
-      <>
-        <ScrollView
-          key={String(selectedPost?.groupId || selectedPost?.id || 'selected-post')}
-          horizontal
-          pagingEnabled
-          nestedScrollEnabled
-          showsHorizontalScrollIndicator={false}
-          style={{ width: '100%' }}
-          onMomentumScrollEnd={event => {
-            const width = event.nativeEvent.layoutMeasurement.width;
-            if (width > 0) setSelectedPostMediaIndex(Math.round(event.nativeEvent.contentOffset.x / width));
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "#080B14",
+            paddingTop: 42,
+            paddingBottom: 18,
           }}
         >
-          {(selectedPost.mediaItems || []).map((media, index) => (
-            <View key={String(media.id || index)} style={{ width: Dimensions.get('window').width, flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-              {media.uri && media.mediaType === 'video' ? (
-                <ReelVideo uri={media.uri} zoomControls />
-              ) : media.uri ? (
-                <ZoomableImage uri={media.uri} style={{ width: '100%', height: '100%' }} />
-              ) : (
-                <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#151D2E' }}>
-                  <Text style={{ fontSize: 64 }}>{media.emoji || '🌿'}</Text>
-                </View>
-              )}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: 18,
+              paddingVertical: 12,
+            }}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+            >
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: "#26385F",
+                  borderWidth: 1.5,
+                  borderColor: "#7C9FF2",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 11,
+                }}
+              >
+                <Ionicons name="person" size={20} color="#FFFFFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "800" }}
+                >
+                  {selectedPost?.user || "you"}
+                </Text>
+                <Text style={{ color: "#AAB4CA", fontSize: 11, marginTop: 3 }}>
+                  Bhumi Social
+                </Text>
+              </View>
             </View>
-          ))}
-        </ScrollView>
-        <Text style={{ color: '#FFFFFF', backgroundColor: '#29344B', paddingHorizontal: 13, paddingVertical: 6, borderRadius: 14, overflow: 'hidden', fontSize: 12, fontWeight: '700', marginTop: 8 }}>
-          {selectedPostMediaIndex + 1} / {selectedPost.mediaItems.length}
-        </Text>
-      </>
-    ) : selectedPost?.uri && selectedPost.mediaType === 'video' ? (
-      <ReelVideo uri={selectedPost.uri} zoomControls />
-    ) : selectedPost?.uri ? (
-      <ZoomableImage uri={selectedPost.uri} style={{ width: '100%', height: '100%' }} />
-    ) : (
-      <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#151D2E' }}>
-        <Text style={{ fontSize: 64 }}>{selectedPost?.emoji || '🌿'}</Text>
-      </View>
-    )}
-</View>
-<PostDetailActions post={selectedPost} authSession={authSession} />
-<View style={{ marginHorizontal: 16, marginTop: 8, padding: 16, backgroundColor: '#151D2E', borderRadius: 18, borderWidth: 1, borderColor: '#29344B' }}>
+            <TouchableOpacity
+              accessibilityLabel="Close post"
+              onPress={() => setSelectedPost(null)}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 14,
+                backgroundColor: "#20283A",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name="close" size={25} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingVertical: 12,
+            }}
+          >
+            {(selectedPost?.mediaItems?.length || 0) > 1 ? (
+              <>
+                <ScrollView
+                  key={String(
+                    selectedPost?.groupId ||
+                      selectedPost?.id ||
+                      "selected-post",
+                  )}
+                  horizontal
+                  pagingEnabled
+                  nestedScrollEnabled
+                  showsHorizontalScrollIndicator={false}
+                  style={{ width: "100%" }}
+                  onMomentumScrollEnd={(event) => {
+                    const width = event.nativeEvent.layoutMeasurement.width;
+                    if (width > 0)
+                      setSelectedPostMediaIndex(
+                        Math.round(event.nativeEvent.contentOffset.x / width),
+                      );
+                  }}
+                >
+                  {(selectedPost.mediaItems || []).map((media, index) => (
+                    <View
+                      key={String(media.id || index)}
+                      style={{
+                        width: Dimensions.get("window").width,
+                        flex: 1,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {media.uri && media.mediaType === "video" ? (
+                        <ReelVideo uri={media.uri} zoomControls />
+                      ) : media.uri ? (
+                        <ZoomableImage
+                          uri={media.uri}
+                          style={{ width: "100%", height: "100%" }}
+                        />
+                      ) : (
+                        <View
+                          style={{
+                            flex: 1,
+                            width: "100%",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#151D2E",
+                          }}
+                        >
+                          <Text style={{ fontSize: 64 }}>
+                            {media.emoji || "🌿"}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  ))}
+                </ScrollView>
+                <Text
+                  style={{
+                    color: "#FFFFFF",
+                    backgroundColor: "#29344B",
+                    paddingHorizontal: 13,
+                    paddingVertical: 6,
+                    borderRadius: 14,
+                    overflow: "hidden",
+                    fontSize: 12,
+                    fontWeight: "700",
+                    marginTop: 8,
+                  }}
+                >
+                  {selectedPostMediaIndex + 1} /{" "}
+                  {selectedPost.mediaItems.length}
+                </Text>
+              </>
+            ) : selectedPost?.uri && selectedPost.mediaType === "video" ? (
+              <ReelVideo uri={selectedPost.uri} zoomControls />
+            ) : selectedPost?.uri ? (
+              <ZoomableImage
+                uri={selectedPost.uri}
+                style={{ width: "100%", height: "100%" }}
+              />
+            ) : (
+              <View
+                style={{
+                  flex: 1,
+                  width: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#151D2E",
+                }}
+              >
+                <Text style={{ fontSize: 64 }}>
+                  {selectedPost?.emoji || "🌿"}
+                </Text>
+              </View>
+            )}
+          </View>
+          <PostDetailActions post={selectedPost} authSession={authSession} />
+          <View
+            style={{
+              marginHorizontal: 16,
+              marginTop: 8,
+              padding: 16,
+              backgroundColor: "#151D2E",
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: "#29344B",
+            }}
+          >
             {!!selectedPost?.caption ? (
-      <Text style={{ color: '#FFFFFF', fontSize: 14, lineHeight: 21 }}>{selectedPost.caption}</Text>
-    ) : (
-      <Text style={{ color: '#8793AA', fontSize: 13 }}>No caption added</Text>
-    )}
-    <Text style={{ color: '#8FA4CB', fontSize: 11, fontWeight: '700', marginTop: 12 }}>POST BY {selectedPost?.user || 'you'}</Text>
-  </View>
-</View>
-</Modal>
-
+              <Text style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 21 }}>
+                {selectedPost.caption}
+              </Text>
+            ) : (
+              <Text style={{ color: "#8793AA", fontSize: 13 }}>
+                No caption added
+              </Text>
+            )}
+            <Text
+              style={{
+                color: "#8FA4CB",
+                fontSize: 11,
+                fontWeight: "700",
+                marginTop: 12,
+              }}
+            >
+              POST BY {selectedPost?.user || "you"}
+            </Text>
+          </View>
+        </View>
+      </Modal>
 
       {/* SOCIALAPP_PREMIUM_SETTINGS_HUB_V1 */}
       <Modal
@@ -4691,186 +8366,650 @@ const refreshProfile = React.useCallback(async () => {
         animationType="slide"
         onRequestClose={() => setSettingsHubOpen(false)}
       >
-        <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.55)', justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: '#F7F9FD', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 28, maxHeight: '92%' }}>
-            <View style={{ alignSelf: 'center', width: 42, height: 5, borderRadius: 4, backgroundColor: '#CBD5E1', marginBottom: 18 }} />
-            <View style={{ backgroundColor: '#172554', borderRadius: 22, padding: 20, marginBottom: 20 }}>
-              <Text style={{ color: '#BFDBFE', fontSize: 12, fontWeight: '800', letterSpacing: 1.4 }}>BHOOMI SOCIAL</Text>
-              <Text style={{ color: '#FFFFFF', fontSize: 25, fontWeight: '900', marginTop: 7 }}>Settings</Text>
-              <Text style={{ color: '#D8E3F8', fontSize: 13, marginTop: 5 }}>Manage your account and preferences</Text>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15, 23, 42, 0.55)",
+            justifyContent: "flex-end",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#F7F9FD",
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              paddingHorizontal: 20,
+              paddingTop: 12,
+              paddingBottom: 28,
+              maxHeight: "92%",
+            }}
+          >
+            <View
+              style={{
+                alignSelf: "center",
+                width: 42,
+                height: 5,
+                borderRadius: 4,
+                backgroundColor: "#CBD5E1",
+                marginBottom: 18,
+              }}
+            />
+            <View
+              style={{
+                backgroundColor: "#172554",
+                borderRadius: 22,
+                padding: 20,
+                marginBottom: 20,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#BFDBFE",
+                  fontSize: 12,
+                  fontWeight: "800",
+                  letterSpacing: 1.4,
+                }}
+              >
+                BHOOMI SOCIAL
+              </Text>
+              <Text
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: 25,
+                  fontWeight: "900",
+                  marginTop: 7,
+                }}
+              >
+                Settings
+              </Text>
+              <Text style={{ color: "#D8E3F8", fontSize: 13, marginTop: 5 }}>
+                Manage your account and preferences
+              </Text>
             </View>
             {[
-              { title: 'Notifications', subtitle: 'Choose which alerts you receive', icon: '♧', color: '#DBEAFE', action: () => { setSettingsHubOpen(false); openNotificationSettings(); } },
-              { title: 'Account Security', subtitle: 'Change your password', icon: '▣', color: '#F3E8FF', action: () => { setSettingsHubOpen(false); setPasswordOpen(true); } },
-              { title: 'Privacy', subtitle: 'Manage account visibility and messages', icon: '◈', color: '#D1FAE5', action: () => { setSettingsHubOpen(false); openPrivacySettings(); } },
-              { title: 'Blocked Accounts', subtitle: 'View blocked people and unblock accounts', icon: '⊘', color: '#FEE2E2', action: openBlockedAccounts },
-              { title: 'Restricted Accounts', subtitle: 'Manage accounts you have restricted', icon: '◉', color: '#EDE9FE', action: openRestrictedAccounts },
-              { title: 'Account Settings', subtitle: 'Update your email and phone number', icon: '◎', color: '#FEF3C7', action: () => { setSettingsHubOpen(false); openAccountSettings(); } },
-              { title: 'Log Out', subtitle: 'Sign out of this account', icon: '↪', color: '#FEE2E2', action: handleSettingsLogout },
-              { title: 'About & App Updates', subtitle: 'Version, updates, download and share', icon: 'ⓘ', color: '#E0E7FF', action: openAboutApp },
-            ].map(item => (
+              {
+                title: "Notifications",
+                subtitle: "Choose which alerts you receive",
+                icon: "♧",
+                color: "#DBEAFE",
+                action: () => {
+                  setSettingsHubOpen(false);
+                  openNotificationSettings();
+                },
+              },
+              {
+                title: "Account Security",
+                subtitle: "Change your password",
+                icon: "▣",
+                color: "#F3E8FF",
+                action: () => {
+                  setSettingsHubOpen(false);
+                  setPasswordOpen(true);
+                },
+              },
+              {
+                title: "Privacy",
+                subtitle: "Manage account visibility and messages",
+                icon: "◈",
+                color: "#D1FAE5",
+                action: () => {
+                  setSettingsHubOpen(false);
+                  openPrivacySettings();
+                },
+              },
+              {
+                title: "Blocked Accounts",
+                subtitle: "View blocked people and unblock accounts",
+                icon: "⊘",
+                color: "#FEE2E2",
+                action: openBlockedAccounts,
+              },
+              {
+                title: "Restricted Accounts",
+                subtitle: "Manage accounts you have restricted",
+                icon: "◉",
+                color: "#EDE9FE",
+                action: openRestrictedAccounts,
+              },
+              {
+                title: "Account Settings",
+                subtitle: "Update your email and phone number",
+                icon: "◎",
+                color: "#FEF3C7",
+                action: () => {
+                  setSettingsHubOpen(false);
+                  openAccountSettings();
+                },
+              },
+              {
+                title: "Log Out",
+                subtitle: "Sign out of this account",
+                icon: "↪",
+                color: "#FEE2E2",
+                action: handleSettingsLogout,
+              },
+              {
+                title: "About & App Updates",
+                subtitle: "Version, updates, download and share",
+                icon: "ⓘ",
+                color: "#E0E7FF",
+                action: openAboutApp,
+              },
+            ].map((item) => (
               <TouchableOpacity
                 key={item.title}
                 onPress={item.action}
                 accessibilityRole="button"
-                style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 17, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E7ECF5' }}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: 17,
+                  padding: 14,
+                  marginBottom: 10,
+                  borderWidth: 1,
+                  borderColor: "#E7ECF5",
+                }}
               >
-                <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: item.color, alignItems: 'center', justifyContent: 'center', marginRight: 13 }}>
-                  <Text style={{ color: '#172554', fontSize: 23, fontWeight: '800' }}>{item.icon}</Text>
+                <View
+                  style={{
+                    width: 46,
+                    height: 46,
+                    borderRadius: 14,
+                    backgroundColor: item.color,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 13,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#172554",
+                      fontSize: 23,
+                      fontWeight: "800",
+                    }}
+                  >
+                    {item.icon}
+                  </Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ color: '#1E293B', fontWeight: '800', fontSize: 15 }}>{item.title}</Text>
-                  <Text style={{ color: '#64748B', fontSize: 12, marginTop: 4 }}>{item.subtitle}</Text>
+                  <Text
+                    style={{
+                      color: "#1E293B",
+                      fontWeight: "800",
+                      fontSize: 15,
+                    }}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text
+                    style={{ color: "#64748B", fontSize: 12, marginTop: 4 }}
+                  >
+                    {item.subtitle}
+                  </Text>
                 </View>
-                <Text style={{ color: '#94A3B8', fontSize: 23 }}>›</Text>
+                <Text style={{ color: "#94A3B8", fontSize: 23 }}>›</Text>
               </TouchableOpacity>
             ))}
             <TouchableOpacity
               onPress={() => setSettingsHubOpen(false)}
-              style={{ alignItems: 'center', paddingVertical: 14, marginTop: 2 }}
+              style={{
+                alignItems: "center",
+                paddingVertical: 14,
+                marginTop: 2,
+              }}
             >
-              <Text style={{ color: '#475569', fontWeight: '800', fontSize: 14 }}>Close Settings</Text>
+              <Text
+                style={{ color: "#475569", fontWeight: "800", fontSize: 14 }}
+              >
+                Close Settings
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
       <Modal
-          visible={blockedAccountsOpen}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setBlockedAccountsOpen(false)}
+        visible={blockedAccountsOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setBlockedAccountsOpen(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15, 23, 42, 0.55)",
+            justifyContent: "flex-end",
+          }}
         >
-          <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.55)', justifyContent: 'flex-end' }}>
-            <View style={{ backgroundColor: '#F7F9FD', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 28, maxHeight: '82%' }}>
-              <Text style={{ color: '#172554', fontSize: 22, fontWeight: '900', marginBottom: 5 }}>Blocked Accounts</Text>
-              <Text style={{ color: '#64748B', fontSize: 13, marginBottom: 16 }}>Accounts you have blocked cannot follow or contact you.</Text>
-              {blockedAccountsLoading ? (
-                <Text style={{ color: '#64748B', textAlign: 'center', paddingVertical: 28 }}>Loading blocked accounts...</Text>
-              ) : blockedAccounts.length === 0 ? (
-                <Text style={{ color: '#64748B', textAlign: 'center', paddingVertical: 28 }}>You have not blocked anyone.</Text>
-              ) : (
-                <ScrollView keyboardShouldPersistTaps="handled" style={{ flexGrow: 0 }}>
-                  {blockedAccounts.map(item => (
-                    <View key={item.username} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, padding: 12, marginBottom: 9, borderWidth: 1, borderColor: '#E7ECF5' }}>
-                      {item.avatarUrl ? (
-                        <Image source={{ uri: item.avatarUrl }} style={{ width: 42, height: 42, borderRadius: 21, marginRight: 11 }} />
-                      ) : (
-                        <View style={{ width: 42, height: 42, borderRadius: 21, marginRight: 11, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' }}>
-                          <Text style={{ color: '#475569', fontWeight: '800' }}>{String(item.displayName || item.username).slice(0, 1).toUpperCase()}</Text>
-                        </View>
-                      )}
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ color: '#1E293B', fontWeight: '800', fontSize: 14 }}>{item.displayName || item.username}</Text>
-                        <Text style={{ color: '#64748B', fontSize: 12, marginTop: 2 }}>@{item.username}</Text>
-                      </View>
-                      <TouchableOpacity
-                        disabled={blockedAccountsBusy}
-                        onPress={() => handleUnblockAccount(item.username)}
-                        style={{ backgroundColor: '#172554', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, opacity: blockedAccountsBusy ? 0.55 : 1 }}
-                      >
-                        <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '800' }}>{blockedAccountsBusy ? 'Please wait' : 'Unblock'}</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </ScrollView>
-              )}
-              <TouchableOpacity onPress={() => setBlockedAccountsOpen(false)} style={{ alignItems: 'center', paddingVertical: 14, marginTop: 8 }}>
-                <Text style={{ color: '#475569', fontWeight: '800', fontSize: 14 }}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-      <Modal visible={restrictedAccountsOpen} transparent animationType="slide" onRequestClose={() => setRestrictedAccountsOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.55)', justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: '#F7F9FD', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 28, maxHeight: '82%' }}>
-            <Text style={{ color: '#172554', fontSize: 22, fontWeight: '900', marginBottom: 5 }}>Restricted Accounts</Text>
-            <Text style={{ color: '#64748B', fontSize: 13, marginBottom: 16 }}>Manage people whose interactions with you are limited.</Text>
-            {restrictedAccountsLoading ? (
-              <Text style={{ color: '#64748B', textAlign: 'center', paddingVertical: 28 }}>Loading restricted accounts...</Text>
-            ) : restrictedAccounts.length === 0 ? (
-              <Text style={{ color: '#64748B', textAlign: 'center', paddingVertical: 28 }}>You have not restricted anyone.</Text>
+          <View
+            style={{
+              backgroundColor: "#F7F9FD",
+              borderTopLeftRadius: 26,
+              borderTopRightRadius: 26,
+              paddingHorizontal: 20,
+              paddingTop: 18,
+              paddingBottom: 28,
+              maxHeight: "82%",
+            }}
+          >
+            <Text
+              style={{
+                color: "#172554",
+                fontSize: 22,
+                fontWeight: "900",
+                marginBottom: 5,
+              }}
+            >
+              Blocked Accounts
+            </Text>
+            <Text style={{ color: "#64748B", fontSize: 13, marginBottom: 16 }}>
+              Accounts you have blocked cannot follow or contact you.
+            </Text>
+            {blockedAccountsLoading ? (
+              <Text
+                style={{
+                  color: "#64748B",
+                  textAlign: "center",
+                  paddingVertical: 28,
+                }}
+              >
+                Loading blocked accounts...
+              </Text>
+            ) : blockedAccounts.length === 0 ? (
+              <Text
+                style={{
+                  color: "#64748B",
+                  textAlign: "center",
+                  paddingVertical: 28,
+                }}
+              >
+                You have not blocked anyone.
+              </Text>
             ) : (
-              <ScrollView keyboardShouldPersistTaps="handled" style={{ flexGrow: 0 }}>
-                {restrictedAccounts.map(item => (
-                  <View key={item.username} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, padding: 12, marginBottom: 9, borderWidth: 1, borderColor: '#E7ECF5' }}>
-                    {item.avatarUrl ? <Image source={{ uri: item.avatarUrl }} style={{ width: 42, height: 42, borderRadius: 21, marginRight: 11 }} /> : (
-                      <View style={{ width: 42, height: 42, borderRadius: 21, marginRight: 11, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ color: '#475569', fontWeight: '800' }}>{String(item.displayName || item.username).slice(0, 1).toUpperCase()}</Text>
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                style={{ flexGrow: 0 }}
+              >
+                {blockedAccounts.map((item) => (
+                  <View
+                    key={item.username}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: 15,
+                      padding: 12,
+                      marginBottom: 9,
+                      borderWidth: 1,
+                      borderColor: "#E7ECF5",
+                    }}
+                  >
+                    {item.avatarUrl ? (
+                      <Image
+                        source={{ uri: item.avatarUrl }}
+                        style={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: 21,
+                          marginRight: 11,
+                        }}
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: 21,
+                          marginRight: 11,
+                          backgroundColor: "#E2E8F0",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text style={{ color: "#475569", fontWeight: "800" }}>
+                          {String(item.displayName || item.username)
+                            .slice(0, 1)
+                            .toUpperCase()}
+                        </Text>
                       </View>
                     )}
                     <View style={{ flex: 1 }}>
-                      <Text style={{ color: '#1E293B', fontWeight: '800', fontSize: 14 }}>{item.displayName || item.username}</Text>
-                      <Text style={{ color: '#64748B', fontSize: 12, marginTop: 2 }}>@{item.username}</Text>
+                      <Text
+                        style={{
+                          color: "#1E293B",
+                          fontWeight: "800",
+                          fontSize: 14,
+                        }}
+                      >
+                        {item.displayName || item.username}
+                      </Text>
+                      <Text
+                        style={{ color: "#64748B", fontSize: 12, marginTop: 2 }}
+                      >
+                        @{item.username}
+                      </Text>
                     </View>
-                    <TouchableOpacity disabled={restrictedAccountsBusy} onPress={() => handleUnrestrictAccount(item.username)} style={{ backgroundColor: '#172554', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, opacity: restrictedAccountsBusy ? 0.55 : 1 }}>
-                      <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '800' }}>{restrictedAccountsBusy ? 'Please wait' : 'Unrestrict'}</Text>
+                    <TouchableOpacity
+                      disabled={blockedAccountsBusy}
+                      onPress={() => handleUnblockAccount(item.username)}
+                      style={{
+                        backgroundColor: "#172554",
+                        paddingHorizontal: 14,
+                        paddingVertical: 9,
+                        borderRadius: 10,
+                        opacity: blockedAccountsBusy ? 0.55 : 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#FFFFFF",
+                          fontSize: 12,
+                          fontWeight: "800",
+                        }}
+                      >
+                        {blockedAccountsBusy ? "Please wait" : "Unblock"}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 ))}
               </ScrollView>
             )}
-            <TouchableOpacity onPress={() => setRestrictedAccountsOpen(false)} style={{ alignItems: 'center', paddingVertical: 14, marginTop: 8 }}>
-              <Text style={{ color: '#475569', fontWeight: '800', fontSize: 14 }}>Close</Text>
+            <TouchableOpacity
+              onPress={() => setBlockedAccountsOpen(false)}
+              style={{
+                alignItems: "center",
+                paddingVertical: 14,
+                marginTop: 8,
+              }}
+            >
+              <Text
+                style={{ color: "#475569", fontWeight: "800", fontSize: 14 }}
+              >
+                Close
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
+      <Modal
+        visible={restrictedAccountsOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setRestrictedAccountsOpen(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15, 23, 42, 0.55)",
+            justifyContent: "flex-end",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#F7F9FD",
+              borderTopLeftRadius: 26,
+              borderTopRightRadius: 26,
+              paddingHorizontal: 20,
+              paddingTop: 18,
+              paddingBottom: 28,
+              maxHeight: "82%",
+            }}
+          >
+            <Text
+              style={{
+                color: "#172554",
+                fontSize: 22,
+                fontWeight: "900",
+                marginBottom: 5,
+              }}
+            >
+              Restricted Accounts
+            </Text>
+            <Text style={{ color: "#64748B", fontSize: 13, marginBottom: 16 }}>
+              Manage people whose interactions with you are limited.
+            </Text>
+            {restrictedAccountsLoading ? (
+              <Text
+                style={{
+                  color: "#64748B",
+                  textAlign: "center",
+                  paddingVertical: 28,
+                }}
+              >
+                Loading restricted accounts...
+              </Text>
+            ) : restrictedAccounts.length === 0 ? (
+              <Text
+                style={{
+                  color: "#64748B",
+                  textAlign: "center",
+                  paddingVertical: 28,
+                }}
+              >
+                You have not restricted anyone.
+              </Text>
+            ) : (
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                style={{ flexGrow: 0 }}
+              >
+                {restrictedAccounts.map((item) => (
+                  <View
+                    key={item.username}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: 15,
+                      padding: 12,
+                      marginBottom: 9,
+                      borderWidth: 1,
+                      borderColor: "#E7ECF5",
+                    }}
+                  >
+                    {item.avatarUrl ? (
+                      <Image
+                        source={{ uri: item.avatarUrl }}
+                        style={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: 21,
+                          marginRight: 11,
+                        }}
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: 21,
+                          marginRight: 11,
+                          backgroundColor: "#E2E8F0",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text style={{ color: "#475569", fontWeight: "800" }}>
+                          {String(item.displayName || item.username)
+                            .slice(0, 1)
+                            .toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          color: "#1E293B",
+                          fontWeight: "800",
+                          fontSize: 14,
+                        }}
+                      >
+                        {item.displayName || item.username}
+                      </Text>
+                      <Text
+                        style={{ color: "#64748B", fontSize: 12, marginTop: 2 }}
+                      >
+                        @{item.username}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      disabled={restrictedAccountsBusy}
+                      onPress={() => handleUnrestrictAccount(item.username)}
+                      style={{
+                        backgroundColor: "#172554",
+                        paddingHorizontal: 14,
+                        paddingVertical: 9,
+                        borderRadius: 10,
+                        opacity: restrictedAccountsBusy ? 0.55 : 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#FFFFFF",
+                          fontSize: 12,
+                          fontWeight: "800",
+                        }}
+                      >
+                        {restrictedAccountsBusy ? "Please wait" : "Unrestrict"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+            <TouchableOpacity
+              onPress={() => setRestrictedAccountsOpen(false)}
+              style={{
+                alignItems: "center",
+                paddingVertical: 14,
+                marginTop: 8,
+              }}
+            >
+              <Text
+                style={{ color: "#475569", fontWeight: "800", fontSize: 14 }}
+              >
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
-
-        {/* SOCIALAPP_PRIVACY_SCREEN_V1 */}
+      {/* SOCIALAPP_PRIVACY_SCREEN_V1 */}
       <Modal
         visible={privacyOpen}
         transparent
         animationType="slide"
         onRequestClose={() => setPrivacyOpen(false)}
       >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20 }}>
-            <Text style={{ color: '#333333', fontSize: 20, fontWeight: '700', marginBottom: 18 }}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 12,
+              padding: 20,
+            }}
+          >
+            <Text
+              style={{
+                color: "#333333",
+                fontSize: 20,
+                fontWeight: "700",
+                marginBottom: 18,
+              }}
+            >
               Privacy Settings
             </Text>
             {[
-              { key: 'isPrivate', title: 'Private Account', subtitle: 'Set your account as private' },
-              { key: 'showActivity', title: 'Show Activity', subtitle: 'Allow your activity to be visible' },
-              { key: 'allowMessages', title: 'Allow Messages', subtitle: 'Allow other users to message you' },
-            ].map(item => (
-              <View key={item.key} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
+              {
+                key: "isPrivate",
+                title: "Private Account",
+                subtitle: "Set your account as private",
+              },
+              {
+                key: "showActivity",
+                title: "Show Activity",
+                subtitle: "Allow your activity to be visible",
+              },
+              {
+                key: "allowMessages",
+                title: "Allow Messages",
+                subtitle: "Allow other users to message you",
+              },
+            ].map((item) => (
+              <View
+                key={item.key}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  paddingVertical: 12,
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#EEEEEE",
+                }}
+              >
                 <View style={{ flex: 1, paddingRight: 12 }}>
-                  <Text style={{ color: '#333333', fontWeight: '600' }}>{item.title}</Text>
-                  <Text style={{ color: '#777777', fontSize: 12, marginTop: 3 }}>{item.subtitle}</Text>
+                  <Text style={{ color: "#333333", fontWeight: "600" }}>
+                    {item.title}
+                  </Text>
+                  <Text
+                    style={{ color: "#777777", fontSize: 12, marginTop: 3 }}
+                  >
+                    {item.subtitle}
+                  </Text>
                 </View>
                 <Switch
                   value={privacySettings[item.key]}
-                  onValueChange={value => setPrivacySettings(current => ({ ...current, [item.key]: value }))}
+                  onValueChange={(value) =>
+                    setPrivacySettings((current) => ({
+                      ...current,
+                      [item.key]: value,
+                    }))
+                  }
                   disabled={privacyBusy}
                 />
               </View>
             ))}
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 18 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                marginTop: 18,
+              }}
+            >
               <TouchableOpacity
                 onPress={() => setPrivacyOpen(false)}
                 disabled={privacyBusy}
                 style={{ padding: 12, marginRight: 8 }}
               >
-                <Text style={{ color: '#555555' }}>Cancel</Text>
+                <Text style={{ color: "#555555" }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={persistPrivacySettings}
                 disabled={privacyBusy}
-                style={{ padding: 12, backgroundColor: '#E5E5E5', borderRadius: 8 }}
+                style={{
+                  padding: 12,
+                  backgroundColor: "#E5E5E5",
+                  borderRadius: 8,
+                }}
               >
-                <Text style={{ color: '#333333', fontWeight: '700' }}>
-                  {privacyBusy ? 'Saving...' : 'Save'}
+                <Text style={{ color: "#333333", fontWeight: "700" }}>
+                  {privacyBusy ? "Saving..." : "Save"}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-
 
       {/* SOCIALAPP_VERSION_UPDATE_MODAL_V1 */}
       <Modal
@@ -4881,33 +9020,101 @@ const refreshProfile = React.useCallback(async () => {
           if (!updateInfo?.force_update) setUpdatePromptVisible(false);
         }}
       >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', padding: 24 }}>
-          <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 24, alignItems: 'center' }}>
-            <Text style={{ fontSize: 22, fontWeight: '700', color: '#171717', marginBottom: 12 }}>Update Available</Text>
-            <Text style={{ fontSize: 15, color: '#555555', textAlign: 'center', lineHeight: 22, marginBottom: 22 }}>
-              {updateInfo?.message || 'A new version of Bhumi Social AI is available.'}
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.65)",
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 18,
+              padding: 24,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 22,
+                fontWeight: "700",
+                color: "#171717",
+                marginBottom: 12,
+              }}
+            >
+              Update Available
+            </Text>
+            <Text
+              style={{
+                fontSize: 15,
+                color: "#555555",
+                textAlign: "center",
+                lineHeight: 22,
+                marginBottom: 22,
+              }}
+            >
+              {updateInfo?.message ||
+                "A new version of Bhumi Social AI is available."}
             </Text>
             <TouchableOpacity
               onPress={downloadAndInstallUpdate}
               disabled={updateDownloading}
-              style={{ backgroundColor: updateDownloading ? '#7AAED4' : '#1685D9', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, width: '100%', alignItems: 'center' }}
+              style={{
+                backgroundColor: updateDownloading ? "#7AAED4" : "#1685D9",
+                paddingVertical: 13,
+                paddingHorizontal: 24,
+                borderRadius: 10,
+                width: "100%",
+                alignItems: "center",
+              }}
             >
-              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>{updateDownloading ? 'Downloading APK...' : 'Download & Install Update'}</Text>
+              <Text
+                style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 16 }}
+              >
+                {updateDownloading
+                  ? "Downloading APK..."
+                  : "Download & Install Update"}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => Share.share({
-                message: 'Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download',
-              })}
-              style={{ backgroundColor: '#1685D9', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, width: '100%', alignItems: 'center', marginTop: 10 }}
+              onPress={() =>
+                Share.share({
+                  message:
+                    "Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download",
+                })
+              }
+              style={{
+                backgroundColor: "#1685D9",
+                paddingVertical: 13,
+                paddingHorizontal: 24,
+                borderRadius: 10,
+                width: "100%",
+                alignItems: "center",
+                marginTop: 10,
+              }}
             >
-              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>Share App Link</Text>
+              <Text
+                style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 16 }}
+              >
+                Share App Link
+              </Text>
             </TouchableOpacity>
             {!updateInfo?.force_update && (
               <TouchableOpacity
                 onPress={() => setUpdatePromptVisible(false)}
-                style={{ paddingVertical: 14, paddingHorizontal: 24, marginTop: 6 }}
+                style={{
+                  paddingVertical: 14,
+                  paddingHorizontal: 24,
+                  marginTop: 6,
+                }}
               >
-                <Text style={{ color: '#555555', fontWeight: '600', fontSize: 15 }}>Later</Text>
+                <Text
+                  style={{ color: "#555555", fontWeight: "600", fontSize: 15 }}
+                >
+                  Later
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -4923,53 +9130,114 @@ const refreshProfile = React.useCallback(async () => {
           if (!accountSettingsBusy) setAccountSettingsOpen(false);
         }}
       >
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-<View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 22 }}>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: '#26344D', marginBottom: 6 }}>
-              Account Settings
-            </Text>
-            <Text style={{ color: '#7A879B', marginBottom: 18 }}>
-              Email and mobile number are optional.
-            </Text>
-            <Text style={{ color: '#26344D', fontWeight: '700', marginBottom: 6 }}>Email address</Text>
-            <TextInput
-              value={accountEmail}
-              onChangeText={setAccountEmail}
-              placeholder="Email address (optional)"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              editable={!accountSettingsBusy}
-              style={{ borderWidth: 1, borderColor: '#D8E0EC', borderRadius: 12, padding: 13, marginBottom: 14, color: '#26344D' }}
-            />
-            <Text style={{ color: '#26344D', fontWeight: '700', marginBottom: 6 }}>Mobile number</Text>
-            <TextInput
-              value={accountPhone}
-              onChangeText={setAccountPhone}
-              placeholder="Mobile number (optional)"
-              keyboardType="phone-pad"
-              editable={!accountSettingsBusy}
-              style={{ borderWidth: 1, borderColor: '#D8E0EC', borderRadius: 12, padding: 13, marginBottom: 18, color: '#26344D' }}
-            />
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
-              <TouchableOpacity
-                disabled={accountSettingsBusy}
-                onPress={() => setAccountSettingsOpen(false)}
-                style={{ padding: 13, marginRight: 8 }}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.45)",
+              justifyContent: "flex-end",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                padding: 22,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 22,
+                  fontWeight: "800",
+                  color: "#26344D",
+                  marginBottom: 6,
+                }}
               >
-                <Text style={{ color: '#64748B', fontWeight: '700' }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                disabled={accountSettingsBusy}
-                onPress={saveAccountSettingsChanges}
-                style={{ backgroundColor: '#2563EB', paddingVertical: 13, paddingHorizontal: 20, borderRadius: 12, opacity: accountSettingsBusy ? 0.6 : 1 }}
+                Account Settings
+              </Text>
+              <Text style={{ color: "#7A879B", marginBottom: 18 }}>
+                Email and mobile number are optional.
+              </Text>
+              <Text
+                style={{ color: "#26344D", fontWeight: "700", marginBottom: 6 }}
               >
-                <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>{accountSettingsBusy ? 'Saving...' : 'Save changes'}</Text>
-              </TouchableOpacity>
+                Email address
+              </Text>
+              <TextInput
+                value={accountEmail}
+                onChangeText={setAccountEmail}
+                placeholder="Email address (optional)"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!accountSettingsBusy}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#D8E0EC",
+                  borderRadius: 12,
+                  padding: 13,
+                  marginBottom: 14,
+                  color: "#26344D",
+                }}
+              />
+              <Text
+                style={{ color: "#26344D", fontWeight: "700", marginBottom: 6 }}
+              >
+                Mobile number
+              </Text>
+              <TextInput
+                value={accountPhone}
+                onChangeText={setAccountPhone}
+                placeholder="Mobile number (optional)"
+                keyboardType="phone-pad"
+                editable={!accountSettingsBusy}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#D8E0EC",
+                  borderRadius: 12,
+                  padding: 13,
+                  marginBottom: 18,
+                  color: "#26344D",
+                }}
+              />
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                }}
+              >
+                <TouchableOpacity
+                  disabled={accountSettingsBusy}
+                  onPress={() => setAccountSettingsOpen(false)}
+                  style={{ padding: 13, marginRight: 8 }}
+                >
+                  <Text style={{ color: "#64748B", fontWeight: "700" }}>
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  disabled={accountSettingsBusy}
+                  onPress={saveAccountSettingsChanges}
+                  style={{
+                    backgroundColor: "#2563EB",
+                    paddingVertical: 13,
+                    paddingHorizontal: 20,
+                    borderRadius: 12,
+                    opacity: accountSettingsBusy ? 0.6 : 1,
+                  }}
+                >
+                  <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
+                    {accountSettingsBusy ? "Saving..." : "Save changes"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-</KeyboardAvoidingView>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* SOCIALAPP_CHANGE_PASSWORD_SCREEN_V1 */}
@@ -4981,123 +9249,201 @@ const refreshProfile = React.useCallback(async () => {
           if (!passwordBusy) setPasswordOpen(false);
         }}
       >
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-<View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20 }}>
-            <Text style={{ color: '#333333', fontSize: 20, fontWeight: '700', marginBottom: 18 }}>
-              Change Password
-            </Text>
-
-            {[
-              { label: 'Old Password', value: oldPassword, setter: setOldPassword },
-              { label: 'New Password', value: newPassword, setter: setNewPassword },
-              { label: 'Confirm New Password', value: confirmNewPassword, setter: setConfirmNewPassword },
-            ].map(field => (
-              <TextInput
-                key={field.label}
-                value={field.value}
-                onChangeText={field.setter}
-                placeholder={field.label}
-                secureTextEntry
-                autoCapitalize="none"
-                editable={!passwordBusy}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.4)",
+              justifyContent: "center",
+              padding: 20,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: 12,
+                padding: 20,
+              }}
+            >
+              <Text
                 style={{
-                  borderWidth: 1,
-                  borderColor: '#E5E5E5',
-                  borderRadius: 8,
+                  color: "#333333",
+                  fontSize: 20,
+                  fontWeight: "700",
+                  marginBottom: 18,
+                }}
+              >
+                Change Password
+              </Text>
+
+              {[
+                {
+                  label: "Old Password",
+                  value: oldPassword,
+                  setter: setOldPassword,
+                },
+                {
+                  label: "New Password",
+                  value: newPassword,
+                  setter: setNewPassword,
+                },
+                {
+                  label: "Confirm New Password",
+                  value: confirmNewPassword,
+                  setter: setConfirmNewPassword,
+                },
+              ].map((field) => (
+                <TextInput
+                  key={field.label}
+                  value={field.value}
+                  onChangeText={field.setter}
+                  placeholder={field.label}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  editable={!passwordBusy}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: "#E5E5E5",
+                    borderRadius: 8,
+                    padding: 12,
+                    marginBottom: 12,
+                    color: "#333333",
+                  }}
+                />
+              ))}
+
+              <TouchableOpacity
+                disabled={passwordBusy}
+                onPress={() => {
+                  Alert.alert(
+                    "Log Out Other Devices",
+                    "This will sign out your account from other devices. This device will stay logged in.",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Log Out Other Devices",
+                        style: "destructive",
+                        onPress: async () => {
+                          setPasswordBusy(true);
+                          try {
+                            const result = await logoutOtherSessions();
+                            Alert.alert(
+                              "Success",
+                              result.message ||
+                                "Other devices have been signed out.",
+                            );
+                          } catch (e) {
+                            Alert.alert(
+                              "Could Not Sign Out Devices",
+                              e.message || "Please try again.",
+                            );
+                          } finally {
+                            setPasswordBusy(false);
+                          }
+                        },
+                      },
+                    ],
+                  );
+                }}
+                style={{
                   padding: 12,
-                  marginBottom: 12,
-                  color: '#333333',
+                  borderWidth: 1,
+                  borderColor: "#DC2626",
+                  borderRadius: 8,
+                  marginBottom: 14,
                 }}
-              />
-            ))}
-
-            <TouchableOpacity
-  disabled={passwordBusy}
-  onPress={() => {
-    Alert.alert(
-      'Log Out Other Devices',
-      'This will sign out your account from other devices. This device will stay logged in.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Log Out Other Devices',
-          style: 'destructive',
-          onPress: async () => {
-            setPasswordBusy(true);
-            try {
-              const result = await logoutOtherSessions();
-              Alert.alert('Success', result.message || 'Other devices have been signed out.');
-            } catch (e) {
-              Alert.alert('Could Not Sign Out Devices', e.message || 'Please try again.');
-            } finally {
-              setPasswordBusy(false);
-            }
-          },
-        },
-      ]
-    );
-  }}
-  style={{ padding: 12, borderWidth: 1, borderColor: '#DC2626', borderRadius: 8, marginBottom: 14 }}
->
-  <Text style={{ color: '#DC2626', fontWeight: '700', textAlign: 'center' }}>
-    Log Out Other Devices
-  </Text>
-</TouchableOpacity>
-
-<View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
-              <TouchableOpacity
-                onPress={() => setPasswordOpen(false)}
-                disabled={passwordBusy}
-                style={{ padding: 12, marginRight: 8 }}
               >
-                <Text style={{ color: '#555555' }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={async () => {
-                  if (!oldPassword || !newPassword || !confirmNewPassword) {
-                    Alert.alert('Missing information', 'Fill in all three password fields.');
-                    return;
-                  }
-                  if (newPassword !== confirmNewPassword) {
-                    Alert.alert('Passwords do not match', 'Enter the same new password twice.');
-                    return;
-                  }
-                  if (newPassword.length < 4 || newPassword.length > 24) {
-                    Alert.alert('Invalid password', 'The new password must be 4 to 24 characters.');
-                    return;
-                  }
-                  setPasswordBusy(true);
-                  try {
-                    const result = await changeAccountPassword(
-                      oldPassword,
-                      newPassword,
-                      confirmNewPassword
-                    );
-                    setOldPassword('');
-                    setNewPassword('');
-                    setConfirmNewPassword('');
-                    setPasswordOpen(false);
-                    Alert.alert('Success', result.message || 'Password changed successfully.');
-                  } catch (e) {
-                    Alert.alert('Password change failed', e.message || 'Please try again.');
-                  } finally {
-                    setPasswordBusy(false);
-                  }
-                }}
-                disabled={passwordBusy}
-                style={{ padding: 12, backgroundColor: '#E5E5E5', borderRadius: 8 }}
-              >
-                <Text style={{ color: '#333333', fontWeight: '700' }}>
-                  {passwordBusy ? 'Saving...' : 'Change Password'}
+                <Text
+                  style={{
+                    color: "#DC2626",
+                    fontWeight: "700",
+                    textAlign: "center",
+                  }}
+                >
+                  Log Out Other Devices
                 </Text>
               </TouchableOpacity>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "flex-end",
+                  marginTop: 8,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => setPasswordOpen(false)}
+                  disabled={passwordBusy}
+                  style={{ padding: 12, marginRight: 8 }}
+                >
+                  <Text style={{ color: "#555555" }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={async () => {
+                    if (!oldPassword || !newPassword || !confirmNewPassword) {
+                      Alert.alert(
+                        "Missing information",
+                        "Fill in all three password fields.",
+                      );
+                      return;
+                    }
+                    if (newPassword !== confirmNewPassword) {
+                      Alert.alert(
+                        "Passwords do not match",
+                        "Enter the same new password twice.",
+                      );
+                      return;
+                    }
+                    if (newPassword.length < 4 || newPassword.length > 24) {
+                      Alert.alert(
+                        "Invalid password",
+                        "The new password must be 4 to 24 characters.",
+                      );
+                      return;
+                    }
+                    setPasswordBusy(true);
+                    try {
+                      const result = await changeAccountPassword(
+                        oldPassword,
+                        newPassword,
+                        confirmNewPassword,
+                      );
+                      setOldPassword("");
+                      setNewPassword("");
+                      setConfirmNewPassword("");
+                      setPasswordOpen(false);
+                      Alert.alert(
+                        "Success",
+                        result.message || "Password changed successfully.",
+                      );
+                    } catch (e) {
+                      Alert.alert(
+                        "Password change failed",
+                        e.message || "Please try again.",
+                      );
+                    } finally {
+                      setPasswordBusy(false);
+                    }
+                  }}
+                  disabled={passwordBusy}
+                  style={{
+                    padding: 12,
+                    backgroundColor: "#E5E5E5",
+                    borderRadius: 8,
+                  }}
+                >
+                  <Text style={{ color: "#333333", fontWeight: "700" }}>
+                    {passwordBusy ? "Saving..." : "Change Password"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-</KeyboardAvoidingView>
+        </KeyboardAvoidingView>
       </Modal>
-
 
       {/* SOCIALAPP_DIRECT_MESSAGES_MODAL_V1 */}
       <Modal
@@ -5105,573 +9451,2529 @@ const refreshProfile = React.useCallback(async () => {
         animationType="slide"
         onRequestClose={closeMessages}
       >
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}><SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-
-<View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingTop: 12, paddingBottom: 16, backgroundColor: '#FFFFFF', minHeight: 76 }}>
-  {selectedChatUser ? (
-    <TouchableOpacity onPress={() => { setSelectedChatUser(''); setChatError(''); }} style={{ paddingRight: 14 }}>
-      <Ionicons name="arrow-back" size={25} color="#262626" />
-    </TouchableOpacity>
-  ) : (
-    <TouchableOpacity style={{ paddingRight: 18 }}>
-      <Ionicons name="briefcase-outline" size={27} color="#111111" />
-    </TouchableOpacity>
-  )}
-  {selectedChatUser ? (
-    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <View style={{ width: 43, height: 43, borderRadius: 22, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        {messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase())?.avatarUrl ? (
-          <Image source={{ uri: String(messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl).startsWith('http') ? messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl : `https://bhumi-social-app-1.onrender.com${messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl}` }} style={{ width: 43, height: 43, borderRadius: 22 }} />
-        ) : <Text style={{ color: '#262626', fontSize: 17, fontWeight: '700' }}>{selectedChatUser.slice(0, 1).toUpperCase()}</Text>}
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text numberOfLines={1} style={{ fontSize: 17, fontWeight: '700', color: '#262626' }}>{messageConversations.find(c => String(c.username || '').toLowerCase() === selectedChatUser.toLowerCase())?.displayName || selectedChatUser}</Text>
-        <Text style={{ fontSize: 12, color: '#A7A9AE', marginTop: 2 }}>@{selectedChatUser}</Text>
-      </View>
-    </View>
-  ) : (
-    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-      <TouchableOpacity onPress={() => closeMessages()} style={{ paddingHorizontal: 7 }}>
-        <Ionicons name="trending-up-outline" size={29} color="#111111" />
-      </TouchableOpacity>
-      <View style={{ flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
-        <Text numberOfLines={1} style={{ color: '#262626', fontSize: 23, fontWeight: '900', letterSpacing: -0.7 }}>{authSession?.username || 'Messages'}</Text>
-        <Ionicons name="chevron-down" size={21} color="#262626" style={{ marginLeft: 7 }} />
-        <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: '#F32655', marginLeft: 8 }} />
-      </View>
-      <TouchableOpacity onPress={closeMessages} style={{ paddingHorizontal: 8 }}>
-        <Ionicons name="ellipsis-horizontal" size={27} color="#262626" />
-      </TouchableOpacity>
-    </View>
-  )}
-  {!selectedChatUser ? (
-    <TouchableOpacity onPress={() => setNewChatComposerOpen(v => !v)} accessibilityLabel="New message" style={{ paddingLeft: 13 }}>
-      <Ionicons name="create-outline" size={23} color="#6B7280" />
-    </TouchableOpacity>
-  ) : null}
-</View>
-
-{!selectedChatUser ? (
-  <View style={{ flex: 1, backgroundColor: '#FFFFFF', paddingTop: 12 }}>
-    {chatError ? <Text style={{ color: '#FF6B6B', paddingHorizontal: 20, paddingBottom: 8 }}>{chatError}</Text> : null}
-    <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 25, marginHorizontal: 14, marginBottom: 17, height: 44, borderRadius: 24, backgroundColor: '#F5F5F5' }}>
-      <Ionicons name="search" size={23} color="#6B7280" />
-      <TextInput value={chatSearchQuery} onChangeText={setChatSearchQuery} placeholder="Search or ask Meta AI" placeholderTextColor="#65676B" autoCapitalize="none" autoCorrect={false} style={{ flex: 1, paddingHorizontal: 13, color: '#111318', fontSize: 18 }} />
-      {chatSearchQuery ? <TouchableOpacity onPress={() => setChatSearchQuery('')}><Ionicons name="close-circle" size={19} color="#A7A9B2" /></TouchableOpacity> : null}
-    </View>
-    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 24, marginTop: -52, marginBottom: 31 }}>
-      <TouchableOpacity onPress={() => setChatSearchQuery('')}><Text style={{ color: '#168FF0', fontSize: 16, fontWeight: '700' }}>Filter</Text></TouchableOpacity>
-    </View>
-
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 18, gap: 16 }}>
-      <TouchableOpacity
-  onPress={() => {
-    setNoteDraft(ownNote?.text || '');
-    setNoteError('');
-    setNoteComposerOpen(true);
-  }}
-  style={{ width: 76, alignItems: 'center' }}
->
-  <View style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: ownNote ? '#C13584' : '#D8D8D8', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
-    {profile?.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={{ width: 64, height: 64, borderRadius: 32 }} /> : <Ionicons name="happy-outline" size={48} color="#8E8E93" />}
-    {ownNote?.text ? <View style={{ position: 'absolute', top: -13, left: -8, right: -8, minHeight: 29, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E5E5', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}><Text numberOfLines={2} style={{ color: '#262626', fontSize: 9, textAlign: 'center' }}>{ownNote.text}</Text></View> : null}
-    <View style={{ position: 'absolute', right: 0, bottom: 0, width: 24, height: 24, borderRadius: 12, backgroundColor: '#168FF0', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFFFFF' }}>
-      <Ionicons name="add" size={17} color="#FFFFFF" />
-    </View>
-  </View>
-  <Text numberOfLines={1} style={{ color: '#111318', fontSize: 12, marginTop: 7 }}>Your note</Text>
-</TouchableOpacity>
-{friendsNotes.map((note, i) => (
-  <TouchableOpacity key={String(note.username) + '-note-' + i} onPress={() => setNoteViewer(note)} style={{ width: 76, alignItems: 'center' }}>
-    <View style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: '#C13584', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
-      {note.avatarUrl ? <Image source={{ uri: String(note.avatarUrl).startsWith('http') ? note.avatarUrl : `https://bhumi-social-app-1.onrender.com${note.avatarUrl}` }} style={{ width: 64, height: 64, borderRadius: 32 }} /> : <Text style={{ color: '#111318', fontSize: 25, fontWeight: '800' }}>{String(note.username || '?').slice(0, 1).toUpperCase()}</Text>}
-      <View style={{ position: 'absolute', top: -13, left: -8, right: -8, minHeight: 29, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E5E5', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
-        <Text numberOfLines={2} style={{ color: '#262626', fontSize: 9, textAlign: 'center' }}>{note.text}</Text>
-      </View>
-    </View>
-    <Text numberOfLines={1} style={{ color: '#111318', fontSize: 12, marginTop: 7 }}>{note.displayName || note.username}</Text>
-  </TouchableOpacity>
-))}
-</ScrollView>
-
-    <View style={{ flexDirection: 'row', paddingHorizontal: 14, gap: 9, paddingBottom: 17 }}>
-      {['All', 'Primary', 'General', 'Requests'].map((tab, i) => (
-        <View key={tab} style={{ flex: i === 0 ? 0.75 : 1.25, height: 44, borderRadius: 13, backgroundColor: i === 0 ? '#EAF0FF' : '#F1F2F5', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}>
-          <Text style={{ color: '#111318', fontSize: 14, fontWeight: '700' }}>{tab}</Text>
-          {tab === 'Requests' ? <Ionicons name="chevron-forward" size={18} color="#6B7280" style={{ marginLeft: 3 }} /> : null}
-        </View>
-      ))}
-    </View>
-
-    {newChatComposerOpen ? (
-      <View style={{ marginHorizontal: 15, marginBottom: 12, padding: 14, borderRadius: 15, backgroundColor: '#FFFFFF' }}>
-        <Text style={{ color: '#111318', fontSize: 14, fontWeight: '800', marginBottom: 10 }}>New message</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F5', borderRadius: 22, paddingHorizontal: 13 }}>
-          <Ionicons name="search-outline" size={19} color="#AAAAAA" />
-          <TextInput value={newChatUsername} onChangeText={setNewChatUsername} placeholder="Search people by name or username" placeholderTextColor="#A7A9B2" autoCapitalize="none" autoCorrect={false} autoFocus style={{ flex: 1, paddingHorizontal: 10, paddingVertical: 12, color: '#111318' }} />
-          {newChatUsername ? <TouchableOpacity onPress={() => setNewChatUsername('')}><Ionicons name="close-circle" size={19} color="#AAAAAA" /></TouchableOpacity> : null}
-        </View>
-        {chatPeopleBusy ? <Text style={{ color: '#AAAAAA', padding: 10 }}>Searching people...</Text> : null}
-        {chatPeopleError ? <Text style={{ color: '#FF7777', padding: 10 }}>{chatPeopleError}</Text> : null}
-        {chatPeopleResults.map((person, index) => (
-          <TouchableOpacity key={String(person.username || index)} onPress={() => { setNewChatComposerOpen(false); setNewChatUsername(''); setChatPeopleResults([]); openDirectChat(person.username); }} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, gap: 12 }}>
-            <View style={{ width: 42, height: 42, borderRadius: 22, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              {person.avatarUrl ? <Image source={{ uri: String(person.avatarUrl).startsWith('http') ? person.avatarUrl : `https://bhumi-social-app-1.onrender.com${person.avatarUrl}` }} style={{ width: 42, height: 42, borderRadius: 22 }} /> : <Text style={{ color: '#111318', fontWeight: '800' }}>{String(person.username || '?').slice(0, 1).toUpperCase()}</Text>}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingHorizontal: 18,
+                paddingTop: 12,
+                paddingBottom: 16,
+                backgroundColor: "#FFFFFF",
+                minHeight: 76,
+              }}
+            >
+              {selectedChatUser ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedChatUser("");
+                    setChatError("");
+                  }}
+                  style={{ paddingRight: 14 }}
+                >
+                  <Ionicons name="arrow-back" size={25} color="#262626" />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={{ paddingRight: 18 }}>
+                  <Ionicons
+                    name="briefcase-outline"
+                    size={27}
+                    color="#111111"
+                  />
+                </TouchableOpacity>
+              )}
+              {selectedChatUser ? (
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 43,
+                      height: 43,
+                      borderRadius: 22,
+                      backgroundColor: "#F5F5F5",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {messageConversations.find(
+                      (c) =>
+                        String(c.username || "").toLowerCase() ===
+                        selectedChatUser.toLowerCase(),
+                    )?.avatarUrl ? (
+                      <Image
+                        source={{
+                          uri: String(
+                            messageConversations.find(
+                              (c) =>
+                                String(c.username || "").toLowerCase() ===
+                                selectedChatUser.toLowerCase(),
+                            ).avatarUrl,
+                          ).startsWith("http")
+                            ? messageConversations.find(
+                                (c) =>
+                                  String(c.username || "").toLowerCase() ===
+                                  selectedChatUser.toLowerCase(),
+                              ).avatarUrl
+                            : `https://bhumi-social-app-1.onrender.com${messageConversations.find((c) => String(c.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl}`,
+                        }}
+                        style={{ width: 43, height: 43, borderRadius: 22 }}
+                      />
+                    ) : (
+                      <Text
+                        style={{
+                          color: "#262626",
+                          fontSize: 17,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {selectedChatUser.slice(0, 1).toUpperCase()}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        fontSize: 17,
+                        fontWeight: "700",
+                        color: "#262626",
+                      }}
+                    >
+                      {messageConversations.find(
+                        (c) =>
+                          String(c.username || "").toLowerCase() ===
+                          selectedChatUser.toLowerCase(),
+                      )?.displayName || selectedChatUser}
+                    </Text>
+                    <Text
+                      style={{ fontSize: 12, color: "#A7A9AE", marginTop: 2 }}
+                    >
+                      @{selectedChatUser}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => closeMessages()}
+                    style={{ paddingHorizontal: 7 }}
+                  >
+                    <Ionicons
+                      name="trending-up-outline"
+                      size={29}
+                      color="#111111"
+                    />
+                  </TouchableOpacity>
+                  <View
+                    style={{
+                      flex: 1,
+                      alignItems: "center",
+                      flexDirection: "row",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        color: "#262626",
+                        fontSize: 23,
+                        fontWeight: "900",
+                        letterSpacing: -0.7,
+                      }}
+                    >
+                      {authSession?.username || "Messages"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={21}
+                      color="#262626"
+                      style={{ marginLeft: 7 }}
+                    />
+                    <View
+                      style={{
+                        width: 9,
+                        height: 9,
+                        borderRadius: 5,
+                        backgroundColor: "#F32655",
+                        marginLeft: 8,
+                      }}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    onPress={closeMessages}
+                    style={{ paddingHorizontal: 8 }}
+                  >
+                    <Ionicons
+                      name="ellipsis-horizontal"
+                      size={27}
+                      color="#262626"
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+              {!selectedChatUser ? (
+                <TouchableOpacity
+                  onPress={() => setNewChatComposerOpen((v) => !v)}
+                  accessibilityLabel="New message"
+                  style={{ paddingLeft: 13 }}
+                >
+                  <Ionicons name="create-outline" size={23} color="#6B7280" />
+                </TouchableOpacity>
+              ) : null}
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: '#111318', fontWeight: '700' }}>{person.displayName || person.username}</Text>
-              <Text style={{ color: '#6B7280', fontSize: 18 }}>@{person.username}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-        {newChatUsername.trim().length >= 2 && !chatPeopleBusy && !chatPeopleError && chatPeopleResults.length === 0 ? <Text style={{ color: '#AAAAAA', textAlign: 'center', padding: 12 }}>No people found</Text> : null}
-      </View>
-    ) : null}
 
-    {chatBusy ? <Text style={{ color: '#6B7280', paddingHorizontal: 20, paddingVertical: 8 }}>Loading messages...</Text> : null}
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 10 }}>
-      {messageConversations.filter(conversation => {
-        const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
-        const term = chatSearchQuery.trim().toLowerCase();
-        return !term || String(username).toLowerCase().includes(term) || String(conversation.displayName || '').toLowerCase().includes(term) || String(conversation.lastMessage || '').toLowerCase().includes(term);
-      }).map((conversation, index) => {
-        const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || '';
-        if (!username) return null;
-        const unreadCount = Number(conversation.unreadCount || 0);
-        return (
-          <TouchableOpacity key={String(username) + index} onPress={() => openDirectChat(username)} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }}>
-            <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1, borderColor: '#EFEFEF' }}>
-              {conversation.avatarUrl ? <Image source={{ uri: String(conversation.avatarUrl).startsWith('http') ? conversation.avatarUrl : `https://bhumi-social-app-1.onrender.com${conversation.avatarUrl}` }} style={{ width: 58, height: 58, borderRadius: 29 }} resizeMode="cover" /> : <Text style={{ color: '#111318', fontSize: 22, fontWeight: '800' }}>{String(username).slice(0, 1).toUpperCase()}</Text>}
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text numberOfLines={1} style={{ color: '#111318', fontSize: 15, fontWeight: '600' }}>{conversation.displayName || username}</Text>
-              <Text numberOfLines={1} style={{ color: '#6B7280', marginTop: 3, fontSize: 13 }}>
-                {conversation.lastMessage || 'Start a conversation'}
-                {String(conversation.lastMessageSender || '').toLowerCase() === String(authSession?.username || '').toLowerCase() ? (conversation.readAt ? ' · Seen' : conversation.deliveredAt ? ' · Delivered' : ' · Sent') : ''}
-              </Text>
-            </View>
-            <View style={{ alignItems: 'flex-end', minWidth: 35 }}>
-              <Text style={{ color: '#6B7280', fontSize: 18 }}>
-                {conversation.lastMessageAt ? (() => {
-                  const date = new Date(conversation.lastMessageAt);
-                  const diff = Math.max(0, Date.now() - date.getTime());
-                  const minutes = Math.floor(diff / 60000);
-                  if (minutes < 1) return 'now';
-                  if (minutes < 60) return `${minutes}m`;
-                  if (minutes < 1440) return `${Math.floor(minutes / 60)}h`;
-                  if (minutes < 2880) return 'Yesterday';
-                  return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
-                })() : ''}
-              </Text>
-              {unreadCount > 0 ? <View style={{ minWidth: 19, height: 19, borderRadius: 10, backgroundColor: '#168FF0', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5, marginTop: 5 }}><Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800' }}>{unreadCount > 99 ? '99+' : unreadCount}</Text></View> : null}
-            </View>
-          </TouchableOpacity>
-        );
-      })}
-      {!chatBusy && !chatError && messageConversations.length === 0 ? <Text style={{ color: '#6B7280', textAlign: 'center', padding: 28 }}>No conversations yet. Start a new chat.</Text> : null}
-    </ScrollView>
-
-    <View style={{ height: 65, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#EFEFEF' }}>
-      <Ionicons name="home-outline" size={27} color="#111111" />
-      <Ionicons name="play-circle-outline" size={28} color="#111111" />
-      <View style={{ width: 57, height: 48, borderRadius: 25, backgroundColor: '#F1F2F5', alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name="paper-plane" size={25} color="#000000" />
-      </View>
-      <Ionicons name="search-outline" size={28} color="#111111" />
-      <Ionicons name="person-circle-outline" size={29} color="#111111" />
-    </View>
-  </View>
-) : (
-
-            <View style={{ flex: 1 }}>
-              <ScrollView
-                ref={directMessagesScrollRef}
-                style={{ flex: 1 }}
-                keyboardShouldPersistTaps="handled"
-                keyboardDismissMode="interactive"
-                onContentSizeChange={() => directMessagesScrollRef.current?.scrollToEnd({ animated: true })}
-                contentContainerStyle={{ paddingHorizontal: 14, paddingVertical: 16, flexGrow: 1, justifyContent: 'flex-end' }}
+            {!selectedChatUser ? (
+              <View
+                style={{ flex: 1, backgroundColor: "#FFFFFF", paddingTop: 12 }}
               >
-                {chatBusy && directMessages.length === 0 ? (
-                  <Text style={{ color: '#888888', textAlign: 'center', padding: 24 }}>Loading messages...</Text>
+                {chatError ? (
+                  <Text
+                    style={{
+                      color: "#FF6B6B",
+                      paddingHorizontal: 20,
+                      paddingBottom: 8,
+                    }}
+                  >
+                    {chatError}
+                  </Text>
                 ) : null}
-                {directMessages.map((message, index) => {
-                  const mine = String(message.sender || '').toLowerCase() === String(authSession?.username || '').toLowerCase();
-                  return (
-                    <View key={String(message.id || index)} style={{ width: '100%', flexDirection: 'row', alignItems: 'flex-end', justifyContent: mine ? 'flex-end' : 'flex-start', paddingHorizontal: 2, marginVertical: 6 }}>
-                      <TouchableOpacity activeOpacity={0.9} onLongPress={() => { setChatReplyTo(null); setChatUnsendTarget(message); }} style={{ maxWidth: '82%', backgroundColor: mine ? '#3797F0' : '#EFEFEF', borderRadius: 20, borderTopRightRadius: mine ? 5 : 20, borderTopLeftRadius: mine ? 20 : 5, paddingHorizontal: 16, paddingVertical: 13, elevation: mine ? 2 : 0 }}>
-                        {message.replyToId ? (
-                          <View style={{ borderLeftWidth: 3, borderLeftColor: mine ? '#D8EDFF' : '#0095F6', backgroundColor: mine ? 'rgba(255,255,255,0.14)' : '#E4EAF0', borderRadius: 8, padding: 8, marginBottom: 8 }}>
-                            <Text numberOfLines={1} style={{ color: mine ? '#FFFFFF' : '#0095F6', fontSize: 11, fontWeight: '800' }}>@{message.replySender || selectedChatUser}</Text>
-                            <Text numberOfLines={2} style={{ color: mine ? '#F0F7FF' : '#505A64', fontSize: 12 }}>{message.replyText || 'Message unavailable'}</Text>
-                          </View>
-                        ) : null}
-                        {message.imageUrl ? <Image source={{ uri: message.imageUrl.startsWith('http') ? message.imageUrl : `https://bhumi-social-app-1.onrender.com${message.imageUrl}` }} style={{ width: 230, height: 230, borderRadius: 16, marginBottom: message.text ? 8 : 0 }} resizeMode="cover" /> : null}
-                        {message.text ? <Text style={{ color: mine ? '#FFFFFF' : '#262626', fontSize: 15, lineHeight: 21 }}>{message.text}</Text> : null}
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginTop: 6 }}>
-                          <Text style={{ color: mine ? '#EAF5FF' : '#89929C', fontSize: 10 }}>{message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</Text>
-                          {mine ? <Text style={{ color: '#EAF5FF', fontSize: 9, fontWeight: '700' }}>{message.readAt ? 'Seen' : message.deliveredAt ? 'Delivered' : 'Sent'}</Text> : null}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: 25,
+                    marginHorizontal: 14,
+                    marginBottom: 17,
+                    height: 44,
+                    borderRadius: 24,
+                    backgroundColor: "#F5F5F5",
+                  }}
+                >
+                  <Ionicons name="search" size={23} color="#6B7280" />
+                  <TextInput
+                    value={chatSearchQuery}
+                    onChangeText={setChatSearchQuery}
+                    placeholder="Search or ask Meta AI"
+                    placeholderTextColor="#65676B"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={{
+                      flex: 1,
+                      paddingHorizontal: 13,
+                      color: "#111318",
+                      fontSize: 18,
+                    }}
+                  />
+                  {chatSearchQuery ? (
+                    <TouchableOpacity onPress={() => setChatSearchQuery("")}>
+                      <Ionicons name="close-circle" size={19} color="#A7A9B2" />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "flex-end",
+                    paddingHorizontal: 24,
+                    marginTop: -52,
+                    marginBottom: 31,
+                  }}
+                >
+                  <TouchableOpacity onPress={() => setChatSearchQuery("")}>
+                    <Text
+                      style={{
+                        color: "#168FF0",
+                        fontSize: 16,
+                        fontWeight: "700",
+                      }}
+                    >
+                      Filter
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingHorizontal: 16,
+                    paddingTop: 4,
+                    paddingBottom: 18,
+                    gap: 16,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => {
+                      setNoteDraft(ownNote?.text || "");
+                      setNoteError("");
+                      setNoteComposerOpen(true);
+                    }}
+                    style={{ width: 76, alignItems: "center" }}
+                  >
+                    <View
+                      style={{
+                        width: 68,
+                        height: 68,
+                        borderRadius: 34,
+                        backgroundColor: "#FFFFFF",
+                        borderWidth: 2,
+                        borderColor: ownNote ? "#C13584" : "#D8D8D8",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "visible",
+                      }}
+                    >
+                      {profile?.avatarUrl ? (
+                        <Image
+                          source={{ uri: profile.avatarUrl }}
+                          style={{ width: 64, height: 64, borderRadius: 32 }}
+                        />
+                      ) : (
+                        <Ionicons
+                          name="happy-outline"
+                          size={48}
+                          color="#8E8E93"
+                        />
+                      )}
+                      {ownNote?.text ? (
+                        <View
+                          style={{
+                            position: "absolute",
+                            top: -13,
+                            left: -8,
+                            right: -8,
+                            minHeight: 29,
+                            paddingHorizontal: 7,
+                            paddingVertical: 5,
+                            borderRadius: 12,
+                            backgroundColor: "#FFFFFF",
+                            borderWidth: 1,
+                            borderColor: "#E5E5E5",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            zIndex: 2,
+                          }}
+                        >
+                          <Text
+                            numberOfLines={2}
+                            style={{
+                              color: "#262626",
+                              fontSize: 9,
+                              textAlign: "center",
+                            }}
+                          >
+                            {ownNote.text}
+                          </Text>
                         </View>
-                      </TouchableOpacity>
-                      {mine ? (
-                        <View style={{ width: 30, height: 30, borderRadius: 15, marginLeft: 7, marginBottom: 2, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#EFEFEF', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                          {profile?.avatarUrl ? (
-                            <Image source={{ uri: profile.avatarUrl }} style={{ width: 30, height: 30, borderRadius: 15 }} />
-                          ) : (
-                            <Text style={{ color: '#0095F6', fontSize: 12, fontWeight: '800' }}>{String(authSession?.username || 'Y').slice(0, 1).toUpperCase()}</Text>
-                          )}
+                      ) : null}
+                      <View
+                        style={{
+                          position: "absolute",
+                          right: 0,
+                          bottom: 0,
+                          width: 24,
+                          height: 24,
+                          borderRadius: 12,
+                          backgroundColor: "#168FF0",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderWidth: 2,
+                          borderColor: "#FFFFFF",
+                        }}
+                      >
+                        <Ionicons name="add" size={17} color="#FFFFFF" />
+                      </View>
+                    </View>
+                    <Text
+                      numberOfLines={1}
+                      style={{ color: "#111318", fontSize: 12, marginTop: 7 }}
+                    >
+                      Your note
+                    </Text>
+                  </TouchableOpacity>
+                  {friendsNotes.map((note, i) => (
+                    <TouchableOpacity
+                      key={String(note.username) + "-note-" + i}
+                      onPress={() => setNoteViewer(note)}
+                      style={{ width: 76, alignItems: "center" }}
+                    >
+                      <View
+                        style={{
+                          width: 68,
+                          height: 68,
+                          borderRadius: 34,
+                          backgroundColor: "#FFFFFF",
+                          borderWidth: 2,
+                          borderColor: "#C13584",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          overflow: "visible",
+                        }}
+                      >
+                        {note.avatarUrl ? (
+                          <Image
+                            source={{
+                              uri: String(note.avatarUrl).startsWith("http")
+                                ? note.avatarUrl
+                                : `https://bhumi-social-app-1.onrender.com${note.avatarUrl}`,
+                            }}
+                            style={{ width: 64, height: 64, borderRadius: 32 }}
+                          />
+                        ) : (
+                          <Text
+                            style={{
+                              color: "#111318",
+                              fontSize: 25,
+                              fontWeight: "800",
+                            }}
+                          >
+                            {String(note.username || "?")
+                              .slice(0, 1)
+                              .toUpperCase()}
+                          </Text>
+                        )}
+                        <View
+                          style={{
+                            position: "absolute",
+                            top: -13,
+                            left: -8,
+                            right: -8,
+                            minHeight: 29,
+                            paddingHorizontal: 7,
+                            paddingVertical: 5,
+                            borderRadius: 12,
+                            backgroundColor: "#FFFFFF",
+                            borderWidth: 1,
+                            borderColor: "#E5E5E5",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            zIndex: 2,
+                          }}
+                        >
+                          <Text
+                            numberOfLines={2}
+                            style={{
+                              color: "#262626",
+                              fontSize: 9,
+                              textAlign: "center",
+                            }}
+                          >
+                            {note.text}
+                          </Text>
                         </View>
+                      </View>
+                      <Text
+                        numberOfLines={1}
+                        style={{ color: "#111318", fontSize: 12, marginTop: 7 }}
+                      >
+                        {note.displayName || note.username}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    paddingHorizontal: 14,
+                    gap: 9,
+                    paddingBottom: 17,
+                  }}
+                >
+                  {["All", "Primary", "General", "Requests"].map((tab, i) => (
+                    <View
+                      key={tab}
+                      style={{
+                        flex: i === 0 ? 0.75 : 1.25,
+                        height: 44,
+                        borderRadius: 13,
+                        backgroundColor: i === 0 ? "#EAF0FF" : "#F1F2F5",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexDirection: "row",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#111318",
+                          fontSize: 14,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {tab}
+                      </Text>
+                      {tab === "Requests" ? (
+                        <Ionicons
+                          name="chevron-forward"
+                          size={18}
+                          color="#6B7280"
+                          style={{ marginLeft: 3 }}
+                        />
                       ) : null}
                     </View>
-                  );
-                })}
-                {!chatBusy && directMessages.length === 0 && !chatError ? (
-                  <Text style={{ color: '#7F8B99', textAlign: 'center', paddingHorizontal: 24, paddingVertical: 44, fontSize: 14, fontWeight: '600' }}>No messages yet. Say hello! 👋</Text>
-                ) : null}
-              </ScrollView>
-              {chatPeerTyping ? <Text style={{ color: '#0095F6', fontSize: 12, fontWeight: '700', paddingHorizontal: 18, paddingVertical: 7 }}>Typing…</Text> : null}
-              {chatUnsendTarget ? (
-                  <View style={{ marginHorizontal: 14, marginTop: 9, marginBottom: 3, padding: 15, borderRadius: 18, backgroundColor: '#F7FAFF', borderWidth: 1, borderColor: '#DCEAF7', elevation: 2 }}>
-                    <Text style={{ color: '#344454', fontSize: 12, fontWeight: '700', marginBottom: 9 }}>Message options</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <TouchableOpacity onPress={() => { setChatReplyTo(chatUnsendTarget); setChatUnsendTarget(null); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 17, paddingVertical: 10, borderRadius: 20, backgroundColor: '#0095F6', elevation: 1 }}>
-                        <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 12 }}>Reply</Text>
-                      </TouchableOpacity>
-                      {String(chatUnsendTarget.sender || '').toLowerCase() === String(authSession?.username || '').toLowerCase() ? (
-                        <TouchableOpacity disabled={chatBusy} onPress={handleUnsendChatMessage} style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#FDECEC' }}>
-                          <Text style={{ color: '#C62828', fontWeight: '800', fontSize: 12 }}>{chatBusy ? 'Removing…' : 'Unsend'}</Text>
+                  ))}
+                </View>
+
+                {newChatComposerOpen ? (
+                  <View
+                    style={{
+                      marginHorizontal: 15,
+                      marginBottom: 12,
+                      padding: 14,
+                      borderRadius: 15,
+                      backgroundColor: "#FFFFFF",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#111318",
+                        fontSize: 14,
+                        fontWeight: "800",
+                        marginBottom: 10,
+                      }}
+                    >
+                      New message
+                    </Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: "#F5F5F5",
+                        borderRadius: 22,
+                        paddingHorizontal: 13,
+                      }}
+                    >
+                      <Ionicons
+                        name="search-outline"
+                        size={19}
+                        color="#AAAAAA"
+                      />
+                      <TextInput
+                        value={newChatUsername}
+                        onChangeText={setNewChatUsername}
+                        placeholder="Search people by name or username"
+                        placeholderTextColor="#A7A9B2"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        autoFocus
+                        style={{
+                          flex: 1,
+                          paddingHorizontal: 10,
+                          paddingVertical: 12,
+                          color: "#111318",
+                        }}
+                      />
+                      {newChatUsername ? (
+                        <TouchableOpacity
+                          onPress={() => setNewChatUsername("")}
+                        >
+                          <Ionicons
+                            name="close-circle"
+                            size={19}
+                            color="#AAAAAA"
+                          />
                         </TouchableOpacity>
                       ) : null}
-                      <TouchableOpacity onPress={() => setChatUnsendTarget(null)} style={{ paddingHorizontal: 12, paddingVertical: 9 }}>
-                        <Text style={{ color: '#687684', fontWeight: '700', fontSize: 12 }}>Cancel</Text>
+                    </View>
+                    {chatPeopleBusy ? (
+                      <Text style={{ color: "#AAAAAA", padding: 10 }}>
+                        Searching people...
+                      </Text>
+                    ) : null}
+                    {chatPeopleError ? (
+                      <Text style={{ color: "#FF7777", padding: 10 }}>
+                        {chatPeopleError}
+                      </Text>
+                    ) : null}
+                    {chatPeopleResults.map((person, index) => (
+                      <TouchableOpacity
+                        key={String(person.username || index)}
+                        onPress={() => {
+                          setNewChatComposerOpen(false);
+                          setNewChatUsername("");
+                          setChatPeopleResults([]);
+                          openDirectChat(person.username);
+                        }}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          paddingVertical: 11,
+                          gap: 12,
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 22,
+                            backgroundColor: "#F5F5F5",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {person.avatarUrl ? (
+                            <Image
+                              source={{
+                                uri: String(person.avatarUrl).startsWith("http")
+                                  ? person.avatarUrl
+                                  : `https://bhumi-social-app-1.onrender.com${person.avatarUrl}`,
+                              }}
+                              style={{
+                                width: 42,
+                                height: 42,
+                                borderRadius: 22,
+                              }}
+                            />
+                          ) : (
+                            <Text
+                              style={{ color: "#111318", fontWeight: "800" }}
+                            >
+                              {String(person.username || "?")
+                                .slice(0, 1)
+                                .toUpperCase()}
+                            </Text>
+                          )}
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: "#111318", fontWeight: "700" }}>
+                            {person.displayName || person.username}
+                          </Text>
+                          <Text style={{ color: "#6B7280", fontSize: 18 }}>
+                            @{person.username}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                    {newChatUsername.trim().length >= 2 &&
+                    !chatPeopleBusy &&
+                    !chatPeopleError &&
+                    chatPeopleResults.length === 0 ? (
+                      <Text
+                        style={{
+                          color: "#AAAAAA",
+                          textAlign: "center",
+                          padding: 12,
+                        }}
+                      >
+                        No people found
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : null}
+
+                {chatBusy ? (
+                  <Text
+                    style={{
+                      color: "#6B7280",
+                      paddingHorizontal: 20,
+                      paddingVertical: 8,
+                    }}
+                  >
+                    Loading messages...
+                  </Text>
+                ) : null}
+                <ScrollView
+                  keyboardShouldPersistTaps="handled"
+                  contentContainerStyle={{ paddingBottom: 10 }}
+                >
+                  {messageConversations
+                    .filter((conversation) => {
+                      const username =
+                        conversation.username ||
+                        conversation.peer ||
+                        conversation.otherUsername ||
+                        conversation.user?.username ||
+                        "";
+                      const term = chatSearchQuery.trim().toLowerCase();
+                      return (
+                        !term ||
+                        String(username).toLowerCase().includes(term) ||
+                        String(conversation.displayName || "")
+                          .toLowerCase()
+                          .includes(term) ||
+                        String(conversation.lastMessage || "")
+                          .toLowerCase()
+                          .includes(term)
+                      );
+                    })
+                    .map((conversation, index) => {
+                      const username =
+                        conversation.username ||
+                        conversation.peer ||
+                        conversation.otherUsername ||
+                        conversation.user?.username ||
+                        "";
+                      if (!username) return null;
+                      const unreadCount = Number(conversation.unreadCount || 0);
+                      return (
+                        <TouchableOpacity
+                          key={String(username) + index}
+                          onPress={() => openDirectChat(username)}
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            paddingHorizontal: 16,
+                            paddingVertical: 10,
+                            gap: 12,
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: 58,
+                              height: 58,
+                              borderRadius: 29,
+                              backgroundColor: "#F5F5F5",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              overflow: "hidden",
+                              borderWidth: 1,
+                              borderColor: "#EFEFEF",
+                            }}
+                          >
+                            {conversation.avatarUrl ? (
+                              <Image
+                                source={{
+                                  uri: String(
+                                    conversation.avatarUrl,
+                                  ).startsWith("http")
+                                    ? conversation.avatarUrl
+                                    : `https://bhumi-social-app-1.onrender.com${conversation.avatarUrl}`,
+                                }}
+                                style={{
+                                  width: 58,
+                                  height: 58,
+                                  borderRadius: 29,
+                                }}
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <Text
+                                style={{
+                                  color: "#111318",
+                                  fontSize: 22,
+                                  fontWeight: "800",
+                                }}
+                              >
+                                {String(username).slice(0, 1).toUpperCase()}
+                              </Text>
+                            )}
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text
+                              numberOfLines={1}
+                              style={{
+                                color: "#111318",
+                                fontSize: 15,
+                                fontWeight: "600",
+                              }}
+                            >
+                              {conversation.displayName || username}
+                            </Text>
+                            <Text
+                              numberOfLines={1}
+                              style={{
+                                color: "#6B7280",
+                                marginTop: 3,
+                                fontSize: 13,
+                              }}
+                            >
+                              {conversation.lastMessage ||
+                                "Start a conversation"}
+                              {String(
+                                conversation.lastMessageSender || "",
+                              ).toLowerCase() ===
+                              String(authSession?.username || "").toLowerCase()
+                                ? conversation.readAt
+                                  ? " · Seen"
+                                  : conversation.deliveredAt
+                                    ? " · Delivered"
+                                    : " · Sent"
+                                : ""}
+                            </Text>
+                          </View>
+                          <View
+                            style={{ alignItems: "flex-end", minWidth: 35 }}
+                          >
+                            <Text style={{ color: "#6B7280", fontSize: 18 }}>
+                              {conversation.lastMessageAt
+                                ? (() => {
+                                    const date = new Date(
+                                      conversation.lastMessageAt,
+                                    );
+                                    const diff = Math.max(
+                                      0,
+                                      Date.now() - date.getTime(),
+                                    );
+                                    const minutes = Math.floor(diff / 60000);
+                                    if (minutes < 1) return "now";
+                                    if (minutes < 60) return `${minutes}m`;
+                                    if (minutes < 1440)
+                                      return `${Math.floor(minutes / 60)}h`;
+                                    if (minutes < 2880) return "Yesterday";
+                                    return date.toLocaleDateString([], {
+                                      day: "numeric",
+                                      month: "short",
+                                    });
+                                  })()
+                                : ""}
+                            </Text>
+                            {unreadCount > 0 ? (
+                              <View
+                                style={{
+                                  minWidth: 19,
+                                  height: 19,
+                                  borderRadius: 10,
+                                  backgroundColor: "#168FF0",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  paddingHorizontal: 5,
+                                  marginTop: 5,
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    color: "#FFFFFF",
+                                    fontSize: 10,
+                                    fontWeight: "800",
+                                  }}
+                                >
+                                  {unreadCount > 99 ? "99+" : unreadCount}
+                                </Text>
+                              </View>
+                            ) : null}
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  {!chatBusy &&
+                  !chatError &&
+                  messageConversations.length === 0 ? (
+                    <Text
+                      style={{
+                        color: "#6B7280",
+                        textAlign: "center",
+                        padding: 28,
+                      }}
+                    >
+                      No conversations yet. Start a new chat.
+                    </Text>
+                  ) : null}
+                </ScrollView>
+              </View>
+            ) : (
+              <View style={{ flex: 1 }}>
+                <ScrollView
+                  ref={directMessagesScrollRef}
+                  style={{ flex: 1 }}
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="interactive"
+                  onContentSizeChange={() =>
+                    directMessagesScrollRef.current?.scrollToEnd({
+                      animated: true,
+                    })
+                  }
+                  contentContainerStyle={{
+                    paddingHorizontal: 14,
+                    paddingVertical: 16,
+                    flexGrow: 1,
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  {chatBusy && directMessages.length === 0 ? (
+                    <Text
+                      style={{
+                        color: "#888888",
+                        textAlign: "center",
+                        padding: 24,
+                      }}
+                    >
+                      Loading messages...
+                    </Text>
+                  ) : null}
+                  {directMessages.map((message, index) => {
+                    const mine =
+                      String(message.sender || "").toLowerCase() ===
+                      String(authSession?.username || "").toLowerCase();
+                    return (
+                      <View
+                        key={String(message.id || index)}
+                        style={{
+                          width: "100%",
+                          flexDirection: "row",
+                          alignItems: "flex-end",
+                          justifyContent: mine ? "flex-end" : "flex-start",
+                          paddingHorizontal: 2,
+                          marginVertical: 6,
+                        }}
+                      >
+                        <TouchableOpacity
+                          activeOpacity={0.9}
+                          onLongPress={() => {
+                            setChatReplyTo(null);
+                            setChatUnsendTarget(message);
+                          }}
+                          style={{
+                            maxWidth: "82%",
+                            backgroundColor: mine ? "#3797F0" : "#EFEFEF",
+                            borderRadius: 20,
+                            borderTopRightRadius: mine ? 5 : 20,
+                            borderTopLeftRadius: mine ? 20 : 5,
+                            paddingHorizontal: 16,
+                            paddingVertical: 13,
+                            elevation: mine ? 2 : 0,
+                          }}
+                        >
+                          {message.replyToId ? (
+                            <View
+                              style={{
+                                borderLeftWidth: 3,
+                                borderLeftColor: mine ? "#D8EDFF" : "#0095F6",
+                                backgroundColor: mine
+                                  ? "rgba(255,255,255,0.14)"
+                                  : "#E4EAF0",
+                                borderRadius: 8,
+                                padding: 8,
+                                marginBottom: 8,
+                              }}
+                            >
+                              <Text
+                                numberOfLines={1}
+                                style={{
+                                  color: mine ? "#FFFFFF" : "#0095F6",
+                                  fontSize: 11,
+                                  fontWeight: "800",
+                                }}
+                              >
+                                @{message.replySender || selectedChatUser}
+                              </Text>
+                              <Text
+                                numberOfLines={2}
+                                style={{
+                                  color: mine ? "#F0F7FF" : "#505A64",
+                                  fontSize: 12,
+                                }}
+                              >
+                                {message.replyText || "Message unavailable"}
+                              </Text>
+                            </View>
+                          ) : null}
+                          {message.imageUrl ? (
+                            <Image
+                              source={{
+                                uri: message.imageUrl.startsWith("http")
+                                  ? message.imageUrl
+                                  : `https://bhumi-social-app-1.onrender.com${message.imageUrl}`,
+                              }}
+                              style={{
+                                width: 230,
+                                height: 230,
+                                borderRadius: 16,
+                                marginBottom: message.text ? 8 : 0,
+                              }}
+                              resizeMode="cover"
+                            />
+                          ) : null}
+                          {message.text ? (
+                            <Text
+                              style={{
+                                color: mine ? "#FFFFFF" : "#262626",
+                                fontSize: 15,
+                                lineHeight: 21,
+                              }}
+                            >
+                              {message.text}
+                            </Text>
+                          ) : null}
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "flex-end",
+                              gap: 6,
+                              marginTop: 6,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: mine ? "#EAF5FF" : "#89929C",
+                                fontSize: 10,
+                              }}
+                            >
+                              {message.createdAt
+                                ? new Date(
+                                    message.createdAt,
+                                  ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
+                                : ""}
+                            </Text>
+                            {mine ? (
+                              <Text
+                                style={{
+                                  color: "#EAF5FF",
+                                  fontSize: 9,
+                                  fontWeight: "700",
+                                }}
+                              >
+                                {message.readAt
+                                  ? "Seen"
+                                  : message.deliveredAt
+                                    ? "Delivered"
+                                    : "Sent"}
+                              </Text>
+                            ) : null}
+                          </View>
+                        </TouchableOpacity>
+                        {mine ? (
+                          <View
+                            style={{
+                              width: 30,
+                              height: 30,
+                              borderRadius: 15,
+                              marginLeft: 7,
+                              marginBottom: 2,
+                              backgroundColor: "#F5F5F5",
+                              borderWidth: 1,
+                              borderColor: "#EFEFEF",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {profile?.avatarUrl ? (
+                              <Image
+                                source={{ uri: profile.avatarUrl }}
+                                style={{
+                                  width: 30,
+                                  height: 30,
+                                  borderRadius: 15,
+                                }}
+                              />
+                            ) : (
+                              <Text
+                                style={{
+                                  color: "#0095F6",
+                                  fontSize: 12,
+                                  fontWeight: "800",
+                                }}
+                              >
+                                {String(authSession?.username || "Y")
+                                  .slice(0, 1)
+                                  .toUpperCase()}
+                              </Text>
+                            )}
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                  {!chatBusy && directMessages.length === 0 && !chatError ? (
+                    <Text
+                      style={{
+                        color: "#7F8B99",
+                        textAlign: "center",
+                        paddingHorizontal: 24,
+                        paddingVertical: 44,
+                        fontSize: 14,
+                        fontWeight: "600",
+                      }}
+                    >
+                      No messages yet. Say hello! 👋
+                    </Text>
+                  ) : null}
+                </ScrollView>
+                {chatPeerTyping ? (
+                  <Text
+                    style={{
+                      color: "#0095F6",
+                      fontSize: 12,
+                      fontWeight: "700",
+                      paddingHorizontal: 18,
+                      paddingVertical: 7,
+                    }}
+                  >
+                    Typing…
+                  </Text>
+                ) : null}
+                {chatUnsendTarget ? (
+                  <View
+                    style={{
+                      marginHorizontal: 14,
+                      marginTop: 9,
+                      marginBottom: 3,
+                      padding: 15,
+                      borderRadius: 18,
+                      backgroundColor: "#F7FAFF",
+                      borderWidth: 1,
+                      borderColor: "#DCEAF7",
+                      elevation: 2,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#344454",
+                        fontSize: 12,
+                        fontWeight: "700",
+                        marginBottom: 9,
+                      }}
+                    >
+                      Message options
+                    </Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <TouchableOpacity
+                        onPress={() => {
+                          setChatReplyTo(chatUnsendTarget);
+                          setChatUnsendTarget(null);
+                        }}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 7,
+                          paddingHorizontal: 17,
+                          paddingVertical: 10,
+                          borderRadius: 20,
+                          backgroundColor: "#0095F6",
+                          elevation: 1,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#FFFFFF",
+                            fontWeight: "700",
+                            fontSize: 12,
+                          }}
+                        >
+                          Reply
+                        </Text>
+                      </TouchableOpacity>
+                      {String(chatUnsendTarget.sender || "").toLowerCase() ===
+                      String(authSession?.username || "").toLowerCase() ? (
+                        <TouchableOpacity
+                          disabled={chatBusy}
+                          onPress={handleUnsendChatMessage}
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 7,
+                            paddingHorizontal: 16,
+                            paddingVertical: 10,
+                            borderRadius: 20,
+                            backgroundColor: "#FDECEC",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#C62828",
+                              fontWeight: "800",
+                              fontSize: 12,
+                            }}
+                          >
+                            {chatBusy ? "Removing…" : "Unsend"}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
+                      <TouchableOpacity
+                        onPress={() => setChatUnsendTarget(null)}
+                        style={{ paddingHorizontal: 12, paddingVertical: 9 }}
+                      >
+                        <Text
+                          style={{
+                            color: "#687684",
+                            fontWeight: "700",
+                            fontSize: 12,
+                          }}
+                        >
+                          Cancel
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>
                 ) : null}
                 {chatReplyTo ? (
-                <View style={{ marginHorizontal: 14, marginTop: 9, marginBottom: 3, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 16, backgroundColor: '#F2F8FF', borderWidth: 1, borderColor: '#DCEAF7', flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: '#0095F6', fontSize: 11, fontWeight: '800' }}>Replying to @{chatReplyTo.sender || selectedChatUser}</Text>
-                    <Text numberOfLines={1} style={{ color: '#526171', fontSize: 12, marginTop: 4 }}>{chatReplyTo.text || (chatReplyTo.imageUrl ? 'Photo' : 'Message')}</Text>
+                  <View
+                    style={{
+                      marginHorizontal: 14,
+                      marginTop: 9,
+                      marginBottom: 3,
+                      paddingHorizontal: 14,
+                      paddingVertical: 12,
+                      borderRadius: 16,
+                      backgroundColor: "#F2F8FF",
+                      borderWidth: 1,
+                      borderColor: "#DCEAF7",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 12,
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          color: "#0095F6",
+                          fontSize: 11,
+                          fontWeight: "800",
+                        }}
+                      >
+                        Replying to @{chatReplyTo.sender || selectedChatUser}
+                      </Text>
+                      <Text
+                        numberOfLines={1}
+                        style={{ color: "#526171", fontSize: 12, marginTop: 4 }}
+                      >
+                        {chatReplyTo.text ||
+                          (chatReplyTo.imageUrl ? "Photo" : "Message")}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => setChatReplyTo(null)}
+                      accessibilityLabel="Cancel reply"
+                    >
+                      <Ionicons name="close-circle" size={22} color="#7C8995" />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity onPress={() => setChatReplyTo(null)} accessibilityLabel="Cancel reply"><Ionicons name="close-circle" size={22} color="#7C8995" /></TouchableOpacity>
+                ) : null}
+                {chatError ? (
+                  <Text
+                    style={{
+                      color: "#D93025",
+                      paddingHorizontal: 16,
+                      paddingTop: 8,
+                      paddingBottom: 4,
+                      fontSize: 12,
+                    }}
+                  >
+                    {chatError}
+                  </Text>
+                ) : null}
+                <View>
+                  {chatMediaDraft ? (
+                    <View
+                      style={{
+                        marginHorizontal: 14,
+                        marginTop: 10,
+                        marginBottom: 8,
+                        padding: 11,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 13,
+                        backgroundColor: "#F8FBFF",
+                        borderRadius: 18,
+                        borderWidth: 1,
+                        borderColor: "#DCEAF7",
+                        elevation: 2,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 78,
+                          height: 78,
+                          borderRadius: 14,
+                          overflow: "hidden",
+                          backgroundColor: "#E8EDF2",
+                          borderWidth: 1,
+                          borderColor: "#E1EAF2",
+                        }}
+                      >
+                        <Image
+                          source={{ uri: chatMediaDraft.uri }}
+                          style={{ width: "100%", height: "100%" }}
+                          resizeMode="cover"
+                        />
+                      </View>
+                      <View
+                        style={{ flex: 1, justifyContent: "center", gap: 5 }}
+                      >
+                        <Text
+                          style={{
+                            color: "#202B38",
+                            fontSize: 14,
+                            fontWeight: "800",
+                          }}
+                        >
+                          Photo attached
+                        </Text>
+                        <Text
+                          style={{
+                            color: "#737373",
+                            fontSize: 11,
+                            fontWeight: "500",
+                          }}
+                        >
+                          Ready to share in this chat
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => setChatMediaDraft(null)}
+                        accessibilityLabel="Remove attached photo"
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: "#FDECEC",
+                        }}
+                      >
+                        <Ionicons name="close" size={19} color="#D93025" />
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
+                  {chatEmojiOpen ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        flexWrap: "wrap",
+                        paddingHorizontal: 16,
+                        paddingVertical: 14,
+                        gap: 14,
+                        backgroundColor: "#F7F9FB",
+                        borderTopWidth: 1,
+                        borderTopColor: "#EDF0F3",
+                      }}
+                    >
+                      {[
+                        "😀",
+                        "😂",
+                        "🥰",
+                        "😍",
+                        "😊",
+                        "😭",
+                        "😎",
+                        "🙏",
+                        "👍",
+                        "❤️",
+                        "🔥",
+                        "🎉",
+                        "😘",
+                        "🤔",
+                        "👏",
+                        "💯",
+                      ].map((emoji) => (
+                        <TouchableOpacity
+                          key={emoji}
+                          onPress={() => setChatDraft((v) => v + emoji)}
+                          style={{
+                            width: 36,
+                            height: 36,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#FFFFFF",
+                            borderRadius: 12,
+                          }}
+                        >
+                          <Text style={{ fontSize: 24 }}>{emoji}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : null}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      paddingHorizontal: 12,
+                      paddingVertical: 9,
+                      borderTopWidth: 1,
+                      borderTopColor: "#EFEFEF",
+                      backgroundColor: "#FFFFFF",
+                      gap: 11,
+                      elevation: 7,
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => chooseChatMedia(false)}
+                      accessibilityLabel="Choose photo from gallery"
+                    >
+                      <Ionicons
+                        name="images-outline"
+                        size={25}
+                        color="#0095F6"
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => chooseChatMedia(true)}
+                      accessibilityLabel="Take a photo"
+                    >
+                      <Ionicons
+                        name="camera-outline"
+                        size={25}
+                        color="#0095F6"
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setChatEmojiOpen((v) => !v)}
+                      accessibilityLabel="Open emoji picker"
+                    >
+                      <Ionicons
+                        name="happy-outline"
+                        size={25}
+                        color="#0095F6"
+                      />
+                    </TouchableOpacity>
+                    <TextInput
+                      value={chatDraft}
+                      onChangeText={handleChatDraftChange}
+                      placeholder="Message..."
+                      multiline
+                      maxLength={5000}
+                      style={{
+                        flex: 1,
+                        maxHeight: 110,
+                        backgroundColor: "#EFEFEF",
+                        borderWidth: 1,
+                        borderColor: "#E1EAF3",
+                        borderRadius: 25,
+                        paddingHorizontal: 18,
+                        paddingVertical: 13,
+                        color: "#202B38",
+                        fontSize: 15,
+                      }}
+                    />
+                    <TouchableOpacity
+                      onPress={sendChatDraft}
+                      disabled={
+                        chatBusy || (!chatDraft.trim() && !chatMediaDraft)
+                      }
+                      accessibilityLabel="Send message"
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 24,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor:
+                          chatBusy || (!chatDraft.trim() && !chatMediaDraft)
+                            ? "#A7D5F5"
+                            : "#0095F6",
+                        elevation: 3,
+                      }}
+                    >
+                      <Ionicons name="send" size={19} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              ) : null}
-              {chatError ? <Text style={{ color: '#D93025', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4, fontSize: 12 }}>{chatError}</Text> : null}
-              <View>
-                            {chatMediaDraft ? (
-                              <View style={{ marginHorizontal: 14, marginTop: 10, marginBottom: 8, padding: 11, flexDirection: 'row', alignItems: 'center', gap: 13, backgroundColor: '#F8FBFF', borderRadius: 18, borderWidth: 1, borderColor: '#DCEAF7', elevation: 2 }}>
-                                <View style={{ width: 78, height: 78, borderRadius: 14, overflow: 'hidden', backgroundColor: '#E8EDF2', borderWidth: 1, borderColor: '#E1EAF2' }}>
-                                  <Image source={{ uri: chatMediaDraft.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                                </View>
-                                <View style={{ flex: 1, justifyContent: 'center', gap: 5 }}>
-                                  <Text style={{ color: '#202B38', fontSize: 14, fontWeight: '800' }}>Photo attached</Text>
-                                  <Text style={{ color: '#737373', fontSize: 11, fontWeight: '500' }}>Ready to share in this chat</Text>
-                                </View>
-                                <TouchableOpacity onPress={() => setChatMediaDraft(null)} accessibilityLabel="Remove attached photo" style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FDECEC' }}>
-                                  <Ionicons name="close" size={19} color="#D93025" />
-                                </TouchableOpacity>
-                              </View>
-                            ) : null}
-                            {chatEmojiOpen ? (
-                              <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingVertical: 14, gap: 14, backgroundColor: '#F7F9FB', borderTopWidth: 1, borderTopColor: '#EDF0F3' }}>
-                                {['😀','😂','🥰','😍','😊','😭','😎','🙏','👍','❤️','🔥','🎉','😘','🤔','👏','💯'].map(emoji => (
-                                  <TouchableOpacity key={emoji} onPress={() => setChatDraft(v => v + emoji)} style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderRadius: 12 }}><Text style={{ fontSize: 24 }}>{emoji}</Text></TouchableOpacity>
-                                ))}
-                              </View>
-                            ) : null}
-                            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 9, borderTopWidth: 1, borderTopColor: '#EFEFEF', backgroundColor: '#FFFFFF', gap: 11, elevation: 7 }}>
-                              <TouchableOpacity onPress={() => chooseChatMedia(false)} accessibilityLabel="Choose photo from gallery"><Ionicons name="images-outline" size={25} color="#0095F6" /></TouchableOpacity>
-                              <TouchableOpacity onPress={() => chooseChatMedia(true)} accessibilityLabel="Take a photo"><Ionicons name="camera-outline" size={25} color="#0095F6" /></TouchableOpacity>
-                              <TouchableOpacity onPress={() => setChatEmojiOpen(v => !v)} accessibilityLabel="Open emoji picker"><Ionicons name="happy-outline" size={25} color="#0095F6" /></TouchableOpacity>
-                              <TextInput value={chatDraft} onChangeText={handleChatDraftChange} placeholder="Message..." multiline maxLength={5000} style={{ flex: 1, maxHeight: 110, backgroundColor: '#EFEFEF', borderWidth: 1, borderColor: '#E1EAF3', borderRadius: 25, paddingHorizontal: 18, paddingVertical: 13, color: '#202B38', fontSize: 15 }} />
-                              <TouchableOpacity onPress={sendChatDraft} disabled={chatBusy || (!chatDraft.trim() && !chatMediaDraft)} accessibilityLabel="Send message" style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: chatBusy || (!chatDraft.trim() && !chatMediaDraft) ? '#A7D5F5' : '#0095F6', elevation: 3 }}><Ionicons name="send" size={19} color="#FFFFFF" /></TouchableOpacity>
-                            </View>
-                          </View>
+              </View>
+            )}
+            <View style={styles.bottomNav}>
+              {[
+                { name: "Home", icon: "home-outline" },
+                { name: "Search", icon: "search-outline" },
+                { name: "Chat", icon: "paper-plane-outline" },
+                { name: "Reels", icon: "play-circle-outline" },
+                { name: "Profile", icon: "person-circle-outline" },
+              ].map((tab) => (
+                <TouchableOpacity
+                  key={tab.name}
+                  style={styles.navItem}
+                  onPress={() => {
+                    if (tab.name === "Chat") return;
+                    closeMessages();
+                    handleTab(tab.name);
+                  }}
+                  accessibilityLabel={tab.name}
+                >
+                  <Ionicons
+                    name={tab.icon}
+                    size={25}
+                    color={activeTab === tab.name ? "#1685D9" : "#333333"}
+                  />
+                  <Text
+                    style={[
+                      styles.navLabel,
+                      activeTab === tab.name && styles.activeNavLabel,
+                    ]}
+                  >
+                    {tab.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          )}
-        <View style={styles.bottomNav}>
-          {[
-            { name: 'Home', icon: 'home-outline' },
-            { name: 'Search', icon: 'search-outline' },
-            { name: 'Chat', icon: 'chatbubble-ellipses-outline' },
-            { name: 'Reels', icon: 'play-circle-outline' },
-            { name: 'Profile', icon: 'person-circle-outline' }
-          ].map(tab => (
-            <TouchableOpacity
-              key={tab.name}
-              style={styles.navItem}
-              onPress={() => {
-                if (tab.name === 'Chat') return;
-                closeMessages();
-                handleTab(tab.name);
-              }}
-              accessibilityLabel={tab.name}
-            >
-              <Ionicons
-                name={tab.icon}
-                size={25}
-                color={activeTab === tab.name ? '#1685D9' : '#333333'}
-              />
-              <Text style={[styles.navLabel, activeTab === tab.name && styles.activeNavLabel]}>
-                {tab.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        </SafeAreaView></KeyboardAvoidingView>
-
+          </SafeAreaView>
+        </KeyboardAvoidingView>
       </Modal>
 
-
-<Modal visible={noteComposerOpen} transparent animationType="fade" onRequestClose={() => setNoteComposerOpen(false)}>
-  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-<View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', paddingHorizontal: 24 }}>
-    <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 20 }}>
-      <Text style={{ fontSize: 19, fontWeight: '700', color: '#111111', marginBottom: 14 }}>Your note</Text>
-      <TextInput
-        value={noteDraft}
-        onChangeText={setNoteDraft}
-        placeholder="Share a thought..."
-        placeholderTextColor="#999999"
-        maxLength={60}
-        multiline
-        autoFocus
-        style={{ minHeight: 90, borderWidth: 1, borderColor: '#E5E5E5', borderRadius: 12, padding: 12, color: '#111111', fontSize: 16, textAlignVertical: 'top' }}
-      />
-      <Text style={{ color: '#888888', textAlign: 'right', marginTop: 6 }}>{noteDraft.length}/60</Text>
-      {!!noteError && <Text style={{ color: '#D93025', marginTop: 8 }}>{noteError}</Text>}
-      <TouchableOpacity
-        onPress={submitUserNote}
-        disabled={!noteDraft.trim() || noteBusy}
-        style={{ backgroundColor: '#0095F6', borderRadius: 10, paddingVertical: 12, alignItems: 'center', marginTop: 14, opacity: (!noteDraft.trim() || noteBusy) ? 0.5 : 1 }}
+      <Modal
+        visible={noteComposerOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNoteComposerOpen(false)}
       >
-        <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{noteBusy ? 'Please wait...' : 'Share note'}</Text>
-      </TouchableOpacity>
-      {ownNote && (
-        <TouchableOpacity onPress={removeUserNote} disabled={noteBusy} style={{ paddingVertical: 12, alignItems: 'center' }}>
-          <Text style={{ color: '#D93025', fontWeight: '600' }}>Delete note</Text>
-        </TouchableOpacity>
-      )}
-      <TouchableOpacity onPress={() => setNoteComposerOpen(false)} style={{ paddingVertical: 10, alignItems: 'center' }}>
-        <Text style={{ color: '#555555', fontWeight: '600' }}>Cancel</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</KeyboardAvoidingView>
-</Modal>
-
-<Modal visible={!!noteViewer} transparent animationType="fade" onRequestClose={() => setNoteViewer(null)}>
-  <TouchableOpacity
-    activeOpacity={1}
-    onPress={() => setNoteViewer(null)}
-    style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', paddingHorizontal: 24 }}
-  >
-    <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 22 }}>
-      <Text style={{ fontSize: 16, fontWeight: '700', color: '#111111', marginBottom: 14 }}>
-        {noteViewer?.displayName || noteViewer?.username || 'Note'}
-      </Text>
-      <Text style={{ fontSize: 18, color: '#222222', lineHeight: 26 }}>
-        {noteViewer?.text || ''}
-      </Text>
-      <TouchableOpacity onPress={() => setNoteViewer(null)} style={{ alignSelf: 'flex-end', marginTop: 20, paddingVertical: 8, paddingHorizontal: 14 }}>
-        <Text style={{ color: '#0095F6', fontWeight: '700' }}>Close</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
-  </TouchableOpacity>
-</Modal>
-
-<Modal visible={viewedProfileOpen} transparent animationType="slide" onRequestClose={() => setViewedProfileOpen(false)}>
-  <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}>
-    <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 22, minHeight: 300 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-        <Text style={{ fontSize: 20, fontWeight: '800', color: '#171717' }}>Profile</Text>
-        <TouchableOpacity onPress={() => setViewedProfileOpen(false)}>
-          <Ionicons name="close" size={27} color="#222222" />
-        </TouchableOpacity>
-      </View>
-      {viewedProfileBusy ? (
-        <Text style={{ textAlign: 'center', color: '#777777', padding: 30 }}>Loading profile...</Text>
-      ) : viewedProfile ? (
-        <View style={{ alignItems: 'center' }}>
-          <View style={{ width: 82, height: 82, borderRadius: 41, backgroundColor: '#E7F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-            <Text style={{ fontSize: 32, fontWeight: '800', color: '#087BD0' }}>{String(viewedProfile.displayName || viewedProfile.username || '?').slice(0, 1).toUpperCase()}</Text>
-          </View>
-          <Text style={{ fontSize: 19, fontWeight: '800', color: '#171717' }}>{viewedProfile.displayName || viewedProfile.username}</Text>
-          <Text style={{ color: '#777777', marginTop: 4 }}>@{viewedProfile.username}</Text>
-          {!!viewedProfile.bio ? <Text style={{ color: '#444444', textAlign: 'center', marginTop: 14, lineHeight: 21 }}>{viewedProfile.bio}</Text> : null}
-          {(() => {
-            const viewedUsername = String(viewedProfile.username || '').trim().toLowerCase();
-            const viewedStories = serverStories.filter(item => String(item.user || item.name || '').trim().toLowerCase() === viewedUsername);
-            return (
-              <View style={{ width: '100%', marginTop: 18, padding: 12, borderWidth: 1, borderColor: '#EEEEEE', borderRadius: 16 }}>
-                <Text style={{ color: '#171717', fontSize: 15, fontWeight: '800', marginBottom: 8 }}>Status</Text>
-                {viewedStories.length ? (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                    {viewedStories.map((story, index) => (
-                      <Story key={String(story.id || story._id || index)} item={{ ...story, name: viewedProfile.displayName || viewedProfile.username, own: false }} onPress={() => openStoryGroup(viewedStories)} />
-                    ))}
-                  </ScrollView>
-                ) : <Text style={{ color: '#888888', fontSize: 13 }}>No status yet</Text>}
-              </View>
-            );
-          })()}
-          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 28, marginTop: 22 }}>
-            <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 17, fontWeight: '800', color: '#171717' }}>{viewedProfile.postsCount || 0}</Text><Text style={{ color: '#777777', fontSize: 12 }}>Posts</Text></View>
-            <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 17, fontWeight: '800', color: '#171717' }}>{viewedProfile.followersCount || 0}</Text><Text style={{ color: '#777777', fontSize: 12 }}>Followers</Text></View>
-            <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 17, fontWeight: '800', color: '#171717' }}>{viewedProfile.followingCount || 0}</Text><Text style={{ color: '#777777', fontSize: 12 }}>Following</Text></View>
-          </View>
-          {String(viewedProfile.username || '').toLowerCase() !== String(authSession?.username || '').toLowerCase() ? (
-            <TouchableOpacity disabled={viewedProfileRestrictBusy} onPress={handleToggleViewedProfileRestriction}
-              style={{ marginTop: 20, width: '100%', paddingVertical: 12, borderRadius: 12, alignItems: 'center', backgroundColor: viewedProfileRestricted ? '#EEEFF3' : '#172554', opacity: viewedProfileRestrictBusy ? 0.6 : 1 }}>
-              <Text style={{ color: viewedProfileRestricted ? '#172554' : '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
-                {viewedProfileRestrictBusy ? 'Please wait...' : viewedProfileRestricted ? 'Unrestrict Account' : 'Restrict Account'}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.35)",
+              justifyContent: "center",
+              paddingHorizontal: 24,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: 18,
+                padding: 20,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 19,
+                  fontWeight: "700",
+                  color: "#111111",
+                  marginBottom: 14,
+                }}
+              >
+                Your note
               </Text>
-            </TouchableOpacity>
-          ) : null}
-        </View>
-      ) : null}
-    </View>
-  </View>
-</Modal>
-
-<Modal visible={notificationsListOpen} transparent animationType="slide" onRequestClose={() => setNotificationsListOpen(false)}><View style={{flex:1,backgroundColor:"rgba(0,0,0,0.45)",justifyContent:"flex-end"}}><View style={{height:"75%",backgroundColor:"#FFFFFF",borderTopLeftRadius:22,borderTopRightRadius:22,paddingTop:18}}><View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",paddingHorizontal:18,paddingBottom:14,borderBottomWidth:1,borderBottomColor:"#EEEEEE"}}><Text style={{fontSize:20,fontWeight:"800",color:"#171717"}}>Notifications</Text><View style={{flexDirection:"row",alignItems:"center",gap:16}}>{unreadNotificationCount>0?<TouchableOpacity onPress={handleReadAllNotifications}><Text style={{color:"#1685D9",fontWeight:"700"}}>Mark all read</Text></TouchableOpacity>:null}<TouchableOpacity onPress={()=>setNotificationsListOpen(false)}><Ionicons name="close" size={27} color="#222222"/></TouchableOpacity></View></View>{notificationsLoading?<Text style={{textAlign:"center",color:"#777777",padding:25}}>Loading notifications...</Text>:<ScrollView contentContainerStyle={{paddingBottom:30}}>{notificationsList.map((item,index)=>{const actor=item.actor?"@"+item.actor:"Someone";const messages={follow_request:"sent you a follow request",follow:"started following you",follow_accepted:"accepted your follow request",follow_rejected:"declined your follow request",like:"liked your post",comment:"commented on your post",message:"sent you a message"};return <TouchableOpacity key={String(item.id||index)} onPress={()=>handleNotificationPress(item)} style={{flexDirection:"row",alignItems:"center",paddingHorizontal:18,paddingVertical:16,backgroundColor:item.isRead?"#FFFFFF":"#EFF7FF",borderBottomWidth:1,borderBottomColor:"#F0F0F0"}}><View style={{width:42,height:42,borderRadius:21,backgroundColor:"#E8F2FC",alignItems:"center",justifyContent:"center",marginRight:12}}><Ionicons name={item.kind==="like"?"heart":item.kind==="comment"?"chatbubble":item.kind==="message"?"paper-plane":"person"} size={21} color="#1685D9"/></View><View style={{flex:1}}><Text style={{color:"#222222",fontSize:14,lineHeight:20}}><Text style={{fontWeight:"800"}}>{actor}</Text>{" "}{messages[item.kind]||"sent you a notification"}</Text><Text style={{color:"#888888",fontSize:11,marginTop:5}}>{item.createdAt?new Date(item.createdAt).toLocaleString():""}</Text></View>{!item.isRead?<View style={{width:9,height:9,borderRadius:5,backgroundColor:"#1685D9",marginLeft:8}}/>:null}</TouchableOpacity>})}{!notificationsList.length?<Text style={{textAlign:"center",color:"#888888",padding:35}}>No notifications yet.</Text>:null}</ScrollView>}</View></View></Modal>
-
-      <Modal visible={reelCommentsOpen} transparent animationType="slide" onRequestClose={() => setReelCommentsOpen(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' }}>
-          <View style={{ height: '72%', backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 18 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
-              <Text style={{ color: '#171717', fontSize: 19, fontWeight: '800' }}>Reel comments</Text>
-              <TouchableOpacity onPress={() => setReelCommentsOpen(false)}><Ionicons name="close" size={27} color="#222222" /></TouchableOpacity>
-            </View>
-            {reelCommentsBusy && reelComments.length === 0 ? <Text style={{ color: '#777777', textAlign: 'center', padding: 24 }}>Loading comments...</Text> : null}
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 18, paddingVertical: 10 }} keyboardShouldPersistTaps="handled">
-              {reelComments.map((item, index) => (
-                <View key={String(item.id || index)} style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
-                  <Text style={{ color: '#222222', fontSize: 14, lineHeight: 21 }}><Text style={{ fontWeight: '800' }}>@{item.username || 'user'} </Text>{item.text}</Text>
-                  {!!item.createdAt ? <Text style={{ color: '#999999', fontSize: 10, marginTop: 4 }}>{new Date(item.createdAt).toLocaleString()}</Text> : null}
-                  {item.isPending ? <Text style={{ color: '#B7791F', fontSize: 11, marginTop: 4 }}>Pending approval</Text> : null}
-                  {item.isPending && item.canApprove ? <TouchableOpacity onPress={() => handleApproveReelComment(item.id)} disabled={reelCommentsBusy} style={{ alignSelf: 'flex-start', marginTop: 6, paddingVertical: 5, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#E8F2FC' }}><Text style={{ color: '#1685D9', fontSize: 12, fontWeight: '800' }}>Approve</Text></TouchableOpacity> : null}
-
-                </View>
-              ))}
-              {!reelCommentsBusy && reelComments.length === 0 ? <Text style={{ color: '#888888', textAlign: 'center', padding: 28 }}>No comments yet. Be the first to comment.</Text> : null}
-            </ScrollView>
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#EEEEEE', gap: 9 }}>
-              <TextInput value={reelCommentDraft} onChangeText={setReelCommentDraft} placeholder="Add a comment..." placeholderTextColor="#999999" maxLength={2000} editable={!reelCommentsBusy} style={{ flex: 1, backgroundColor: '#F3F5F7', borderRadius: 22, paddingHorizontal: 15, paddingVertical: 11, color: '#222222' }} />
-              <TouchableOpacity onPress={handleSubmitReelComment} disabled={reelCommentsBusy || !reelCommentDraft.trim()} style={{ paddingHorizontal: 10, paddingVertical: 9 }}><Text style={{ color: reelCommentsBusy || !reelCommentDraft.trim() ? '#AAB4C0' : '#1685D9', fontWeight: '800' }}>Post</Text></TouchableOpacity>
+              <TextInput
+                value={noteDraft}
+                onChangeText={setNoteDraft}
+                placeholder="Share a thought..."
+                placeholderTextColor="#999999"
+                maxLength={60}
+                multiline
+                autoFocus
+                style={{
+                  minHeight: 90,
+                  borderWidth: 1,
+                  borderColor: "#E5E5E5",
+                  borderRadius: 12,
+                  padding: 12,
+                  color: "#111111",
+                  fontSize: 16,
+                  textAlignVertical: "top",
+                }}
+              />
+              <Text
+                style={{ color: "#888888", textAlign: "right", marginTop: 6 }}
+              >
+                {noteDraft.length}/60
+              </Text>
+              {!!noteError && (
+                <Text style={{ color: "#D93025", marginTop: 8 }}>
+                  {noteError}
+                </Text>
+              )}
+              <TouchableOpacity
+                onPress={submitUserNote}
+                disabled={!noteDraft.trim() || noteBusy}
+                style={{
+                  backgroundColor: "#0095F6",
+                  borderRadius: 10,
+                  paddingVertical: 12,
+                  alignItems: "center",
+                  marginTop: 14,
+                  opacity: !noteDraft.trim() || noteBusy ? 0.5 : 1,
+                }}
+              >
+                <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                  {noteBusy ? "Please wait..." : "Share note"}
+                </Text>
+              </TouchableOpacity>
+              {ownNote && (
+                <TouchableOpacity
+                  onPress={removeUserNote}
+                  disabled={noteBusy}
+                  style={{ paddingVertical: 12, alignItems: "center" }}
+                >
+                  <Text style={{ color: "#D93025", fontWeight: "600" }}>
+                    Delete note
+                  </Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={() => setNoteComposerOpen(false)}
+                style={{ paddingVertical: 10, alignItems: "center" }}
+              >
+                <Text style={{ color: "#555555", fontWeight: "600" }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>
       </Modal>
 
-      <Modal visible={savedScreenOpen} animationType="slide" onRequestClose={() => setSavedScreenOpen(false)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-          <View style={{ height: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#EEEEEE' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <TouchableOpacity onPress={() => setSavedScreenOpen(false)}><Ionicons name="arrow-back" size={25} color="#171717" /></TouchableOpacity>
-              <Text style={{ color: '#171717', fontSize: 19, fontWeight: '800' }}>Saved</Text>
-            </View>
-            <TouchableOpacity onPress={handleOpenSavedScreen}><Ionicons name="refresh" size={22} color="#1685D9" /></TouchableOpacity>
-          </View>
-          {savedContentBusy ? <Text style={{ color: '#777777', textAlign: 'center', padding: 30 }}>Loading saved items...</Text> : (
-            <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 30 }}>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', gap: 6 }}>
-                {savedContent.map((item, index) => (
-                  <View key={`${item.kind || 'content'}-${item.id || index}`} style={{ width: '32%', aspectRatio: 0.82, borderRadius: 10, overflow: 'hidden', backgroundColor: '#EEF1F5' }}>
-                    <TouchableOpacity activeOpacity={0.85} onPress={() => handleOpenSavedItem(item)} style={{ flex: 1 }}>
-                    {item.uri && item.mediaType !== 'video' ? <Image source={{ uri: item.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: item.mediaType === 'video' ? '#202638' : '#EEF1F5' }}><Ionicons name={item.mediaType === 'video' || item.kind === 'reels' ? 'play-circle' : 'image'} size={42} color={item.mediaType === 'video' || item.kind === 'reels' ? '#FFFFFF' : '#718096'} /></View>}
-                    <View style={{ position: 'absolute', left: 5, top: 5, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(0,0,0,0.58)' }}><Text style={{ color: '#FFFFFF', fontSize: 9, fontWeight: '700' }}>{item.kind === 'reels' ? 'REEL' : 'POST'}</Text></View>
-                    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 6, backgroundColor: 'rgba(0,0,0,0.48)' }}><Text numberOfLines={2} style={{ color: '#FFFFFF', fontSize: 10 }}>{item.caption || `@${item.user || item.username || 'user'}`}</Text></View>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleRemoveSavedItem(item)} style={{ position: 'absolute', right: 5, top: 5, width: 27, height: 27, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.62)' }}><Ionicons name="bookmark" size={15} color="#FFFFFF" /></TouchableOpacity>
+      <Modal
+        visible={!!noteViewer}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNoteViewer(null)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setNoteViewer(null)}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.35)",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => {}}
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 18,
+              padding: 22,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "700",
+                color: "#111111",
+                marginBottom: 14,
+              }}
+            >
+              {noteViewer?.displayName || noteViewer?.username || "Note"}
+            </Text>
+            <Text style={{ fontSize: 18, color: "#222222", lineHeight: 26 }}>
+              {noteViewer?.text || ""}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setNoteViewer(null)}
+              style={{
+                alignSelf: "flex-end",
+                marginTop: 20,
+                paddingVertical: 8,
+                paddingHorizontal: 14,
+              }}
+            >
+              <Text style={{ color: "#0095F6", fontWeight: "700" }}>Close</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
+      <Modal
+        visible={viewedProfileOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setViewedProfileOpen(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.45)",
+            justifyContent: "flex-end",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: 22,
+              minHeight: 300,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 22,
+              }}
+            >
+              <Text
+                style={{ fontSize: 20, fontWeight: "800", color: "#171717" }}
+              >
+                Profile
+              </Text>
+              <TouchableOpacity onPress={() => setViewedProfileOpen(false)}>
+                <Ionicons name="close" size={27} color="#222222" />
+              </TouchableOpacity>
+            </View>
+            {viewedProfileBusy ? (
+              <Text
+                style={{ textAlign: "center", color: "#777777", padding: 30 }}
+              >
+                Loading profile...
+              </Text>
+            ) : viewedProfile ? (
+              <View style={{ alignItems: "center" }}>
+                <View
+                  style={{
+                    width: 82,
+                    height: 82,
+                    borderRadius: 41,
+                    backgroundColor: "#E7F3FF",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 12,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 32,
+                      fontWeight: "800",
+                      color: "#087BD0",
+                    }}
+                  >
+                    {String(
+                      viewedProfile.displayName ||
+                        viewedProfile.username ||
+                        "?",
+                    )
+                      .slice(0, 1)
+                      .toUpperCase()}
+                  </Text>
+                </View>
+                <Text
+                  style={{ fontSize: 19, fontWeight: "800", color: "#171717" }}
+                >
+                  {viewedProfile.displayName || viewedProfile.username}
+                </Text>
+                <Text style={{ color: "#777777", marginTop: 4 }}>
+                  @{viewedProfile.username}
+                </Text>
+                {!!viewedProfile.bio ? (
+                  <Text
+                    style={{
+                      color: "#444444",
+                      textAlign: "center",
+                      marginTop: 14,
+                      lineHeight: 21,
+                    }}
+                  >
+                    {viewedProfile.bio}
+                  </Text>
+                ) : null}
+                {(() => {
+                  const viewedUsername = String(viewedProfile.username || "")
+                    .trim()
+                    .toLowerCase();
+                  const viewedStories = serverStories.filter(
+                    (item) =>
+                      String(item.user || item.name || "")
+                        .trim()
+                        .toLowerCase() === viewedUsername,
+                  );
+                  return (
+                    <View
+                      style={{
+                        width: "100%",
+                        marginTop: 18,
+                        padding: 12,
+                        borderWidth: 1,
+                        borderColor: "#EEEEEE",
+                        borderRadius: 16,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#171717",
+                          fontSize: 15,
+                          fontWeight: "800",
+                          marginBottom: 8,
+                        }}
+                      >
+                        Status
+                      </Text>
+                      {viewedStories.length ? (
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={{ gap: 12 }}
+                        >
+                          {viewedStories.map((story, index) => (
+                            <Story
+                              key={String(story.id || story._id || index)}
+                              item={{
+                                ...story,
+                                name:
+                                  viewedProfile.displayName ||
+                                  viewedProfile.username,
+                                own: false,
+                              }}
+                              onPress={() => openStoryGroup(viewedStories)}
+                            />
+                          ))}
+                        </ScrollView>
+                      ) : (
+                        <Text style={{ color: "#888888", fontSize: 13 }}>
+                          No status yet
+                        </Text>
+                      )}
+                    </View>
+                  );
+                })()}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    gap: 28,
+                    marginTop: 22,
+                  }}
+                >
+                  <View style={{ alignItems: "center" }}>
+                    <Text
+                      style={{
+                        fontSize: 17,
+                        fontWeight: "800",
+                        color: "#171717",
+                      }}
+                    >
+                      {viewedProfile.postsCount || 0}
+                    </Text>
+                    <Text style={{ color: "#777777", fontSize: 12 }}>
+                      Posts
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: "center" }}>
+                    <Text
+                      style={{
+                        fontSize: 17,
+                        fontWeight: "800",
+                        color: "#171717",
+                      }}
+                    >
+                      {viewedProfile.followersCount || 0}
+                    </Text>
+                    <Text style={{ color: "#777777", fontSize: 12 }}>
+                      Followers
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: "center" }}>
+                    <Text
+                      style={{
+                        fontSize: 17,
+                        fontWeight: "800",
+                        color: "#171717",
+                      }}
+                    >
+                      {viewedProfile.followingCount || 0}
+                    </Text>
+                    <Text style={{ color: "#777777", fontSize: 12 }}>
+                      Following
+                    </Text>
+                  </View>
+                </View>
+                {String(viewedProfile.username || "").toLowerCase() !==
+                String(authSession?.username || "").toLowerCase() ? (
+                  <TouchableOpacity
+                    disabled={viewedProfileRestrictBusy}
+                    onPress={handleToggleViewedProfileRestriction}
+                    style={{
+                      marginTop: 20,
+                      width: "100%",
+                      paddingVertical: 12,
+                      borderRadius: 12,
+                      alignItems: "center",
+                      backgroundColor: viewedProfileRestricted
+                        ? "#EEEFF3"
+                        : "#172554",
+                      opacity: viewedProfileRestrictBusy ? 0.6 : 1,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: viewedProfileRestricted ? "#172554" : "#FFFFFF",
+                        fontWeight: "800",
+                        fontSize: 14,
+                      }}
+                    >
+                      {viewedProfileRestrictBusy
+                        ? "Please wait..."
+                        : viewedProfileRestricted
+                          ? "Unrestrict Account"
+                          : "Restrict Account"}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={notificationsListOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setNotificationsListOpen(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.45)",
+            justifyContent: "flex-end",
+          }}
+        >
+          <View
+            style={{
+              height: "75%",
+              backgroundColor: "#FFFFFF",
+              borderTopLeftRadius: 22,
+              borderTopRightRadius: 22,
+              paddingTop: 18,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingHorizontal: 18,
+                paddingBottom: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: "#EEEEEE",
+              }}
+            >
+              <Text
+                style={{ fontSize: 20, fontWeight: "800", color: "#171717" }}
+              >
+                Notifications
+              </Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 16 }}
+              >
+                {unreadNotificationCount > 0 ? (
+                  <TouchableOpacity onPress={handleReadAllNotifications}>
+                    <Text style={{ color: "#1685D9", fontWeight: "700" }}>
+                      Mark all read
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+                <TouchableOpacity
+                  onPress={() => setNotificationsListOpen(false)}
+                >
+                  <Ionicons name="close" size={27} color="#222222" />
+                </TouchableOpacity>
+              </View>
+            </View>
+            {notificationsLoading ? (
+              <Text
+                style={{ textAlign: "center", color: "#777777", padding: 25 }}
+              >
+                Loading notifications...
+              </Text>
+            ) : (
+              <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
+                {notificationsList.map((item, index) => {
+                  const actor = item.actor ? "@" + item.actor : "Someone";
+                  const messages = {
+                    follow_request: "sent you a follow request",
+                    follow: "started following you",
+                    follow_accepted: "accepted your follow request",
+                    follow_rejected: "declined your follow request",
+                    like: "liked your post",
+                    comment: "commented on your post",
+                    message: "sent you a message",
+                  };
+                  return (
+                    <TouchableOpacity
+                      key={String(item.id || index)}
+                      onPress={() => handleNotificationPress(item)}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 18,
+                        paddingVertical: 16,
+                        backgroundColor: item.isRead ? "#FFFFFF" : "#EFF7FF",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#F0F0F0",
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: 21,
+                          backgroundColor: "#E8F2FC",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: 12,
+                        }}
+                      >
+                        <Ionicons
+                          name={
+                            item.kind === "like"
+                              ? "heart"
+                              : item.kind === "comment"
+                                ? "chatbubble"
+                                : item.kind === "message"
+                                  ? "paper-plane"
+                                  : "person"
+                          }
+                          size={21}
+                          color="#1685D9"
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            color: "#222222",
+                            fontSize: 14,
+                            lineHeight: 20,
+                          }}
+                        >
+                          <Text style={{ fontWeight: "800" }}>{actor}</Text>{" "}
+                          {messages[item.kind] || "sent you a notification"}
+                        </Text>
+                        <Text
+                          style={{
+                            color: "#888888",
+                            fontSize: 11,
+                            marginTop: 5,
+                          }}
+                        >
+                          {item.createdAt
+                            ? new Date(item.createdAt).toLocaleString()
+                            : ""}
+                        </Text>
+                      </View>
+                      {!item.isRead ? (
+                        <View
+                          style={{
+                            width: 9,
+                            height: 9,
+                            borderRadius: 5,
+                            backgroundColor: "#1685D9",
+                            marginLeft: 8,
+                          }}
+                        />
+                      ) : null}
+                    </TouchableOpacity>
+                  );
+                })}
+                {!notificationsList.length ? (
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      color: "#888888",
+                      padding: 35,
+                    }}
+                  >
+                    No notifications yet.
+                  </Text>
+                ) : null}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={reelCommentsOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setReelCommentsOpen(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{
+            flex: 1,
+            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.55)",
+          }}
+        >
+          <View
+            style={{
+              height: "72%",
+              backgroundColor: "#FFFFFF",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              paddingTop: 18,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingHorizontal: 18,
+                paddingBottom: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: "#EEEEEE",
+              }}
+            >
+              <Text
+                style={{ color: "#171717", fontSize: 19, fontWeight: "800" }}
+              >
+                Reel comments
+              </Text>
+              <TouchableOpacity onPress={() => setReelCommentsOpen(false)}>
+                <Ionicons name="close" size={27} color="#222222" />
+              </TouchableOpacity>
+            </View>
+            {reelCommentsBusy && reelComments.length === 0 ? (
+              <Text
+                style={{ color: "#777777", textAlign: "center", padding: 24 }}
+              >
+                Loading comments...
+              </Text>
+            ) : null}
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{
+                paddingHorizontal: 18,
+                paddingVertical: 10,
+              }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {reelComments.map((item, index) => (
+                <View
+                  key={String(item.id || index)}
+                  style={{
+                    paddingVertical: 12,
+                    borderBottomWidth: 1,
+                    borderBottomColor: "#F0F0F0",
+                  }}
+                >
+                  <Text
+                    style={{ color: "#222222", fontSize: 14, lineHeight: 21 }}
+                  >
+                    <Text style={{ fontWeight: "800" }}>
+                      @{item.username || "user"}{" "}
+                    </Text>
+                    {item.text}
+                  </Text>
+                  {!!item.createdAt ? (
+                    <Text
+                      style={{ color: "#999999", fontSize: 10, marginTop: 4 }}
+                    >
+                      {new Date(item.createdAt).toLocaleString()}
+                    </Text>
+                  ) : null}
+                  {item.isPending ? (
+                    <Text
+                      style={{ color: "#B7791F", fontSize: 11, marginTop: 4 }}
+                    >
+                      Pending approval
+                    </Text>
+                  ) : null}
+                  {item.isPending && item.canApprove ? (
+                    <TouchableOpacity
+                      onPress={() => handleApproveReelComment(item.id)}
+                      disabled={reelCommentsBusy}
+                      style={{
+                        alignSelf: "flex-start",
+                        marginTop: 6,
+                        paddingVertical: 5,
+                        paddingHorizontal: 12,
+                        borderRadius: 8,
+                        backgroundColor: "#E8F2FC",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#1685D9",
+                          fontSize: 12,
+                          fontWeight: "800",
+                        }}
+                      >
+                        Approve
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              ))}
+              {!reelCommentsBusy && reelComments.length === 0 ? (
+                <Text
+                  style={{ color: "#888888", textAlign: "center", padding: 28 }}
+                >
+                  No comments yet. Be the first to comment.
+                </Text>
+              ) : null}
+            </ScrollView>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+                borderTopWidth: 1,
+                borderTopColor: "#EEEEEE",
+                gap: 9,
+              }}
+            >
+              <TextInput
+                value={reelCommentDraft}
+                onChangeText={setReelCommentDraft}
+                placeholder="Add a comment..."
+                placeholderTextColor="#999999"
+                maxLength={2000}
+                editable={!reelCommentsBusy}
+                style={{
+                  flex: 1,
+                  backgroundColor: "#F3F5F7",
+                  borderRadius: 22,
+                  paddingHorizontal: 15,
+                  paddingVertical: 11,
+                  color: "#222222",
+                }}
+              />
+              <TouchableOpacity
+                onPress={handleSubmitReelComment}
+                disabled={reelCommentsBusy || !reelCommentDraft.trim()}
+                style={{ paddingHorizontal: 10, paddingVertical: 9 }}
+              >
+                <Text
+                  style={{
+                    color:
+                      reelCommentsBusy || !reelCommentDraft.trim()
+                        ? "#AAB4C0"
+                        : "#1685D9",
+                    fontWeight: "800",
+                  }}
+                >
+                  Post
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      <Modal
+        visible={savedScreenOpen}
+        animationType="slide"
+        onRequestClose={() => setSavedScreenOpen(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+          <View
+            style={{
+              height: 58,
+              paddingHorizontal: 16,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              borderBottomWidth: 1,
+              borderBottomColor: "#EEEEEE",
+            }}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+            >
+              <TouchableOpacity onPress={() => setSavedScreenOpen(false)}>
+                <Ionicons name="arrow-back" size={25} color="#171717" />
+              </TouchableOpacity>
+              <Text
+                style={{ color: "#171717", fontSize: 19, fontWeight: "800" }}
+              >
+                Saved
+              </Text>
+            </View>
+            <TouchableOpacity onPress={handleOpenSavedScreen}>
+              <Ionicons name="refresh" size={22} color="#1685D9" />
+            </TouchableOpacity>
+          </View>
+          {savedContentBusy ? (
+            <Text
+              style={{ color: "#777777", textAlign: "center", padding: 30 }}
+            >
+              Loading saved items...
+            </Text>
+          ) : (
+            <ScrollView
+              contentContainerStyle={{ padding: 12, paddingBottom: 30 }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-start",
+                  gap: 6,
+                }}
+              >
+                {savedContent.map((item, index) => (
+                  <View
+                    key={`${item.kind || "content"}-${item.id || index}`}
+                    style={{
+                      width: "32%",
+                      aspectRatio: 0.82,
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      backgroundColor: "#EEF1F5",
+                    }}
+                  >
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => handleOpenSavedItem(item)}
+                      style={{ flex: 1 }}
+                    >
+                      {item.uri && item.mediaType !== "video" ? (
+                        <Image
+                          source={{ uri: item.uri }}
+                          style={{ width: "100%", height: "100%" }}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View
+                          style={{
+                            flex: 1,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor:
+                              item.mediaType === "video"
+                                ? "#202638"
+                                : "#EEF1F5",
+                          }}
+                        >
+                          <Ionicons
+                            name={
+                              item.mediaType === "video" ||
+                              item.kind === "reels"
+                                ? "play-circle"
+                                : "image"
+                            }
+                            size={42}
+                            color={
+                              item.mediaType === "video" ||
+                              item.kind === "reels"
+                                ? "#FFFFFF"
+                                : "#718096"
+                            }
+                          />
+                        </View>
+                      )}
+                      <View
+                        style={{
+                          position: "absolute",
+                          left: 5,
+                          top: 5,
+                          paddingHorizontal: 6,
+                          paddingVertical: 3,
+                          borderRadius: 6,
+                          backgroundColor: "rgba(0,0,0,0.58)",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#FFFFFF",
+                            fontSize: 9,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {item.kind === "reels" ? "REEL" : "POST"}
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          padding: 6,
+                          backgroundColor: "rgba(0,0,0,0.48)",
+                        }}
+                      >
+                        <Text
+                          numberOfLines={2}
+                          style={{ color: "#FFFFFF", fontSize: 10 }}
+                        >
+                          {item.caption ||
+                            `@${item.user || item.username || "user"}`}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleRemoveSavedItem(item)}
+                      style={{
+                        position: "absolute",
+                        right: 5,
+                        top: 5,
+                        width: 27,
+                        height: 27,
+                        borderRadius: 14,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "rgba(0,0,0,0.62)",
+                      }}
+                    >
+                      <Ionicons name="bookmark" size={15} color="#FFFFFF" />
+                    </TouchableOpacity>
                   </View>
                 ))}
               </View>
-              {!savedContent.length ? <View style={{ alignItems: 'center', padding: 45 }}><Ionicons name="bookmark-outline" size={42} color="#A0A8B4" /><Text style={{ color: '#777777', marginTop: 12 }}>Nothing saved yet.</Text></View> : null}
+              {!savedContent.length ? (
+                <View style={{ alignItems: "center", padding: 45 }}>
+                  <Ionicons name="bookmark-outline" size={42} color="#A0A8B4" />
+                  <Text style={{ color: "#777777", marginTop: 12 }}>
+                    Nothing saved yet.
+                  </Text>
+                </View>
+              ) : null}
             </ScrollView>
           )}
         </SafeAreaView>
       </Modal>
 
-<CustomAlertHost />
+      <CustomAlertHost />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FFFFFF' },
+  screen: { flex: 1, backgroundColor: "#FFFFFF" },
   content: { flex: 1 },
   header: {
     height: 82,
     marginTop: 20,
     paddingTop: 12,
     paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#EFEFEF',
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: "#EFEFEF",
+    backgroundColor: "#FFFFFF",
   },
-  brand: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '800', color: '#171717', letterSpacing: -0.8 },
+  brand: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#171717",
+    letterSpacing: -0.8,
+  },
   headerSideSpacer: { width: 116 },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 19 },
-  headerIcon: { fontSize: 27, color: '#171717' },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: 19 },
+  headerIcon: { fontSize: 27, color: "#171717" },
   stories: { paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
-  story: { width: 68, alignItems: 'center' },
+  story: { width: 68, alignItems: "center" },
   storyRing: {
-    width: 68, height: 68, borderRadius: 34, padding: 3,
-    borderWidth: 2, borderColor: '#D62976', alignItems: 'center', justifyContent: 'center',
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    padding: 3,
+    borderWidth: 2,
+    borderColor: "#D62976",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  ownRing: { borderColor: '#D9D9D9' },
+  ownRing: { borderColor: "#D9D9D9" },
   storyAvatar: {
-    width: 56, height: 56, borderRadius: 28,
-    alignItems: 'center', justifyContent: 'center',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  plus: { fontSize: 30, color: '#1685D9' },
-  avatarLetter: { fontSize: 22, fontWeight: '700', color: '#343434' },
-  storyName: { marginTop: 5, fontSize: 11, color: '#252525' },
-  feedDivider: { height: 1, backgroundColor: '#EEEEEE' },
-  post: { marginHorizontal: 0, marginBottom: 10, backgroundColor: '#000000', borderWidth: 0, borderColor: '#000000', borderRadius: 0, overflow: 'hidden' },
+  plus: { fontSize: 30, color: "#1685D9" },
+  avatarLetter: { fontSize: 22, fontWeight: "700", color: "#343434" },
+  storyName: { marginTop: 5, fontSize: 11, color: "#252525" },
+  feedDivider: { height: 1, backgroundColor: "#EEEEEE" },
+  post: {
+    marginHorizontal: 0,
+    marginBottom: 10,
+    backgroundColor: "#000000",
+    borderWidth: 0,
+    borderColor: "#000000",
+    borderRadius: 0,
+    overflow: "hidden",
+  },
   postHeader: {
-    height: 58, paddingHorizontal: 12,
-    flexDirection: 'row', alignItems: 'center',
+    height: 58,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
   },
   smallAvatar: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: '#E4EAF4', alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#E4EAF4",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  smallAvatarText: { fontSize: 16, fontWeight: '700', color: '#34415A' },
+  smallAvatarText: { fontSize: 16, fontWeight: "700", color: "#34415A" },
   postUserInfo: { flex: 1, marginLeft: 10 },
-  username: { fontSize: 14, fontWeight: '700', color: '#171717' },
-  location: { marginTop: 2, fontSize: 11, color: '#555555' },
-  more: { fontSize: 19, fontWeight: '700', color: '#FFFFFF', paddingHorizontal: 5 },
-  postImage: { width: '100%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
+  username: { fontSize: 14, fontWeight: "700", color: "#171717" },
+  location: { marginTop: 2, fontSize: 11, color: "#555555" },
+  more: {
+    fontSize: 19,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    paddingHorizontal: 5,
+  },
+  postImage: {
+    width: "100%",
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   postEmoji: { fontSize: 112 },
   actions: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 13, paddingTop: 10, gap: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 13,
+    paddingTop: 10,
+    gap: 20,
   },
-  actionIcon: { fontSize: 28, color: '#202020' },
-  liked: { color: '#E1306C' },
+  actionIcon: { fontSize: 28, color: "#202020" },
+  liked: { color: "#E1306C" },
   actionSpacer: { flex: 1 },
-  likes: { marginHorizontal: 13, marginTop: 4, fontSize: 13, fontWeight: '700', color: '#171717' },
-  caption: { marginHorizontal: 13, marginTop: 5, fontSize: 13, color: '#242424', lineHeight: 19 },
-  comments: { marginHorizontal: 13, marginTop: 5, color: '#888888', fontSize: 12 },
-  time: { marginHorizontal: 13, marginTop: 6, fontSize: 9, color: '#888888', letterSpacing: 0.6 },
-  bottomNav: {
-    height: Platform.OS === 'android' ? 86 : 70,
-    paddingBottom: Platform.OS === 'android' ? 36 : 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#DDDDDD', flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'space-around',
-    backgroundColor: '#FFFFFF',
+  likes: {
+    marginHorizontal: 13,
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#171717",
   },
-  navItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navIcon: { fontSize: 24, color: '#333333' },
-  activeNavIcon: { color: '#1685D9', fontWeight: '800' },
-  navLabel: { fontSize: 9, color: '#666666', marginTop: 1 },
-  activeNavLabel: { color: '#1685D9', fontWeight: '700' },
+  caption: {
+    marginHorizontal: 13,
+    marginTop: 5,
+    fontSize: 13,
+    color: "#242424",
+    lineHeight: 19,
+  },
+  comments: {
+    marginHorizontal: 13,
+    marginTop: 5,
+    color: "#888888",
+    fontSize: 12,
+  },
+  time: {
+    marginHorizontal: 13,
+    marginTop: 6,
+    fontSize: 9,
+    color: "#888888",
+    letterSpacing: 0.6,
+  },
+  bottomNav: {
+    height: Platform.OS === "android" ? 86 : 70,
+    paddingBottom: Platform.OS === "android" ? 36 : 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#DDDDDD",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    backgroundColor: "#FFFFFF",
+  },
+  navItem: { flex: 1, alignItems: "center", justifyContent: "center" },
+  navIcon: { fontSize: 24, color: "#333333" },
+  activeNavIcon: { color: "#1685D9", fontWeight: "800" },
+  navLabel: { fontSize: 9, color: "#666666", marginTop: 1 },
+  activeNavLabel: { color: "#1685D9", fontWeight: "700" },
 });
