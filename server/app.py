@@ -1698,6 +1698,8 @@ def enforce_authenticated_mutations():
         social_actions = {
             ("POST", "follow"),
             ("DELETE", "follow"),
+            ("POST", "restrict"),
+            ("DELETE", "restrict"),
         }
         is_social_action = (request.method, action) in social_actions
 
