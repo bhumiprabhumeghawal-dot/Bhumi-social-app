@@ -1704,7 +1704,14 @@ def enforce_authenticated_mutations():
         is_social_action = (request.method, action) in social_actions
 
         if target and target.lower() != username.lower() and not is_social_action:
-            return jsonify({"error": "दूसरे अकाउंट में बदलाव की अनुमति नहीं है।"}), 403
+            app.logger.warning(
+                "PROFILE_PERMISSION_BLOCK method=%s path=%s actor=%s target=%s",
+                request.method, request.path, username, target
+            )
+            return jsonify({
+                "error": "दूसरे अकाउंट में बदलाव की अनुमति नहीं है। "
+                         f"[{request.method} {request.path}]"
+            }), 403
 
         data = request.get_json(silent=True) or {}
         supplied_json = data.get("username") or data.get("viewer")
