@@ -34,7 +34,7 @@ import {
   createVideoFromPhotos,
   addMusicToVideo,
 } from "./videoEditor";
-import { editPhotoAsset } from "./photoEditor";
+import { editPhotoAsset, POST_PHOTO_FILTERS, getPostPhotoFilter, applyPostPhotoFilter } from "./photoEditor";
 import {
   loadContent,
   getCachedContent,
@@ -2081,6 +2081,8 @@ export default function App() {
   const [isRecording, setIsRecording] = React.useState(false);
   const [recordedVideo, setRecordedVideo] = React.useState(null);
   const [recordedPhoto, setRecordedPhoto] = React.useState(null);
+  const [recordedPhotoAsset, setRecordedPhotoAsset] = React.useState(null);
+  const [postCameraFilterIndex, setPostCameraFilterIndex] = React.useState(0);
   const cameraRef = React.useRef(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [liveCameraOpen, setLiveCameraOpen] = React.useState(false);
@@ -3886,7 +3888,26 @@ export default function App() {
     if (!cameraRef.current || isRecording || recordedPhoto) return;
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
-      if (photo?.uri) setRecordedPhoto(photo.uri);
+      if (!photo?.uri) return;
+
+      if (cameraTargetKind === "posts" && cameraMode === "picture") {
+        const filteredAsset = await applyPostPhotoFilter(
+          {
+            ...photo,
+            uri: photo.uri,
+            photoBaseUri: photo.uri,
+            photoFilterIndex: 0,
+            photoBrightness: 0,
+            type: "image",
+            mimeType: "image/jpeg",
+          },
+          postCameraFilterIndex,
+        );
+        setRecordedPhotoAsset(filteredAsset);
+        setRecordedPhoto(filteredAsset.uri);
+      } else {
+        setRecordedPhoto(photo.uri);
+      }
     } catch (e) {
       Alert.alert("Photo capture failed", e.message || "Please try again.");
     }
@@ -3899,10 +3920,14 @@ export default function App() {
       kind,
       assets: [
         {
+          ...(recordedPhotoAsset || {}),
           uri: recordedPhoto,
           type: "image",
           fileName: `camera-photo-${Date.now()}.jpg`,
           mimeType: "image/jpeg",
+          photoFilterIndex: recordedPhotoAsset?.photoFilterIndex ?? postCameraFilterIndex,
+          photoBrightness: recordedPhotoAsset?.photoBrightness ?? 0,
+          photoBaseUri: recordedPhotoAsset?.photoBaseUri || recordedPhoto,
         },
       ],
     });
@@ -3910,6 +3935,7 @@ export default function App() {
     setMediaDraftCaption("");
     setCameraOpen(false);
     setRecordedPhoto(null);
+    setRecordedPhotoAsset(null);
   };
 
   const openCaptureCamera = async (kind, mode) => {
@@ -3926,6 +3952,8 @@ export default function App() {
       setCameraTargetKind(kind);
       setCameraMode(mode);
       setRecordedPhoto(null);
+      setRecordedPhotoAsset(null);
+      setPostCameraFilterIndex(0);
       setRecordedVideo(null);
       setCameraOpen(true);
     } catch (e) {
@@ -5307,6 +5335,65 @@ export default function App() {
                 mode={cameraMode}
               />
             )}
+
+            {cameraTargetKind === "posts" && cameraMode === "picture" && !recordedPhoto && !recordedVideo && (
+              <>
+                <View
+                  pointerEvents="none"
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: getPostPhotoFilter(postCameraFilterIndex).overlay,
+                    opacity: getPostPhotoFilter(postCameraFilterIndex).opacity,
+                  }}
+                />
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    bottom: 12,
+                  }}
+                  contentContainerStyle={{
+                    alignItems: "center",
+                    gap: 6,
+                    paddingHorizontal: 10,
+                  }}
+                >
+                  {POST_PHOTO_FILTERS.map((filter, index) => (
+                    <TouchableOpacity
+                      key={filter.name}
+                      onPress={() => setPostCameraFilterIndex(index)}
+                      style={{
+                        paddingHorizontal: 9,
+                        paddingVertical: 7,
+                        borderRadius: 16,
+                        backgroundColor: postCameraFilterIndex === index
+                          ? "#FFFFFF"
+                          : "rgba(0,0,0,0.68)",
+                        borderWidth: 1,
+                        borderColor: postCameraFilterIndex === index ? "#FFFFFF" : "#777777",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: postCameraFilterIndex === index ? "#111111" : "#FFFFFF",
+                          fontSize: 11,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {filter.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )}
           </View>
 
           <View
@@ -5324,6 +5411,7 @@ export default function App() {
                 <TouchableOpacity
                   onPress={() => {
                     setRecordedPhoto(null);
+                    setRecordedPhotoAsset(null);
                     setRecordedVideo(null);
                   }}
                   style={{ padding: 14 }}
@@ -5773,6 +5861,54 @@ export default function App() {
                       )}
                     </View>
                   </View>
+                  {mediaDraft.kind === "posts" && !isVideo && (
+                    <View style={{ paddingTop: 12, paddingBottom: 8 }}>
+                      <Text style={{
+                        color: "#222222",
+                        fontSize: 13,
+                        fontWeight: "700",
+                        paddingHorizontal: 12,
+                        paddingBottom: 8,
+                      }}>
+                        Filters
+                      </Text>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ paddingHorizontal: 10, gap: 8 }}
+                      >
+                        {POST_PHOTO_FILTERS.map((filter, index) => {
+                          const selected = Number(asset.photoFilterIndex ?? 0) === index;
+                          return (
+                            <TouchableOpacity
+                              key={filter.name}
+                              disabled={busy}
+                              onPress={() => handlePhotoEdit(`filter:${index}`)}
+                              style={{
+                                minWidth: 76,
+                                paddingHorizontal: 12,
+                                paddingVertical: 10,
+                                borderRadius: 10,
+                                alignItems: "center",
+                                backgroundColor: selected ? "#1685D9" : "#F1F3F5",
+                                borderWidth: 1,
+                                borderColor: selected ? "#1685D9" : "#D9DDE2",
+                                opacity: busy ? 0.55 : 1,
+                              }}
+                            >
+                              <Text style={{
+                                color: selected ? "#FFFFFF" : "#222222",
+                                fontSize: 12,
+                                fontWeight: selected ? "700" : "500",
+                              }}>
+                                {filter.name}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+                  )}
                   {assets.length > 1 && (
                     <View
                       style={{
