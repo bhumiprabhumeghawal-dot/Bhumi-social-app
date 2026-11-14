@@ -2343,6 +2343,7 @@ export default function App() {
   const [viewedProfileOpen, setViewedProfileOpen] = React.useState(false);
   const [viewedProfile, setViewedProfile] = React.useState(null);
   const [viewedProfileBusy, setViewedProfileBusy] = React.useState(false);
+  const [viewedProfileFollowBusy, setViewedProfileFollowBusy] = React.useState(false);
 
   // SOCIALAPP_DIRECT_MESSAGES_V1
   const [messagesOpen, setMessagesOpen] = React.useState(false);
@@ -2968,8 +2969,8 @@ export default function App() {
     try {
       const following = reelFollowState[username] ?? !!reel.isFollowing;
       const result = following
-        ? await unfollowProfile(username, authSession?.username || "you")
-        : await followProfile(username, authSession?.username || "you");
+        ? await unfollowProfile(username)
+        : await followProfile(username);
       const status =
         result?.status || (following ? "not_following" : "following");
       setReelFollowState((prev) => ({
@@ -3465,6 +3466,52 @@ export default function App() {
       );
     } finally {
       setRestrictedAccountsBusy(false);
+    }
+  };
+
+  const handleToggleViewedProfileFollow = async () => {
+    const username = String(viewedProfile?.username || "").replace(/^@/, "").trim();
+    if (
+      !username ||
+      username.toLowerCase() === String(authSession?.username || "").toLowerCase() ||
+      viewedProfileFollowBusy
+    ) return;
+
+    setViewedProfileFollowBusy(true);
+    try {
+      const wasFollowing = !!viewedProfile?.isFollowing;
+      const wasPending = viewedProfile?.followRequestStatus === "pending";
+
+      const result = wasFollowing || wasPending
+        ? await unfollowProfile(username)
+        : await followProfile(username);
+
+      const status = result?.status ||
+        (wasFollowing || wasPending ? "not_following" : "following");
+
+      const isFollowing = status === "following";
+      const isPending = status === "requested";
+
+      setViewedProfile((prev) => {
+        if (!prev) return prev;
+        const countChange = isFollowing && !wasFollowing
+          ? 1
+          : !isFollowing && wasFollowing ? -1 : 0;
+
+        return {
+          ...prev,
+          isFollowing,
+          followRequestStatus: isPending ? "pending" : "",
+          followersCount: Math.max(
+            0,
+            Number(prev.followersCount || 0) + countChange
+          ),
+        };
+      });
+    } catch (e) {
+      Alert.alert("Follow", e.message || "Could not update follow.");
+    } finally {
+      setViewedProfileFollowBusy(false);
     }
   };
 
@@ -6994,18 +7041,12 @@ export default function App() {
                       const requestPending =
                         item.followRequestStatus === "pending";
                       const result =
-                        currentlyFollowing || requestPending
-                          ? await unfollowProfile(
-                              username,
-                              authSession?.username || "you",
-                            )
-                          : await followProfile(
-                              username,
-                              authSession?.username || "you",
-                            );
+        currentlyFollowing || requestPending
+          ? await unfollowProfile(username)
+          : await followProfile(username);
                       const status =
                         result?.status ||
-                        (currentlyFollowing ? "not_following" : "following");
+                        (currentlyFollowing || requestPending ? "not_following" : "following");
                       setSearchResults((prev) =>
                         prev.map((user) =>
                           user.username === username
@@ -11433,6 +11474,75 @@ export default function App() {
                     </Text>
                   </View>
                 </View>
+                {String(viewedProfile.username || "").toLowerCase() !==
+                String(authSession?.username || "").toLowerCase() ? (
+                  <View style={{
+                    flexDirection: "row",
+                    width: "100%",
+                    gap: 10,
+                    marginTop: 20,
+                  }}>
+                    <TouchableOpacity
+                      disabled={viewedProfileFollowBusy}
+                      onPress={handleToggleViewedProfileFollow}
+                      activeOpacity={0.8}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 12,
+                        borderRadius: 12,
+                        alignItems: "center",
+                        backgroundColor:
+                          viewedProfile.isFollowing ||
+                          viewedProfile.followRequestStatus === "pending"
+                            ? "#EEEFF3" : "#246BFD",
+                        opacity: viewedProfileFollowBusy ? 0.6 : 1,
+                      }}
+                    >
+                      <Text style={{
+                        color:
+                          viewedProfile.isFollowing ||
+                          viewedProfile.followRequestStatus === "pending"
+                            ? "#333333" : "#FFFFFF",
+                        fontWeight: "800",
+                        fontSize: 14,
+                      }}>
+                        {viewedProfileFollowBusy
+                          ? "Please wait..."
+                          : viewedProfile.isFollowing
+                            ? "Following"
+                            : viewedProfile.followRequestStatus === "pending"
+                              ? "Requested"
+                              : viewedProfile.followsYou
+                                ? "Follow Back" : "Follow"}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={async () => {
+                        const username = viewedProfile.username;
+                        setViewedProfileOpen(false);
+                        setMessagesOpen(true);
+                        await openDirectChat(username);
+                      }}
+                      activeOpacity={0.8}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 12,
+                        borderRadius: 12,
+                        alignItems: "center",
+                        backgroundColor: "#EEEFF3",
+                      }}
+                    >
+                      <Text style={{
+                        color: "#222222",
+                        fontWeight: "800",
+                        fontSize: 14,
+                      }}>
+                        Message
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
                 {String(viewedProfile.username || "").toLowerCase() !==
                 String(authSession?.username || "").toLowerCase() ? (
                   <TouchableOpacity

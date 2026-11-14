@@ -477,23 +477,19 @@ export async function deleteProfileAvatar(username = 'you') {
   return data;
 }
 
-export async function followProfile(username, viewer = 'you') {
+export async function followProfile(username) {
   const response = await fetch(
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ viewer }),
-    }
+    { method: 'POST' }
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Follow नहीं हो सका।');
   return data;
 }
 
-export async function unfollowProfile(username, viewer = 'you') {
+export async function unfollowProfile(username) {
   const response = await fetch(
-    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow?viewer=${encodeURIComponent(viewer)}`,
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow`,
     { method: 'DELETE' }
   );
   const data = await response.json();

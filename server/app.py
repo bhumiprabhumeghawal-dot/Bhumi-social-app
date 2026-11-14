@@ -465,6 +465,17 @@ def uploaded_file(kind, filename):
             if not can_view_content(db, row["username"], viewer):
                 return jsonify({"error": "Media not found"}), 404
 
+    elif kind == "profiles":
+        media_url = f"/uploads/profiles/{filename}"
+        viewer = getattr(g, "auth_username", None)
+        with get_db() as db:
+            row = db.execute(
+                "SELECT username FROM profiles WHERE avatar_url=? LIMIT 1",
+                (media_url,),
+            ).fetchone()
+            if row is None or not can_view_content(db, row["username"], viewer):
+                return jsonify({"error": "Media not found"}), 404
+
     elif kind == "chat":
         viewer = _chat_current_user()
         if not viewer:
@@ -759,7 +770,6 @@ def get_profile(username):
         username = user["username"]
         if not can_view_content(db, username, viewer):
             return jsonify({"error": "Profile not found"}), 404
-
         result = profile_json(db, username)
         result["isFollowing"] = bool(
             viewer and db.execute(
@@ -767,8 +777,27 @@ def get_profile(username):
                 (viewer, username),
             ).fetchone()
         )
+        result["followsYou"] = bool(
+            viewer and db.execute(
+                "SELECT 1 FROM follows WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)",
+                (username, viewer),
+            ).fetchone()
+        )
+        settings = db.execute(
+            "SELECT is_private FROM user_settings WHERE username=?",
+            (username,),
+        ).fetchone()
+        result["isPrivate"] = bool(settings["is_private"]) if settings else False
 
-    return jsonify({"profile": result})
+        request_row = None
+        if viewer:
+            request_row = db.execute(
+                "SELECT status FROM follow_requests WHERE LOWER(requester)=LOWER(?) AND LOWER(target)=LOWER(?)",
+                (viewer, username),
+            ).fetchone()
+        result["followRequestStatus"] = request_row["status"] if request_row else None
+
+        return jsonify({"profile": result})
 @app.patch("/api/profile/<username>")
 def update_profile(username):
     username = username.strip().lstrip("@")
@@ -908,7 +937,7 @@ def follow_profile(username):
             if existing and existing["status"] == "pending":
                 return jsonify({"ok": True, "status": "requested"})
             request_id = uuid.uuid4().hex
-            db.execute("""
+            cursor = db.execute("""
                 INSERT INTO follow_requests
                 (id, requester, target, status, created_at, updated_at)
                 VALUES (?, ?, ?, 'pending', ?, ?)
@@ -916,15 +945,21 @@ def follow_profile(username):
                 id=excluded.id, status='pending',
                 created_at=excluded.created_at,
                 updated_at=excluded.updated_at
+            WHERE follow_requests.status <> 'pending'
             """, (request_id, actor, target, now, now))
-            _people_notification(db, target, actor, "follow_request", request_id, now)
+
+            if cursor.rowcount == 1:
+                _people_notification(
+                    db, target, actor, "follow_request", request_id, now
+                )
             return jsonify({"ok": True, "status": "requested"}), 201
 
-        db.execute("""
+        cursor = db.execute("""
             INSERT OR IGNORE INTO follows (follower, following, created_at)
             VALUES (?, ?, ?)
         """, (actor, target, now))
-        _people_notification(db, target, actor, "follow", None, now)
+        if cursor.rowcount == 1:
+            _people_notification(db, target, actor, "follow", None, now)
         return jsonify({"ok": True, "status": "following",
                         "profile": profile_json(db, target)}), 201
 
@@ -932,20 +967,42 @@ def follow_profile(username):
 @app.delete("/api/profile/<username>/follow")
 def unfollow_profile(username):
     actor = getattr(g, "auth_username", None)
-    target = username.strip().lstrip("@")
+    target = str(username or "").strip().lstrip("@").strip()
+
     if not actor:
         return jsonify({"error": "Please log in first."}), 401
+    if not target or target.lower() == actor.lower():
+        return jsonify({"error": "Invalid account."}), 400
+
     with get_db() as db:
-        db.execute(
-            "DELETE FROM follows WHERE follower=? AND following=?",
-            (actor, target),
-        )
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (target,),
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
+        target = user["username"]
+        now = datetime.now(timezone.utc).isoformat()
+
         db.execute("""
-            UPDATE follow_requests SET status='cancelled', updated_at=?
-            WHERE requester=? AND target=? AND status='pending'
-        """, (datetime.now(timezone.utc).isoformat(), actor, target))
-        return jsonify({"ok": True, "status": "not_following",
-                        "profile": profile_json(db, target)})
+            DELETE FROM follows
+            WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)
+        """, (actor, target))
+
+        db.execute("""
+            UPDATE follow_requests
+            SET status='cancelled', updated_at=?
+            WHERE LOWER(requester)=LOWER(?)
+              AND LOWER(target)=LOWER(?)
+              AND status='pending'
+        """, (now, actor, target))
+
+        return jsonify({
+            "ok": True,
+            "status": "not_following",
+            "profile": profile_json(db, target),
+        })
 
 
 @app.get("/api/settings/restricted-accounts")
@@ -1058,6 +1115,18 @@ def block_account(username):
                 OR (LOWER(requester)=LOWER(?) AND LOWER(target)=LOWER(?)))
         """, (now, actor, target, target, actor))
 
+
+    # Remove only stale follow-request notifications between these accounts.
+    db.execute("""
+        DELETE FROM people_notifications
+        WHERE kind='follow_request'
+          AND (
+            (LOWER(recipient)=LOWER(?) AND LOWER(actor)=LOWER(?))
+            OR
+            (LOWER(recipient)=LOWER(?) AND LOWER(actor)=LOWER(?))
+          )
+    """, (actor, target, target, actor))
+
     return jsonify({"ok": True, "blocked": True, "username": target})
 
 
@@ -1132,36 +1201,72 @@ def get_follow_requests():
 
 
 def _resolve_follow_request(db, request_id, actor, decision):
+    if decision not in ("accept", "reject"):
+        return None
+
     row = db.execute("""
         SELECT id, requester, target FROM follow_requests
         WHERE id=? AND target=? AND status='pending'
     """, (request_id, actor)).fetchone()
+
     if not row:
         return None
+
     now = datetime.now(timezone.utc).isoformat()
+
     if decision == "accept":
         blocked = db.execute("""
             SELECT 1 FROM people_blocks
             WHERE (blocker=? AND blocked=?)
                OR (blocker=? AND blocked=?)
         """, (actor, row["requester"], row["requester"], actor)).fetchone()
+
         if blocked:
-            db.execute("""
-                UPDATE follow_requests SET status='rejected', updated_at=?
-                WHERE id=?
-            """, (now, request_id))
+            cursor = db.execute("""
+                UPDATE follow_requests
+                SET status='rejected', updated_at=?
+                WHERE id=? AND target=? AND status='pending'
+            """, (now, request_id, actor))
+
+            if cursor.rowcount != 1:
+                return None
+
             return {"ok": False, "error": "This connection is unavailable."}
+
+    cursor = db.execute("""
+        UPDATE follow_requests
+        SET status=?, updated_at=?
+        WHERE id=? AND target=? AND status='pending'
+    """, (
+        "accepted" if decision == "accept" else "rejected",
+        now,
+        request_id,
+        actor,
+    ))
+
+    if cursor.rowcount != 1:
+        return None
+
+    if decision == "accept":
         db.execute("""
             INSERT OR IGNORE INTO follows (follower, following, created_at)
             VALUES (?, ?, ?)
         """, (row["requester"], actor, now))
-        _people_notification(db, row["requester"], actor, "follow_accepted", request_id, now)
-    db.execute("""
-        UPDATE follow_requests SET status=?, updated_at=? WHERE id=?
-    """, ("accepted" if decision == "accept" else "rejected", now, request_id))
-    if decision == "reject":
-        _people_notification(db, row["requester"], actor, "follow_rejected", request_id, now)
-    return {"ok": True, "status": "accepted" if decision == "accept" else "rejected"}
+
+        _people_notification(
+            db, row["requester"], actor,
+            "follow_accepted", request_id, now
+        )
+    else:
+        _people_notification(
+            db, row["requester"], actor,
+            "follow_rejected", request_id, now
+        )
+
+    return {
+        "ok": True,
+        "status": "accepted" if decision == "accept" else "rejected"
+    }
 
 
 @app.post("/api/follow-requests/<request_id>/accept")
