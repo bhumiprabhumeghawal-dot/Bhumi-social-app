@@ -1272,32 +1272,49 @@ def list_following(username):
         ).fetchall()
 
     return jsonify({"users": [r["following"] for r in rows]})
-# SOCIALAPP_PRIVACY_SETTINGS_V1
+# SOCIALAPP_PRIVACY_SETTINGS_V2
 @app.get("/api/profile/<username>/settings")
 def get_user_settings(username):
     username = username.strip().lstrip("@")
     if not username:
         return jsonify({"error": "Username is required"}), 400
 
-    now = datetime.now(timezone.utc).isoformat()
+    viewer = getattr(g, "auth_username", None)
+    if not viewer:
+        return jsonify({"error": "Please log in first."}), 401
+
+    if viewer.lower() != username.lower():
+        return jsonify({"error": "You can only view your own settings."}), 403
+
     with get_db() as db:
-        db.execute(
-            """INSERT OR IGNORE INTO user_settings
-               (username, updated_at) VALUES (?, ?)""",
-            (username, now),
-        )
-        row = db.execute(
-            "SELECT is_private, show_activity, allow_messages FROM user_settings WHERE username=?",
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
             (username,),
         ).fetchone()
 
-    return jsonify({
-        "settings": {
-            "isPrivate": bool(row["is_private"]),
-            "showActivity": bool(row["show_activity"]),
-            "allowMessages": bool(row["allow_messages"]),
-        }
-    })
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        row = db.execute(
+            """SELECT is_private, show_activity, allow_messages
+               FROM user_settings WHERE username=?""",
+            (user["username"],),
+        ).fetchone()
+
+        if row is None:
+            settings = {
+                "isPrivate": False,
+                "showActivity": True,
+                "allowMessages": True,
+            }
+        else:
+            settings = {
+                "isPrivate": bool(row["is_private"]),
+                "showActivity": bool(row["show_activity"]),
+                "allowMessages": bool(row["allow_messages"]),
+            }
+
+        return jsonify({"settings": settings})
 
 
 @app.patch("/api/profile/<username>/settings")
@@ -1305,6 +1322,13 @@ def update_user_settings(username):
     username = username.strip().lstrip("@")
     if not username:
         return jsonify({"error": "Username is required"}), 400
+
+    viewer = getattr(g, "auth_username", None)
+    if not viewer:
+        return jsonify({"error": "Please log in first."}), 401
+
+    if viewer.lower() != username.lower():
+        return jsonify({"error": "You can only update your own settings."}), 403
 
     data = request.get_json(silent=True) or {}
     fields = {
@@ -1320,29 +1344,45 @@ def update_user_settings(username):
         return jsonify({"error": "Setting values must be true or false"}), 400
 
     now = datetime.now(timezone.utc).isoformat()
+
     with get_db() as db:
-        db.execute(
-            "INSERT OR IGNORE INTO user_settings (username, updated_at) VALUES (?, ?)",
-            (username, now),
-        )
-        for key, value in data.items():
-            db.execute(
-                f"UPDATE user_settings SET {fields[key]}=?, updated_at=? WHERE username=?",
-                (int(value), now, username),
-            )
-        row = db.execute(
-            "SELECT is_private, show_activity, allow_messages FROM user_settings WHERE username=?",
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
             (username,),
         ).fetchone()
 
-    return jsonify({
-        "ok": True,
-        "settings": {
-            "isPrivate": bool(row["is_private"]),
-            "showActivity": bool(row["show_activity"]),
-            "allowMessages": bool(row["allow_messages"]),
-        }
-    })
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        canonical_username = user["username"]
+
+        db.execute(
+            """INSERT OR IGNORE INTO user_settings
+               (username, updated_at) VALUES (?, ?)""",
+            (canonical_username, now),
+        )
+
+        for key, value in data.items():
+            db.execute(
+                f"UPDATE user_settings SET {fields[key]}=?, updated_at=? WHERE username=?",
+                (int(value), now, canonical_username),
+            )
+
+        row = db.execute(
+            """SELECT is_private, show_activity, allow_messages
+               FROM user_settings WHERE username=?""",
+            (canonical_username,),
+        ).fetchone()
+
+        return jsonify({
+            "ok": True,
+            "settings": {
+                "isPrivate": bool(row["is_private"]),
+                "showActivity": bool(row["show_activity"]),
+                "allowMessages": bool(row["allow_messages"]),
+            },
+        })
+
 
 # SOCIALAPP_POST_INTERACTIONS_V1
 @app.post("/api/posts/<int:content_id>/like")
@@ -1695,7 +1735,10 @@ def approve_reel_comment(content_id, comment_id):
 
 @app.get("/api/saved")
 def list_saved_content():
-    username = g.auth_username
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+
     with get_db() as db:
         rows = db.execute(
             """SELECT c.*
