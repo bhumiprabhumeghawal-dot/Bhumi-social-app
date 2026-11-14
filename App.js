@@ -27,7 +27,7 @@ import {Alert as NativeAlert,
   Share,
   Dimensions,
   KeyboardAvoidingView,
-  Platform, Modal } from "react-native";
+  Platform } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
 import {
   applyZoomEffect,
