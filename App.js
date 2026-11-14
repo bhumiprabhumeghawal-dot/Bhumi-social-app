@@ -9764,14 +9764,35 @@ export default function App() {
                 </View>
               )}
               {!selectedChatUser ? (
-                <TouchableOpacity
-                  onPress={() => setNewChatComposerOpen((v) => !v)}
-                  accessibilityLabel="New message"
-                  style={{ paddingLeft: 13 }}
-                >
-                  <Ionicons name="create-outline" size={23} color="#6B7280" />
-                </TouchableOpacity>
-              ) : null}
+                    <TouchableOpacity
+                      onPress={() => {
+                        setNewChatComposerOpen(true);
+                        setNewChatUsername("");
+                        setChatPeopleResults([]);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel="New message"
+                      style={{
+                        minHeight: 42,
+                        alignSelf: "flex-end",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingHorizontal: 15,
+                        marginTop: 8,
+                        marginBottom: 8,
+                        marginRight: 14,
+                        borderRadius: 22,
+                        backgroundColor: "#168FF0",
+                        gap: 7,
+                      }}
+                    >
+                      <Ionicons name="create-outline" size={19} color="#FFFFFF" />
+                      <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800" }}>
+                        New Message
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
             </View>
 
             {!selectedChatUser ? (

@@ -464,6 +464,27 @@ def uploaded_file(kind, filename):
                 return jsonify({"error": "Media not found"}), 404
             if not can_view_content(db, row["username"], viewer):
                 return jsonify({"error": "Media not found"}), 404
+
+    elif kind == "chat":
+        viewer = _chat_current_user()
+        if not viewer:
+            return jsonify({"error": "Media not found"}), 404
+
+        media_url = f"/uploads/chat/{filename}"
+        with get_db() as db:
+            row = db.execute("""
+                SELECT 1
+                FROM direct_messages
+                WHERE image_url=?
+                  AND (
+                    LOWER(sender_username)=LOWER(?)
+                    OR LOWER(recipient_username)=LOWER(?)
+                  )
+                LIMIT 1
+            """, (media_url, viewer, viewer)).fetchone()
+            if row is None:
+                return jsonify({"error": "Media not found"}), 404
+
     return send_from_directory(UPLOAD_DIR / kind, filename)
 
 
@@ -2527,6 +2548,15 @@ def upload_chat_photo():
         if size <= 0 or size > 10 * 1024 * 1024:
             destination.unlink(missing_ok=True)
             return jsonify({"error": "Chat photos must not exceed 10 MB."}), 413
+        with get_db() as db:
+            db.execute("""
+                INSERT INTO chat_media (image_url, uploader_username, created_at)
+                VALUES (?, ?, ?)
+            """, (
+                f"/uploads/chat/{stored_name}",
+                current,
+                datetime.now(timezone.utc).isoformat(),
+            ))
         return jsonify({"ok": True, "imageUrl": f"/uploads/chat/{stored_name}"}), 201
     except Exception:
         destination.unlink(missing_ok=True)
@@ -2545,6 +2575,17 @@ def init_chat_tables():
                 created_at TEXT NOT NULL,
                 image_url TEXT
             )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS chat_media (
+                image_url TEXT PRIMARY KEY,
+                uploader_username TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_chat_media_uploader
+            ON chat_media(uploader_username)
         """)
         columns = {
             row["name"]
@@ -2829,6 +2870,26 @@ def send_direct_message(username):
     message_id = str(uuid.uuid4())
 
     with get_db() as db:
+        if image_url:
+            prefix = "/uploads/chat/"
+            filename = image_url[len(prefix):] if image_url.startswith(prefix) else ""
+            if (
+                not filename
+                or "/" in filename
+                or "\\" in filename
+                or secure_filename(filename) != filename
+            ):
+                return jsonify({"error": "Invalid chat photo."}), 400
+
+            media = db.execute("""
+                SELECT uploader_username
+                FROM chat_media
+                WHERE image_url=?
+            """, (image_url,)).fetchone()
+
+            if not media or media["uploader_username"].casefold() != current.casefold():
+                return jsonify({"error": "You cannot send this photo."}), 403
+
         user = db.execute(
             "SELECT username FROM users WHERE username=? COLLATE NOCASE",
             (target,),
@@ -2838,6 +2899,18 @@ def send_direct_message(username):
             return jsonify({"error": "User not found."}), 404
 
         target = user["username"]
+
+        blocked_pair = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+                OR
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+            LIMIT 1
+        """, (current, target, target, current)).fetchone()
+
+        if blocked_pair:
+            return jsonify({"error": "Messages are unavailable between these users."}), 403
 
         settings = db.execute(
             "SELECT allow_messages FROM user_settings WHERE username=?",
@@ -2949,6 +3022,19 @@ def update_chat_typing(username):
             return jsonify({"error": "User not found."}), 404
 
         target = user["username"]
+
+        blocked_pair = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+                OR
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+            LIMIT 1
+        """, (current, target, target, current)).fetchone()
+
+        if blocked_pair:
+            return jsonify({"error": "Typing status unavailable between these users."}), 403
+
         db.execute("""
             INSERT INTO direct_message_typing
                 (sender_username, recipient_username, expires_at)
@@ -2970,6 +3056,18 @@ def get_chat_typing(username):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
+        blocked_pair = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+                OR
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+            LIMIT 1
+        """, (current, target, target, current)).fetchone()
+
+        if blocked_pair:
+            return jsonify({"typing": False})
+
         row = db.execute("""
             SELECT expires_at FROM direct_message_typing
             WHERE LOWER(sender_username)=LOWER(?)
