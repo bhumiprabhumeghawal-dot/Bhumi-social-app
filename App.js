@@ -2343,6 +2343,10 @@ export default function App() {
   const [viewedProfileOpen, setViewedProfileOpen] = React.useState(false);
   const [viewedProfile, setViewedProfile] = React.useState(null);
   const [viewedProfileBusy, setViewedProfileBusy] = React.useState(false);
+  const [viewedProfilePosts, setViewedProfilePosts] = React.useState([]);
+  const [viewedProfilePostsBusy, setViewedProfilePostsBusy] = React.useState(false);
+  const [viewedProfileTab, setViewedProfileTab] = React.useState("posts");
+  const [viewedProfileMenuOpen, setViewedProfileMenuOpen] = React.useState(false);
   const [viewedProfileFollowBusy, setViewedProfileFollowBusy] = React.useState(false);
 
   // SOCIALAPP_DIRECT_MESSAGES_V1
@@ -3283,6 +3287,24 @@ export default function App() {
     try {
       const result = await loadProfile(target, viewer);
       setViewedProfile(result.profile || result);
+
+      setViewedProfilePostsBusy(true);
+      try {
+        const allPosts = await loadContent("posts");
+        const profilePosts = (Array.isArray(allPosts) ? allPosts : [])
+          .filter((item) =>
+            !item.isStarterPost &&
+            String(item.user || item.username || "").replace(/^@/, "").trim().toLowerCase()
+              === target.toLowerCase()
+          );
+        setViewedProfilePosts(profilePosts);
+      } catch (postsError) {
+        console.log("VIEWED_PROFILE_POSTS_ERROR:", postsError?.message);
+        setViewedProfilePosts([]);
+      } finally {
+        setViewedProfilePostsBusy(false);
+      }
+
       try {
         const restricted = await loadRestrictedAccounts();
         setViewedProfileRestricted(
@@ -11272,251 +11294,95 @@ export default function App() {
 
       <Modal
         visible={viewedProfileOpen}
-        transparent
         animationType="slide"
-        onRequestClose={() => setViewedProfileOpen(false)}
+        presentationStyle="fullScreen"
+        onRequestClose={() => {
+          setViewedProfileMenuOpen(false);
+          setViewedProfileOpen(false);
+        }}
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.45)",
-            justifyContent: "flex-end",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "#FFFFFF",
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: 22,
-              minHeight: 300,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 22,
-              }}
-            >
-              <Text
-                style={{ fontSize: 20, fontWeight: "800", color: "#171717" }}
-              >
-                Profile
-              </Text>
-              <TouchableOpacity onPress={() => setViewedProfileOpen(false)}>
-                <Ionicons name="close" size={27} color="#222222" />
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+          <View style={{
+            height: 52, flexDirection: "row", alignItems: "center",
+            paddingHorizontal: 14, borderBottomWidth: 0.5, borderBottomColor: "#E8E8E8"
+          }}>
+            <TouchableOpacity onPress={() => setViewedProfileOpen(false)} style={{ width: 42 }}>
+              <Ionicons name="arrow-back" size={25} color="#171717" />
+            </TouchableOpacity>
+            <Text numberOfLines={1} style={{ flex: 1, fontSize: 17, fontWeight: "800", color: "#171717" }}>
+              {viewedProfile ? `@${viewedProfile.username}` : "Profile"}
+            </Text>
+            {viewedProfile && String(viewedProfile.username || "").toLowerCase() !== String(authSession?.username || "").toLowerCase() ? (
+              <TouchableOpacity onPress={() => setViewedProfileMenuOpen(v => !v)} style={{ padding: 8 }}>
+                <Ionicons name="ellipsis-vertical" size={22} color="#171717" />
               </TouchableOpacity>
-            </View>
-            {viewedProfileBusy ? (
-              <Text
-                style={{ textAlign: "center", color: "#777777", padding: 30 }}
-              >
-                Loading profile...
-              </Text>
-            ) : viewedProfile ? (
-              <View style={{ alignItems: "center" }}>
-                <View
-                  style={{
-                    width: 82,
-                    height: 82,
-                    borderRadius: 41,
-                    backgroundColor: "#E7F3FF",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 12,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 32,
-                      fontWeight: "800",
-                      color: "#087BD0",
-                    }}
-                  >
-                    {String(
-                      viewedProfile.displayName ||
-                        viewedProfile.username ||
-                        "?",
-                    )
-                      .slice(0, 1)
-                      .toUpperCase()}
-                  </Text>
-                </View>
-                <Text
-                  style={{ fontSize: 19, fontWeight: "800", color: "#171717" }}
-                >
-                  {viewedProfile.displayName || viewedProfile.username}
-                </Text>
-                <Text style={{ color: "#777777", marginTop: 4 }}>
-                  @{viewedProfile.username}
-                </Text>
-                {!!viewedProfile.bio ? (
-                  <Text
-                    style={{
-                      color: "#444444",
-                      textAlign: "center",
-                      marginTop: 14,
-                      lineHeight: 21,
-                    }}
-                  >
-                    {viewedProfile.bio}
-                  </Text>
-                ) : null}
-                {(() => {
-                  const viewedUsername = String(viewedProfile.username || "")
-                    .trim()
-                    .toLowerCase();
-                  const viewedStories = serverStories.filter(
-                    (item) =>
-                      String(item.user || item.name || "")
-                        .trim()
-                        .toLowerCase() === viewedUsername,
-                  );
-                  return (
-                    <View
-                      style={{
-                        width: "100%",
-                        marginTop: 18,
-                        padding: 12,
-                        borderWidth: 1,
-                        borderColor: "#EEEEEE",
-                        borderRadius: 16,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: "#171717",
-                          fontSize: 15,
-                          fontWeight: "800",
-                          marginBottom: 8,
-                        }}
-                      >
-                        Status
-                      </Text>
-                      {viewedStories.length ? (
-                        <ScrollView
-                          horizontal
-                          showsHorizontalScrollIndicator={false}
-                          contentContainerStyle={{ gap: 12 }}
-                        >
-                          {viewedStories.map((story, index) => (
-                            <Story
-                              key={String(story.id || story._id || index)}
-                              item={{
-                                ...story,
-                                name:
-                                  viewedProfile.displayName ||
-                                  viewedProfile.username,
-                                own: false,
-                              }}
-                              onPress={() => openStoryGroup(viewedStories)}
-                            />
-                          ))}
-                        </ScrollView>
-                      ) : (
-                        <Text style={{ color: "#888888", fontSize: 13 }}>
-                          No status yet
-                        </Text>
-                      )}
-                    </View>
-                  );
-                })()}
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    gap: 28,
-                    marginTop: 22,
-                  }}
-                >
-                  <View style={{ alignItems: "center" }}>
-                    <Text
-                      style={{
-                        fontSize: 17,
-                        fontWeight: "800",
-                        color: "#171717",
-                      }}
-                    >
-                      {viewedProfile.postsCount || 0}
-                    </Text>
-                    <Text style={{ color: "#777777", fontSize: 12 }}>
-                      Posts
-                    </Text>
-                  </View>
-                  <View style={{ alignItems: "center" }}>
-                    <Text
-                      style={{
-                        fontSize: 17,
-                        fontWeight: "800",
-                        color: "#171717",
-                      }}
-                    >
-                      {viewedProfile.followersCount || 0}
-                    </Text>
-                    <Text style={{ color: "#777777", fontSize: 12 }}>
-                      Followers
-                    </Text>
-                  </View>
-                  <View style={{ alignItems: "center" }}>
-                    <Text
-                      style={{
-                        fontSize: 17,
-                        fontWeight: "800",
-                        color: "#171717",
-                      }}
-                    >
-                      {viewedProfile.followingCount || 0}
-                    </Text>
-                    <Text style={{ color: "#777777", fontSize: 12 }}>
-                      Following
-                    </Text>
-                  </View>
-                </View>
-                {String(viewedProfile.username || "").toLowerCase() !==
-                String(authSession?.username || "").toLowerCase() ? (
-                  <View style={{
-                    flexDirection: "row",
-                    width: "100%",
-                    gap: 10,
-                    marginTop: 20,
-                  }}>
-                    <TouchableOpacity
-                      disabled={viewedProfileFollowBusy}
-                      onPress={handleToggleViewedProfileFollow}
-                      activeOpacity={0.8}
-                      style={{
-                        flex: 1,
-                        paddingVertical: 12,
-                        borderRadius: 12,
-                        alignItems: "center",
-                        backgroundColor:
-                          viewedProfile.isFollowing ||
-                          viewedProfile.followRequestStatus === "pending"
-                            ? "#EEEFF3" : "#246BFD",
-                        opacity: viewedProfileFollowBusy ? 0.6 : 1,
-                      }}
-                    >
-                      <Text style={{
-                        color:
-                          viewedProfile.isFollowing ||
-                          viewedProfile.followRequestStatus === "pending"
-                            ? "#333333" : "#FFFFFF",
-                        fontWeight: "800",
-                        fontSize: 14,
-                      }}>
-                        {viewedProfileFollowBusy
-                          ? "Please wait..."
-                          : viewedProfile.isFollowing
-                            ? "Following"
-                            : viewedProfile.followRequestStatus === "pending"
-                              ? "Requested"
-                              : viewedProfile.followsYou
-                                ? "Follow Back" : "Follow"}
-                      </Text>
-                    </TouchableOpacity>
+            ) : <View style={{ width: 38 }} />}
+          </View>
 
+          {viewedProfileBusy && !viewedProfile ? (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+              <Text style={{ color: "#777777" }}>Loading profile...</Text>
+            </View>
+          ) : viewedProfile ? (
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={{ paddingHorizontal: 16, paddingTop: 18 }}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  {viewedProfile.avatarUrl ? (
+                    <Image source={{ uri: viewedProfile.avatarUrl }}
+                      style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#EEEEEE" }} />
+                  ) : (
+                    <View style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#E7F3FF", alignItems: "center", justifyContent: "center" }}>
+                      <Text style={{ fontSize: 32, fontWeight: "800", color: "#087BD0" }}>
+                        {String(viewedProfile.displayName || viewedProfile.username || "?").slice(0, 1).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-evenly", marginLeft: 12 }}>
+                    {[
+                      ["postsCount", "Posts"],
+                      ["followersCount", "Followers"],
+                      ["followingCount", "Following"]
+                    ].map(([field, label]) => (
+                      <View key={field} style={{ alignItems: "center" }}>
+                        <Text style={{ fontSize: 18, fontWeight: "800", color: "#171717" }}>{viewedProfile[field] || 0}</Text>
+                        <Text style={{ color: "#555555", fontSize: 12 }}>{label}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={{ marginTop: 13 }}>
+                  <Text style={{ fontSize: 15, fontWeight: "800", color: "#171717" }}>
+                    {viewedProfile.displayName || viewedProfile.username}
+                  </Text>
+                  {!!viewedProfile.bio && (
+                    <Text style={{ color: "#333333", marginTop: 4, lineHeight: 20 }}>{viewedProfile.bio}</Text>
+                  )}
+                </View>
+
+                {String(viewedProfile.username || "").toLowerCase() !== String(authSession?.username || "").toLowerCase() && (
+                  <View style={{ flexDirection: "row", gap: 8, marginTop: 15 }}>
+                    <TouchableOpacity disabled={viewedProfileFollowBusy}
+                      onPress={handleToggleViewedProfileFollow} activeOpacity={0.8}
+                      style={{
+                        flex: 1, height: 38, borderRadius: 8, alignItems: "center",
+                        justifyContent: "center", flexDirection: "row",
+                        backgroundColor: viewedProfile.isFollowing || viewedProfile.followRequestStatus === "pending" ? "#EFEFEF" : "#0095F6",
+                        opacity: viewedProfileFollowBusy ? 0.6 : 1
+                      }}>
+                      <Text style={{
+                        color: viewedProfile.isFollowing || viewedProfile.followRequestStatus === "pending" ? "#222222" : "#FFFFFF",
+                        fontWeight: "800", fontSize: 13
+                      }}>
+                        {viewedProfileFollowBusy ? "Please wait..." :
+                          viewedProfile.isFollowing ? "Following" :
+                          viewedProfile.followRequestStatus === "pending" ? "Requested" :
+                          viewedProfile.followsYou ? "Follow Back" : "Follow"}
+                      </Text>
+                      {(viewedProfile.isFollowing || viewedProfile.followRequestStatus === "pending") && (
+                        <Ionicons name="chevron-down" size={14} color="#222222" style={{ marginLeft: 4 }} />
+                      )}
+                    </TouchableOpacity>
                     <TouchableOpacity
                       onPress={async () => {
                         const username = viewedProfile.username;
@@ -11525,60 +11391,104 @@ export default function App() {
                         await openDirectChat(username);
                       }}
                       activeOpacity={0.8}
-                      style={{
-                        flex: 1,
-                        paddingVertical: 12,
-                        borderRadius: 12,
-                        alignItems: "center",
-                        backgroundColor: "#EEEFF3",
-                      }}
-                    >
-                      <Text style={{
-                        color: "#222222",
-                        fontWeight: "800",
-                        fontSize: 14,
-                      }}>
-                        Message
-                      </Text>
+                      style={{ flex: 1, height: 38, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: "#EFEFEF" }}>
+                      <Text style={{ color: "#222222", fontWeight: "800", fontSize: 13 }}>Message</Text>
                     </TouchableOpacity>
                   </View>
-                ) : null}
-                {String(viewedProfile.username || "").toLowerCase() !==
-                String(authSession?.username || "").toLowerCase() ? (
-                  <TouchableOpacity
-                    disabled={viewedProfileRestrictBusy}
-                    onPress={handleToggleViewedProfileRestriction}
-                    style={{
-                      marginTop: 20,
-                      width: "100%",
-                      paddingVertical: 12,
-                      borderRadius: 12,
-                      alignItems: "center",
-                      backgroundColor: viewedProfileRestricted
-                        ? "#EEEFF3"
-                        : "#172554",
-                      opacity: viewedProfileRestrictBusy ? 0.6 : 1,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: viewedProfileRestricted ? "#172554" : "#FFFFFF",
-                        fontWeight: "800",
-                        fontSize: 14,
-                      }}
-                    >
-                      {viewedProfileRestrictBusy
-                        ? "Please wait..."
-                        : viewedProfileRestricted
-                          ? "Unrestrict Account"
-                          : "Restrict Account"}
-                    </Text>
-                  </TouchableOpacity>
-                ) : null}
+                )}
+
+                {(() => {
+                  const username = String(viewedProfile.username || "").trim().toLowerCase();
+                  const stories = serverStories.filter(item =>
+                    String(item.user || item.name || "").trim().toLowerCase() === username
+                  );
+                  return (
+                    <View style={{ marginTop: 19 }}>
+                      <Text style={{ color: "#171717", fontWeight: "800", marginBottom: 10 }}>Status</Text>
+                      {stories.length ? (
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                          {stories.map((story, index) => (
+                            <Story key={String(story.id || story._id || index)}
+                              item={{ ...story, name: viewedProfile.displayName || viewedProfile.username, own: false }}
+                              onPress={() => openStoryGroup(stories)} />
+                          ))}
+                        </ScrollView>
+                      ) : <Text style={{ color: "#888888", fontSize: 13 }}>No status yet</Text>}
+                    </View>
+                  );
+                })()}
               </View>
-            ) : null}
-          </View>
-        </View>
+
+              <View style={{ flexDirection: "row", borderTopWidth: 0.5, borderBottomWidth: 0.5, borderColor: "#E5E5E5", marginTop: 18 }}>
+                {[["posts", "grid-outline"], ["tagged", "person-outline"]].map(([tab, icon]) => (
+                  <TouchableOpacity key={tab} onPress={() => setViewedProfileTab(tab)}
+                    style={{
+                      flex: 1, height: 46, alignItems: "center", justifyContent: "center",
+                      borderBottomWidth: viewedProfileTab === tab ? 2 : 0, borderBottomColor: "#171717"
+                    }}>
+                    <Ionicons name={icon} size={22} color={viewedProfileTab === tab ? "#171717" : "#999999"} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {viewedProfileTab === "posts" ? (
+                viewedProfilePostsBusy ? (
+                  <Text style={{ textAlign: "center", padding: 28, color: "#777777" }}>Loading posts...</Text>
+                ) : viewedProfilePosts.length ? (
+                  <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                    {viewedProfilePosts.map((post, index) => (
+                      <View key={String(post.id || post._id || index)} style={{ width: "33.3333%", aspectRatio: 1, padding: 1 }}>
+                        {(post.uri || post.mediaUrl) ? (
+                          <Image source={{ uri: post.uri || post.mediaUrl }}
+                            style={{ width: "100%", height: "100%", backgroundColor: "#EEEEEE" }} resizeMode="cover" />
+                        ) : (
+                          <View style={{ flex: 1, backgroundColor: "#F1F1F1", alignItems: "center", justifyContent: "center", padding: 5 }}>
+                            <Text numberOfLines={3} style={{ fontSize: 10, color: "#444444" }}>{post.caption || "Post"}</Text>
+                          </View>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={{ alignItems: "center", paddingVertical: 48 }}>
+                    <Ionicons name="camera-outline" size={42} color="#222222" />
+                    <Text style={{ color: "#171717", fontSize: 17, fontWeight: "800", marginTop: 10 }}>No posts yet</Text>
+                  </View>
+                )
+              ) : (
+                <View style={{ alignItems: "center", paddingVertical: 48 }}>
+                  <Ionicons name="images-outline" size={38} color="#555555" />
+                  <Text style={{ color: "#555555", marginTop: 10 }}>No tagged photos yet</Text>
+                </View>
+              )}
+            </ScrollView>
+          ) : null}
+
+          {viewedProfileMenuOpen && viewedProfile && (
+            <View style={{
+              position: "absolute", top: 52, right: 12, width: 235,
+              backgroundColor: "#252529", borderRadius: 15, paddingVertical: 6,
+              elevation: 12, shadowColor: "#000000", shadowOpacity: 0.3,
+              shadowRadius: 12, shadowOffset: { width: 0, height: 5 }
+            }}>
+              <TouchableOpacity onPress={() => {
+                setViewedProfileMenuOpen(false);
+                Share.share({ message: `@${viewedProfile.username} on Bhumi Social AI` });
+              }} style={{ paddingHorizontal: 16, paddingVertical: 14 }}>
+                <Text style={{ color: "#FFFFFF", fontSize: 14 }}>Share this profile</Text>
+              </TouchableOpacity>
+              <View style={{ height: 0.5, backgroundColor: "#55555A" }} />
+              <TouchableOpacity disabled={viewedProfileRestrictBusy} onPress={() => {
+                setViewedProfileMenuOpen(false);
+                handleToggleViewedProfileRestriction();
+              }} style={{ paddingHorizontal: 16, paddingVertical: 14 }}>
+                <Text style={{ color: "#FFFFFF", fontSize: 14 }}>
+                  {viewedProfileRestricted ? "Unrestrict" : "Restrict"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </SafeAreaView>
       </Modal>
 
       <Modal
