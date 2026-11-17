@@ -54,5 +54,15 @@
       }
     },
     "scheme": "bhumisocial"
+  },
+  "userInterfaceStyle": "dark",
+  "android": {
+    "adaptiveIcon": {
+      "backgroundColor": "#0B0614"
+    }
+  },
+  "androidStatusBar": {
+    "backgroundColor": "#090611",
+    "barStyle": "light-content"
   }
 }
