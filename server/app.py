@@ -457,7 +457,7 @@ def create_content(kind):
                        LIMIT 1""",
                     (username, target_name, target_name, username),
                 ).fetchone()
-                if blocked:
+                if blocked or not can_view_content(db, username, target_name):
                     continue
                 db.execute(
                     """INSERT INTO people_notifications
