@@ -42,6 +42,7 @@ import {
   uploadContent,
   checkServer,
   loadProfile,
+  loadProfilePosts,
   updateProfile,
   uploadProfileAvatar,
   deleteProfileAvatar,
@@ -3435,14 +3436,8 @@ export default function App() {
 
       setViewedProfilePostsBusy(true);
       try {
-        const allPosts = await loadContent("posts");
-        const profilePosts = (Array.isArray(allPosts) ? allPosts : [])
-          .filter((item) =>
-            !item.isStarterPost &&
-            String(item.user || item.username || "").replace(/^@/, "").trim().toLowerCase()
-              === target.toLowerCase()
-          );
-        setViewedProfilePosts(profilePosts);
+        const profilePosts = await loadProfilePosts(target, viewer);
+        setViewedProfilePosts(Array.isArray(profilePosts) ? profilePosts : []);
       } catch (postsError) {
         console.log("VIEWED_PROFILE_POSTS_ERROR:", postsError?.message);
         setViewedProfilePosts([]);
