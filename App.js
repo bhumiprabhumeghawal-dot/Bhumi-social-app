@@ -9837,14 +9837,14 @@ export default function App() {
                   }}
                   style={{ paddingRight: 14 }}
                 >
-                  <Ionicons name="arrow-back" size={25} color="#262626" />
+                  <Ionicons name="arrow-back" size={25} color="#D8B86A" />
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity style={{ paddingRight: 18 }}>
                   <Ionicons
                     name="briefcase-outline"
                     size={27}
-                    color="#262626"
+                    color="#D8B86A"
                   />
                 </TouchableOpacity>
               )}
@@ -9941,7 +9941,7 @@ export default function App() {
                     <Ionicons
                       name="trending-up-outline"
                       size={29}
-                      color="#262626"
+                      color="#D8B86A"
                     />
                   </TouchableOpacity>
                   <View
@@ -9966,7 +9966,7 @@ export default function App() {
                     <Ionicons
                       name="chevron-down"
                       size={21}
-                      color="#262626"
+                      color="#D8B86A"
                       style={{ marginLeft: 7 }}
                     />
                     <View
@@ -9986,7 +9986,7 @@ export default function App() {
                     <Ionicons
                       name="ellipsis-horizontal"
                       size={27}
-                      color="#262626"
+                      color="#D8B86A"
                     />
                   </TouchableOpacity>
                 </View>
@@ -10292,11 +10292,11 @@ export default function App() {
                 justifyContent: "center",
                 flexDirection: "row",
                 borderBottomWidth: i === 0 ? 2 : 0,
-                borderBottomColor: i === 0 ? "#262626" : "transparent",
+                borderBottomColor: i === 0 ? "#D8B86A" : "transparent",
             }}
         >
             <Text style={{
-                color: i === 0 ? "#262626" : "#8E8E93",
+                color: i === 0 ? "#D8B86A" : "#B8AACB",
                 fontSize: 14,
                 fontWeight: i === 0 ? "700" : "600",
             }}>
@@ -10710,13 +10710,11 @@ export default function App() {
                           }}
                           style={{
                             maxWidth: "82%",
-                            backgroundColor: mine ? "#262626" : "#F2F2F2",
-                            borderRadius: 20,
-                            borderTopRightRadius: mine ? 5 : 20,
-                            borderTopLeftRadius: mine ? 20 : 5,
-                            paddingHorizontal: 16,
-                            paddingVertical: 13,
-                            elevation: mine ? 2 : 0,
+                            backgroundColor: "transparent",
+                            borderRadius: 0,
+                            paddingHorizontal: 4,
+                            paddingVertical: 5,
+                            elevation: 0,
                           }}
                         >
                           {message.replyToId ? (
@@ -10899,7 +10897,7 @@ export default function App() {
                           {message.text ? (
                             <Text
                               style={{
-                                color: mine ? "#FFFFFF" : "#262626",
+                                color: mine ? "#D8B86A" : "#F4EFFA",
                                 fontSize: 15,
                                 lineHeight: 21,
                               }}
@@ -10918,7 +10916,7 @@ export default function App() {
                           >
                             <Text
                               style={{
-                                color: mine ? "#E5E5E5" : "#737373",
+                                color: mine ? "#D8B86A" : "#B8AACB",
                                 fontSize: 10,
                               }}
                             >
@@ -10934,7 +10932,7 @@ export default function App() {
                             {mine ? (
                               <Text
                                 style={{
-                                  color: "#EAF5FF",
+                                  color: "#D8B86A",
                                   fontSize: 9,
                                   fontWeight: "700",
                                 }}
@@ -11196,7 +11194,7 @@ export default function App() {
                           {isPhoto ? (
                             <Image source={{ uri: chatMediaDraft.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
                           ) : (
-                            <Ionicons name={isVideo ? "videocam" : isAudio ? "mic" : "document-text"} size={32} color="#262626" />
+                            <Ionicons name={isVideo ? "videocam" : isAudio ? "mic" : "document-text"} size={32} color="#D8B86A" />
                           )}
                         </View>
                         <View style={{ flex: 1, justifyContent: "center", gap: 5 }}>
@@ -11282,7 +11280,7 @@ export default function App() {
                       <Ionicons
                         name="images-outline"
                         size={25}
-                        color="#262626"
+                        color="#D8B86A"
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -11292,11 +11290,11 @@ export default function App() {
                       <Ionicons
                         name="camera-outline"
                         size={25}
-                        color="#262626"
+                        color="#D8B86A"
                       />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={chooseChatDocument} accessibilityLabel="Attach document">
-                      <Ionicons name="document-attach-outline" size={23} color="#262626" />
+                      <Ionicons name="document-attach-outline" size={23} color="#D8B86A" />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={isChatRecording ? stopChatVoiceRecording : startChatVoiceRecording}
@@ -11313,7 +11311,7 @@ export default function App() {
                       <Ionicons
                         name="happy-outline"
                         size={25}
-                        color="#262626"
+                        color="#D8B86A"
                       />
                     </TouchableOpacity>
                     <TextInput
