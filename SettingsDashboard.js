@@ -58,13 +58,12 @@ const SECTIONS = [
     ["notifications.follows","Follow Alerts","Receive notifications for follows",true],
     ["notifications.messages","Message Alerts","Receive notifications for messages",true],
   ]},
-  { key:"messages", title:"Messages & Chat Settings", subtitle:"Personalize your conversations", icon:"chatbubbles-outline", fields:[
-    ["messages.chatLock","Chat Lock","Protect selected chats with a device lock",false],
-    ["messages.biometrics","Biometric Chat Lock","Use supported device biometrics",false],
-    ["messages.disappearing","Disappearing Messages","Choose a default disappearing message duration",false],
-    ["messages.typing","Typing Indicator","Show when you are typing",true],
-    ["messages.translation","Message Translation","Enable translation controls in chats",true],
-    ["messages.unknownFilter","Unknown Message Filter","Filter messages from unknown accounts",true],
+  { key:"messages", title:"Chat Privacy & Messages", subtitle:"Control who can message you and what chat signals others can see", icon:"chatbubbles-outline", fields:[
+    ["messages.allowMessages","Allow Direct Messages","Let people send you direct messages",true],
+    ["messages.messageRequests","Message Requests","Allow first-time messages to arrive in Requests",true],
+    ["messages.allowUnknown","Allow Unknown Senders","Allow message requests from people you do not follow",true],
+    ["messages.readReceipts","Read Receipts","When off, do not send read status when you open a chat",true],
+    ["messages.typing","Typing Indicator","When off, hide your typing status from other people",true],
   ]},
   { key:"story", title:"Story Settings", subtitle:"Manage story audience and replies", icon:"images-outline", fields:[
     ["story.closeFriends","Close Friends","Manage your Close Friends membership from each friend’s Chat Studio",true],
@@ -179,10 +178,16 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 </TouchableOpacity>
               </View>
             ) : null}
-            {section.key === "security" || section.key === "messages" ? (
+            {section.key === "security" ? (
               <View style={{ backgroundColor:"#21162F",borderRadius:14,padding:13,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"800",fontSize:12 }}>SECURITY NOTE</Text>
-                <Text style={{ color:MUTED,fontSize:11,lineHeight:17,marginTop:5 }}>These saved preferences do not replace server-side verification or device-level biometric protection. Those workflows require their dedicated secure implementation.</Text>
+                <Text style={{ color:MUTED,fontSize:11,lineHeight:17,marginTop:5 }}>Account security controls are separate from chat privacy preferences.</Text>
+              </View>
+            ) : null}
+            {section.key === "messages" ? (
+              <View style={{ backgroundColor:"#21162F",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
+                <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>CHAT PRIVACY CONTROLS</Text>
+                <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Blocked and Restricted Accounts are managed in their own Settings sections. Your existing conversations remain available when you turn off first-time message requests; new unknown senders are refused. Read receipts and typing indicators are enforced by the chat server.</Text>
               </View>
             ) : null}
             {section.key === "messages" ? (
