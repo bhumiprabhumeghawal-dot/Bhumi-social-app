@@ -768,8 +768,20 @@ def get_profile(username):
             return jsonify({"error": "Profile not found"}), 404
 
         username = user["username"]
-        if not can_view_content(db, username, viewer):
-            return jsonify({"error": "Profile not found"}), 404
+
+        # A private account's profile identity remains discoverable. Privacy
+        # controls posts, reels, and connection lists; blocking hides the
+        # profile itself in both directions.
+        if viewer and viewer.casefold() != username.casefold():
+            blocked = db.execute("""
+                SELECT 1 FROM people_blocks
+                WHERE (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+                   OR (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+                LIMIT 1
+            """, (username, viewer, viewer, username)).fetchone()
+            if blocked:
+                return jsonify({"error": "Profile not found"}), 404
+
         result = profile_json(db, username)
         result["isFollowing"] = bool(
             viewer and db.execute(
