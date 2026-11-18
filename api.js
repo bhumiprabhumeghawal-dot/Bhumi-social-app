@@ -5,12 +5,36 @@ const API_BASE_URL = 'https://bhumi-social-app-1.onrender.com';
 const AUTH_TOKEN_KEY = 'socialapp_auth_token';
 const AUTH_USERNAME_KEY = 'socialapp_auth_username';
 
+// Keep the bearer token in memory after the first secure read. SecureStore I/O
+// on every API request adds avoidable latency, especially during parallel loads.
+let authTokenMemory = null;
+let authTokenLoaded = false;
+let authTokenLoadPromise = null;
+
+async function getCachedAuthToken() {
+  if (authTokenLoaded) return authTokenMemory;
+  if (!authTokenLoadPromise) {
+    authTokenLoadPromise = SecureStore.getItemAsync(AUTH_TOKEN_KEY)
+      .then((token) => {
+        authTokenMemory = token || null;
+        authTokenLoaded = true;
+        return authTokenMemory;
+      })
+      .finally(() => { authTokenLoadPromise = null; });
+  }
+  return authTokenLoadPromise;
+}
+
 export async function saveAuthSession(token, username) {
+  authTokenMemory = token || null;
+  authTokenLoaded = true;
   await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
   await SecureStore.setItemAsync(AUTH_USERNAME_KEY, username);
 }
 
 export async function clearAuthSession() {
+  authTokenMemory = null;
+  authTokenLoaded = true;
   await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
   await SecureStore.deleteItemAsync(AUTH_USERNAME_KEY);
 }
@@ -100,7 +124,7 @@ globalThis.fetch = async (input, init = {}) => {
 
   try {
     const headers = new Headers(init.headers || {});
-    const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+    const token = await getCachedAuthToken();
 
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
@@ -113,10 +137,6 @@ globalThis.fetch = async (input, init = {}) => {
       headers,
       signal: controller.signal,
     });
-
-    if (urlText.includes('/api/')) {
-      console.log('[AUTH DEBUG]', response.status, String(init.method || 'GET').toUpperCase(), urlText.split('?')[0], 'tokenSent=' + headers.has('Authorization'));
-    }
 
     return response;
   } catch (error) {
@@ -916,24 +936,39 @@ export async function deleteUserNote() {
   return data;
 }
 
+const CHAT_READ_REQUESTS_IN_FLIGHT = new Map();
+
+async function coalesceChatRead(key, request) {
+  const existing = CHAT_READ_REQUESTS_IN_FLIGHT.get(key);
+  if (existing) return existing;
+  const pending = request().finally(() => {
+    if (CHAT_READ_REQUESTS_IN_FLIGHT.get(key) === pending) {
+      CHAT_READ_REQUESTS_IN_FLIGHT.delete(key);
+    }
+  });
+  CHAT_READ_REQUESTS_IN_FLIGHT.set(key, pending);
+  return pending;
+}
+
 export async function loadMessageConversations() {
-  const response = await fetch(`${API_BASE_URL}/api/messages/conversations`);
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || 'Could not load conversations.');
-  }
-  return data.conversations || [];
+  return coalesceChatRead('conversations', async () => {
+    const response = await fetch(`${API_BASE_URL}/api/messages/conversations`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Could not load conversations.');
+    return data.conversations || [];
+  });
 }
 
 export async function loadDirectMessages(username) {
-  const response = await fetch(
-    `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`
-  );
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || 'Could not load messages.');
-  }
-  return data.messages || [];
+  const peer = String(username || '').trim().toLowerCase();
+  return coalesceChatRead(`messages:${peer}`, async () => {
+    const response = await fetch(
+      `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Could not load messages.');
+    return data.messages || [];
+  });
 }
 
 export async function unsendDirectMessage(username, messageId) {
