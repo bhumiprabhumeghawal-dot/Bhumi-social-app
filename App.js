@@ -2989,6 +2989,7 @@ export default function App() {
   const [privacyBusy, setPrivacyBusy] = React.useState(false);
   const [privacySettings, setPrivacySettings] = React.useState({
     isPrivate: false,
+    accountType: "personal",
     showActivity: true,
     allowMessages: true,
   });
@@ -3767,6 +3768,7 @@ export default function App() {
       const settings = await loadPrivacySettings(authSession.username);
       setPrivacySettings({
         isPrivate: settings.isPrivate,
+        accountType: settings.accountType || "personal",
         showActivity: settings.showActivity,
         allowMessages: settings.allowMessages,
       });
@@ -3818,6 +3820,32 @@ export default function App() {
       Alert.alert("Saved", "Privacy settings have been saved.");
     } catch (e) {
       Alert.alert("Save failed", e.message || "Check the server connection.");
+    } finally {
+      setPrivacyBusy(false);
+    }
+  };
+
+  const switchAccountMode = async (mode) => {
+    if (privacyBusy) return;
+    if (!["business", "private", "public"].includes(mode)) return;
+    const changes = {
+      accountType: mode === "business" ? "business" : "personal",
+      isPrivate: mode === "private",
+    };
+    setPrivacyBusy(true);
+    try {
+      const settings = await savePrivacySettings(changes, authSession.username);
+      setPrivacySettings((current) => ({ ...current, ...settings }));
+      Alert.alert(
+        "Account updated",
+        mode === "business"
+          ? "Business Account is now active."
+          : mode === "private"
+            ? "Your account is now private."
+            : "Your account is now public.",
+      );
+    } catch (error) {
+      Alert.alert("Could not change account", error.message || "Please try again.");
     } finally {
       setPrivacyBusy(false);
     }
@@ -9324,12 +9352,37 @@ export default function App() {
             >
               Privacy Settings
             </Text>
+            <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 12 }}>
+              Choose how people can view and interact with your account.
+            </Text>
             {[
-              {
-                key: "isPrivate",
-                title: "Private Account",
-                subtitle: "Set your account as private",
-              },
+              { key: "business", title: "Business Account", subtitle: "Professional profile for your brand or business", active: privacySettings.accountType === "business" },
+              { key: "private", title: "Private Account", subtitle: "Only approved followers can see your posts", active: privacySettings.accountType !== "business" && privacySettings.isPrivate },
+              { key: "public", title: "Public Account", subtitle: "Anyone can see your public posts and profile", active: privacySettings.accountType !== "business" && !privacySettings.isPrivate },
+            ].map((item) => (
+              <TouchableOpacity
+                key={item.key}
+                onPress={() => switchAccountMode(item.key)}
+                disabled={privacyBusy || item.active}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: 14,
+                  marginBottom: 9,
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  borderColor: item.active ? "#D8B86A" : "#49345F",
+                  backgroundColor: item.active ? "rgba(216,184,106,0.13)" : "#100B19",
+                }}
+              >
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>{item.title}</Text>
+                  <Text style={{ color: "#B8AACB", fontSize: 11, marginTop: 4 }}>{item.subtitle}</Text>
+                </View>
+                <Ionicons name={item.active ? "checkmark-circle" : "ellipse-outline"} size={23} color={item.active ? "#D8B86A" : "#8C7C9E"} />
+              </TouchableOpacity>
+            ))}
+            {[
               {
                 key: "showActivity",
                 title: "Show Activity",
