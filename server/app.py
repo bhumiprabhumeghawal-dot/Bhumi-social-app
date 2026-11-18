@@ -713,6 +713,10 @@ def profile_json(db, username):
         (username,),
     ).fetchone()
     business_profile = None
+    business_catalog = db.execute(
+        "SELECT id, item_type, title, description, price, category FROM business_catalog WHERE LOWER(username)=LOWER(?) ORDER BY id DESC LIMIT 50",
+        (username,),
+    ).fetchall()
     if business_row:
         business_profile = {
             "businessName": business_row["business_name"],
@@ -734,6 +738,7 @@ def profile_json(db, username):
     return {
         "username": row["username"],
         "businessProfile": business_profile,
+        "businessCatalog": [dict(item) for item in business_catalog],
         "accountType": (account["account_type"] if account else "personal") or "personal",
         "displayName": row["display_name"],
         "bio": row["bio"],
