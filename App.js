@@ -4359,6 +4359,13 @@ export default function App() {
           asset.type === "video" ||
           /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || "");
 
+        if (kind === "reels" && assetIsVideo && zoomEffectEnabled) {
+          uploadAsset = await applyZoomEffect(uploadAsset.uri, {
+            zoom: zoomEffectLevel,
+            duration: zoomEffectDuration,
+          });
+        }
+
         if (assetIsVideo && (videoFilterIndex > 0 || voiceEffect !== "Original")) {
           uploadAsset = await applyVideoEffects(uploadAsset.uri, {
             videoFilterIndex,
@@ -5812,6 +5819,41 @@ export default function App() {
                         />
                       )}
 
+                      {isVideo ? (
+                        <View style={{ position: "absolute", top: 72, left: 10, right: 10, gap: 7 }}>
+                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                            {VIDEO_FILTERS.map((filter, index) => (
+                              <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#D8B86A" : "rgba(0,0,0,0.68)" }}>
+                                <Text style={{ color: videoFilterIndex === index ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                            {VOICE_EFFECTS.map((effect) => (
+                              <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 16, backgroundColor: voiceEffect === effect.name ? "#D8B86A" : "rgba(0,0,0,0.68)" }}>
+                                <Text style={{ color: voiceEffect === effect.name ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{effect.name} Voice</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                          <TouchableOpacity onPress={chooseMusicFile} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.72)" }}>
+                            <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{musicAsset ? "♫ Change Music" : "♫ Add Music"}</Text>
+                          </TouchableOpacity>
+                          {musicAsset ? (
+                            <TouchableOpacity onPress={() => musicPlayerStatus.playing ? musicPlayer.pause() : musicPlayer.play()} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.65)" }}>
+                              <Text style={{ color: "#FFFFFF", fontSize: 11 }}>{musicPlayerStatus.playing ? "Pause Music Preview" : "Preview Music"}</Text>
+                            </TouchableOpacity>
+                          ) : null}
+                        </View>
+                      ) : (
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ position: "absolute", top: 74, left: 8, right: 8, maxHeight: 42 }} contentContainerStyle={{ gap: 6 }}>
+                          {POST_PHOTO_FILTERS.map((filter, index) => (
+                            <TouchableOpacity key={filter.name} onPress={() => handlePhotoEdit(`filter:${index}`)} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 16, backgroundColor: Number(asset.photoFilterIndex || 0) === index ? "#D8B86A" : "rgba(0,0,0,0.68)" }}>
+                              <Text style={{ color: Number(asset.photoFilterIndex || 0) === index ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      )}
+
                       <TouchableOpacity
                         onPress={cancelDraftMedia}
                         disabled={busy}
@@ -6108,9 +6150,27 @@ export default function App() {
                           </TouchableOpacity>
                         </>
                       )}
+                      {isVideo ? (
+                        <View style={{ width: "100%", marginTop: 6, gap: 7 }}>
+                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
+                            {VIDEO_FILTERS.map((filter, index) => (
+                              <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#D8B86A" : "rgba(0,0,0,0.78)" }}>
+                                <Text style={{ color: videoFilterIndex === index ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
+                            {VOICE_EFFECTS.map((effect) => (
+                              <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: voiceEffect === effect.name ? "#D8B86A" : "rgba(0,0,0,0.78)" }}>
+                                <Text style={{ color: voiceEffect === effect.name ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{effect.name} Voice</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                        </View>
+                      ) : null}
                     </View>
                   </View>
-                  {mediaDraft.kind === "posts" && !isVideo && (
+                  {!isVideo && (
                     <View style={{ paddingTop: 12, paddingBottom: 8 }}>
                       <Text style={{
                         color: "#F4EFFA",
