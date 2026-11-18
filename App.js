@@ -4104,7 +4104,7 @@ export default function App() {
       const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
       if (!photo?.uri) return;
 
-      if (cameraTargetKind === "posts" && cameraMode === "picture") {
+      if (cameraMode === "picture") {
         const filteredAsset = await applyPostPhotoFilter(
           {
             ...photo,
@@ -5592,7 +5592,7 @@ export default function App() {
               />
             )}
 
-            {cameraTargetKind === "posts" && cameraMode === "picture" && !recordedPhoto && !recordedVideo && (
+            {cameraMode === "picture" && !recordedPhoto && !recordedVideo && (
               <>
                 <View
                   pointerEvents="none"
@@ -5843,6 +5843,9 @@ export default function App() {
                               <Text style={{ color: "#FFFFFF", fontSize: 11 }}>{musicPlayerStatus.playing ? "Pause Music Preview" : "Preview Music"}</Text>
                             </TouchableOpacity>
                           ) : null}
+                          <TouchableOpacity onPress={() => setKeepOriginalAudio((value) => !value)} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.65)" }}>
+                            <Text style={{ color: "#FFFFFF", fontSize: 11 }}>{keepOriginalAudio ? "Original Sound: ON" : "Original Sound: OFF"}</Text>
+                          </TouchableOpacity>
                         </View>
                       ) : (
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ position: "absolute", top: 74, left: 8, right: 8, maxHeight: 42 }} contentContainerStyle={{ gap: 6 }}>
