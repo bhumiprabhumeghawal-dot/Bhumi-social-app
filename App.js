@@ -7947,6 +7947,19 @@ export default function App() {
                   {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 5 }}>Service radius: {profile.businessProfile.serviceRadiusKm} km</Text>}
                   {!!profile.businessProfile.address && <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 5 }}>Address: {profile.businessProfile.address}</Text>}
                   {!!profile.businessProfile.openingHours && <Text style={{ color: "#B8AACB", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
+                  {!!profile.businessProfile.phone && <Text style={{ color: "#D8CDE7", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
+                  {!!profile.businessProfile.whatsapp && <Text style={{ color: "#D8CDE7", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
+                  {!!profile.businessCatalog?.length && (
+                    <View style={{ borderTopWidth: 1, borderTopColor: "#49345F", marginTop: 11, paddingTop: 10 }}>
+                      <Text style={{ color: "#D8B86A", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
+                      {profile.businessCatalog.slice(0, 5).map((item) => (
+                        <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#352443" }}>
+                          <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>{item.title} {item.price ? "· " + item.price : ""}</Text>
+                          {!!item.description && <Text numberOfLines={2} style={{ color: "#B8AACB", fontSize: 11, marginTop: 2 }}>{item.description}</Text>}
+                        </View>
+                      ))}
+                    </View>
+                  )}
                 </View>
               )}
 
