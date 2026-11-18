@@ -1423,7 +1423,10 @@ function PostCard({
                       style={{ paddingVertical: 8 }}
                     >
                       <Text style={{ color: "#F4EFFA" }}>
-                        <Text style={{ fontWeight: "600" }}>
+                        <Text
+                          onPress={() => onOpenProfile(comment.username)}
+                          style={{ fontWeight: "600" }}
+                        >
                           {comment.username || "you"}{" "}
                         </Text>
                         {comment.text}
