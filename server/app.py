@@ -3753,10 +3753,19 @@ def get_message_conversations():
         if key in seen:
             continue
         seen.add(key)
+        connection = db.execute("""
+            SELECT 1 FROM follows
+            WHERE (LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?))
+               OR (LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?))
+            LIMIT 1
+        """, (current, other, other, current)).fetchone()
+        inbox_folder = "primary" if connection else "requests"
         conversations.append({
             "username": other,
             "displayName": row["other_display_name"] or other,
             "avatarUrl": row["other_avatar_url"],
+            "folder": inbox_folder,
+            "isRequest": not bool(connection),
             "lastMessage": row["body"] or (
                 "📷 Photo" if row["image_url"] or row["attachment_type"] == "image"
                 else "🎬 Video" if row["attachment_type"] == "video"
