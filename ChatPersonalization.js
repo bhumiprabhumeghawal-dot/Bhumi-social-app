@@ -11,7 +11,7 @@ const THEMES = [
   { key: "royal", name: "Royal Gold", icon: "diamond", bg: "#100B19", mine: "#49345F", other: "#21162F", accent: "#D8B86A" },
   { key: "midnight", name: "Midnight Black", icon: "moon", bg: "#080B12", mine: "#253044", other: "#151B27", accent: "#8FA8D8" },
   { key: "ocean", name: "Ocean Blue", icon: "water", bg: "#071521", mine: "#12415A", other: "#102A3A", accent: "#61C5E8" },
-  { key: "rose", name: "Royal Rose", icon: "rose", bg: "#1B0B16", mine: "#63304A", other: "#321A29", accent: "#F0A0C0" },
+  { key: "rose", name: "Royal Rose", icon: "heart", bg: "#1B0B16", mine: "#63304A", other: "#321A29", accent: "#F0A0C0" },
   { key: "emerald", name: "Emerald", icon: "leaf", bg: "#071710", mine: "#1D513A", other: "#153324", accent: "#7AD6A4" },
   { key: "sunset", name: "Sunset", icon: "sunny", bg: "#1C100A", mine: "#75402B", other: "#382319", accent: "#FFB078" },
 ];
