@@ -2346,6 +2346,8 @@ export default function App() {
   const [mediaDraft, setMediaDraft] = React.useState(null);
   const [mediaDraftIndex, setMediaDraftIndex] = React.useState(0);
   const [mediaDraftCaption, setMediaDraftCaption] = React.useState("");
+  const [mentionSuggestions, setMentionSuggestions] = React.useState([]);
+  const [mentionToken, setMentionToken] = React.useState("");
   const [zoomEffectEnabled, setZoomEffectEnabled] = React.useState(false);
   const [zoomEffectLevel, setZoomEffectLevel] = React.useState(1.5);
   const [zoomEffectDuration, setZoomEffectDuration] = React.useState(3);
@@ -4396,6 +4398,56 @@ export default function App() {
     }
   };
 
+  React.useEffect(() => {
+    const match = String(mediaDraftCaption || "").match(/(?:^|\\s)@([A-Za-z0-9_.]{2,50})$/);
+    const query = match?.[1] || "";
+    setMentionToken(query);
+    if (query.length < 2) {
+      setMentionSuggestions([]);
+      return;
+    }
+    let active = true;
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchUsers(query);
+        if (active) setMentionSuggestions(results.slice(0, 6));
+      } catch (_) {
+        if (active) setMentionSuggestions([]);
+      }
+    }, 220);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [mediaDraftCaption]);
+
+  const insertMention = (user) => {
+    const username = String(user?.username || "").replace(/^@/, "");
+    if (!username) return;
+    setMediaDraftCaption((current) =>
+      String(current || "").replace(/(?:^|\\s)@[A-Za-z0-9_.]{2,50}$/, (match) => {
+        const prefix = match.startsWith(" ") ? " " : "";
+        return prefix + "@" + username + " ";
+      }),
+    );
+    setMentionSuggestions([]);
+    setMentionToken("");
+  };
+
+  const mentionSuggestionList = mentionSuggestions.length > 0 ? (
+    <View style={{ marginTop: 6, padding: 7, borderRadius: 12, backgroundColor: "#171020", borderWidth: 1, borderColor: "#D8B86A" }}>
+      {mentionSuggestions.map((user) => (
+        <TouchableOpacity key={user.username} onPress={() => insertMention(user)} style={{ paddingVertical: 9, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}>
+          <Ionicons name="person-circle-outline" size={22} color="#D8B86A" />
+          <View style={{ marginLeft: 9 }}>
+            <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>@{user.username}</Text>
+            {!!user.displayName && user.displayName !== user.username ? <Text style={{ color: "#B8AACB", fontSize: 11 }}>{user.displayName}</Text> : null}
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  ) : null;
+
   const uploadDraftMedia = async () => {
     if (!mediaDraft || busy) return;
     const { kind, assets } = mediaDraft;
@@ -6034,6 +6086,7 @@ export default function App() {
                             maxHeight: 100,
                           }}
                         />
+                        {mentionSuggestionList}
                       </View>
 
                       <View
@@ -6376,6 +6429,7 @@ export default function App() {
                       color: "#F4EFFA",
                     }}
                   />
+                  {mentionSuggestionList}
                   {isVideo && (
                     <View style={{ paddingTop: 10, paddingBottom: 8 }}>
                       <TouchableOpacity
@@ -11916,6 +11970,9 @@ export default function App() {
                     like: "liked your post",
                     comment: "commented on your post",
                     message: "sent you a message",
+                    mention_posts: "mentioned you in a post",
+                    mention_stories: "mentioned you in a story/status",
+                    mention_reels: "mentioned you in a reel",
                   };
                   return (
                     <TouchableOpacity
