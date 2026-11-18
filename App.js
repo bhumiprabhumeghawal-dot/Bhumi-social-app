@@ -2721,6 +2721,12 @@ export default function App() {
       ]);
       setDirectMessages(messages);
       setChatFriendPrefs(preferences || {});
+      setChatPreferences({
+        name: String((preferences || {})["messages.chatName." + target.toLowerCase()] || ""),
+        theme: String((preferences || {})["messages.chatTheme." + target.toLowerCase()] || "royal"),
+        favorite: !!(preferences || {})["messages.favorite." + target.toLowerCase()],
+        closeFriend: !!(preferences || {})["messages.closeFriend." + target.toLowerCase()],
+      });
       setMessageConversations(sortChatConversations(conversations, preferences || {}));
     } catch (error) {
       setChatError(error?.message || "Could not load messages.");
@@ -11270,8 +11276,8 @@ export default function App() {
                             <View
                               style={{
                                 borderLeftWidth: 3,
-                                borderLeftColor: "#D8B86A",
-                                backgroundColor: "#21162F",
+                                borderLeftColor: chatThemeColors.accent,
+                                backgroundColor: chatThemeColors.other,
                                 borderRadius: 8,
                                 padding: 8,
                                 marginBottom: 8,
@@ -11444,7 +11450,7 @@ export default function App() {
                           {message.text ? (
                             <Text
                               style={{
-                                color: mine ? "#D8B86A" : "#F4EFFA",
+                                color: mine ? chatThemeColors.accent : "#F4EFFA",
                                 fontSize: 15,
                                 lineHeight: 21,
                               }}
