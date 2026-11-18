@@ -59,6 +59,8 @@ import {
   savePrivacySettings,
   loadBusinessProfile,
   saveBusinessProfile,
+  loadBusinessInsights,
+  discoverBusinesses,
   loadBlockedAccounts,
   unblockAccount,
   loadRestrictedAccounts,
@@ -2991,6 +2993,11 @@ export default function App() {
   const [privacyBusy, setPrivacyBusy] = React.useState(false);
   const [businessProfileOpen, setBusinessProfileOpen] = React.useState(false);
   const [businessProfileBusy, setBusinessProfileBusy] = React.useState(false);
+  const [businessInsights, setBusinessInsights] = React.useState({ contentCount: 0, followers: 0, likes: 0, comments: 0 });
+  const [businessDirectoryOpen, setBusinessDirectoryOpen] = React.useState(false);
+  const [businessDirectoryBusy, setBusinessDirectoryBusy] = React.useState(false);
+  const [businessDirectoryFilters, setBusinessDirectoryFilters] = React.useState({ city: "", area: "", category: "", q: "" });
+  const [businessDirectoryResults, setBusinessDirectoryResults] = React.useState([]);
   const [businessProfile, setBusinessProfile] = React.useState({
     businessName: "", category: "", description: "", phone: "", whatsapp: "",
     email: "", website: "", address: "", area: "", city: "", state: "",
@@ -3848,6 +3855,7 @@ export default function App() {
       if (mode === "business") {
         const details = await loadBusinessProfile();
         setBusinessProfile((current) => ({ ...current, ...details }));
+        try { setBusinessInsights(await loadBusinessInsights()); } catch (_) {}
         setBusinessProfileOpen(true);
       } else {
         Alert.alert(
@@ -3883,6 +3891,19 @@ export default function App() {
       Alert.alert("Save failed", error.message || "Please try again.");
     } finally {
       setBusinessProfileBusy(false);
+    }
+  };
+
+
+  const searchBusinessDirectory = async () => {
+    setBusinessDirectoryBusy(true);
+    try {
+      const results = await discoverBusinesses(businessDirectoryFilters);
+      setBusinessDirectoryResults(results);
+    } catch (error) {
+      Alert.alert("Business search failed", error.message || "Please try again.");
+    } finally {
+      setBusinessDirectoryBusy(false);
     }
   };
 
@@ -8150,6 +8171,17 @@ export default function App() {
                   </Text>
                 </TouchableOpacity>
               </View>
+              <TouchableOpacity
+                onPress={() => { setBusinessDirectoryResults([]); setBusinessDirectoryOpen(true); }}
+                style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#80602E", backgroundColor: "#171020", flexDirection: "row", alignItems: "center" }}
+              >
+                <Ionicons name="storefront" size={23} color="#D8B86A" />
+                <View style={{ marginLeft: 11, flex: 1 }}>
+                  <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>Area-wise Business Directory</Text>
+                  <Text style={{ color: "#B8AACB", fontSize: 11, marginTop: 3 }}>Discover local brands, shops and services</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#D8B86A" />
+              </TouchableOpacity>
               <View>
                 <View
                   style={{
@@ -9540,6 +9572,19 @@ export default function App() {
                 <Text style={{ color: "#F4EFFA", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>Business Studio</Text>
               </View>
               <Text style={{ color: "#D8B86A", fontSize: 12, fontWeight: "700", marginBottom: 16 }}>PREMIUM BUSINESS PROFILE · AREA DISCOVERY</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 15 }}>
+                {[
+                  ["Content", businessInsights.contentCount],
+                  ["Followers", businessInsights.followers],
+                  ["Likes", businessInsights.likes],
+                  ["Comments", businessInsights.comments],
+                ].map(([label, value]) => (
+                  <View key={label} style={{ minWidth: "47%", flexGrow: 1, padding: 11, borderRadius: 12, backgroundColor: "#21162F", borderWidth: 1, borderColor: "#49345F" }}>
+                    <Text style={{ color: "#D8B86A", fontSize: 18, fontWeight: "900" }}>{value}</Text>
+                    <Text style={{ color: "#B8AACB", fontSize: 11 }}>{label}</Text>
+                  </View>
+                ))}
+              </View>
               {[
                 ["businessName", "Business / Brand Name", "e.g. Your brand name"],
                 ["category", "Business Category", "Restaurant, Salon, Fashion, Services..."],
@@ -9582,6 +9627,43 @@ export default function App() {
                   <Text style={{ color: "#1A1028", fontWeight: "900" }}>{businessProfileBusy ? "Saving..." : "Save Business Profile"}</Text>
                 </TouchableOpacity>
               </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+
+      <Modal visible={businessDirectoryOpen} transparent animationType="slide" onRequestClose={() => setBusinessDirectoryOpen(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "rgba(5,2,12,0.88)", justifyContent: "flex-end" }}>
+          <View style={{ maxHeight: "90%", backgroundColor: "#100B19", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: "#80602E", padding: 17 }}>
+            <ScrollView keyboardShouldPersistTaps="handled">
+              <Text style={{ color: "#D8B86A", fontSize: 20, fontWeight: "900", marginBottom: 5 }}>Local Business Directory</Text>
+              <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 13 }}>Search by city, area or business category</Text>
+              {[
+                ["city", "City", "e.g. Ahmedabad"],
+                ["area", "Area / Locality", "e.g. Navrangpura"],
+                ["category", "Category", "e.g. Salon, Restaurant"],
+                ["q", "Business name / keyword", "Search brands and services"],
+              ].map(([key, label, placeholder]) => (
+                <View key={key} style={{ marginBottom: 9 }}>
+                  <Text style={{ color: "#D8CDE7", fontSize: 12, marginBottom: 4 }}>{label}</Text>
+                  <TextInput value={businessDirectoryFilters[key]} onChangeText={(value) => setBusinessDirectoryFilters((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#776987" style={{ color: "#F4EFFA", backgroundColor: "#171020", borderWidth: 1, borderColor: "#49345F", borderRadius: 11, padding: 11 }} />
+                </View>
+              ))}
+              <TouchableOpacity onPress={searchBusinessDirectory} disabled={businessDirectoryBusy} style={{ backgroundColor: "#D8B86A", padding: 13, borderRadius: 12, alignItems: "center", marginVertical: 8 }}>
+                <Text style={{ color: "#1A1028", fontWeight: "900" }}>{businessDirectoryBusy ? "Searching..." : "Find Local Businesses"}</Text>
+              </TouchableOpacity>
+              {businessDirectoryResults.map((item) => (
+                <TouchableOpacity key={item.username} onPress={() => { setBusinessDirectoryOpen(false); openUserProfile(item.username); }} style={{ padding: 13, borderRadius: 13, borderWidth: 1, borderColor: "#49345F", marginBottom: 8, backgroundColor: "#171020" }}>
+                  <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>{item.businessName || item.username}</Text>
+                  <Text style={{ color: "#D8B86A", fontSize: 11, marginTop: 3 }}>{[item.category, item.area, item.city, item.state].filter(Boolean).join(" · ")}</Text>
+                  {!!item.description && <Text numberOfLines={2} style={{ color: "#B8AACB", fontSize: 12, marginTop: 5 }}>{item.description}</Text>}
+                </TouchableOpacity>
+              ))}
+              {!businessDirectoryBusy && businessDirectoryResults.length === 0 && <Text style={{ color: "#8F819E", fontSize: 12, textAlign: "center", paddingVertical: 12 }}>Enter a city, area or category to discover businesses.</Text>}
+              <TouchableOpacity onPress={() => setBusinessDirectoryOpen(false)} style={{ alignSelf: "flex-end", padding: 13 }}>
+                <Text style={{ color: "#D8B86A", fontWeight: "800" }}>Close</Text>
+              </TouchableOpacity>
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
