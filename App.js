@@ -10033,7 +10033,7 @@ export default function App() {
                     backgroundColor: "#21162F",
                   }}
                 >
-                  <Ionicons name="search" size={23} color="#737373" />
+                  <Ionicons name="search" size={23} color="#D8B86A" />
                   <TextInput
                     value={chatSearchQuery}
                     onChangeText={setChatSearchQuery}
@@ -10098,7 +10098,7 @@ export default function App() {
                         borderRadius: 34,
                         backgroundColor: "#100B19",
                         borderWidth: 2,
-                        borderColor: ownNote ? "#C13584" : "#D8D8D8",
+                        borderColor: ownNote ? "#D8B86A" : "#49345F",
                         alignItems: "center",
                         justifyContent: "center",
                         overflow: "visible",
@@ -10702,10 +10702,8 @@ export default function App() {
                             <View
                               style={{
                                 borderLeftWidth: 3,
-                                borderLeftColor: mine ? "#BDBDBD" : "#8E8E93",
-                                backgroundColor: mine
-                                  ? "rgba(255,255,255,0.14)"
-                                  : "#E4EAF0",
+                                borderLeftColor: "#D8B86A",
+                                backgroundColor: "#21162F",
                                 borderRadius: 8,
                                 padding: 8,
                                 marginBottom: 8,
@@ -10714,7 +10712,7 @@ export default function App() {
                               <Text
                                 numberOfLines={1}
                                 style={{
-                                  color: mine ? "#FFFFFF" : "#262626",
+                                  color: "#F4EFFA",
                                   fontSize: 11,
                                   fontWeight: "800",
                                 }}
@@ -10724,7 +10722,7 @@ export default function App() {
                               <Text
                                 numberOfLines={2}
                                 style={{
-                                  color: mine ? "#F0F0F0" : "#555555",
+                                  color: "#B8AACB",
                                   fontSize: 12,
                                 }}
                               >
@@ -10844,7 +10842,7 @@ export default function App() {
           padding: 14,
           borderRadius: 14,
           marginBottom: message.text ? 8 : 0,
-          backgroundColor: mine ? "rgba(255,255,255,0.16)" : "#FFFFFF",
+          backgroundColor: "#21162F",
           flexDirection: "row",
           alignItems: "center",
           gap: 10,
@@ -10853,18 +10851,18 @@ export default function App() {
         <Ionicons
           name="document-text"
           size={30}
-          color={mine ? "#FFFFFF" : "#0095F6"}
+          color="#D8B86A"
         />
         <View style={{ flex: 1 }}>
           <Text numberOfLines={2} style={{
-            color: mine ? "#FFFFFF" : "#262626",
+            color: "#F4EFFA",
             fontSize: 13,
             fontWeight: "700",
           }}>
             {message.attachmentName || "Document"}
           </Text>
           <Text style={{
-            color: mine ? "#EAF5FF" : "#7A8490",
+            color: "#B8AACB",
             fontSize: 11,
             marginTop: 3,
           }}>
@@ -11067,7 +11065,7 @@ export default function App() {
                             paddingHorizontal: 16,
                             paddingVertical: 10,
                             borderRadius: 20,
-                            backgroundColor: "#FDECEC",
+                            backgroundColor: "#21162F",
                           }}
                         >
                           <Text
