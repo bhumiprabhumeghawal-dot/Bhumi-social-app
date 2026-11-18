@@ -414,7 +414,7 @@ async function uploadContentOnce(type, asset, caption = '', groupId = '') {
 
 export function uploadContent(type, asset, caption = '', groupId = '') {
   const uri = String(asset?.uri || '');
-  const key = [type, uri, groupId, caption].join('|');
+  const key = [type, uri, caption].join('|');
   const pending = UPLOAD_REQUESTS_IN_FLIGHT.get(key);
   if (pending) return pending;
 
