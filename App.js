@@ -106,6 +106,7 @@ import {
   acceptFollowRequest,
   rejectFollowRequest,
   loadMessageConversations,
+  loadSettingsPreferences,
   loadUserNotes,
   saveUserNote,
   deleteUserNote,
@@ -2504,6 +2505,14 @@ export default function App() {
   const [selectedChatUser, setSelectedChatUser] = React.useState("");
   const [chatPersonalizationOpen, setChatPersonalizationOpen] = React.useState(false);
   const [chatPreferences, setChatPreferences] = React.useState({ name: "", theme: "royal", favorite: false, closeFriend: false });
+  const [chatFriendPrefs, setChatFriendPrefs] = React.useState({});
+  const sortChatConversations = (items, prefs = chatFriendPrefs) => [...(items || [])].sort((a, b) => {
+    const userA = String(a.username || a.peer || a.otherUsername || "").toLowerCase();
+    const userB = String(b.username || b.peer || b.otherUsername || "").toLowerCase();
+    const scoreA = (prefs["messages.favorite." + userA] ? 2 : 0) + (prefs["messages.closeFriend." + userA] ? 1 : 0);
+    const scoreB = (prefs["messages.favorite." + userB] ? 2 : 0) + (prefs["messages.closeFriend." + userB] ? 1 : 0);
+    return scoreB - scoreA;
+  });
   const chatThemeColors = ({
     royal: { bg: "#100B19", mine: "#49345F", other: "#21162F", accent: "#D8B86A" },
     midnight: { bg: "#080B12", mine: "#253044", other: "#151B27", accent: "#8FA8D8" },
@@ -2673,11 +2682,13 @@ export default function App() {
     setChatError("");
     setChatBusy(true);
     try {
-      const [conversations] = await Promise.all([
+      const [conversations, preferences] = await Promise.all([
         loadMessageConversations(),
+        loadSettingsPreferences(),
         refreshUserNotes(),
-      ]);
-      setMessageConversations(conversations);
+      ]).then((values) => [values[0], values[1]]);
+      setChatFriendPrefs(preferences || {});
+      setMessageConversations(sortChatConversations(conversations, preferences || {}));
     } catch (error) {
       setChatError(error?.message || "Could not load conversations.");
     } finally {
@@ -2702,12 +2713,14 @@ export default function App() {
     setChatError("");
     setChatBusy(true);
     try {
-      const [messages, conversations] = await Promise.all([
+      const [messages, conversations, preferences] = await Promise.all([
         loadDirectMessages(target),
         loadMessageConversations(),
+        loadSettingsPreferences(),
       ]);
       setDirectMessages(messages);
-      setMessageConversations(conversations);
+      setChatFriendPrefs(preferences || {});
+      setMessageConversations(sortChatConversations(conversations, preferences || {}));
     } catch (error) {
       setChatError(error?.message || "Could not load messages.");
     } finally {
@@ -10309,7 +10322,17 @@ export default function App() {
         visible={chatPersonalizationOpen && !!selectedChatUser}
         username={selectedChatUser}
         onClose={() => setChatPersonalizationOpen(false)}
-        onSaved={(next) => setChatPreferences(next)}
+        onSaved={(next) => {
+          setChatPreferences(next);
+          const peer = String(selectedChatUser || "").toLowerCase();
+          const updated = {
+            ...chatFriendPrefs,
+            ["messages.favorite." + peer]: next.favorite,
+            ["messages.closeFriend." + peer]: next.closeFriend,
+          };
+          setChatFriendPrefs(updated);
+          setMessageConversations((items) => sortChatConversations(items, updated));
+        }}
       />
 
       {/* SOCIALAPP_DIRECT_MESSAGES_MODAL_V1 */}
@@ -11168,7 +11191,7 @@ export default function App() {
               <View style={{ flex: 1 }}>
                 <ScrollView
                   ref={directMessagesScrollRef}
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, backgroundColor: chatThemeColors.bg }}
                   keyboardShouldPersistTaps="handled"
                   keyboardDismissMode="interactive"
                   onContentSizeChange={() =>
