@@ -21,6 +21,14 @@ export async function getAuthSession() {
   return token && username ? { token, username } : null;
 }
 
+async function authHeaders(extra = {}) {
+  const session = await getAuthSession();
+  return {
+    ...extra,
+    ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
+  };
+}
+
 
 export async function registerAccount(username, password, phoneNumber, email, fullName) {
   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
@@ -143,7 +151,7 @@ export async function saveAccountSettings(email, phoneNumber) {
 }
 
 export async function loadNotificationPreference() {
-  const response = await fetch(`${API_BASE_URL}/api/settings/notifications`);
+  const response = await fetch(`${API_BASE_URL}/api/settings/notifications`, { headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not load notification settings.');
   return data.enabled;
@@ -152,7 +160,7 @@ export async function loadNotificationPreference() {
 export async function saveNotificationPreference(enabled) {
   const response = await fetch(`${API_BASE_URL}/api/settings/notifications`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ enabled }),
   });
   const data = await response.json();
@@ -161,7 +169,7 @@ export async function saveNotificationPreference(enabled) {
 }
 
 export async function loadNotificationDetails() {
-  const response = await fetch(`${API_BASE_URL}/api/settings/notifications/details`);
+  const response = await fetch(`${API_BASE_URL}/api/settings/notifications/details`, { headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not load notification details.');
   return data;
@@ -170,7 +178,7 @@ export async function loadNotificationDetails() {
 export async function saveNotificationDetails(preferences) {
   const response = await fetch(`${API_BASE_URL}/api/settings/notifications/details`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(preferences),
   });
   const data = await response.json();
@@ -1087,7 +1095,7 @@ export async function approveReelComment(reelId, commentId) {
 }
 
 export async function loadSavedContent() {
-  const response = await fetch(`${API_BASE_URL}/api/saved`);
+  const response = await fetch(`${API_BASE_URL}/api/saved`, { headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not load Saved content.');
   return (data.items || []).map(item => ({
@@ -1105,7 +1113,7 @@ export async function toggleSavedContent(kind, contentId) {
   if (!['posts', 'reels'].includes(kind)) throw new Error('Invalid content type.');
   const response = await fetch(
     `${API_BASE_URL}/api/content/${kind}/${encodeURIComponent(contentId)}/save`,
-    { method: 'POST' }
+    { method: 'POST', headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not update Saved content.');
@@ -1114,7 +1122,7 @@ export async function toggleSavedContent(kind, contentId) {
 
 
 export async function loadSettingsPreferences() {
-  const response = await fetch(`${API_BASE_URL}/api/settings/preferences`);
+  const response = await fetch(`${API_BASE_URL}/api/settings/preferences`, { headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Could not load settings.");
   return data.preferences || {};
@@ -1123,7 +1131,7 @@ export async function loadSettingsPreferences() {
 export async function saveSettingsPreferences(changes) {
   const response = await fetch(`${API_BASE_URL}/api/settings/preferences`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(changes),
   });
   const data = await response.json();
