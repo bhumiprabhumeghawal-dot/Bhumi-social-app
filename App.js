@@ -27,6 +27,7 @@ import Animated, {
 import {Alert as NativeAlert,
   Share,
   Dimensions,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
