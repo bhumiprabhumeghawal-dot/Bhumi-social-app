@@ -1060,6 +1060,57 @@ def update_business_profile():
         })
 
 
+
+@app.get("/api/business/insights")
+def business_insights():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        account = db.execute(
+            "SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if not account or account["account_type"] != "business":
+            return jsonify({"error": "Business Account is required."}), 403
+        posts = db.execute(
+            "SELECT COUNT(*) FROM content WHERE LOWER(username)=LOWER(?) AND kind IN ('posts','reels')",
+            (username,),
+        ).fetchone()[0]
+        followers = db.execute(
+            "SELECT COUNT(*) FROM follows WHERE LOWER(following)=LOWER(?)",
+            (username,),
+        ).fetchone()[0]
+        likes = db.execute("""
+            SELECT COUNT(*) FROM post_likes l
+            JOIN content c ON c.id=l.content_id
+            WHERE LOWER(c.username)=LOWER(?)
+        """, (username,)).fetchone()[0]
+        comments = db.execute("""
+            SELECT COUNT(*) FROM post_comments c
+            JOIN content p ON p.id=c.content_id
+            WHERE LOWER(p.username)=LOWER(?)
+        """, (username,)).fetchone()[0]
+        reel_likes = db.execute("""
+            SELECT COUNT(*) FROM reel_likes l
+            JOIN content c ON c.id=l.content_id
+            WHERE LOWER(c.username)=LOWER(?)
+        """, (username,)).fetchone()[0]
+        reel_comments = db.execute("""
+            SELECT COUNT(*) FROM reel_comments c
+            JOIN content p ON p.id=c.content_id
+            WHERE LOWER(p.username)=LOWER(?)
+        """, (username,)).fetchone()[0]
+    return jsonify({
+        "insights": {
+            "contentCount": posts,
+            "followers": followers,
+            "likes": likes + reel_likes,
+            "comments": comments + reel_comments,
+        }
+    })
+
+
 @app.get("/api/businesses")
 def discover_businesses():
     city = request.args.get("city", "").strip()[:100]
