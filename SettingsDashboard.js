@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Modal, View, Text, ScrollView, TouchableOpacity, Switch,
-  ActivityIndicator, Alert, Linking
+  ActivityIndicator, Alert, Linking, Platform
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { loadSettingsPreferences, saveSettingsPreferences } from "./api";
@@ -159,7 +159,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     if (!section) return null;
     return (
       <Modal visible={!!active && visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setActive(null)}>
-        <View style={{ flex:1, backgroundColor:BG, paddingTop:16 }}>
+        <View style={{ flex:1, backgroundColor:BG, paddingTop:16, paddingBottom: Platform.OS === "android" ? 36 : 0 }}>
           <View style={{ flexDirection:"row", alignItems:"center", paddingHorizontal:18, paddingBottom:16, borderBottomWidth:1, borderBottomColor:BORDER }}>
             <TouchableOpacity onPress={() => setActive(null)} style={{ width:42,height:42,borderRadius:13,backgroundColor:PANEL,alignItems:"center",justifyContent:"center",marginRight:12 }}>
               <Ionicons name="arrow-back" size={22} color={GOLD}/>
@@ -169,7 +169,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{section.subtitle}</Text>
             </View>
           </View>
-          <ScrollView contentContainerStyle={{ padding:18,paddingBottom:40 }} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={{ padding:18,paddingBottom: Platform.OS === "android" ? 64 : 40 }} keyboardShouldPersistTaps="handled">
             {section.key === "location" ? (
               <View style={{ backgroundColor:"#21162F",borderColor:GOLD,borderWidth:1,borderRadius:15,padding:14,marginBottom:14 }}>
                 <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>LOCATION SAFETY</Text>
@@ -215,8 +215,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   return (
     <>
       <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-        <View style={{ flex:1,backgroundColor:"rgba(5,2,12,0.86)",justifyContent:"flex-end" }}>
-          <View style={{ backgroundColor:BG,borderTopLeftRadius:25,borderTopRightRadius:25,borderWidth:1,borderColor:BORDER,paddingTop:18,paddingHorizontal:17,paddingBottom:25,maxHeight:"94%" }}>
+        <View style={{ flex:1,backgroundColor:"rgba(5,2,12,0.86)",justifyContent:"flex-end",paddingBottom: Platform.OS === "android" ? 38 : 0 }}>
+          <View style={{ backgroundColor:BG,borderTopLeftRadius:25,borderTopRightRadius:25,borderWidth:1,borderColor:BORDER,paddingTop:18,paddingHorizontal:17,paddingBottom: Platform.OS === "android" ? 22 : 25,maxHeight:"94%" }}>
             <View style={{ alignSelf:"center",width:42,height:5,borderRadius:5,backgroundColor:"#7651B5",marginBottom:17 }}/>
             <View style={{ backgroundColor:"#1A1028",borderWidth:1,borderColor:BORDER,borderRadius:20,padding:18,marginBottom:15 }}>
               <Text style={{ color:GOLD,fontSize:11,fontWeight:"900",letterSpacing:2 }}>BHUMI SOCIAL AI</Text>
@@ -224,7 +224,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               <Text style={{ color:MUTED,fontSize:12,marginTop:4 }}>Your account, privacy and app controls</Text>
             </View>
             {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical:18 }}/> : null}
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom:12 }}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 48 : 12 }}>
               {SECTIONS.map((section) => (
                 <TouchableOpacity key={section.key} onPress={() => setActive(section.key)} activeOpacity={0.82} style={{ flexDirection:"row",alignItems:"center",backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:15,padding:13,marginBottom:9 }}>
                   <View style={{ width:43,height:43,borderRadius:13,backgroundColor:"#281A39",alignItems:"center",justifyContent:"center",marginRight:12 }}>
