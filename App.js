@@ -7949,6 +7949,32 @@ export default function App() {
                   {!!profile.businessProfile.openingHours && <Text style={{ color: "#B8AACB", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
                   {!!profile.businessProfile.phone && <Text style={{ color: "#D8CDE7", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
                   {!!profile.businessProfile.whatsapp && <Text style={{ color: "#D8CDE7", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9 }}>
+                    {!!profile.businessProfile.phone && (
+                      <TouchableOpacity onPress={() => Linking.openURL("tel:" + profile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="call" size={14} color="#D8B86A" />
+                        <Text style={{ color: "#F4EFFA", fontSize: 11, marginLeft: 5 }}>Call</Text>
+                      </TouchableOpacity>
+                    )}
+                    {!!profile.businessProfile.whatsapp && (
+                      <TouchableOpacity onPress={() => Linking.openURL("https://wa.me/" + profile.businessProfile.whatsapp.replace(/[^0-9]/g, ""))} style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="logo-whatsapp" size={14} color="#D8B86A" />
+                        <Text style={{ color: "#F4EFFA", fontSize: 11, marginLeft: 5 }}>WhatsApp</Text>
+                      </TouchableOpacity>
+                    )}
+                    {!!profile.businessProfile.email && (
+                      <TouchableOpacity onPress={() => Linking.openURL("mailto:" + profile.businessProfile.email)} style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="mail" size={14} color="#D8B86A" />
+                        <Text style={{ color: "#F4EFFA", fontSize: 11, marginLeft: 5 }}>Email</Text>
+                      </TouchableOpacity>
+                    )}
+                    {!!profile.businessProfile.website && (
+                      <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(profile.businessProfile.website) ? profile.businessProfile.website : "https://" + profile.businessProfile.website)} style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="globe-outline" size={14} color="#D8B86A" />
+                        <Text style={{ color: "#F4EFFA", fontSize: 11, marginLeft: 5 }}>Website</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                   {!!profile.businessCatalog?.length && (
                     <View style={{ borderTopWidth: 1, borderTopColor: "#49345F", marginTop: 11, paddingTop: 10 }}>
                       <Text style={{ color: "#D8B86A", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
