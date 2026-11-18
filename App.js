@@ -6975,7 +6975,7 @@ export default function App() {
                 if (feedViewportHeight > 0) {
                   const count = groupPostItems(feedPosts).length;
                   const nextIndex = Math.round(
-                    (event.nativeEvent.contentOffset.y - feedHeaderHeight) /
+                    (event.nativeEvent.contentOffset.y) /
                       feedViewportHeight,
                   );
                   setActiveFeedIndex(
