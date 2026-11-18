@@ -1308,7 +1308,7 @@ function PostCard({
             />
           </TouchableOpacity>
           <TouchableOpacity onPress={openComments}>
-            <Ionicons name="chatbubble-outline" size={24} color="#262626" />
+            <Ionicons name="chatbubble-outline" size={24} color="#D8B86A" />
           </TouchableOpacity>
           <TouchableOpacity onPress={sharePost}>
             <Ionicons name="paper-plane-outline" size={25} color="#262626" />
@@ -4420,7 +4420,7 @@ export default function App() {
           accessibilityLabel="Create menu"
           style={{ padding: 3 }}
         >
-          <Ionicons name="add-circle-outline" size={28} color="#171717" />
+          <Ionicons name="add-circle-outline" size={28} color="#D8B86A" />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={openNotifications}
@@ -4452,9 +4452,17 @@ export default function App() {
           ) : null}
         </TouchableOpacity>
       </View>
-      <Text style={[styles.brand, { flex: 1 }]} numberOfLines={1}>
-        Bhumi Social AI
-      </Text>
+      <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        <Image
+          source={require("./assets/favicon.png")}
+          style={{ width: 34, height: 34 }}
+          resizeMode="contain"
+          accessibilityLabel="Bhumi Social AI logo"
+        />
+        <Text style={styles.brand} numberOfLines={1}>
+          Bhumi Social AI
+        </Text>
+      </View>
       <TouchableOpacity
         onPress={openMessages}
         accessibilityLabel="Messages"
@@ -12261,7 +12269,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#FFFFFF" },
+  screen: { flex: 1, backgroundColor: "#08050D" },
   content: { flex: 1 },
   header: {
     height: 82,
@@ -12272,20 +12280,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#EFEFEF",
-    backgroundColor: "#FFFFFF",
+    borderBottomColor: "#352443",
+    backgroundColor: "#08050D",
   },
   brand: {
     flex: 1,
     textAlign: "center",
     fontSize: 18,
     fontWeight: "800",
-    color: "#171717",
-    letterSpacing: -0.8,
+    color: "#F4EFFA",
+    letterSpacing: -0.4,
   },
   headerSideSpacer: { width: 116 },
   headerActions: { flexDirection: "row", alignItems: "center", gap: 19 },
-  headerIcon: { fontSize: 27, color: "#171717" },
+  headerIcon: { fontSize: 27, color: "#D8B86A" },
   stories: { paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   story: { width: 68, alignItems: "center" },
   storyRing: {
@@ -12294,7 +12302,7 @@ const styles = StyleSheet.create({
     borderRadius: 34,
     padding: 0,
     borderWidth: 2,
-    borderColor: "#FCAF45",
+    borderColor: "#D8B86A",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -12303,7 +12311,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 2,
-    borderColor: "#DD2A7B",
+    borderColor: "#8B5CF6",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -12318,8 +12326,8 @@ const styles = StyleSheet.create({
   },
   plus: { fontSize: 30, color: "#262626" },
   avatarLetter: { fontSize: 22, fontWeight: "700", color: "#343434" },
-  storyName: { marginTop: 5, fontSize: 11, color: "#252525" },
-  feedDivider: { height: 1, backgroundColor: "#EEEEEE" },
+  storyName: { marginTop: 5, fontSize: 11, color: "#E9DDF5" },
+  feedDivider: { height: 1, backgroundColor: "#352443" },
   post: {
     marginHorizontal: 0,
     marginBottom: 10,
@@ -12350,7 +12358,7 @@ const styles = StyleSheet.create({
   more: {
     fontSize: 19,
     fontWeight: "700",
-    color: "#262626",
+    color: "#D8B86A",
     paddingHorizontal: 5,
   },
   postImage: {
@@ -12375,13 +12383,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 13,
     fontWeight: "700",
-    color: "#171717",
+    color: "#F4EFFA",
   },
   caption: {
     marginHorizontal: 13,
     marginTop: 5,
     fontSize: 13,
-    color: "#242424",
+    color: "#E9DDF5",
     lineHeight: 19,
   },
   comments: {
@@ -12401,15 +12409,15 @@ const styles = StyleSheet.create({
     height: Platform.OS === "android" ? 86 : 70,
     paddingBottom: Platform.OS === "android" ? 36 : 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#DBDBDB",
+    borderTopColor: "#49345F",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#08050D",
   },
   navItem: { flex: 1, alignItems: "center", justifyContent: "center" },
-  navIcon: { fontSize: 24, color: "#8E8E93" },
-  activeNavIcon: { color: "#262626", fontWeight: "800" },
-  navLabel: { fontSize: 9, color: "#666666", marginTop: 1 },
-  activeNavLabel: { color: "#262626", fontWeight: "700" },
+  navIcon: { fontSize: 24, color: "#8B7A9D" },
+  activeNavIcon: { color: "#D8B86A", fontWeight: "800" },
+  navLabel: { fontSize: 9, color: "#A997B8", marginTop: 1 },
+  activeNavLabel: { color: "#D8B86A", fontWeight: "800" },
 });
