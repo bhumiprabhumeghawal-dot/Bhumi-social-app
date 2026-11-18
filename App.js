@@ -57,6 +57,8 @@ import {
   unfollowProfile,
   loadPrivacySettings,
   savePrivacySettings,
+  loadBusinessProfile,
+  saveBusinessProfile,
   loadBlockedAccounts,
   unblockAccount,
   loadRestrictedAccounts,
@@ -2987,6 +2989,13 @@ export default function App() {
   const [viewedProfileRestrictBusy, setViewedProfileRestrictBusy] =
     React.useState(false);
   const [privacyBusy, setPrivacyBusy] = React.useState(false);
+  const [businessProfileOpen, setBusinessProfileOpen] = React.useState(false);
+  const [businessProfileBusy, setBusinessProfileBusy] = React.useState(false);
+  const [businessProfile, setBusinessProfile] = React.useState({
+    businessName: "", category: "", description: "", phone: "", whatsapp: "",
+    email: "", website: "", address: "", area: "", city: "", state: "",
+    pincode: "", serviceAreas: "", serviceRadiusKm: 0, openingHours: "",
+  });
   const [privacySettings, setPrivacySettings] = React.useState({
     isPrivate: false,
     accountType: "personal",
@@ -3836,18 +3845,44 @@ export default function App() {
     try {
       const settings = await savePrivacySettings(changes, authSession.username);
       setPrivacySettings((current) => ({ ...current, ...settings }));
-      Alert.alert(
-        "Account updated",
-        mode === "business"
-          ? "Business Account is now active."
-          : mode === "private"
-            ? "Your account is now private."
-            : "Your account is now public.",
-      );
+      if (mode === "business") {
+        const details = await loadBusinessProfile();
+        setBusinessProfile((current) => ({ ...current, ...details }));
+        setBusinessProfileOpen(true);
+      } else {
+        Alert.alert(
+          "Account updated",
+          mode === "private" ? "Your account is now private." : "Your account is now public.",
+        );
+      }
     } catch (error) {
       Alert.alert("Could not change account", error.message || "Please try again.");
     } finally {
       setPrivacyBusy(false);
+    }
+  };
+
+
+  const persistBusinessProfile = async () => {
+    if (businessProfileBusy) return;
+    if (!businessProfile.businessName.trim() || !businessProfile.city.trim()) {
+      Alert.alert("Details required", "Business name and city are required for area-wise discovery.");
+      return;
+    }
+    setBusinessProfileBusy(true);
+    try {
+      const saved = await saveBusinessProfile({
+        ...businessProfile,
+        serviceRadiusKm: Number(businessProfile.serviceRadiusKm) || 0,
+      });
+      setBusinessProfile((current) => ({ ...current, ...saved }));
+      setBusinessProfileOpen(false);
+      await refreshProfile();
+      Alert.alert("Business profile saved", "Your business details and service area are now published.");
+    } catch (error) {
+      Alert.alert("Save failed", error.message || "Please try again.");
+    } finally {
+      setBusinessProfileBusy(false);
     }
   };
 
@@ -9457,6 +9492,71 @@ export default function App() {
             </View>
           </View>
         </View>
+      </Modal>
+
+
+      <Modal
+        visible={businessProfileOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => !businessProfileBusy && setBusinessProfileOpen(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1, backgroundColor: "rgba(5,2,12,0.88)", justifyContent: "flex-end" }}
+        >
+          <View style={{ maxHeight: "92%", backgroundColor: "#100B19", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#80602E", padding: 18 }}>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+                <Ionicons name="business" size={24} color="#D8B86A" />
+                <Text style={{ color: "#F4EFFA", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>Business Studio</Text>
+              </View>
+              <Text style={{ color: "#D8B86A", fontSize: 12, fontWeight: "700", marginBottom: 16 }}>PREMIUM BUSINESS PROFILE · AREA DISCOVERY</Text>
+              {[
+                ["businessName", "Business / Brand Name", "e.g. Your brand name"],
+                ["category", "Business Category", "Restaurant, Salon, Fashion, Services..."],
+                ["description", "About Your Business", "Describe products, services and specialties"],
+                ["phone", "Business Phone", "Contact number"],
+                ["whatsapp", "WhatsApp Number", "WhatsApp contact number"],
+                ["email", "Business Email", "name@example.com"],
+                ["website", "Website / Booking Link", "https://"],
+                ["address", "Full Address", "Shop, street, landmark"],
+                ["area", "Area / Locality", "e.g. Navrangpura"],
+                ["city", "City", "e.g. Ahmedabad"],
+                ["state", "State", "e.g. Gujarat"],
+                ["pincode", "PIN Code", "6-digit PIN code"],
+                ["serviceAreas", "Service Areas", "Comma-separated areas you serve"],
+                ["serviceRadiusKm", "Service Radius (KM)", "0 = area list only"],
+                ["openingHours", "Business Hours", "e.g. Mon-Sat 10 AM-8 PM"],
+              ].map(([key, label, placeholder]) => (
+                <View key={key} style={{ marginBottom: 11 }}>
+                  <Text style={{ color: "#D8CDE7", fontSize: 12, fontWeight: "700", marginBottom: 5 }}>{label}</Text>
+                  <TextInput
+                    value={String(businessProfile[key] ?? "")}
+                    onChangeText={(value) => setBusinessProfile((current) => ({ ...current, [key]: key === "serviceRadiusKm" ? value.replace(/[^0-9]/g, "") : value }))}
+                    placeholder={placeholder}
+                    placeholderTextColor="#776987"
+                    multiline={key === "description" || key === "address" || key === "serviceAreas"}
+                    keyboardType={key === "phone" || key === "whatsapp" || key === "pincode" || key === "serviceRadiusKm" ? "phone-pad" : "default"}
+                    style={{ color: "#F4EFFA", borderWidth: 1, borderColor: "#49345F", borderRadius: 12, backgroundColor: "#171020", paddingHorizontal: 12, paddingVertical: 11, minHeight: key === "description" || key === "serviceAreas" ? 76 : 44, textAlignVertical: "top" }}
+                  />
+                </View>
+              ))}
+              <View style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#80602E", borderRadius: 14, padding: 12, marginTop: 2, marginBottom: 14 }}>
+                <Text style={{ color: "#D8B86A", fontWeight: "800" }}>Area-wise Business Discovery</Text>
+                <Text style={{ color: "#B8AACB", fontSize: 12, marginTop: 4 }}>Customers can discover your business by city, locality, category and service areas.</Text>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "flex-end", paddingBottom: 20 }}>
+                <TouchableOpacity onPress={() => setBusinessProfileOpen(false)} disabled={businessProfileBusy} style={{ padding: 13, marginRight: 8 }}>
+                  <Text style={{ color: "#B8AACB", fontWeight: "700" }}>Close</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={persistBusinessProfile} disabled={businessProfileBusy} style={{ backgroundColor: "#D8B86A", borderRadius: 12, paddingHorizontal: 18, paddingVertical: 13 }}>
+                  <Text style={{ color: "#1A1028", fontWeight: "900" }}>{businessProfileBusy ? "Saving..." : "Save Business Profile"}</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* SOCIALAPP_VERSION_UPDATE_MODAL_V1 */}
