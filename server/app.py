@@ -651,6 +651,31 @@ def init_profile_tables():
         """)
         db.execute("CREATE INDEX IF NOT EXISTS idx_business_area ON business_profiles(city, area, category)")
 
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS business_catalog (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                item_type TEXT NOT NULL DEFAULT 'product',
+                title TEXT NOT NULL,
+                description TEXT NOT NULL DEFAULT '',
+                price TEXT NOT NULL DEFAULT '',
+                category TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL
+            )
+        """)
+        db.execute("CREATE INDEX IF NOT EXISTS idx_business_catalog_owner ON business_catalog(username, id DESC)")
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS business_quick_replies (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                shortcut TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(username, shortcut)
+            )
+        """)
+
+
 
 
 def profile_json(db, username):
@@ -1059,6 +1084,109 @@ def update_business_profile():
             },
         })
 
+
+
+
+@app.get("/api/business/catalog")
+def get_business_catalog():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        account = db.execute("SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)", (username,)).fetchone()
+        if not account or account["account_type"] != "business":
+            return jsonify({"error": "Business Account is required."}), 403
+        rows = db.execute("SELECT * FROM business_catalog WHERE LOWER(username)=LOWER(?) ORDER BY id DESC", (username,)).fetchall()
+        return jsonify({"items": [dict(row) for row in rows]})
+
+
+@app.post("/api/business/catalog")
+def create_business_catalog_item():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    data = request.get_json(silent=True) or {}
+    item_type = data.get("itemType", "product")
+    title = str(data.get("title") or "").strip()
+    description = str(data.get("description") or "").strip()
+    price = str(data.get("price") or "").strip()
+    category = str(data.get("category") or "").strip()
+    if item_type not in ("product", "service") or not title or len(title) > 120 or len(description) > 1200 or len(price) > 80 or len(category) > 100:
+        return jsonify({"error": "Please enter a valid product or service."}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        account = db.execute("SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)", (username,)).fetchone()
+        if not account or account["account_type"] != "business":
+            return jsonify({"error": "Business Account is required."}), 403
+        cursor = db.execute(
+            "INSERT INTO business_catalog(username, item_type, title, description, price, category, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (username, item_type, title, description, price, category, now),
+        )
+        item = db.execute("SELECT * FROM business_catalog WHERE id=?", (cursor.lastrowid,)).fetchone()
+        return jsonify({"ok": True, "item": dict(item)}), 201
+
+
+@app.delete("/api/business/catalog/<int:item_id>")
+def remove_business_catalog_item(item_id):
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        deleted = db.execute("DELETE FROM business_catalog WHERE id=? AND LOWER(username)=LOWER(?)", (item_id, username))
+        if deleted.rowcount == 0:
+            return jsonify({"error": "Catalog item not found."}), 404
+    return jsonify({"ok": True})
+
+
+@app.get("/api/business/quick-replies")
+def get_business_quick_replies():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        account = db.execute("SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)", (username,)).fetchone()
+        if not account or account["account_type"] != "business":
+            return jsonify({"error": "Business Account is required."}), 403
+        rows = db.execute("SELECT * FROM business_quick_replies WHERE LOWER(username)=LOWER(?) ORDER BY id DESC", (username,)).fetchall()
+        return jsonify({"items": [dict(row) for row in rows]})
+
+
+@app.post("/api/business/quick-replies")
+def create_business_quick_reply():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    data = request.get_json(silent=True) or {}
+    shortcut = str(data.get("shortcut") or "").strip().lstrip("/").lower()
+    message = str(data.get("message") or "").strip()
+    if not shortcut or len(shortcut) > 32 or not shortcut.replace("_", "").isalnum() or not message or len(message) > 1500:
+        return jsonify({"error": "Enter a valid shortcut and reply message."}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        account = db.execute("SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)", (username,)).fetchone()
+        if not account or account["account_type"] != "business":
+            return jsonify({"error": "Business Account is required."}), 403
+        try:
+            cursor = db.execute(
+                "INSERT INTO business_quick_replies(username, shortcut, message, created_at) VALUES (?, ?, ?, ?)",
+                (username, shortcut, message, now),
+            )
+        except Exception:
+            return jsonify({"error": "This quick-reply shortcut already exists."}), 409
+        item = db.execute("SELECT * FROM business_quick_replies WHERE id=?", (cursor.lastrowid,)).fetchone()
+        return jsonify({"ok": True, "item": dict(item)}), 201
+
+
+@app.delete("/api/business/quick-replies/<int:reply_id>")
+def remove_business_quick_reply(reply_id):
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        deleted = db.execute("DELETE FROM business_quick_replies WHERE id=? AND LOWER(username)=LOWER(?)", (reply_id, username))
+        if deleted.rowcount == 0:
+            return jsonify({"error": "Quick reply not found."}), 404
+    return jsonify({"ok": True})
 
 
 @app.get("/api/business/insights")
