@@ -991,6 +991,7 @@ function PostCard({
   authSession,
   onOpen = () => {},
   onCreateAction = () => {},
+  onOpenProfile = () => {},
   pageHeight = 0,
   active = true,
 }) {
@@ -1150,7 +1151,7 @@ function PostCard({
           },
         ]}
       >
-        <View style={styles.smallAvatar}>
+        <TouchableOpacity onPress={() => onOpenProfile(post.user)} activeOpacity={0.75} style={styles.smallAvatar}>
           {post.avatarUrl ? (
             <Image
               source={{ uri: post.avatarUrl }}
@@ -1161,11 +1162,13 @@ function PostCard({
               {(post.user || "U").charAt(0).toUpperCase()}
             </Text>
           )}
-        </View>
+        </TouchableOpacity>
         <View style={styles.postUserInfo}>
-          <Text style={[styles.username, { color: "#F4EFFA" }]}>
-            {post.user || "you"}
-          </Text>
+          <TouchableOpacity onPress={() => onOpenProfile(post.user)} activeOpacity={0.75}>
+            <Text style={[styles.username, { color: "#F4EFFA" }]}>
+              {post.user || "you"}
+            </Text>
+          </TouchableOpacity>
           {!!post.location && (
             <Text style={[styles.location, { color: "#F4EFFA" }]}>
               {post.location}
@@ -7011,6 +7014,10 @@ export default function App() {
                         : post.avatarUrl,
                   }}
                   authSession={authSession}
+                  onOpenProfile={(username) => {
+                    if (username && String(username).toLowerCase() !== String(authSession?.username || "").toLowerCase()) openUserProfile(username);
+                    else setActiveTab("Profile");
+                  }}
                   pageHeight={feedViewportHeight}
                   active={activeTab === "Home" && index === activeFeedIndex}
                   onOpen={() => {
