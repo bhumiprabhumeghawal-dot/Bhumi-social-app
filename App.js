@@ -2620,8 +2620,11 @@ export default function App() {
     setChatError("");
     setChatBusy(true);
     try {
-      setMessageConversations(await loadMessageConversations());
-      await refreshUserNotes();
+      const [conversations] = await Promise.all([
+        loadMessageConversations(),
+        refreshUserNotes(),
+      ]);
+      setMessageConversations(conversations);
     } catch (error) {
       setChatError(error?.message || "Could not load conversations.");
     } finally {
@@ -2646,8 +2649,12 @@ export default function App() {
     setChatError("");
     setChatBusy(true);
     try {
-      setDirectMessages(await loadDirectMessages(target));
-      setMessageConversations(await loadMessageConversations());
+      const [messages, conversations] = await Promise.all([
+        loadDirectMessages(target),
+        loadMessageConversations(),
+      ]);
+      setDirectMessages(messages);
+      setMessageConversations(conversations);
     } catch (error) {
       setChatError(error?.message || "Could not load messages.");
     } finally {
