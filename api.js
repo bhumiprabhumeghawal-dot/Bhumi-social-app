@@ -579,7 +579,9 @@ export async function loadProfileConnections(username, type = 'followers') {
 
 
 export async function loadBusinessProfile() {
-  const response = await fetch(`${API_BASE_URL}/api/business/profile`);
+  const response = await fetch(`${API_BASE_URL}/api/business/profile`, {
+    headers: await authHeaders(),
+  });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Business profile could not be loaded.");
   return data.businessProfile || {};
@@ -588,7 +590,7 @@ export async function loadBusinessProfile() {
 export async function saveBusinessProfile(changes) {
   const response = await fetch(`${API_BASE_URL}/api/business/profile`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(changes),
   });
   const data = await response.json();
@@ -597,7 +599,9 @@ export async function saveBusinessProfile(changes) {
 }
 
 export async function loadBusinessInsights() {
-  const response = await fetch(`${API_BASE_URL}/api/business/insights`);
+  const response = await fetch(`${API_BASE_URL}/api/business/insights`, {
+    headers: await authHeaders(),
+  });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Business insights could not be loaded.");
   return data.insights || {};
@@ -616,7 +620,8 @@ export async function discoverBusinesses(filters = {}) {
 
 export async function loadPrivacySettings(username = 'you') {
   const response = await fetch(
-    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`,
+    { headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) {
@@ -630,7 +635,7 @@ export async function savePrivacySettings(changes, username = 'you') {
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`,
     {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(changes),
     }
   );
