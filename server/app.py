@@ -193,7 +193,7 @@ def content_json(row, viewer=None, db=None):
             return content_json(row, viewer, connection)
 
     profile = db.execute(
-        "SELECT avatar_url FROM profiles WHERE username=?",
+        "SELECT avatar_url FROM profiles WHERE LOWER(username)=LOWER(?) ORDER BY username LIMIT 1",
         (row["username"],)
     ).fetchone()
     avatar_url = profile["avatar_url"] if profile else None
@@ -559,7 +559,7 @@ def init_profile_tables():
 
 def profile_json(db, username):
     row = db.execute(
-        "SELECT * FROM profiles WHERE username=?", (username,)
+        "SELECT * FROM profiles WHERE LOWER(username)=LOWER(?) ORDER BY username LIMIT 1", (username,)
     ).fetchone()
     if row is None:
         now = datetime.now(timezone.utc).isoformat()
@@ -570,18 +570,18 @@ def profile_json(db, username):
             (username, username, now),
         )
         row = db.execute(
-            "SELECT * FROM profiles WHERE username=?", (username,)
+            "SELECT * FROM profiles WHERE LOWER(username)=LOWER(?) ORDER BY username LIMIT 1", (username,)
         ).fetchone()
 
     posts = db.execute(
-        "SELECT COUNT(*) FROM content WHERE kind='posts' AND username=?",
+        "SELECT COUNT(*) FROM content WHERE kind='posts' AND LOWER(username)=LOWER(?)",
         (username,),
     ).fetchone()[0]
     followers = db.execute(
-        "SELECT COUNT(*) FROM follows WHERE following=?", (username,)
+        "SELECT COUNT(*) FROM follows WHERE LOWER(following)=LOWER(?)", (username,)
     ).fetchone()[0]
     following = db.execute(
-        "SELECT COUNT(*) FROM follows WHERE follower=?", (username,)
+        "SELECT COUNT(*) FROM follows WHERE LOWER(follower)=LOWER(?)", (username,)
     ).fetchone()[0]
     return {
         "username": row["username"],
@@ -798,6 +798,51 @@ def get_profile(username):
         result["followRequestStatus"] = request_row["status"] if request_row else None
 
         return jsonify({"profile": result})
+
+
+@app.get("/api/profile/<username>/posts")
+def get_profile_posts(username):
+    username = str(username or "").strip().lstrip("@")
+    if not username or len(username) > 50:
+        return jsonify({"error": "Invalid username"}), 400
+
+    try:
+        limit = min(max(int(request.args.get("limit", 100)), 1), 100)
+        offset = max(int(request.args.get("offset", 0)), 0)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid pagination values"}), 400
+
+    viewer = getattr(g, "auth_username", None)
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if user is None:
+            return jsonify({"error": "Profile not found"}), 404
+
+        canonical_username = user["username"]
+        if not can_view_content(db, canonical_username, viewer):
+            return jsonify({"error": "Profile not found"}), 404
+
+        rows = db.execute("""
+            SELECT * FROM content
+            WHERE kind='posts' AND LOWER(username)=LOWER(?)
+            ORDER BY id DESC
+            LIMIT ? OFFSET ?
+        """, (canonical_username, limit + 1, offset)).fetchall()
+
+        has_more = len(rows) > limit
+        rows = rows[:limit]
+        items = [content_json(row, viewer, db) for row in rows]
+
+    return jsonify({
+        "items": items,
+        "hasMore": has_more,
+        "nextOffset": offset + len(items),
+    })
+
+
 @app.patch("/api/profile/<username>")
 def update_profile(username):
     username = username.strip().lstrip("@")
