@@ -2,7 +2,7 @@
   "expo": {
     "name": "Bhumi Social AI",
     "slug": "SocialApp",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,7 +21,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.bhumi_socialmediaai.SocialApp",
-      "versionCode": 4,
+      "versionCode": 5,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
@@ -53,16 +53,12 @@
         "projectId": "8c9ddb30-5746-4914-bb36-37a4c109f052"
       }
     },
-    "scheme": "bhumisocial"
-  },
-  "userInterfaceStyle": "dark",
-  "android": {
-    "adaptiveIcon": {
-      "backgroundColor": "#0B0614"
+    "scheme": "bhumisocial",
+    "androidStatusBar": {
+      "backgroundColor": "#FFFFFF",
+      "barStyle": "dark-content",
+      "hidden": false,
+      "translucent": false
     }
-  },
-  "androidStatusBar": {
-    "backgroundColor": "#090611",
-    "barStyle": "light-content"
   }
 }

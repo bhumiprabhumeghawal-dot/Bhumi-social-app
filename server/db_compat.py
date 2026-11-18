@@ -149,5 +149,5 @@ def connect_database(sqlite_path):
     if url.startswith("postgres://"):
         url = "postgresql://" + url[len("postgres://"):]
 
-    connection = psycopg.connect(url, row_factory=_hybrid_row_factory)
+    connection = psycopg.connect(url, row_factory=_hybrid_row_factory, connect_timeout=10)
     return CompatConnection(connection, postgres=True)

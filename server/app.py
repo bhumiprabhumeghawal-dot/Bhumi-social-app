@@ -150,6 +150,43 @@ def init_db():
             ON saved_content(username, created_at DESC)
         """)
 
+def can_view_content(db, owner, viewer=None):
+    """Allow owners, approved followers of private accounts, and non-blocked viewers."""
+    owner = str(owner or "").strip()
+    viewer = str(viewer or "").strip()
+
+    if not owner:
+        return False
+    if viewer and owner.casefold() == viewer.casefold():
+        return True
+
+    if viewer:
+        blocked = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+               OR (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+            LIMIT 1
+        """, (owner, viewer, viewer, owner)).fetchone()
+        if blocked:
+            return False
+
+    settings = db.execute(
+        "SELECT is_private FROM user_settings WHERE LOWER(username)=LOWER(?)",
+        (owner,)
+    ).fetchone()
+
+    if not settings or not bool(settings["is_private"]):
+        return True
+    if not viewer:
+        return False
+
+    return bool(db.execute("""
+        SELECT 1 FROM follows
+        WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)
+        LIMIT 1
+    """, (viewer, owner)).fetchone())
+
+
 def content_json(row, viewer=None, db=None):
     if db is None:
         with get_db() as connection:
@@ -161,6 +198,24 @@ def content_json(row, viewer=None, db=None):
     ).fetchone()
     avatar_url = profile["avatar_url"] if profile else None
     extra = {}
+    if row["kind"] in ("posts", "reels"):
+        comment_table = "reel_comments" if row["kind"] == "reels" else "post_comments"
+        if row["kind"] == "posts":
+            likes = db.execute(
+                "SELECT COUNT(*) AS total FROM post_likes WHERE content_id=?",
+                (row["id"],)
+            ).fetchone()
+            extra["likesCount"] = int(likes["total"] or 0)
+        comments = db.execute(
+            f"SELECT COUNT(*) AS total FROM {comment_table} WHERE content_id=? AND approved=1",
+            (row["id"],)
+        ).fetchone()
+        saves = db.execute(
+            "SELECT COUNT(*) AS total FROM saved_content WHERE content_id=? AND kind=?",
+            (row["id"], row["kind"])
+        ).fetchone()
+        extra["commentsCount"] = int(comments["total"] or 0)
+        extra["savesCount"] = int(saves["total"] or 0)
 
     if row["kind"] == "reels":
         likes = db.execute(
@@ -305,6 +360,9 @@ def list_content(kind):
             (kind,),
         ).fetchall()
         viewer = getattr(g, "auth_username", None)
+
+        rows = [row for row in rows if can_view_content(db, row["username"], viewer)]
+
         items = [content_json(row, viewer, db) for row in rows]
 
     return jsonify({"items": items})
@@ -328,7 +386,7 @@ def create_content(kind):
         return jsonify({"error": "This file type is not allowed"}), 415
 
     caption = request.form.get("caption", "").strip()
-    username = request.form.get("username", "you").strip() or "you"
+    username = g.auth_username
 
     folder = UPLOAD_DIR / kind
     stored_name = f"{uuid.uuid4().hex}.{extension}"
@@ -391,6 +449,52 @@ def create_content(kind):
 def uploaded_file(kind, filename):
     if kind not in ALLOWED_EXTENSIONS and kind not in {"profiles", "chat"}:
         return jsonify({"error": "Unknown media type"}), 404
+
+    if kind in ALLOWED_EXTENSIONS:
+        media_url = f"/uploads/{kind}/{filename}"
+        viewer = getattr(g, "auth_username", None)
+        with get_db() as db:
+            row = db.execute(
+                "SELECT username, expires_at FROM content WHERE kind=? AND media_url=?",
+                (kind, media_url),
+            ).fetchone()
+            if row is None:
+                return jsonify({"error": "Media not found"}), 404
+            if kind == "stories" and row["expires_at"] and row["expires_at"] <= datetime.now(timezone.utc).isoformat():
+                return jsonify({"error": "Media not found"}), 404
+            if not can_view_content(db, row["username"], viewer):
+                return jsonify({"error": "Media not found"}), 404
+
+    elif kind == "profiles":
+        media_url = f"/uploads/profiles/{filename}"
+        viewer = getattr(g, "auth_username", None)
+        with get_db() as db:
+            row = db.execute(
+                "SELECT username FROM profiles WHERE avatar_url=? LIMIT 1",
+                (media_url,),
+            ).fetchone()
+            if row is None or not can_view_content(db, row["username"], viewer):
+                return jsonify({"error": "Media not found"}), 404
+
+    elif kind == "chat":
+        viewer = _chat_current_user()
+        if not viewer:
+            return jsonify({"error": "Media not found"}), 404
+
+        media_url = f"/uploads/chat/{filename}"
+        with get_db() as db:
+            row = db.execute("""
+                SELECT 1
+                FROM direct_messages
+                WHERE (image_url=? OR attachment_url=?)
+                  AND (
+                    LOWER(sender_username)=LOWER(?)
+                    OR LOWER(recipient_username)=LOWER(?)
+                  )
+                LIMIT 1
+            """, (media_url, media_url, viewer, viewer)).fetchone()
+            if row is None:
+                return jsonify({"error": "Media not found"}), 404
 
     return send_from_directory(UPLOAD_DIR / kind, filename)
 
@@ -652,18 +756,48 @@ def get_profile(username):
     username = username.strip().lstrip("@")
     if not username or len(username) > 50:
         return jsonify({"error": "Invalid username"}), 400
+
+    viewer = getattr(g, "auth_username", None)
     with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+
+        if user is None:
+            return jsonify({"error": "Profile not found"}), 404
+
+        username = user["username"]
+        if not can_view_content(db, username, viewer):
+            return jsonify({"error": "Profile not found"}), 404
         result = profile_json(db, username)
-        viewer = getattr(g, "auth_username", None)
         result["isFollowing"] = bool(
             viewer and db.execute(
-                "SELECT 1 FROM follows WHERE follower=? AND following=?",
+                "SELECT 1 FROM follows WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)",
                 (viewer, username),
             ).fetchone()
         )
-    return jsonify({"profile": result})
+        result["followsYou"] = bool(
+            viewer and db.execute(
+                "SELECT 1 FROM follows WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)",
+                (username, viewer),
+            ).fetchone()
+        )
+        settings = db.execute(
+            "SELECT is_private FROM user_settings WHERE username=?",
+            (username,),
+        ).fetchone()
+        result["isPrivate"] = bool(settings["is_private"]) if settings else False
 
+        request_row = None
+        if viewer:
+            request_row = db.execute(
+                "SELECT status FROM follow_requests WHERE LOWER(requester)=LOWER(?) AND LOWER(target)=LOWER(?)",
+                (viewer, username),
+            ).fetchone()
+        result["followRequestStatus"] = request_row["status"] if request_row else None
 
+        return jsonify({"profile": result})
 @app.patch("/api/profile/<username>")
 def update_profile(username):
     username = username.strip().lstrip("@")
@@ -803,7 +937,7 @@ def follow_profile(username):
             if existing and existing["status"] == "pending":
                 return jsonify({"ok": True, "status": "requested"})
             request_id = uuid.uuid4().hex
-            db.execute("""
+            cursor = db.execute("""
                 INSERT INTO follow_requests
                 (id, requester, target, status, created_at, updated_at)
                 VALUES (?, ?, ?, 'pending', ?, ?)
@@ -811,15 +945,21 @@ def follow_profile(username):
                 id=excluded.id, status='pending',
                 created_at=excluded.created_at,
                 updated_at=excluded.updated_at
+            WHERE follow_requests.status <> 'pending'
             """, (request_id, actor, target, now, now))
-            _people_notification(db, target, actor, "follow_request", request_id, now)
+
+            if cursor.rowcount == 1:
+                _people_notification(
+                    db, target, actor, "follow_request", request_id, now
+                )
             return jsonify({"ok": True, "status": "requested"}), 201
 
-        db.execute("""
+        cursor = db.execute("""
             INSERT OR IGNORE INTO follows (follower, following, created_at)
             VALUES (?, ?, ?)
         """, (actor, target, now))
-        _people_notification(db, target, actor, "follow", None, now)
+        if cursor.rowcount == 1:
+            _people_notification(db, target, actor, "follow", None, now)
         return jsonify({"ok": True, "status": "following",
                         "profile": profile_json(db, target)}), 201
 
@@ -827,20 +967,42 @@ def follow_profile(username):
 @app.delete("/api/profile/<username>/follow")
 def unfollow_profile(username):
     actor = getattr(g, "auth_username", None)
-    target = username.strip().lstrip("@")
+    target = str(username or "").strip().lstrip("@").strip()
+
     if not actor:
         return jsonify({"error": "Please log in first."}), 401
+    if not target or target.lower() == actor.lower():
+        return jsonify({"error": "Invalid account."}), 400
+
     with get_db() as db:
-        db.execute(
-            "DELETE FROM follows WHERE follower=? AND following=?",
-            (actor, target),
-        )
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (target,),
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
+        target = user["username"]
+        now = datetime.now(timezone.utc).isoformat()
+
         db.execute("""
-            UPDATE follow_requests SET status='cancelled', updated_at=?
-            WHERE requester=? AND target=? AND status='pending'
-        """, (datetime.now(timezone.utc).isoformat(), actor, target))
-        return jsonify({"ok": True, "status": "not_following",
-                        "profile": profile_json(db, target)})
+            DELETE FROM follows
+            WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)
+        """, (actor, target))
+
+        db.execute("""
+            UPDATE follow_requests
+            SET status='cancelled', updated_at=?
+            WHERE LOWER(requester)=LOWER(?)
+              AND LOWER(target)=LOWER(?)
+              AND status='pending'
+        """, (now, actor, target))
+
+        return jsonify({
+            "ok": True,
+            "status": "not_following",
+            "profile": profile_json(db, target),
+        })
 
 
 @app.get("/api/settings/restricted-accounts")
@@ -911,6 +1073,61 @@ def unrestrict_account(username):
             return jsonify({"error": "Account is not restricted."}), 404
 
     return jsonify({"ok": True, "restricted": False, "username": target})
+
+
+@app.post("/api/settings/blocked-accounts/<username>")
+def block_account(username):
+    actor = getattr(g, "auth_username", None)
+    target = str(username or "").strip().lstrip("@")
+
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+    if not target or target.casefold() == actor.casefold():
+        return jsonify({"error": "Invalid account."}), 400
+
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (target,)
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
+        target = user["username"]
+        db.execute("""
+            INSERT OR IGNORE INTO people_blocks (blocker, blocked, created_at)
+            VALUES (?, ?, ?)
+        """, (actor, target, now))
+
+        # Blocking ends the existing follow connection in both directions.
+        db.execute("""
+            DELETE FROM follows
+            WHERE (LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?))
+               OR (LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?))
+        """, (actor, target, target, actor))
+
+        db.execute("""
+            UPDATE follow_requests
+            SET status='cancelled', updated_at=?
+            WHERE status='pending'
+              AND ((LOWER(requester)=LOWER(?) AND LOWER(target)=LOWER(?))
+                OR (LOWER(requester)=LOWER(?) AND LOWER(target)=LOWER(?)))
+        """, (now, actor, target, target, actor))
+
+
+    # Remove only stale follow-request notifications between these accounts.
+    db.execute("""
+        DELETE FROM people_notifications
+        WHERE kind='follow_request'
+          AND (
+            (LOWER(recipient)=LOWER(?) AND LOWER(actor)=LOWER(?))
+            OR
+            (LOWER(recipient)=LOWER(?) AND LOWER(actor)=LOWER(?))
+          )
+    """, (actor, target, target, actor))
+
+    return jsonify({"ok": True, "blocked": True, "username": target})
 
 
 @app.get("/api/settings/blocked-accounts")
@@ -984,36 +1201,72 @@ def get_follow_requests():
 
 
 def _resolve_follow_request(db, request_id, actor, decision):
+    if decision not in ("accept", "reject"):
+        return None
+
     row = db.execute("""
         SELECT id, requester, target FROM follow_requests
         WHERE id=? AND target=? AND status='pending'
     """, (request_id, actor)).fetchone()
+
     if not row:
         return None
+
     now = datetime.now(timezone.utc).isoformat()
+
     if decision == "accept":
         blocked = db.execute("""
             SELECT 1 FROM people_blocks
             WHERE (blocker=? AND blocked=?)
                OR (blocker=? AND blocked=?)
         """, (actor, row["requester"], row["requester"], actor)).fetchone()
+
         if blocked:
-            db.execute("""
-                UPDATE follow_requests SET status='rejected', updated_at=?
-                WHERE id=?
-            """, (now, request_id))
+            cursor = db.execute("""
+                UPDATE follow_requests
+                SET status='rejected', updated_at=?
+                WHERE id=? AND target=? AND status='pending'
+            """, (now, request_id, actor))
+
+            if cursor.rowcount != 1:
+                return None
+
             return {"ok": False, "error": "This connection is unavailable."}
+
+    cursor = db.execute("""
+        UPDATE follow_requests
+        SET status=?, updated_at=?
+        WHERE id=? AND target=? AND status='pending'
+    """, (
+        "accepted" if decision == "accept" else "rejected",
+        now,
+        request_id,
+        actor,
+    ))
+
+    if cursor.rowcount != 1:
+        return None
+
+    if decision == "accept":
         db.execute("""
             INSERT OR IGNORE INTO follows (follower, following, created_at)
             VALUES (?, ?, ?)
         """, (row["requester"], actor, now))
-        _people_notification(db, row["requester"], actor, "follow_accepted", request_id, now)
-    db.execute("""
-        UPDATE follow_requests SET status=?, updated_at=? WHERE id=?
-    """, ("accepted" if decision == "accept" else "rejected", now, request_id))
-    if decision == "reject":
-        _people_notification(db, row["requester"], actor, "follow_rejected", request_id, now)
-    return {"ok": True, "status": "accepted" if decision == "accept" else "rejected"}
+
+        _people_notification(
+            db, row["requester"], actor,
+            "follow_accepted", request_id, now
+        )
+    else:
+        _people_notification(
+            db, row["requester"], actor,
+            "follow_rejected", request_id, now
+        )
+
+    return {
+        "ok": True,
+        "status": "accepted" if decision == "accept" else "rejected"
+    }
 
 
 @app.post("/api/follow-requests/<request_id>/accept")
@@ -1102,51 +1355,92 @@ def mark_all_people_notifications_read():
 @app.get("/api/profile/<username>/followers")
 def list_followers(username):
     username = username.strip().lstrip("@")
+    viewer = getattr(g, "auth_username", None)
+
     with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if user is None:
+            return jsonify({"error": "Profile not found"}), 404
+
+        username = user["username"]
+        if not can_view_content(db, username, viewer):
+            return jsonify({"error": "Profile not found"}), 404
+
         rows = db.execute(
-            "SELECT follower FROM follows WHERE following=? ORDER BY created_at DESC",
+            "SELECT follower FROM follows WHERE LOWER(following)=LOWER(?) ORDER BY created_at DESC",
             (username,),
         ).fetchall()
+
     return jsonify({"users": [r["follower"] for r in rows]})
-
-
 @app.get("/api/profile/<username>/following")
 def list_following(username):
     username = username.strip().lstrip("@")
+    viewer = getattr(g, "auth_username", None)
+
     with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if user is None:
+            return jsonify({"error": "Profile not found"}), 404
+
+        username = user["username"]
+        if not can_view_content(db, username, viewer):
+            return jsonify({"error": "Profile not found"}), 404
+
         rows = db.execute(
-            "SELECT following FROM follows WHERE follower=? ORDER BY created_at DESC",
+            "SELECT following FROM follows WHERE LOWER(follower)=LOWER(?) ORDER BY created_at DESC",
             (username,),
         ).fetchall()
+
     return jsonify({"users": [r["following"] for r in rows]})
-
-
-# SOCIALAPP_PRIVACY_SETTINGS_V1
+# SOCIALAPP_PRIVACY_SETTINGS_V2
 @app.get("/api/profile/<username>/settings")
 def get_user_settings(username):
     username = username.strip().lstrip("@")
     if not username:
         return jsonify({"error": "Username is required"}), 400
 
-    now = datetime.now(timezone.utc).isoformat()
+    viewer = getattr(g, "auth_username", None)
+    if not viewer:
+        return jsonify({"error": "Please log in first."}), 401
+
+    if viewer.lower() != username.lower():
+        return jsonify({"error": "You can only view your own settings."}), 403
+
     with get_db() as db:
-        db.execute(
-            """INSERT OR IGNORE INTO user_settings
-               (username, updated_at) VALUES (?, ?)""",
-            (username, now),
-        )
-        row = db.execute(
-            "SELECT is_private, show_activity, allow_messages FROM user_settings WHERE username=?",
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
             (username,),
         ).fetchone()
 
-    return jsonify({
-        "settings": {
-            "isPrivate": bool(row["is_private"]),
-            "showActivity": bool(row["show_activity"]),
-            "allowMessages": bool(row["allow_messages"]),
-        }
-    })
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        row = db.execute(
+            """SELECT is_private, show_activity, allow_messages
+               FROM user_settings WHERE username=?""",
+            (user["username"],),
+        ).fetchone()
+
+        if row is None:
+            settings = {
+                "isPrivate": False,
+                "showActivity": True,
+                "allowMessages": True,
+            }
+        else:
+            settings = {
+                "isPrivate": bool(row["is_private"]),
+                "showActivity": bool(row["show_activity"]),
+                "allowMessages": bool(row["allow_messages"]),
+            }
+
+        return jsonify({"settings": settings})
 
 
 @app.patch("/api/profile/<username>/settings")
@@ -1154,6 +1448,13 @@ def update_user_settings(username):
     username = username.strip().lstrip("@")
     if not username:
         return jsonify({"error": "Username is required"}), 400
+
+    viewer = getattr(g, "auth_username", None)
+    if not viewer:
+        return jsonify({"error": "Please log in first."}), 401
+
+    if viewer.lower() != username.lower():
+        return jsonify({"error": "You can only update your own settings."}), 403
 
     data = request.get_json(silent=True) or {}
     fields = {
@@ -1169,29 +1470,45 @@ def update_user_settings(username):
         return jsonify({"error": "Setting values must be true or false"}), 400
 
     now = datetime.now(timezone.utc).isoformat()
+
     with get_db() as db:
-        db.execute(
-            "INSERT OR IGNORE INTO user_settings (username, updated_at) VALUES (?, ?)",
-            (username, now),
-        )
-        for key, value in data.items():
-            db.execute(
-                f"UPDATE user_settings SET {fields[key]}=?, updated_at=? WHERE username=?",
-                (int(value), now, username),
-            )
-        row = db.execute(
-            "SELECT is_private, show_activity, allow_messages FROM user_settings WHERE username=?",
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
             (username,),
         ).fetchone()
 
-    return jsonify({
-        "ok": True,
-        "settings": {
-            "isPrivate": bool(row["is_private"]),
-            "showActivity": bool(row["show_activity"]),
-            "allowMessages": bool(row["allow_messages"]),
-        }
-    })
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+
+        canonical_username = user["username"]
+
+        db.execute(
+            """INSERT OR IGNORE INTO user_settings
+               (username, updated_at) VALUES (?, ?)""",
+            (canonical_username, now),
+        )
+
+        for key, value in data.items():
+            db.execute(
+                f"UPDATE user_settings SET {fields[key]}=?, updated_at=? WHERE username=?",
+                (int(value), now, canonical_username),
+            )
+
+        row = db.execute(
+            """SELECT is_private, show_activity, allow_messages
+               FROM user_settings WHERE username=?""",
+            (canonical_username,),
+        ).fetchone()
+
+        return jsonify({
+            "ok": True,
+            "settings": {
+                "isPrivate": bool(row["is_private"]),
+                "showActivity": bool(row["show_activity"]),
+                "allowMessages": bool(row["allow_messages"]),
+            },
+        })
+
 
 # SOCIALAPP_POST_INTERACTIONS_V1
 @app.post("/api/posts/<int:content_id>/like")
@@ -1205,6 +1522,8 @@ def toggle_post_like(content_id):
             (content_id,),
         ).fetchone()
         if post is None:
+            return jsonify({"error": "Post not found"}), 404
+        if not can_view_content(db, post["username"], username):
             return jsonify({"error": "Post not found"}), 404
 
         existing = db.execute(
@@ -1236,16 +1555,19 @@ def toggle_post_like(content_id):
 
 @app.get("/api/posts/<int:content_id>")
 def get_post_by_id(content_id):
+    viewer = getattr(g, "auth_username", None)
     with get_db() as db:
         row = db.execute(
             "SELECT * FROM content WHERE id=? AND kind='posts'",
             (content_id,),
         ).fetchone()
 
-    if row is None:
-        return jsonify({"error": "Post not found"}), 404
+        if row is None or not can_view_content(db, row["username"], viewer):
+            return jsonify({"error": "Post not found"}), 404
 
-    return jsonify({"ok": True, "item": content_json(row)})
+        item = content_json(row, viewer, db)
+
+    return jsonify({"ok": True, "item": item})
 
 
 @app.get("/api/posts/<int:content_id>/comments")
@@ -1257,6 +1579,8 @@ def list_post_comments(content_id):
             (content_id,),
         ).fetchone()
         if post is None:
+            return jsonify({"error": "Post not found"}), 404
+        if not can_view_content(db, post["username"], viewer):
             return jsonify({"error": "Post not found"}), 404
 
         rows = db.execute("""
@@ -1303,6 +1627,8 @@ def create_post_comment(content_id):
             (content_id,),
         ).fetchone()
         if post is None:
+            return jsonify({"error": "Post not found"}), 404
+        if not can_view_content(db, post["username"], username):
             return jsonify({"error": "Post not found"}), 404
 
         restricted = db.execute("""
@@ -1372,6 +1698,8 @@ def toggle_reel_like(content_id):
         ).fetchone()
         if reel is None:
             return jsonify({"error": "Reel not found"}), 404
+        if not can_view_content(db, reel["username"], username):
+            return jsonify({"error": "Reel not found"}), 404
 
         existing = db.execute(
             "SELECT id FROM reel_likes WHERE content_id=? AND username=?",
@@ -1408,6 +1736,8 @@ def list_reel_comments(content_id):
             (content_id,),
         ).fetchone()
         if reel is None:
+            return jsonify({"error": "Reel not found"}), 404
+        if not can_view_content(db, reel["username"], viewer):
             return jsonify({"error": "Reel not found"}), 404
 
         rows = db.execute("""
@@ -1455,6 +1785,8 @@ def create_reel_comment(content_id):
         ).fetchone()
         if reel is None:
             return jsonify({"error": "Reel not found"}), 404
+        if not can_view_content(db, reel["username"], username):
+            return jsonify({"error": "Reel not found"}), 404
 
         restricted = db.execute("""
             SELECT 1 FROM people_restrictions
@@ -1476,6 +1808,11 @@ def create_reel_comment(content_id):
         if approved:
             _people_notification(db, reel["username"], username, "comment", cursor.lastrowid, now)
 
+        comments_count = db.execute(
+            "SELECT COUNT(*) AS total FROM reel_comments WHERE content_id=? AND approved=1",
+            (content_id,),
+        ).fetchone()["total"]
+
         return jsonify({
             "ok": True,
             "comment": {
@@ -1486,6 +1823,7 @@ def create_reel_comment(content_id):
                 "isPending": not bool(row["approved"]),
                 "canApprove": False,
             },
+            "commentsCount": int(comments_count or 0),
         }), 201
 
 @app.post("/api/reels/<int:content_id>/comments/<int:comment_id>/approve")
@@ -1508,12 +1846,25 @@ def approve_reel_comment(content_id, comment_id):
         if cursor.rowcount == 0:
             return jsonify({"error": "Comment not found."}), 404
 
-    return jsonify({"ok": True, "approved": True, "commentId": comment_id})
+        comments_count = db.execute(
+            "SELECT COUNT(*) AS total FROM reel_comments WHERE content_id=? AND approved=1",
+            (content_id,),
+        ).fetchone()["total"]
+
+    return jsonify({
+        "ok": True,
+        "approved": True,
+        "commentId": comment_id,
+        "commentsCount": int(comments_count or 0),
+    })
 
 
 @app.get("/api/saved")
 def list_saved_content():
-    username = g.auth_username
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+
     with get_db() as db:
         rows = db.execute(
             """SELECT c.*
@@ -1523,6 +1874,8 @@ def list_saved_content():
                ORDER BY s.created_at DESC""",
             (username,)
         ).fetchall()
+        rows = [row for row in rows if can_view_content(db, row["username"], username)]
+
         items = [content_json(row, username, db) for row in rows]
         return jsonify({"ok": True, "items": items})
 
@@ -1536,10 +1889,10 @@ def save_content_item(kind, content_id):
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as db:
         item = db.execute(
-            "SELECT id FROM content WHERE id=? AND kind=?",
+            "SELECT id, username FROM content WHERE id=? AND kind=?",
             (content_id, kind)
         ).fetchone()
-        if item is None:
+        if item is None or not can_view_content(db, item["username"], username):
             return jsonify({"error": "Content not found"}), 404
 
         existing = db.execute(
@@ -2300,11 +2653,101 @@ def upload_chat_photo():
         if size <= 0 or size > 10 * 1024 * 1024:
             destination.unlink(missing_ok=True)
             return jsonify({"error": "Chat photos must not exceed 10 MB."}), 413
+        with get_db() as db:
+            db.execute("""
+                INSERT INTO chat_media (
+                    image_url, uploader_username, created_at,
+                    attachment_type, attachment_name, attachment_mime, attachment_size
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                f"/uploads/chat/{stored_name}", current,
+                datetime.now(timezone.utc).isoformat(),
+                "image", filename, media.mimetype or "image/jpeg", str(size),
+            ))
         return jsonify({"ok": True, "imageUrl": f"/uploads/chat/{stored_name}"}), 201
     except Exception:
         destination.unlink(missing_ok=True)
         app.logger.exception("Could not save chat photo")
         return jsonify({"error": "Could not save chat photo."}), 500
+
+
+# SOCIALAPP_CHAT_ATTACHMENT_UPLOAD_V1
+@app.post("/api/messages/upload-attachment")
+def upload_chat_attachment():
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to upload an attachment."}), 401
+
+    media = request.files.get("file")
+    if media is None or not media.filename:
+        return jsonify({"error": "Choose a file first."}), 400
+
+    filename = secure_filename(media.filename)
+    if not filename or "." not in filename:
+        return jsonify({"error": "File extension is missing."}), 400
+
+    extension = filename.rsplit(".", 1)[1].lower()
+    allowed = {
+        "jpg": "image", "jpeg": "image", "png": "image", "webp": "image", "gif": "image",
+        "mp4": "video", "mov": "video", "webm": "video", "m4v": "video",
+        "mp3": "audio", "m4a": "audio", "aac": "audio", "wav": "audio",
+        "ogg": "audio", "opus": "audio", "amr": "audio",
+        "pdf": "file", "txt": "file", "doc": "file", "docx": "file",
+        "xls": "file", "xlsx": "file", "ppt": "file", "pptx": "file",
+        "csv": "file", "rtf": "file",
+    }
+    attachment_type = allowed.get(extension)
+    if not attachment_type:
+        return jsonify({"error": "This file type is not allowed in chat."}), 415
+
+    size_limits = {
+        "image": 10 * 1024 * 1024,
+        "video": 100 * 1024 * 1024,
+        "audio": 30 * 1024 * 1024,
+        "file": 25 * 1024 * 1024,
+    }
+    folder = UPLOAD_DIR / "chat"
+    folder.mkdir(parents=True, exist_ok=True)
+    stored_name = f"{uuid.uuid4().hex}.{extension}"
+    destination = folder / stored_name
+    media_url = f"/uploads/chat/{stored_name}"
+
+    try:
+        media.save(destination)
+        size = destination.stat().st_size
+        if size <= 0:
+            destination.unlink(missing_ok=True)
+            return jsonify({"error": "The selected file is empty."}), 400
+        if size > size_limits[attachment_type]:
+            destination.unlink(missing_ok=True)
+            limit_mb = size_limits[attachment_type] // (1024 * 1024)
+            return jsonify({"error": f"{attachment_type.title()} files must not exceed {limit_mb} MB."}), 413
+
+        mime_type = (media.mimetype or "application/octet-stream").lower()
+        with get_db() as db:
+            db.execute("""
+                INSERT INTO chat_media (
+                    image_url, uploader_username, created_at,
+                    attachment_type, attachment_name, attachment_mime, attachment_size
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                media_url, current, datetime.now(timezone.utc).isoformat(),
+                attachment_type, filename, mime_type, str(size),
+            ))
+
+        return jsonify({
+            "ok": True,
+            "attachmentUrl": media_url,
+            "attachmentType": attachment_type,
+            "attachmentName": filename,
+            "mimeType": mime_type,
+            "sizeBytes": size,
+        }), 201
+    except Exception:
+        destination.unlink(missing_ok=True)
+        app.logger.exception("Could not save chat attachment")
+        return jsonify({"error": "Could not save chat attachment."}), 500
+
 
 # SOCIALAPP_CHAT_API_V1
 def init_chat_tables():
@@ -2319,11 +2762,42 @@ def init_chat_tables():
                 image_url TEXT
             )
         """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS chat_media (
+                image_url TEXT PRIMARY KEY,
+                uploader_username TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                attachment_type TEXT,
+                attachment_name TEXT,
+                attachment_mime TEXT,
+                attachment_size TEXT
+            )
+        """)
+        chat_media_columns = {
+            row["name"]
+            for row in db.execute("PRAGMA table_info(chat_media)").fetchall()
+        }
+        for column in (
+            "attachment_type",
+            "attachment_name",
+            "attachment_mime",
+            "attachment_size",
+        ):
+            if column not in chat_media_columns:
+                db.execute(f"ALTER TABLE chat_media ADD COLUMN {column} TEXT")
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_chat_media_uploader
+            ON chat_media(uploader_username)
+        """)
         columns = {
             row["name"]
             for row in db.execute("PRAGMA table_info(direct_messages)").fetchall()
         }
-        for column in ("image_url", "delivered_at", "read_at", "reply_to_id"):
+        for column in (
+            "image_url", "delivered_at", "read_at", "reply_to_id",
+            "attachment_url", "attachment_type", "attachment_name",
+            "attachment_mime", "attachment_size",
+        ):
             if column not in columns:
                 db.execute(f"ALTER TABLE direct_messages ADD COLUMN {column} TEXT")
 
@@ -2454,7 +2928,7 @@ def get_message_conversations():
         rows = db.execute("""
             SELECT
                 dm.id, dm.sender_username, dm.recipient_username,
-                dm.body, dm.image_url, dm.created_at, dm.delivered_at, dm.read_at,
+                dm.body, dm.image_url, dm.attachment_type, dm.created_at, dm.delivered_at, dm.read_at,
                 (
                     SELECT COUNT(*) FROM direct_messages unread
                     WHERE LOWER(unread.sender_username)=LOWER(
@@ -2498,7 +2972,13 @@ def get_message_conversations():
             "username": other,
             "displayName": row["other_display_name"] or other,
             "avatarUrl": row["other_avatar_url"],
-            "lastMessage": row["body"] or ("📷 Photo" if row["image_url"] else ""),
+            "lastMessage": row["body"] or (
+                "📷 Photo" if row["image_url"] or row["attachment_type"] == "image"
+                else "🎬 Video" if row["attachment_type"] == "video"
+                else "🎵 Audio" if row["attachment_type"] == "audio"
+                else "📎 File" if row["attachment_type"] == "file"
+                else ""
+            ),
             "lastMessageAt": row["created_at"],
             "lastMessageSender": row["sender_username"],
             "deliveredAt": row["delivered_at"],
@@ -2550,8 +3030,9 @@ def get_direct_messages(username):
         rows = db.execute("""
             SELECT
                 dm.id, dm.sender_username, dm.recipient_username,
-                dm.body, dm.image_url, dm.created_at,
-                dm.delivered_at, dm.read_at, dm.reply_to_id,
+                dm.body, dm.image_url, dm.attachment_url, dm.attachment_type,
+                dm.attachment_name, dm.attachment_mime, dm.attachment_size,
+                dm.created_at, dm.delivered_at, dm.read_at, dm.reply_to_id,
                 parent.body AS reply_text,
                 parent.sender_username AS reply_sender
             FROM direct_messages dm
@@ -2570,6 +3051,11 @@ def get_direct_messages(username):
             "recipient": row["recipient_username"],
             "text": row["body"],
             "imageUrl": row["image_url"],
+            "attachmentUrl": row["attachment_url"] or row["image_url"],
+            "attachmentType": row["attachment_type"] or ("image" if row["image_url"] else None),
+            "attachmentName": row["attachment_name"],
+            "mimeType": row["attachment_mime"],
+            "sizeBytes": row["attachment_size"],
             "createdAt": row["created_at"],
             "deliveredAt": row["delivered_at"],
             "readAt": row["read_at"],
@@ -2589,34 +3075,78 @@ def send_direct_message(username):
     target = username.strip().lstrip("@")
     data = request.get_json(silent=True) or {}
     body = str(data.get("text", data.get("message", ""))).strip()
-    image_url = str(data.get("imageUrl") or "").strip() or None
+
+    legacy_image_url = str(data.get("imageUrl") or "").strip() or None
+    attachment_url = str(data.get("attachmentUrl") or "").strip() or legacy_image_url
+    attachment_type = str(data.get("attachmentType") or ("image" if legacy_image_url else "")).strip().lower() or None
+    attachment_name = str(data.get("attachmentName") or "").strip() or None
+    attachment_mime = str(data.get("mimeType") or "").strip() or None
+    attachment_size = data.get("sizeBytes")
 
     if not target or target.lower() == current.lower():
         return jsonify({"error": "Choose another valid username."}), 400
-    if not body and not image_url:
-        return jsonify({"error": "Write a message or attach a photo."}), 400
+    if not body and not attachment_url:
+        return jsonify({"error": "Write a message or attach a file."}), 400
     if len(body) > 5000:
         return jsonify({"error": "Message must be 5000 characters or less."}), 400
+
+    if attachment_type not in {None, "image", "video", "audio", "file"}:
+        return jsonify({"error": "Invalid attachment type."}), 400
+
+    if attachment_url:
+        prefix = "/uploads/chat/"
+        filename = attachment_url[len(prefix):] if attachment_url.startswith(prefix) else ""
+        if (
+            not filename
+            or "/" in filename
+            or "\\" in filename
+            or secure_filename(filename) != filename
+        ):
+            return jsonify({"error": "Invalid chat attachment."}), 400
 
     now = datetime.now(timezone.utc).isoformat()
     message_id = str(uuid.uuid4())
 
     with get_db() as db:
+        if attachment_url:
+              media = db.execute("""
+                  SELECT uploader_username, attachment_type, attachment_name,
+                         attachment_mime, attachment_size
+                  FROM chat_media
+                  WHERE image_url=?
+              """, (attachment_url,)).fetchone()
+              if not media or media["uploader_username"].casefold() != current.casefold():
+                  return jsonify({"error": "You cannot send this attachment."}), 403
+              attachment_type = media["attachment_type"] or ("image" if legacy_image_url else None)
+              attachment_name = media["attachment_name"]
+              attachment_mime = media["attachment_mime"]
+              attachment_size = media["attachment_size"]
+              if attachment_type not in {"image", "video", "audio", "file"}:
+                  return jsonify({"error": "Attachment metadata is invalid."}), 400
+
         user = db.execute(
             "SELECT username FROM users WHERE username=? COLLATE NOCASE",
             (target,),
         ).fetchone()
-
         if not user:
             return jsonify({"error": "User not found."}), 404
-
         target = user["username"]
+
+        blocked_pair = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+                OR
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+            LIMIT 1
+        """, (current, target, target, current)).fetchone()
+        if blocked_pair:
+            return jsonify({"error": "Messages are unavailable between these users."}), 403
 
         settings = db.execute(
             "SELECT allow_messages FROM user_settings WHERE username=?",
             (target,),
         ).fetchone()
-
         if settings and not bool(settings["allow_messages"]):
             return jsonify({"error": "This user does not accept messages."}), 403
 
@@ -2633,10 +3163,17 @@ def send_direct_message(username):
                 return jsonify({"error": "Reply message not found in this chat."}), 404
 
         db.execute("""
-            INSERT INTO direct_messages
-                (id, sender_username, recipient_username, body, image_url, created_at, reply_to_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (message_id, current, target, body, image_url, now, reply_to_id))
+            INSERT INTO direct_messages (
+                id, sender_username, recipient_username, body, image_url, created_at,
+                reply_to_id, attachment_url, attachment_type, attachment_name,
+                attachment_mime, attachment_size
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            message_id, current, target, body, legacy_image_url, now,
+            reply_to_id, attachment_url, attachment_type, attachment_name,
+            attachment_mime, str(attachment_size) if attachment_size is not None else None,
+        ))
         _people_notification(db, target, current, "message", message_id, now)
 
     return jsonify({
@@ -2646,15 +3183,18 @@ def send_direct_message(username):
             "sender": current,
             "recipient": target,
             "text": body,
-            "imageUrl": image_url,
+            "imageUrl": legacy_image_url,
+            "attachmentUrl": attachment_url,
+            "attachmentType": attachment_type or ("image" if legacy_image_url else None),
+            "attachmentName": attachment_name,
+            "mimeType": attachment_mime,
+            "sizeBytes": attachment_size,
             "createdAt": now,
-                "replyToId": reply_to_id,
-                "deliveredAt": None,
-                "readAt": None,
+            "replyToId": reply_to_id,
+            "deliveredAt": None,
+            "readAt": None,
         },
     }), 201
-
-
 
 
 @app.delete("/api/messages/<username>/<message_id>")
@@ -2722,6 +3262,19 @@ def update_chat_typing(username):
             return jsonify({"error": "User not found."}), 404
 
         target = user["username"]
+
+        blocked_pair = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+                OR
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+            LIMIT 1
+        """, (current, target, target, current)).fetchone()
+
+        if blocked_pair:
+            return jsonify({"error": "Typing status unavailable between these users."}), 403
+
         db.execute("""
             INSERT INTO direct_message_typing
                 (sender_username, recipient_username, expires_at)
@@ -2743,6 +3296,18 @@ def get_chat_typing(username):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
+        blocked_pair = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+                OR
+                (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+            LIMIT 1
+        """, (current, target, target, current)).fetchone()
+
+        if blocked_pair:
+            return jsonify({"typing": False})
+
         row = db.execute("""
             SELECT expires_at FROM direct_message_typing
             WHERE LOWER(sender_username)=LOWER(?)

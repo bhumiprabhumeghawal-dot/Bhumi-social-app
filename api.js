@@ -477,23 +477,19 @@ export async function deleteProfileAvatar(username = 'you') {
   return data;
 }
 
-export async function followProfile(username, viewer = 'you') {
+export async function followProfile(username) {
   const response = await fetch(
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ viewer }),
-    }
+    { method: 'POST' }
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Follow नहीं हो सका।');
   return data;
 }
 
-export async function unfollowProfile(username, viewer = 'you') {
+export async function unfollowProfile(username) {
   const response = await fetch(
-    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow?viewer=${encodeURIComponent(viewer)}`,
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow`,
     { method: 'DELETE' }
   );
   const data = await response.json();
@@ -880,38 +876,111 @@ export async function loadChatTyping(username) {
   return !!data.typing;
 }
 
-export async function uploadChatPhoto(asset) {
-  if (!asset?.uri) throw new Error('Please select a photo first.');
+export async function uploadChatAttachment(asset) {
+  if (!asset?.uri) throw new Error('Please select a file first.');
+
   const cleanUri = asset.uri.split('?')[0];
-  const extension = (cleanUri.split('.').pop() || 'jpg').toLowerCase();
-  const safeExtension = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension) ? extension : 'jpg';
-  const mimeType = asset.mimeType ||
-    (safeExtension === 'png' ? 'image/png' :
-     safeExtension === 'webp' ? 'image/webp' :
-     safeExtension === 'gif' ? 'image/gif' : 'image/jpeg');
+  const suppliedName = String(asset.name || asset.fileName || '').trim();
+  const uriFileName = cleanUri.split('/').pop() || '';
+  const nameExtension = suppliedName.includes('.') ? suppliedName.split('.').pop().toLowerCase() : '';
+  const uriExtension = uriFileName.includes('.') ? uriFileName.split('.').pop().toLowerCase() : '';
+
+  const mimeByExtension = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+    webp: 'image/webp', gif: 'image/gif',
+    mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm',
+    m4v: 'video/x-m4v',
+    mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac',
+    wav: 'audio/wav', ogg: 'audio/ogg', opus: 'audio/opus',
+    amr: 'audio/amr',
+    pdf: 'application/pdf', txt: 'text/plain',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ppt: 'application/vnd.ms-powerpoint',
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    csv: 'text/csv', rtf: 'application/rtf',
+  };
+
+  const mimeToExtension = {
+    'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
+    'image/gif': 'gif', 'video/mp4': 'mp4', 'video/quicktime': 'mov',
+    'video/webm': 'webm', 'audio/mpeg': 'mp3', 'audio/mp4': 'm4a',
+    'audio/aac': 'aac', 'audio/wav': 'wav', 'audio/ogg': 'ogg',
+    'audio/opus': 'opus', 'audio/amr': 'amr',
+    'application/pdf': 'pdf', 'text/plain': 'txt', 'text/csv': 'csv',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.ms-excel': 'xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+    'application/vnd.ms-powerpoint': 'ppt',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+    'application/rtf': 'rtf',
+  };
+
+  const suppliedMime = String(asset.mimeType || '').toLowerCase();
+  const extension = nameExtension || uriExtension || mimeToExtension[suppliedMime] || 'bin';
+  const mimeType = mimeByExtension[extension] ||
+    (suppliedMime && suppliedMime !== 'application/octet-stream'
+      ? suppliedMime
+      : 'application/octet-stream');
+  const name = suppliedName && suppliedName.includes('.')
+    ? suppliedName
+    : `${suppliedName || 'chat-attachment'}.${extension}`;
+
   const form = new FormData();
   form.append('file', {
     uri: asset.uri,
-    name: `chat-photo.${safeExtension}`,
+    name,
     type: mimeType,
   });
-  const response = await fetch(`${API_BASE_URL}/api/messages/upload-photo`, {
+
+  const response = await fetch(`${API_BASE_URL}/api/messages/upload-attachment`, {
     method: 'POST',
     body: form,
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Could not upload chat photo.');
-  return data.imageUrl.startsWith('http') ? data.imageUrl : `${API_BASE_URL}${data.imageUrl}`;
+  if (!response.ok) throw new Error(data.error || 'Could not upload chat attachment.');
+  if (!data.attachmentUrl) throw new Error('Server did not return an attachment URL.');
+  return data;
 }
 
-export async function sendDirectMessage(username, text, imageUrl = null, replyToId = null) {
+export async function uploadChatPhoto(asset) {
+  const data = await uploadChatAttachment(asset);
+  if (data.attachmentType !== 'image') {
+    throw new Error('Please select an image.');
+  }
+  return data.attachmentUrl.startsWith(`${API_BASE_URL}/`)
+    ? data.attachmentUrl.slice(API_BASE_URL.length)
+    : data.attachmentUrl;
+}
+
+export async function sendDirectMessage(username, text, attachment = null, replyToId = null) {
+  const legacyImageUrl = typeof attachment === 'string' ? attachment : null;
+  const attachmentUrl = attachment && typeof attachment === 'object'
+    ? attachment.attachmentUrl || null
+    : legacyImageUrl;
+  const attachmentType = attachment && typeof attachment === 'object'
+    ? attachment.attachmentType || null
+    : (legacyImageUrl ? 'image' : null);
+
   const response = await fetch(
     `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, imageUrl, replyToId }),
-    }
+      body: JSON.stringify({
+        text,
+        imageUrl: attachmentType === 'image' ? attachmentUrl : null,
+        attachmentUrl,
+        attachmentType,
+        attachmentName: attachment?.attachmentName || attachment?.name || null,
+        mimeType: attachment?.mimeType || null,
+        sizeBytes: attachment?.sizeBytes || null,
+        replyToId,
+      }),
+    },
   );
   const data = await response.json();
   if (!response.ok) {
@@ -928,7 +997,12 @@ export async function toggleReelLike(reelId) {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not update reel like.');
-  return data;
+  return {
+    ...data,
+    likesCount: Number.isFinite(Number(data.likesCount ?? data.likes))
+      ? Number(data.likesCount ?? data.likes)
+      : 0,
+  };
 }
 
 export async function loadReelComments(reelId) {
@@ -946,7 +1020,7 @@ export async function createReelComment(reelId, text) {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not create reel comment.');
-  return data.comment;
+  return data;
 }
 
 export async function approveReelComment(reelId, commentId) {

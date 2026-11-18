@@ -1,0 +1,45 @@
+⠋ Fetching the build…⠙ Fetching the build…⠹ Fetching the build…⠸ Fetching the build…⠼ Fetching the build…⠴ Fetching the build…⠦ Fetching the build…⠧ Fetching the build…✔ Found a matching build for the project @bhumi_socialmediaai/SocialApp
+{
+  "id": "e4095790-3090-421e-b0ed-c46777f7954c",
+  "status": "FINISHED",
+  "platform": "ANDROID",
+  "artifacts": {
+    "buildUrl": "https://expo.dev/artifacts/eas/Eq1CdNhQHQyImvA0Kag_zkM53S9gw5i9LT05_lYBJl0.apk",
+    "applicationArchiveUrl": "https://expo.dev/artifacts/eas/Eq1CdNhQHQyImvA0Kag_zkM53S9gw5i9LT05_lYBJl0.apk"
+  },
+  "initiatingActor": {
+    "id": "c19c48c0-86fb-465e-84b0-9b294e404ef3",
+    "displayName": "bhumi_socialmediaai"
+  },
+  "logFiles": [
+    "https://storage.googleapis.com/eas-workflows-production/logs/8c9ddb30-5746-4914-bb36-37a4c109f052/e4095790-3090-421e-b0ed-c46777f7954c/2026-10-19T17%3A34%3A45Z-b1c642f8-5550-484a-a35c-b63a5678099b.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20261021%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261021T102715Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=9daced5b3c8641f49a3fa09f475b2f9096b1d62153184f2f788b80b2392515bae993110abca33ffed9ae55948b50fc2fa540d5cb9bc9e2767d48b4f341d5306c96ff6f9421efc046fe7ed32f70e0ece766dbdbca33965310bc696ea756a70835546fa649b49c4116b6141ce401cc948e8c98b10345b47b62506db95e7c2c7764046288273fdf6b5d6cbda741c9e821361210604e94ed6a3a6e43c38f59d9bb07e393ef0344595fbcc47eef745f8a36bb72aa3ddc2b7bd8ffa144f35ad410e7cf4ee4b8eefbc54c2f24bcd15a743b751ceea488950267c518dd61f33f8a9fffb60a41c2e3fe75fdfb648164e502c34825a28a4e17bbf74badc387a395e8f547a0"
+  ],
+  "app": {
+    "id": "8c9ddb30-5746-4914-bb36-37a4c109f052",
+    "name": "SocialApp",
+    "slug": "SocialApp",
+    "ownerAccount": {
+      "id": "7b3030df-ec51-4e64-bc0b-ae79b7f19a97",
+      "name": "bhumi_socialmediaai"
+    }
+  },
+  "distribution": "INTERNAL",
+  "buildProfile": "preview",
+  "appIdentifier": "com.bhumi_socialmediaai.SocialApp",
+  "sdkVersion": "57.0.0",
+  "appVersion": "1.0.0",
+  "appBuildVersion": "1",
+  "gitCommitHash": "3d6481bb2ec6ea99dc192cf92dbf8f7e486d4c61",
+  "gitCommitMessage": "Fix registration and login flow",
+  "priority": "NORMAL",
+  "createdAt": "2026-10-19T17:08:43.610Z",
+  "updatedAt": "2026-10-21T07:40:54.131Z",
+  "completedAt": "2026-10-19T17:50:11.876Z",
+  "expirationDate": "2026-11-02T17:08:43.668Z",
+  "isForIosSimulator": false,
+  "metrics": {
+    "buildWaitTime": 4196,
+    "buildQueueTime": 1562466,
+    "buildDuration": 921604
+  }
+}

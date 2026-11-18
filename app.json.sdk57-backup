@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Bhumi Social AI",
+    "slug": "SocialApp",
+    "version": "1.0.2",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bhumi.socialapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.bhumi_socialmediaai.SocialApp",
+      "versionCode": 3,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-video",
+      "expo-secure-store",
+      "munim-ffmpeg",
+      "expo-audio",
+      "expo-asset",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow SocialApp to use the camera to record Reels.",
+          "microphonePermission": "Allow SocialApp to use the microphone to record Reels with audio.",
+          "recordAudioAndroid": true
+        }
+      ],
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8c9ddb30-5746-4914-bb36-37a4c109f052"
+      }
+    },
+    "scheme": "bhumisocial"
+  }
+}

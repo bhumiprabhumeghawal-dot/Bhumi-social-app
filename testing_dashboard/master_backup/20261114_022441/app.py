@@ -1,0 +1,547 @@
+import os
+import sqlite3
+import secrets
+import json
+import hashlib
+from pathlib import Path
+from flask import Flask, render_template_string, request, redirect, url_for, session, abort, flash
+
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / "data" / "bug_reports.sqlite3"
+
+app = Flask(__name__)
+ADMIN_CONFIG_PATH = BASE_DIR / "data" / "dashboard_admin.json"
+if not ADMIN_CONFIG_PATH.exists():
+    raise RuntimeError("Dashboard Admin credentials missing.")
+ADMIN_CONFIG = json.loads(ADMIN_CONFIG_PATH.read_text(encoding="utf-8"))
+app.secret_key = ADMIN_CONFIG["session_secret"]
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Strict",
+    SESSION_COOKIE_SECURE=False,
+    MAX_CONTENT_LENGTH=1024 * 1024,
+)
+
+STATUSES = ["open", "investigating", "fixed", "verified", "wont_fix"]
+
+def connect():
+    db = sqlite3.connect(DB_PATH)
+    db.row_factory = sqlite3.Row
+    db.execute("PRAGMA foreign_keys=ON")
+    return db
+
+def csrf_token():
+    if "csrf" not in session:
+        session["csrf"] = secrets.token_urlsafe(32)
+    return session["csrf"]
+
+app.jinja_env.globals["csrf_token"] = csrf_token
+
+BASE_HTML = """
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bhumi Social AI — Private Test Dashboard</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#10131b;color:#edf0f7;font:15px system-ui,sans-serif}
+header{padding:20px;background:#191e2a;border-bottom:1px solid #303849}
+h1{font-size:21px;margin:0 0 5px}
+.sub{color:#aab3c5;font-size:13px}
+main{max-width:1100px;margin:auto;padding:18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px;margin:16px 0}
+.card,.panel{background:#191e2a;border:1px solid #303849;border-radius:13px;padding:15px}
+.num{font-size:27px;font-weight:750;margin-top:5px}
+.muted{color:#aab3c5}
+h2{font-size:17px;margin:0 0 12px}
+.panel{margin:14px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th,td{text-align:left;padding:11px 9px;border-bottom:1px solid #303849;vertical-align:top}
+th{color:#aab3c5;font-size:12px}
+a{color:#9bbcff;text-decoration:none}
+a:hover{text-decoration:underline}
+.pill{display:inline-block;border-radius:20px;padding:4px 9px;background:#303849;font-size:12px}
+.critical{color:#ff8585}.high{color:#ffc078}.medium{color:#f3d77b}.low{color:#9fddb0}
+button,select{background:#293449;color:#fff;border:1px solid #46536b;border-radius:8px;padding:9px}
+button{cursor:pointer}
+input{max-width:100%}
+label{display:block;margin:10px 0 6px;color:#b8c2d5}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#111722;padding:12px;border-radius:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.notice{padding:10px;border-radius:8px;background:#293449;margin:10px 0}
+form.inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+small{color:#aab3c5}
+
+.status{display:inline-block;border-radius:20px;padding:4px 9px;font-size:12px;font-weight:700}
+.status-green{background:#153d2b;color:#75e6a5}
+.status-blue{background:#173653;color:#85c9ff}
+.status-yellow{background:#493b18;color:#ffdc79}
+.status-red{background:#4a2027;color:#ff929b}
+.status-purple{background:#382653;color:#d4a5ff}
+.status-grey{background:#303642;color:#bdc5d2}
+.source-note{font-size:12px;color:#aab3c5;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+<h1>Bhumi Social AI — Private Testing Dashboard</h1>
+<div class="sub">Local testing and automatic bug reports · Private on this device</div>
+{% if session.get('admin_authenticated') %}
+<form method="post" action="{{ url_for('admin_logout') }}" style="margin-top:12px">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <button type="submit">Admin Logout</button>
+</form>
+{% endif %}
+</header>
+<main>
+{% with messages = get_flashed_messages() %}
+{% for message in messages %}<div class="notice">{{ message }}</div>{% endfor %}
+{% endwith %}
+{{ content|safe }}
+</main>
+</body></html>
+"""
+
+@app.before_request
+def require_dashboard_admin():
+    if request.endpoint == "admin_login":
+        return None
+    if not session.get("admin_authenticated"):
+        return redirect(url_for("admin_login", next=request.path))
+
+
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    error = ""
+    if request.method == "POST":
+        if not secrets.compare_digest(
+            request.form.get("csrf", ""), session.get("csrf", "")
+        ):
+            abort(400, "Invalid form token")
+
+        password = request.form.get("password", "")
+        try:
+            salt = bytes.fromhex(ADMIN_CONFIG["salt"])
+            expected = bytes.fromhex(ADMIN_CONFIG["password_hash"])
+            actual = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 600000)
+        except (ValueError, KeyError):
+            abort(503, "Admin credentials configuration error")
+
+        if secrets.compare_digest(actual, expected):
+            session.clear()
+            session["admin_authenticated"] = True
+            session["csrf"] = secrets.token_urlsafe(32)
+            target = request.args.get("next", "/")
+            if not target.startswith("/") or target.startswith("//"):
+                target = "/"
+            return redirect(target)
+        error = "गलत Admin password।"
+
+    content = render_template_string("""
+    
+
+    <section class="panel" style="max-width:430px;margin:35px auto">
+      <h2>Private Admin Login</h2>
+      {% if error %}<p class="critical">{{error}}</p>{% endif %}
+      <form method="post">
+        <input type="hidden" name="csrf" value="{{csrf_token()}}">
+        <label>Admin password</label>
+        <input type="password" name="password" required
+          autocomplete="current-password"
+          style="width:100%;padding:12px;background:#111722;color:white;border:1px solid #46536b;border-radius:8px">
+        <p><button type="submit">Login</button></p>
+      </form>
+    </section>
+    """, error=error)
+    return render_template_string(BASE_HTML, content=content)
+
+
+@app.post("/admin/logout")
+def admin_logout():
+    if not secrets.compare_digest(
+        request.form.get("csrf", ""), session.get("csrf", "")
+    ):
+        abort(400, "Invalid form token")
+    session.clear()
+    return redirect(url_for("admin_login"))
+
+
+
+
+def get_social_analytics():
+    """Read-only local database snapshot; never exposes private account data."""
+    from datetime import datetime, timezone
+
+    path = BASE_DIR.parent / "server" / "data" / "socialapp.db"
+    result = {
+        "available": False, "users": None, "valid_sessions": None,
+        "session_accounts": None, "posts": None, "reels": None,
+        "stories": None, "follows": None, "likes": None,
+        "comments": None, "online": None, "login_history": None,
+    }
+
+    if not path.is_file():
+        return result
+
+    db = None
+    try:
+        db = sqlite3.connect(path.resolve().as_uri() + "?mode=ro",
+                             uri=True, timeout=3)
+        db.row_factory = sqlite3.Row
+        tables = {r["name"] for r in db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        )}
+
+        def count_table(name):
+            if name not in tables:
+                return None
+            return db.execute('SELECT COUNT(*) FROM "' + name + '"').fetchone()[0]
+
+        result["users"] = count_table("users")
+        result["follows"] = count_table("follows")
+        result["likes"] = count_table("post_likes")
+        result["comments"] = count_table("post_comments")
+
+        if "content" in tables:
+            kinds = {r["kind"]: r["total"] for r in db.execute(
+                "SELECT kind, COUNT(*) AS total FROM content GROUP BY kind"
+            )}
+            result["posts"] = kinds.get("posts", 0)
+            result["reels"] = kinds.get("reels", 0)
+            result["stories"] = kinds.get("stories", 0)
+
+        if "auth_sessions" in tables:
+            now = datetime.now(timezone.utc)
+            valid_count = 0
+            valid_users = set()
+            for row in db.execute("SELECT username, expires_at FROM auth_sessions"):
+                try:
+                    expiry = datetime.fromisoformat(row["expires_at"])
+                    if expiry.tzinfo is None:
+                        expiry = expiry.replace(tzinfo=timezone.utc)
+                    if expiry > now:
+                        valid_count += 1
+                        valid_users.add(row["username"])
+                except (TypeError, ValueError):
+                    continue
+            result["valid_sessions"] = valid_count
+            result["session_accounts"] = len(valid_users)
+
+        result["available"] = True
+    except (sqlite3.Error, OSError, ValueError):
+        pass
+    finally:
+        if db is not None:
+            db.close()
+
+    # No heartbeat or dedicated login-event history is currently tracked.
+    return result
+
+@app.get("/")
+def index():
+    analytics = get_social_analytics()
+    modules = [
+        {"name": "Home Feed", "status": "NOT TESTED"},
+        {"name": "Posts", "status": "NOT TESTED"},
+        {"name": "Likes", "status": "NOT TESTED"},
+        {"name": "Comments", "status": "NOT TESTED"},
+        {"name": "Follows", "status": "NOT TESTED"},
+        {"name": "Reels", "status": "NOT TESTED"},
+        {"name": "Stories", "status": "NOT TESTED"},
+        {"name": "Profile", "status": "NOT TESTED"},
+        {"name": "Settings", "status": "NOT TESTED"},
+        {"name": "Authentication & Sessions", "status": "NOT TESTED"},
+        {"name": "Security & Privacy", "status": "NOT TESTED", "color": "grey"},
+    ]
+    for item in modules:
+        item["color"] = "grey"
+
+    with connect() as db:
+        latest_run = db.execute(
+            "SELECT id, status FROM test_runs ORDER BY started_at DESC LIMIT 1"
+        ).fetchone()
+
+        if latest_run:
+            results = db.execute("""
+                SELECT module,
+                       COUNT(*) AS total,
+                       SUM(status='passed') AS passed,
+                       SUM(status IN ('failed','error')) AS failed,
+                       SUM(status='skipped') AS skipped
+                FROM test_results
+                WHERE run_id=?
+                GROUP BY module
+            """, (latest_run["id"],)).fetchall()
+
+            result_map = {row["module"]: row for row in results}
+            for item in modules:
+                row = result_map.get(item["name"])
+                if not row:
+                    continue
+                passed = row["passed"] or 0
+                failed = row["failed"] or 0
+                skipped = row["skipped"] or 0
+
+                if failed:
+                    item["status"], item["color"] = "FAIL", "red"
+                elif passed and not skipped:
+                    item["status"], item["color"] = "PASS", "green"
+                elif passed or skipped:
+                    item["status"], item["color"] = "PARTIAL", "yellow"
+
+    with connect() as db:
+        summary = dict(db.execute("""
+            SELECT COUNT(*) total,
+            COALESCE(SUM(status='open'),0) open,
+            COALESCE(SUM(severity='critical' AND status NOT IN ('fixed','verified','wont_fix')),0) critical,
+            COALESCE(SUM(severity='high' AND status NOT IN ('fixed','verified','wont_fix')),0) high,
+            COALESCE(SUM(occurrences),0) total_occurrences
+            FROM bug_reports
+        """).fetchone())
+        bugs = db.execute("""
+            SELECT id,title,module,severity,status,occurrences,last_seen
+            FROM bug_reports ORDER BY
+            CASE severity WHEN 'critical' THEN 1 WHEN 'high' THEN 2
+            WHEN 'medium' THEN 3 ELSE 4 END,
+            last_seen DESC LIMIT 100
+        """).fetchall()
+        runs = db.execute("""
+            SELECT id,started_at,finished_at,status,total_tests,
+            passed_tests,failed_tests,environment,app_version
+            FROM test_runs ORDER BY started_at DESC LIMIT 20
+        """).fetchall()
+
+    content = render_template_string("""
+<section class="panel">
+      <h2>User & Admin Analytics</h2>
+      {% if a.available %}
+      <div class="notice"><span class="status status-blue">INFO</span>
+        Local SQLite snapshot — Production का live data नहीं।
+      </div>
+      <div class="cards">
+        <div class="card"><div class="muted">Registered Users</div><div class="num">{{a.users if a.users is not none else 'N/A'}}</div><span class="status status-blue">DATA</span></div>
+        <div class="card"><div class="muted">Valid Sessions</div><div class="num">{{a.valid_sessions if a.valid_sessions is not none else 'N/A'}}</div><span class="status status-blue">SESSION DATA</span></div>
+        <div class="card"><div class="muted">Accounts with Sessions</div><div class="num">{{a.session_accounts if a.session_accounts is not none else 'N/A'}}</div><span class="status status-blue">SESSION DATA</span></div>
+        <div class="card"><div class="muted">Posts</div><div class="num">{{a.posts if a.posts is not none else 'N/A'}}</div><span class="status status-blue">DATA</span></div>
+        <div class="card"><div class="muted">Reels</div><div class="num">{{a.reels if a.reels is not none else 'N/A'}}</div><span class="status status-blue">DATA</span></div>
+        <div class="card"><div class="muted">Stories</div><div class="num">{{a.stories if a.stories is not none else 'N/A'}}</div><span class="status status-blue">DATA</span></div>
+        <div class="card"><div class="muted">Follows</div><div class="num">{{a.follows if a.follows is not none else 'N/A'}}</div><span class="status status-blue">DATA</span></div>
+        <div class="card"><div class="muted">Likes</div><div class="num">{{a.likes if a.likes is not none else 'N/A'}}</div><span class="status status-blue">DATA</span></div>
+        <div class="card"><div class="muted">Comments</div><div class="num">{{a.comments if a.comments is not none else 'N/A'}}</div><span class="status status-blue">DATA</span></div>
+        <div class="card"><div class="muted">Online Users</div><div class="num">N/A</div><span class="status status-grey">NOT TRACKED</span></div>
+        <div class="card"><div class="muted">Login History</div><div class="num">N/A</div><span class="status status-grey">NOT TRACKED</span></div>
+      </div>
+      <p class="source-note">Valid session का अर्थ user online होना नहीं है। Online status के लिए heartbeat और login history के लिए अलग audit log चाहिए।</p>
+      {% else %}
+      <span class="status status-grey">DATA UNAVAILABLE</span>
+      <p>Local SocialApp database उपलब्ध नहीं है। अनुमानित आँकड़े नहीं दिखाए गए।</p>
+      {% endif %}
+    </section>
+
+    <div class="cards">
+      <div class="card"><div class="muted">Total Bugs</div><div class="num">{{s.total}}</div></div>
+      <div class="card"><div class="muted">Open Bugs</div><div class="num">{{s.open}}</div></div>
+      <div class="card"><div class="muted">Critical</div><div class="num critical">{{s.critical}}</div></div>
+      <div class="card"><div class="muted">High</div><div class="num high">{{s.high}}</div></div>
+      <div class="card"><div class="muted">Occurrences</div><div class="num">{{s.total_occurrences}}</div></div>
+    </div>
+    <section class="panel">
+      <h2>Bug Reports</h2>
+      {% if bugs %}
+      <table><thead><tr><th>Title</th><th>Module</th><th>Severity</th><th>Status</th><th>Occurrences</th><th>Last Seen</th></tr></thead>
+      <tbody>{% for b in bugs %}
+      <tr>
+      <td><a href="{{url_for('bug_detail',bug_id=b.id)}}">{{b.title or 'Untitled bug'}}</a></td>
+      <td>{{b.module or '—'}}</td>
+      <td class="{{b.severity}}">{{b.severity or '—'}}</td>
+      <td><span class="pill">{{b.status}}</span></td>
+      <td>{{b.occurrences or 0}}</td><td>{{b.last_seen or '—'}}</td>
+      </tr>{% endfor %}</tbody></table>
+      {% else %}<p class="muted">अभी कोई bug report नहीं है। Automatic tests से reports आने पर वे यहाँ दिखेंगी।</p>{% endif %}
+    </section>
+    <section class="panel">
+      <h2>Recent Test Runs</h2>
+      {% if runs %}
+      <table><thead><tr><th>Run ID</th><th>Started</th><th>Status</th><th>Total</th><th>Passed</th><th>Failed</th><th>Environment</th></tr></thead>
+      <tbody>{% for r in runs %}
+      <tr><td><a href="{{url_for('run_detail',run_id=r.id)}}">{{r.id}}</a></td><td>{{r.started_at or '—'}}</td><td>{{r.status or '—'}}</td>
+      <td>{{r.total_tests or 0}}</td><td>{{r.passed_tests or 0}}</td><td>{{r.failed_tests or 0}}</td>
+      <td>{{r.environment or '—'}}</td></tr>{% endfor %}</tbody></table>
+      {% else %}<p class="muted">अभी कोई test run दर्ज नहीं है।</p>{% endif %}
+    </section>
+    
+    <section class="panel">
+      <h2>Feature Testing Matrix</h2>
+      <p class="muted">हर module का status वास्तविक automated test के बाद ही बदलेगा।</p>
+      <table>
+        <thead><tr><th>Module</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for item in modules %}
+          <tr><td>{{ item.name }}</td><td><span class="status status-{{ item.color }}">{{ item.status }}</span></td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </section>
+    
+    <small>Showing latest 100 bugs and 20 test runs.</small>
+    """, s=summary, bugs=bugs, runs=runs, a=analytics, modules=modules)
+    return render_template_string(BASE_HTML, content=content)
+
+@app.get("/runs/<run_id>")
+def run_detail(run_id):
+    with connect() as db:
+        run = db.execute(
+            "SELECT * FROM test_runs WHERE id=?", (run_id,)
+        ).fetchone()
+        if not run:
+            abort(404)
+
+        results = db.execute("""
+            SELECT module, test_name, status, started_at, duration_ms,
+                   http_status, error_code, error_message, request_path
+            FROM test_results
+            WHERE run_id=?
+            ORDER BY started_at, module, test_name
+        """, (run_id,)).fetchall()
+
+    content = render_template_string("""
+    <section class="panel">
+      <h2>Test Run Details</h2>
+      <p><b>Run ID:</b> {{run.id}}</p>
+      <p><b>Started:</b> {{run.started_at or '—'}}</p>
+      <p><b>Finished:</b> {{run.finished_at or 'अभी जारी'}}</p>
+      <p><b>Environment:</b> {{run.environment or '—'}}</p>
+      <p><b>App Version:</b> {{run.app_version or '—'}}</p>
+      <div class="cards">
+        <div class="card">Total<div class="num">{{run.total_tests or 0}}</div></div>
+        <div class="card">Passed<div class="num">{{run.passed_tests or 0}}</div></div>
+        <div class="card">Failed<div class="num">{{run.failed_tests or 0}}</div></div>
+      </div>
+      <a href="{{url_for('index')}}">← Dashboard पर वापस जाएँ</a>
+    </section>
+    <section class="panel">
+      <h2>Individual Test Results</h2>
+      {% if results %}
+      <table>
+        <thead><tr><th>Module</th><th>Test</th><th>Status</th><th>HTTP</th><th>Duration</th><th>Error</th></tr></thead>
+        <tbody>
+        {% for item in results %}
+          <tr>
+            <td>{{item.module or '—'}}</td>
+            <td>{{item.test_name or '—'}}<br><small>{{item.request_path or ''}}</small></td>
+            <td>
+              {% if item.status == 'passed' %}
+                <span class="status status-green">PASS</span>
+              {% elif item.status in ('failed','error') %}
+                <span class="status status-red">{{item.status|upper}}</span>
+              {% elif item.status == 'skipped' %}
+                <span class="status status-yellow">SKIPPED</span>
+              {% else %}
+                <span class="status status-grey">{{item.status}}</span>
+              {% endif %}
+            </td>
+            <td>{{item.http_status or '—'}}</td>
+            <td>{{item.duration_ms if item.duration_ms is not none else '—'}}</td>
+            <td>{{item.error_code or ''}} {{item.error_message or ''}}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="muted">इस Run में अभी कोई individual test result दर्ज नहीं है।</p>
+      {% endif %}
+    </section>
+    """, run=run, results=results)
+
+    return render_template_string(BASE_HTML, content=content)
+
+
+@app.get("/bugs/<bug_id>")
+def bug_detail(bug_id):
+    with connect() as db:
+        bug = db.execute("SELECT * FROM bug_reports WHERE id=?", (bug_id,)).fetchone()
+        if not bug:
+            abort(404)
+        events = db.execute(
+            "SELECT * FROM bug_events WHERE bug_id=? ORDER BY created_at DESC LIMIT 100",
+            (bug_id,)
+        ).fetchall()
+
+    content = render_template_string("""
+    <p><a href="{{url_for('index')}}">← Dashboard</a></p>
+    <section class="panel">
+      <h2>{{b.title or 'Untitled bug'}}</h2>
+      <div class="grid">
+        <div><small>Module</small><p>{{b.module or '—'}}</p></div>
+        <div><small>Severity</small><p class="{{b.severity}}">{{b.severity or '—'}}</p></div>
+        <div><small>Priority</small><p>{{b.priority or '—'}}</p></div>
+        <div><small>Occurrences</small><p>{{b.occurrences or 0}}</p></div>
+        <div><small>First Seen</small><p>{{b.first_seen or '—'}}</p></div>
+        <div><small>Last Seen</small><p>{{b.last_seen or '—'}}</p></div>
+      </div>
+      <h3>Description</h3><pre>{{b.description or 'No description'}}</pre>
+      <h3>Steps to Reproduce</h3><pre>{{b.steps_json or 'Not provided'}}</pre>
+      <h3>Expected Result</h3><pre>{{b.expected_result or 'Not provided'}}</pre>
+      <h3>Actual Result</h3><pre>{{b.actual_result or 'Not provided'}}</pre>
+      <h3>Environment</h3><pre>{{b.environment_json or 'Not provided'}}</pre>
+      <h3>Resolution Notes</h3><pre>{{b.resolution_notes or 'None'}}</pre>
+    </section>
+    <section class="panel">
+      <h2>Update Bug Status</h2>
+      <form method="post" action="{{url_for('update_status',bug_id=b.id)}}">
+        <input type="hidden" name="csrf" value="{{csrf_token()}}">
+        <label>Status</label>
+        <select name="status">
+        {% for s in statuses %}<option value="{{s}}" {% if b.status==s %}selected{% endif %}>{{s}}</option>{% endfor %}
+        </select>
+        <label>Resolution notes</label>
+        <textarea name="notes" rows="3" style="width:100%;background:#111722;color:white;border:1px solid #46536b;border-radius:8px;padding:10px">{{b.resolution_notes or ''}}</textarea>
+        <p><button type="submit">Save Status</button></p>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>Bug Event History</h2>
+      {% if events %}{% for e in events %}
+      <p><span class="pill">{{e.event_type}}</span> {{e.message or ''}}<br><small>{{e.created_at}}</small></p>
+      {% endfor %}{% else %}<p class="muted">No events recorded.</p>{% endif %}
+    </section>
+    """, b=bug, events=events, statuses=STATUSES)
+    return render_template_string(BASE_HTML, content=content)
+
+@app.post("/bugs/<bug_id>/status")
+def update_status(bug_id):
+    if not secrets.compare_digest(request.form.get("csrf", ""), session.get("csrf", "")):
+        abort(400, "Invalid form token")
+    status = request.form.get("status", "")
+    if status not in STATUSES:
+        abort(400, "Invalid status")
+    notes = request.form.get("notes", "").strip()[:5000]
+    with connect() as db:
+        bug = db.execute("SELECT id,status FROM bug_reports WHERE id=?", (bug_id,)).fetchone()
+        if not bug:
+            abort(404)
+        old_status = bug["status"]
+        db.execute(
+            "UPDATE bug_reports SET status=?, resolution_notes=? WHERE id=?",
+            (status, notes, bug_id)
+        )
+        db.execute("""
+            INSERT INTO bug_events (bug_id,event_type,message,created_at)
+            VALUES (?,?,?,datetime('now'))
+        """, (bug_id, "status_changed", f"{old_status} → {status}"))
+        db.commit()
+    flash("Bug status updated.")
+    return redirect(url_for("bug_detail", bug_id=bug_id))
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template_string(BASE_HTML, content="<h2>Not found</h2><p><a href='/'>Dashboard</a></p>"), 404
+
+if __name__ == "__main__":
+    if not DB_PATH.exists():
+        raise SystemExit(f"Bug database not found: {DB_PATH}")
+    print("Private dashboard: http://127.0.0.1:8765")
+    print("Only accessible from this device.")
+    app.run(host="127.0.0.1", port=8765, debug=False)
