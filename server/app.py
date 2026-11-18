@@ -3483,5 +3483,82 @@ init_chat_tables()
 init_notes_tables()
 init_people_connect_tables()
 
+
+
+# SOCIALAPP_SETTINGS_PREFERENCES_V1
+@app.get("/api/settings/preferences")
+def get_settings_preferences():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS user_settings_preferences (
+                username TEXT PRIMARY KEY,
+                preferences_json TEXT NOT NULL DEFAULT '{}',
+                updated_at TEXT NOT NULL
+            )
+        """)
+        row = db.execute(
+            "SELECT preferences_json FROM user_settings_preferences WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+    try:
+        preferences = json.loads(row["preferences_json"]) if row else {}
+    except (TypeError, ValueError):
+        preferences = {}
+    return jsonify({"preferences": preferences})
+
+
+@app.patch("/api/settings/preferences")
+def patch_settings_preferences():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    changes = request.get_json(silent=True)
+    if not isinstance(changes, dict) or not changes:
+        return jsonify({"error": "Provide settings to update."}), 400
+    if len(changes) > 100:
+        return jsonify({"error": "Too many settings in one update."}), 400
+    allowed_prefixes = (
+        "location.", "privacy.", "security.", "notifications.",
+        "messages.", "story.", "feed.", "appearance.", "advanced.",
+        "profile.", "account."
+    )
+    for key, value in changes.items():
+        if not isinstance(key, str) or not key.startswith(allowed_prefixes):
+            return jsonify({"error": "Invalid settings key."}), 400
+        if not isinstance(value, (bool, str, int, float, type(None))):
+            return jsonify({"error": "Invalid setting value."}), 400
+        if isinstance(value, str) and len(value) > 200:
+            return jsonify({"error": "Setting value is too long."}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS user_settings_preferences (
+                username TEXT PRIMARY KEY,
+                preferences_json TEXT NOT NULL DEFAULT '{}',
+                updated_at TEXT NOT NULL
+            )
+        """)
+        row = db.execute(
+            "SELECT preferences_json FROM user_settings_preferences WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        try:
+            current = json.loads(row["preferences_json"]) if row else {}
+        except (TypeError, ValueError):
+            current = {}
+        current.update(changes)
+        db.execute("""
+            INSERT INTO user_settings_preferences(username, preferences_json, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(username) DO UPDATE SET
+                preferences_json=excluded.preferences_json,
+                updated_at=excluded.updated_at
+        """, (username, json.dumps(current, separators=(",", ":")), now))
+    return jsonify({"ok": True, "preferences": current})
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)
