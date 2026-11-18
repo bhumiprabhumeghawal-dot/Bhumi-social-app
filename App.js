@@ -11560,7 +11560,7 @@ export default function App() {
           setViewedProfileOpen(false);
         }}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#100B19" }}>
           <View style={{
             height: 52, flexDirection: "row", alignItems: "center",
             paddingHorizontal: 14, borderBottomWidth: 0.5, borderBottomColor: "#E8E8E8"
@@ -11568,7 +11568,7 @@ export default function App() {
             <TouchableOpacity onPress={() => setViewedProfileOpen(false)} style={{ width: 42 }}>
               <Ionicons name="arrow-back" size={25} color="#171717" />
             </TouchableOpacity>
-            <Text numberOfLines={1} style={{ flex: 1, fontSize: 17, fontWeight: "800", color: "#171717" }}>
+            <Text numberOfLines={1} style={{ flex: 1, fontSize: 17, fontWeight: "800", color: "#F4EFFA" }}>
               {viewedProfile ? `@${viewedProfile.username}` : "Profile"}
             </Text>
             {viewedProfile && String(viewedProfile.username || "").toLowerCase() !== String(authSession?.username || "").toLowerCase() ? (
@@ -11580,7 +11580,7 @@ export default function App() {
 
           {viewedProfileBusy && !viewedProfile ? (
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-              <Text style={{ color: "#777777" }}>Loading profile...</Text>
+              <Text style={{ color: "#B8AACB" }}>Loading profile...</Text>
             </View>
           ) : viewedProfile ? (
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -11590,8 +11590,8 @@ export default function App() {
                     <Image source={{ uri: viewedProfile.avatarUrl }}
                       style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#EEEEEE" }} />
                   ) : (
-                    <View style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#F2F2F2", alignItems: "center", justifyContent: "center" }}>
-                      <Text style={{ fontSize: 32, fontWeight: "800", color: "#262626" }}>
+                    <View style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#21162F", alignItems: "center", justifyContent: "center" }}>
+                      <Text style={{ fontSize: 32, fontWeight: "800", color: "#F4EFFA" }}>
                         {String(viewedProfile.displayName || viewedProfile.username || "?").slice(0, 1).toUpperCase()}
                       </Text>
                     </View>
@@ -11603,19 +11603,19 @@ export default function App() {
                       ["followingCount", "Following"]
                     ].map(([field, label]) => (
                       <View key={field} style={{ alignItems: "center" }}>
-                        <Text style={{ fontSize: 18, fontWeight: "800", color: "#262626" }}>{viewedProfile[field] || 0}</Text>
-                        <Text style={{ color: "#737373", fontSize: 12 }}>{label}</Text>
+                        <Text style={{ fontSize: 18, fontWeight: "800", color: "#F4EFFA" }}>{viewedProfile[field] || 0}</Text>
+                        <Text style={{ color: "#B8AACB", fontSize: 12 }}>{label}</Text>
                       </View>
                     ))}
                   </View>
                 </View>
 
                 <View style={{ marginTop: 13 }}>
-                  <Text style={{ fontSize: 15, fontWeight: "800", color: "#262626" }}>
+                  <Text style={{ fontSize: 15, fontWeight: "800", color: "#F4EFFA" }}>
                     {viewedProfile.displayName || viewedProfile.username}
                   </Text>
                   {!!viewedProfile.bio && (
-                    <Text style={{ color: "#262626", marginTop: 4, lineHeight: 20 }}>{viewedProfile.bio}</Text>
+                    <Text style={{ color: "#F4EFFA", marginTop: 4, lineHeight: 20 }}>{viewedProfile.bio}</Text>
                   )}
                 </View>
 
@@ -11650,8 +11650,8 @@ export default function App() {
                         await openDirectChat(username);
                       }}
                       activeOpacity={0.8}
-                      style={{ flex: 1, height: 36, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "#F2F2F2" }}>
-                      <Text style={{ color: "#222222", fontWeight: "800", fontSize: 13 }}>Message</Text>
+                      style={{ flex: 1, height: 36, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "#21162F" }}>
+                      <Text style={{ color: "#F4EFFA", fontWeight: "800", fontSize: 13 }}>Message</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -11663,7 +11663,7 @@ export default function App() {
                   );
                   return (
                     <View style={{ marginTop: 19 }}>
-                      <Text style={{ color: "#262626", fontWeight: "800", marginBottom: 10 }}>Status</Text>
+                      <Text style={{ color: "#F4EFFA", fontWeight: "800", marginBottom: 10 }}>Status</Text>
                       {stories.length ? (
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                           {stories.map((story, index) => (
@@ -11672,13 +11672,13 @@ export default function App() {
                               onPress={() => openStoryGroup(stories)} />
                           ))}
                         </ScrollView>
-                      ) : <Text style={{ color: "#737373", fontSize: 13 }}>No status yet</Text>}
+                      ) : <Text style={{ color: "#B8AACB", fontSize: 13 }}>No status yet</Text>}
                     </View>
                   );
                 })()}
               </View>
 
-              <View style={{ flexDirection: "row", borderTopWidth: 0.5, borderBottomWidth: 0.5, borderColor: "#E5E5E5", marginTop: 18 }}>
+              <View style={{ flexDirection: "row", borderTopWidth: 0.5, borderBottomWidth: 0.5, borderColor: "#49345F", marginTop: 18 }}>
                 {[["posts", "grid-outline"], ["tagged", "person-outline"]].map(([tab, icon]) => (
                   <TouchableOpacity key={tab} onPress={() => setViewedProfileTab(tab)}
                     style={{
@@ -11692,17 +11692,17 @@ export default function App() {
 
               {viewedProfileTab === "posts" ? (
                 viewedProfilePostsBusy ? (
-                  <Text style={{ textAlign: "center", padding: 28, color: "#737373" }}>Loading posts...</Text>
+                  <Text style={{ textAlign: "center", padding: 28, color: "#B8AACB" }}>Loading posts...</Text>
                 ) : viewedProfilePosts.length ? (
                   <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
                     {viewedProfilePosts.map((post, index) => (
                       <View key={String(post.id || post._id || index)} style={{ width: "33.3333%", aspectRatio: 1, padding: 1 }}>
                         {(post.uri || post.mediaUrl) ? (
                           <Image source={{ uri: post.uri || post.mediaUrl }}
-                            style={{ width: "100%", height: "100%", backgroundColor: "#F2F2F2" }} resizeMode="cover" />
+                            style={{ width: "100%", height: "100%", backgroundColor: "#21162F" }} resizeMode="cover" />
                         ) : (
-                          <View style={{ flex: 1, backgroundColor: "#F5F5F5", alignItems: "center", justifyContent: "center", padding: 5 }}>
-                            <Text numberOfLines={3} style={{ fontSize: 10, color: "#262626" }}>{post.caption || "Post"}</Text>
+                          <View style={{ flex: 1, backgroundColor: "#21162F", alignItems: "center", justifyContent: "center", padding: 5 }}>
+                            <Text numberOfLines={3} style={{ fontSize: 10, color: "#F4EFFA" }}>{post.caption || "Post"}</Text>
                           </View>
                         )}
                       </View>
@@ -11711,13 +11711,13 @@ export default function App() {
                 ) : (
                   <View style={{ alignItems: "center", paddingVertical: 48 }}>
                     <Ionicons name="camera-outline" size={42} color="#222222" />
-                    <Text style={{ color: "#262626", fontSize: 17, fontWeight: "800", marginTop: 10 }}>No posts yet</Text>
+                    <Text style={{ color: "#F4EFFA", fontSize: 17, fontWeight: "800", marginTop: 10 }}>No posts yet</Text>
                   </View>
                 )
               ) : (
                 <View style={{ alignItems: "center", paddingVertical: 48 }}>
                   <Ionicons name="images-outline" size={38} color="#555555" />
-                  <Text style={{ color: "#737373", marginTop: 10 }}>No tagged photos yet</Text>
+                  <Text style={{ color: "#B8AACB", marginTop: 10 }}>No tagged photos yet</Text>
                 </View>
               )}
             </ScrollView>
@@ -11726,7 +11726,7 @@ export default function App() {
           {viewedProfileMenuOpen && viewedProfile && (
             <View style={{
               position: "absolute", top: 52, right: 12, width: 235,
-              backgroundColor: "#FFFFFF", borderRadius: 14, paddingVertical: 5,
+              backgroundColor: "#100B19", borderRadius: 14, paddingVertical: 5,
               elevation: 8, shadowColor: "#000000", shadowOpacity: 0.14,
               shadowRadius: 12, shadowOffset: { width: 0, height: 5 }
             }}>
@@ -11734,14 +11734,14 @@ export default function App() {
                 setViewedProfileMenuOpen(false);
                 Share.share({ message: `@${viewedProfile.username} on Bhumi Social AI` });
               }} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
-                <Text style={{ color: "#262626", fontSize: 14 }}>Share this profile</Text>
+                <Text style={{ color: "#F4EFFA", fontSize: 14 }}>Share this profile</Text>
               </TouchableOpacity>
-              <View style={{ height: 0.5, backgroundColor: "#EFEFEF" }} />
+              <View style={{ height: 0.5, backgroundColor: "#21162F" }} />
               <TouchableOpacity disabled={viewedProfileRestrictBusy} onPress={() => {
                 setViewedProfileMenuOpen(false);
                 handleToggleViewedProfileRestriction();
               }} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
-                <Text style={{ color: "#262626", fontSize: 14 }}>
+                <Text style={{ color: "#F4EFFA", fontSize: 14 }}>
                   {viewedProfileRestricted ? "Unrestrict" : "Restrict"}
                 </Text>
               </TouchableOpacity>
@@ -11934,7 +11934,7 @@ export default function App() {
           <View
             style={{
               height: "76%",
-              backgroundColor: "#FFFFFF",
+              backgroundColor: "#100B19",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingTop: 20,
@@ -11948,11 +11948,11 @@ export default function App() {
                 paddingHorizontal: 18,
                 paddingBottom: 14,
                 borderBottomWidth: 1,
-                borderBottomColor: "#EFEFEF",
+                borderBottomColor: "#49345F",
               }}
             >
               <Text
-                style={{ color: "#262626", fontSize: 19, fontWeight: "800" }}
+                style={{ color: "#F4EFFA", fontSize: 19, fontWeight: "800" }}
               >
                 Reel comments
               </Text>
@@ -11962,7 +11962,7 @@ export default function App() {
             </View>
             {reelCommentsBusy && reelComments.length === 0 ? (
               <Text
-                style={{ color: "#737373", textAlign: "center", padding: 24 }}
+                style={{ color: "#B8AACB", textAlign: "center", padding: 24 }}
               >
                 Loading comments...
               </Text>
@@ -11985,7 +11985,7 @@ export default function App() {
                   }}
                 >
                   <Text
-                    style={{ color: "#262626", fontSize: 14, lineHeight: 21 }}
+                    style={{ color: "#F4EFFA", fontSize: 14, lineHeight: 21 }}
                   >
                     <Text style={{ fontWeight: "800" }}>
                       @{item.username || "user"}{" "}
@@ -11994,7 +11994,7 @@ export default function App() {
                   </Text>
                   {!!item.createdAt ? (
                     <Text
-                      style={{ color: "#8E8E93", fontSize: 10, marginTop: 4 }}
+                      style={{ color: "#A997B8", fontSize: 10, marginTop: 4 }}
                     >
                       {new Date(item.createdAt).toLocaleString()}
                     </Text>
@@ -12016,12 +12016,12 @@ export default function App() {
                         paddingVertical: 5,
                         paddingHorizontal: 12,
                         borderRadius: 8,
-                        backgroundColor: "#F2F2F2",
+                        backgroundColor: "#21162F",
                       }}
                     >
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F4EFFA",
                           fontSize: 12,
                           fontWeight: "800",
                         }}
@@ -12034,7 +12034,7 @@ export default function App() {
               ))}
               {!reelCommentsBusy && reelComments.length === 0 ? (
                 <Text
-                  style={{ color: "#737373", textAlign: "center", padding: 28 }}
+                  style={{ color: "#B8AACB", textAlign: "center", padding: 28 }}
                 >
                   No comments yet. Be the first to comment.
                 </Text>
@@ -12047,7 +12047,7 @@ export default function App() {
                 paddingHorizontal: 14,
                 paddingVertical: 12,
                 borderTopWidth: 1,
-                borderTopColor: "#EFEFEF",
+                borderTopColor: "#49345F",
                 gap: 9,
               }}
             >
@@ -12060,11 +12060,11 @@ export default function App() {
                 editable={!reelCommentsBusy}
                 style={{
                   flex: 1,
-                  backgroundColor: "#F2F2F2",
+                  backgroundColor: "#21162F",
                   borderRadius: 22,
                   paddingHorizontal: 15,
                   paddingVertical: 11,
-                  color: "#262626",
+                  color: "#F4EFFA",
                 }}
               />
               <TouchableOpacity
