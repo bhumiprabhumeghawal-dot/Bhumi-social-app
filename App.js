@@ -7851,6 +7851,34 @@ export default function App() {
                 </Text>
               )}
 
+              {profile.accountType === "business" && profile.businessProfile && (
+                <View style={{ backgroundColor: "#100B19", borderWidth: 1, borderColor: "#80602E", borderRadius: 18, padding: 15, marginBottom: 18 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 9 }}>
+                    <Ionicons name="business" size={20} color="#D8B86A" />
+                    <Text style={{ color: "#D8B86A", fontWeight: "900", fontSize: 16, marginLeft: 8 }}>
+                      {profile.businessProfile.businessName || "Business"}
+                    </Text>
+                    <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#80602E", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
+                      <Text style={{ color: "#D8B86A", fontSize: 9, fontWeight: "800" }}>BUSINESS</Text>
+                    </View>
+                  </View>
+                  {!!profile.businessProfile.category && <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 6 }}>{profile.businessProfile.category}</Text>}
+                  {!!profile.businessProfile.description && <Text style={{ color: "#F4EFFA", fontSize: 13, lineHeight: 19, marginBottom: 8 }}>{profile.businessProfile.description}</Text>}
+                  {!!(profile.businessProfile.area || profile.businessProfile.city || profile.businessProfile.state) && (
+                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                      <Ionicons name="location" size={15} color="#D8B86A" />
+                      <Text style={{ color: "#D8CDE7", fontSize: 12, marginLeft: 6 }}>
+                        {[profile.businessProfile.area, profile.businessProfile.city, profile.businessProfile.state, profile.businessProfile.pincode].filter(Boolean).join(", ")}
+                      </Text>
+                    </View>
+                  )}
+                  {!!profile.businessProfile.serviceAreas && <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 5 }}>Serving: {profile.businessProfile.serviceAreas}</Text>}
+                  {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 5 }}>Service radius: {profile.businessProfile.serviceRadiusKm} km</Text>}
+                  {!!profile.businessProfile.address && <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 5 }}>Address: {profile.businessProfile.address}</Text>}
+                  {!!profile.businessProfile.openingHours && <Text style={{ color: "#B8AACB", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
+                </View>
+              )}
+
               {profileEditing ? (
                 <View>
                   <Text style={{ color: "#F4EFFA", marginBottom: 5 }}>
@@ -9398,7 +9426,7 @@ export default function App() {
               <TouchableOpacity
                 key={item.key}
                 onPress={() => switchAccountMode(item.key)}
-                disabled={privacyBusy || item.active}
+                disabled={privacyBusy || (item.active && item.key !== "business")}
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
