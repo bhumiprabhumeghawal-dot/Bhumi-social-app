@@ -2456,6 +2456,12 @@ export default function App() {
   const [viewedProfileTab, setViewedProfileTab] = React.useState("posts");
   const [viewedProfileMenuOpen, setViewedProfileMenuOpen] = React.useState(false);
   const [viewedProfileFollowBusy, setViewedProfileFollowBusy] = React.useState(false);
+  const [profileConnectionsOpen, setProfileConnectionsOpen] = React.useState(false);
+  const [profileConnectionsType, setProfileConnectionsType] = React.useState("followers");
+  const [profileConnectionsUsername, setProfileConnectionsUsername] = React.useState("");
+  const [profileConnectionsItems, setProfileConnectionsItems] = React.useState([]);
+  const [profileConnectionsBusy, setProfileConnectionsBusy] = React.useState(false);
+  const [profileConnectionsError, setProfileConnectionsError] = React.useState("");
 
   // SOCIALAPP_DIRECT_MESSAGES_V1
   const [messagesOpen, setMessagesOpen] = React.useState(false);
@@ -3903,20 +3909,28 @@ export default function App() {
     ]);
   };
 
-  const showProfileConnections = async (type) => {
+  const openProfileConnections = async (username, type) => {
+    const target = String(username || "").replace(/^@/, "").trim();
+    if (!target || !["followers", "following"].includes(type)) return;
+    setProfileConnectionsUsername(target);
+    setProfileConnectionsType(type);
+    setProfileConnectionsItems([]);
+    setProfileConnectionsError("");
+    setProfileConnectionsOpen(true);
+    setProfileConnectionsBusy(true);
     try {
-      const result = await loadProfileConnections(authSession.username, type);
+      const result = await loadProfileConnections(target, type);
       const items = result.items || result.users || result[type] || [];
-      const names = items
-        .map((x) => "@" + (x.username || x.user || x))
-        .join("\n");
-      Alert.alert(
-        type === "followers" ? "Followers" : "Following",
-        names || "अभी सूची खाली है।",
-      );
+      setProfileConnectionsItems(Array.isArray(items) ? items : []);
     } catch (e) {
-      Alert.alert("सूची लोड नहीं हुई", e.message || "सर्वर कनेक्शन जाँचें।");
+      setProfileConnectionsError(e.message || "सूची लोड नहीं हुई।");
+    } finally {
+      setProfileConnectionsBusy(false);
     }
+  };
+
+  const showProfileConnections = async (type) => {
+    await openProfileConnections(authSession?.username, type);
   };
 
   const refreshFollowRequests = React.useCallback(async () => {
@@ -11414,10 +11428,16 @@ export default function App() {
                       ["followersCount", "Followers"],
                       ["followingCount", "Following"]
                     ].map(([field, label]) => (
-                      <View key={field} style={{ alignItems: "center" }}>
+                      <TouchableOpacity
+                        key={field}
+                        disabled={field === "postsCount"}
+                        onPress={() => openProfileConnections(viewedProfile.username, field === "followersCount" ? "followers" : "following")}
+                        activeOpacity={0.7}
+                        style={{ alignItems: "center", paddingHorizontal: 3 }}
+                      >
                         <Text style={{ fontSize: 18, fontWeight: "800", color: "#F4EFFA" }}>{viewedProfile[field] || 0}</Text>
                         <Text style={{ color: "#B8AACB", fontSize: 12 }}>{label}</Text>
-                      </View>
+                      </TouchableOpacity>
                     ))}
                   </View>
                 </View>
@@ -11557,6 +11577,80 @@ export default function App() {
                   {viewedProfileRestricted ? "Unrestrict" : "Restrict"}
                 </Text>
               </TouchableOpacity>
+            </View>
+          )}
+        </SafeAreaView>
+      </Modal>
+
+      <Modal
+        visible={profileConnectionsOpen}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setProfileConnectionsOpen(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#100B19" }}>
+          <View style={{
+            minHeight: 54, flexDirection: "row", alignItems: "center",
+            paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#352443"
+          }}>
+            <TouchableOpacity onPress={() => setProfileConnectionsOpen(false)} style={{ padding: 8, marginRight: 8 }}>
+              <Ionicons name="arrow-back" size={24} color="#F4EFFA" />
+            </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: "#F4EFFA", fontSize: 17, fontWeight: "800" }}>
+                {profileConnectionsType === "followers" ? "Followers" : "Following"}
+              </Text>
+              <Text style={{ color: "#B8AACB", fontSize: 11 }}>@{profileConnectionsUsername}</Text>
+            </View>
+            <TouchableOpacity onPress={() => setProfileConnectionsOpen(false)} style={{ padding: 8 }}>
+              <Ionicons name="close" size={24} color="#D8B86A" />
+            </TouchableOpacity>
+          </View>
+          {profileConnectionsBusy ? (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+              <ActivityIndicator size="large" color="#D8B86A" />
+              <Text style={{ color: "#B8AACB", marginTop: 12 }}>Loading {profileConnectionsType}...</Text>
+            </View>
+          ) : profileConnectionsError ? (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
+              <Text style={{ color: "#F4EFFA", textAlign: "center" }}>{profileConnectionsError}</Text>
+              <TouchableOpacity onPress={() => openProfileConnections(profileConnectionsUsername, profileConnectionsType)} style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, backgroundColor: "#49345F" }}>
+                <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : profileConnectionsItems.length ? (
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 36 }}>
+              {profileConnectionsItems.map((entry, index) => {
+                const username = String(entry?.username || entry?.user || entry || "").replace(/^@/, "").trim();
+                if (!username) return null;
+                return (
+                  <TouchableOpacity
+                    key={username + "-" + index}
+                    onPress={() => {
+                      setProfileConnectionsOpen(false);
+                      openUserProfile(username);
+                    }}
+                    activeOpacity={0.75}
+                    style={{ minHeight: 68, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#352443", gap: 12 }}
+                  >
+                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#21162F", alignItems: "center", justifyContent: "center" }}>
+                      <Text style={{ color: "#F4EFFA", fontSize: 18, fontWeight: "800" }}>{username.slice(0, 1).toUpperCase()}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: "#F4EFFA", fontSize: 14, fontWeight: "800" }}>@{username}</Text>
+                      <Text style={{ color: "#B8AACB", fontSize: 11 }}>View profile</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="#D8B86A" />
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          ) : (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
+              <Ionicons name="people-outline" size={42} color="#80699A" />
+              <Text style={{ color: "#F4EFFA", fontSize: 16, fontWeight: "800", marginTop: 12 }}>
+                No {profileConnectionsType} yet
+              </Text>
             </View>
           )}
         </SafeAreaView>
