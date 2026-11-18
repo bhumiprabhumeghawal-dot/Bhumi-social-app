@@ -45,6 +45,7 @@ import {
   getCachedContent,
   getCachedProfile,
   uploadContent,
+  deleteContent,
   checkServer,
   loadProfile,
   loadProfilePosts,
@@ -997,6 +998,7 @@ function PostCard({
   onOpen = () => {},
   onCreateAction = () => {},
   onOpenProfile = () => {},
+  onDelete = () => {},
   pageHeight = 0,
   active = true,
 }) {
@@ -1180,9 +1182,15 @@ function PostCard({
             </Text>
           )}
         </View>
-        <TouchableOpacity>
-          <Text style={styles.more}>•••</Text>
-        </TouchableOpacity>
+        {String(post.user || "").replace(/^@/, "").toLowerCase() === String(authSession?.username || "").toLowerCase() && !post.isStarterPost && !post.isStarterReel ? (
+          <TouchableOpacity onPress={() => onDelete(post, "posts")} accessibilityLabel="Delete your post" style={{ padding: 9 }}>
+            <Ionicons name="trash-outline" size={20} color="#D8B86A" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity>
+            <Text style={styles.more}>•••</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View
@@ -4039,6 +4047,51 @@ export default function App() {
     }
   }, []);
 
+  const requestDeleteContent = (kind, item) => {
+    const itemId = Number(item?.id);
+    const owner = String(item?.user || item?.username || "").replace(/^@/, "");
+    if (!authSession?.token || !owner || owner.toLowerCase() !== String(authSession.username || "").toLowerCase()) {
+      Alert.alert("Delete unavailable", "You can delete only your own uploaded content.");
+      return;
+    }
+    if (!Number.isSafeInteger(itemId) || itemId <= 0 || item?.isStarterPost || item?.isStarterReel) {
+      Alert.alert("Delete unavailable", "This sample item cannot be deleted.");
+      return;
+    }
+
+    Alert.alert(
+      "Delete this " + (kind === "stories" ? "story" : kind === "reels" ? "reel" : "post") + "?",
+      "This will permanently remove it from Bhumi Social AI.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteContent(kind, itemId);
+              if (kind === "posts") {
+                setFeedPosts((items) => items.filter((entry) => String(entry.id) !== String(itemId)));
+                setSelectedPost((current) => current && String(current.id) === String(itemId) ? null : current);
+              } else if (kind === "stories") {
+                setServerStories((items) => items.filter((entry) => String(entry.id) !== String(itemId)));
+                setStoryQueue((items) => items.filter((entry) => String(entry.id) !== String(itemId)));
+                setSelectedStory((current) => current && String(current.id) === String(itemId) ? null : current);
+              } else if (kind === "reels") {
+                setReels((items) => items.filter((entry) => String(entry.id) !== String(itemId)));
+                setSelectedReel((current) => current && String(current.id) === String(itemId) ? null : current);
+                setActiveReelIndex((current) => Math.max(0, Math.min(current, reels.length - 2)));
+              }
+              await refreshContent(true);
+            } catch (error) {
+              Alert.alert("Delete failed", error?.message || "Could not delete this content.");
+            }
+          },
+        },
+      ],
+    );
+  };
+
   React.useEffect(() => {
     refreshContent();
   }, [refreshContent]);
@@ -6760,6 +6813,11 @@ export default function App() {
                           justifyContent: "flex-end",
                         }}
                       >
+                        {username.toLowerCase() === String(authSession?.username || "").toLowerCase() && hasServerId ? (
+                          <TouchableOpacity onPress={() => requestDeleteContent("reels", r)} accessibilityLabel="Delete your reel" style={{ width: 42, height: 42, borderRadius: 22, backgroundColor: "rgba(0,0,0,0.48)", alignItems: "center", justifyContent: "center", marginRight: 8 }}>
+                            <Ionicons name="trash-outline" size={20} color="#D8B86A" />
+                          </TouchableOpacity>
+                        ) : null}
                         <TouchableOpacity
                           onPress={() => setMutedReels((value) => !value)}
                           style={{
@@ -7131,6 +7189,7 @@ export default function App() {
                     if (username && String(username).toLowerCase() !== String(authSession?.username || "").toLowerCase()) openUserProfile(username);
                     else setActiveTab("Profile");
                   }}
+                  onDelete={(item, kind) => requestDeleteContent(kind, item)}
                   pageHeight={feedViewportHeight}
                   active={activeTab === "Home" && index === activeFeedIndex}
                   onOpen={() => {
@@ -8549,6 +8608,11 @@ export default function App() {
                 )}
               </View>
 
+              {String(selectedStory?.user || selectedStory?.username || "").replace(/^@/, "").toLowerCase() === String(authSession?.username || "").toLowerCase() && !selectedStory?.isStarterStory ? (
+                <TouchableOpacity onPress={() => requestDeleteContent("stories", selectedStory)} accessibilityLabel="Delete your story" style={{ padding: 9 }}>
+                  <Ionicons name="trash-outline" size={21} color="#D8B86A" />
+                </TouchableOpacity>
+              ) : null}
               <TouchableOpacity
                 onPress={() => setSelectedStory(null)}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
