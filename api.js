@@ -658,7 +658,9 @@ export async function discoverBusinesses(filters = {}) {
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && String(value).trim()) query.set(key, String(value).trim());
   });
-  const response = await fetch(`${API_BASE_URL}/api/businesses?${query.toString()}`);
+  const response = await fetch(`${API_BASE_URL}/api/businesses?${query.toString()}`, {
+    headers: await authHeaders(),
+  });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Businesses could not be loaded.");
   return Array.isArray(data.businesses) ? data.businesses : [];
