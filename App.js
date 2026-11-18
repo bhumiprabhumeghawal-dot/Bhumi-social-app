@@ -4359,7 +4359,7 @@ export default function App() {
           asset.type === "video" ||
           /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || "");
 
-        if (kind === "reels" && assetIsVideo && zoomEffectEnabled) {
+        if (assetIsVideo && zoomEffectEnabled) {
           uploadAsset = await applyZoomEffect(uploadAsset.uri, {
             zoom: zoomEffectLevel,
             duration: zoomEffectDuration,
@@ -5835,6 +5835,9 @@ export default function App() {
                               </TouchableOpacity>
                             ))}
                           </ScrollView>
+                          <TouchableOpacity onPress={() => setZoomEffectEnabled((value) => !value)} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.72)" }}>
+                            <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{zoomEffectEnabled ? "Zoom Effect: ON" : "Zoom Effect"}</Text>
+                          </TouchableOpacity>
                           <TouchableOpacity onPress={chooseMusicFile} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.72)" }}>
                             <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{musicAsset ? "♫ Change Music" : "♫ Add Music"}</Text>
                           </TouchableOpacity>
