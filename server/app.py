@@ -3367,6 +3367,27 @@ def init_chat_tables():
             )
         """)
 
+def _chat_preference(db, username, key, default=True):
+    """Read one authenticated user's persisted chat privacy preference."""
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS user_settings_preferences (
+            username TEXT PRIMARY KEY,
+            preferences_json TEXT NOT NULL DEFAULT '{}',
+            updated_at TEXT NOT NULL
+        )
+    """)
+    row = db.execute(
+        "SELECT preferences_json FROM user_settings_preferences WHERE LOWER(username)=LOWER(?)",
+        (username,),
+    ).fetchone()
+    try:
+        values = json.loads(row["preferences_json"]) if row else {}
+    except (TypeError, ValueError):
+        values = {}
+    value = values.get(key, default)
+    return value if isinstance(value, bool) else default
+
+
 def _chat_current_user():
     username = _auth_user()
     if not username:
@@ -3775,21 +3796,34 @@ def get_direct_messages(username):
         target = user["username"]
         now = datetime.now(timezone.utc).isoformat()
 
-        db.execute("""
-            UPDATE direct_messages
-            SET delivered_at = CASE
+        receipts_enabled = _chat_preference(db, current, "messages.readReceipts", True)
+        if receipts_enabled:
+            db.execute("""
+                UPDATE direct_messages
+                SET delivered_at = CASE
+                        WHEN LOWER(recipient_username)=LOWER(?)
+                        THEN COALESCE(delivered_at, ?)
+                        ELSE delivered_at
+                    END,
+                    read_at = CASE
+                        WHEN LOWER(recipient_username)=LOWER(?)
+                        THEN ?
+                        ELSE read_at
+                    END
+                WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+                   OR (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+            """, (current, now, current, now, current, target, target, current))
+        else:
+            db.execute("""
+                UPDATE direct_messages
+                SET delivered_at = CASE
                     WHEN LOWER(recipient_username)=LOWER(?)
                     THEN COALESCE(delivered_at, ?)
                     ELSE delivered_at
-                END,
-                read_at = CASE
-                    WHEN LOWER(recipient_username)=LOWER(?)
-                    THEN ?
-                    ELSE read_at
                 END
-            WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
-               OR (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
-        """, (current, now, current, now, current, target, target, current))
+                WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+                   OR (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+            """, (current, now, current, target, target, current))
 
         rows = db.execute("""
             SELECT
@@ -3895,6 +3929,12 @@ def send_direct_message(username):
         if not user:
             return jsonify({"error": "User not found."}), 404
         target = user["username"]
+        if not _chat_preference(db, current, "messages.typing", True):
+            db.execute("""
+                DELETE FROM direct_message_typing
+                WHERE LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?)
+            """, (current, target))
+            return jsonify({"ok": True, "typing": False})
 
         blocked_pair = db.execute("""
             SELECT 1 FROM people_blocks
@@ -3913,6 +3953,26 @@ def send_direct_message(username):
         ).fetchone()
         if settings and not bool(settings["allow_messages"]):
             return jsonify({"error": "This user does not accept messages."}), 403
+        if not _chat_preference(db, target, "messages.allowMessages", True):
+            return jsonify({"error": "This user has turned off direct messages."}), 403
+
+        existing_thread = db.execute("""
+            SELECT 1 FROM direct_messages
+            WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+               OR (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+            LIMIT 1
+        """, (current, target, target, current)).fetchone()
+        relationship = db.execute("""
+            SELECT 1 FROM follows
+            WHERE (LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?))
+               OR (LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?))
+            LIMIT 1
+        """, (current, target, target, current)).fetchone()
+        if not existing_thread and not relationship:
+            if not _chat_preference(db, target, "messages.messageRequests", True):
+                return jsonify({"error": "This user is not accepting message requests."}), 403
+            if not _chat_preference(db, target, "messages.allowUnknown", True):
+                return jsonify({"error": "This user only accepts messages from people they follow."}), 403
 
         reply_to_id = str(data.get("replyToId") or "").strip() or None
         if reply_to_id:
@@ -4060,6 +4120,8 @@ def get_chat_typing(username):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
+        if not _chat_preference(db, current, "messages.typing", True):
+            return jsonify({"typing": False})
         blocked_pair = db.execute("""
             SELECT 1 FROM people_blocks
             WHERE
