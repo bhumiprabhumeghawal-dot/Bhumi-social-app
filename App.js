@@ -4474,7 +4474,7 @@ export default function App() {
       </View>
       <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
         <Image
-          source={require("./assets/favicon.png")}
+          source={require("./assets/bhumi-social-ai-logo.jpg")}
           style={{ width: 34, height: 34 }}
           resizeMode="contain"
           accessibilityLabel="Bhumi Social AI logo"
@@ -4992,7 +4992,7 @@ export default function App() {
               }}
             >
               <Image
-                source={require("./assets/favicon.png")}
+                source={require("./assets/bhumi-social-ai-logo.jpg")}
                 style={{ width: 96, height: 96, borderRadius: 28 }}
                 resizeMode="contain"
               />

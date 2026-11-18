@@ -4,7 +4,7 @@
     "slug": "SocialApp",
     "version": "1.0.4",
     "orientation": "portrait",
-    "icon": "./assets/favicon.png",
+    "icon": "./assets/bhumi-social-ai-logo.jpg",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
@@ -16,7 +16,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#08050D",
-        "foregroundImage": "./assets/favicon.png"
+        "foregroundImage": "./assets/bhumi-social-ai-logo.jpg"
       },
       "package": "com.bhumi_socialmediaai.SocialApp",
       "versionCode": 5,
@@ -27,7 +27,7 @@
       "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/bhumi-social-ai-logo.jpg"
     },
     "plugins": [
       "expo-video",
