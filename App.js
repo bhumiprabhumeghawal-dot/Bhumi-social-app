@@ -2535,6 +2535,7 @@ export default function App() {
   const [chatSearchQuery, setChatSearchQuery] = React.useState("");
   const [chatUnreadOnly, setChatUnreadOnly] = React.useState(false);
   const [chatInboxTab, setChatInboxTab] = React.useState("All");
+  const [chatFriendFilter, setChatFriendFilter] = React.useState("All");
   const [newChatComposerOpen, setNewChatComposerOpen] = React.useState(false);
   const [ownNote, setOwnNote] = React.useState(null);
   const [friendsNotes, setFriendsNotes] = React.useState([]);
@@ -10603,6 +10604,18 @@ export default function App() {
                     />
                   </TouchableOpacity>
                 </View>
+                <View style={{ flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 10 }}>
+                  {[
+                    { key: "All", label: "All Chats", icon: "chatbubbles-outline" },
+                    { key: "Favourite", label: "Favourites", icon: "star" },
+                    { key: "Close", label: "Close Friends", icon: "heart" },
+                  ].map((item) => (
+                    <TouchableOpacity key={item.key} onPress={() => setChatFriendFilter(item.key)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 18, backgroundColor: chatFriendFilter === item.key ? "#49345F" : "#21162F", borderWidth: 1, borderColor: chatFriendFilter === item.key ? "#D8B86A" : "#49345F" }}>
+                      <Ionicons name={item.icon} size={14} color={chatFriendFilter === item.key ? "#D8B86A" : "#B8AACB"} />
+                      <Text style={{ color: chatFriendFilter === item.key ? "#F4EFFA" : "#B8AACB", fontSize: 11, fontWeight: "800" }}>{item.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -11009,6 +11022,9 @@ export default function App() {
                       ).toLowerCase();
                       const requestStatus = String(conversation.requestStatus || "").toLowerCase();
                       const isRequest = Boolean(conversation.isRequest) || ["pending", "requested"].includes(requestStatus) || folder === "requests";
+                      const friendKey = String(username).toLowerCase();
+                      if (chatFriendFilter === "Favourite" && !chatFriendPrefs["messages.favorite." + friendKey]) return false;
+                      if (chatFriendFilter === "Close" && !chatFriendPrefs["messages.closeFriend." + friendKey]) return false;
                       if (chatInboxTab === "Requests" && !isRequest) return false;
                       if ((chatInboxTab === "Primary" || chatInboxTab === "General") && folder && folder !== chatInboxTab.toLowerCase()) return false;
                       if (chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
@@ -11095,6 +11111,8 @@ export default function App() {
                               }}
                             >
                               {conversation.displayName || username}
+                              {chatFriendPrefs["messages.favorite." + String(username).toLowerCase()] ? "  ★" : ""}
+                              {chatFriendPrefs["messages.closeFriend." + String(username).toLowerCase()] ? "  ♥" : ""}
                             </Text>
                             <Text
                               numberOfLines={1}
