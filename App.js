@@ -968,6 +968,23 @@ function groupPostItems(items) {
   return result;
 }
 
+function PostMediaTapSurface({ children, style, onSingleTap, onDoubleTap }) {
+  const singleTap = Gesture.Tap()
+    .onEnd(() => onSingleTap?.())
+    .runOnJS(true);
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .maxDuration(260)
+    .onEnd(() => onDoubleTap?.())
+    .runOnJS(true);
+  const tapGesture = Gesture.Exclusive(doubleTap, singleTap);
+  return (
+    <GestureDetector gesture={tapGesture}>
+      <View style={style}>{children}</View>
+    </GestureDetector>
+  );
+}
+
 function PostCard({
   post,
   authSession,
@@ -1189,11 +1206,10 @@ function PostCard({
             }}
           >
             {(post.mediaItems || []).map((media, index) => (
-              <TouchableOpacity
+              <PostMediaTapSurface
                 key={String(media.id || index)}
-                activeOpacity={0.95}
-                delayPressIn={180}
-                onPress={onOpen}
+                onSingleTap={onOpen}
+                onDoubleTap={handleLike}
                 style={{ width: mediaWidth || 320, height: mediaHeight }}
               >
                 {media.uri && media.mediaType === "video" ? (
@@ -1231,14 +1247,13 @@ function PostCard({
                     <Text style={styles.postEmoji}>{post.emoji || "🌿"}</Text>
                   </View>
                 )}
-              </TouchableOpacity>
+              </PostMediaTapSurface>
             ))}
           </ScrollView>
         ) : (
-          <TouchableOpacity
-            activeOpacity={0.95}
-            delayPressIn={180}
-            onPress={onOpen}
+          <PostMediaTapSurface
+            onSingleTap={onOpen}
+            onDoubleTap={handleLike}
             style={{ width: "100%", height: mediaHeight }}
           >
             {post.uri && post.mediaType === "video" ? (
@@ -1268,7 +1283,7 @@ function PostCard({
                 <Text style={styles.postEmoji}>{post.emoji || "🌿"}</Text>
               </View>
             )}
-          </TouchableOpacity>
+          </PostMediaTapSurface>
         )}
         {post.mediaItems?.length > 1 && (
           <Text
