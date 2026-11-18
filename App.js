@@ -201,7 +201,7 @@ function Story({ item, onPress }) {
 }
 
 // SOCIALAPP_MEDIA_MASTER2
-function ZoomableImage({ uri, style, onZoomChange }) {
+function ZoomableImage({ uri, style, onZoomChange, showControls = true }) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -281,10 +281,11 @@ function ZoomableImage({ uri, style, onZoomChange }) {
       <GestureDetector gesture={gesture}>
         <Animated.Image
           source={{ uri }}
-          style={[{ width: "100%", height: "82%" }, animatedStyle]}
-          resizeMode={fitMode === "fit" ? "contain" : "cover"}
+          style={[{ width: "100%", height: showControls ? "82%" : "100%" }, animatedStyle]}
+          resizeMode={showControls ? (fitMode === "fit" ? "contain" : "cover") : "cover"}
         />
       </GestureDetector>
+      {showControls ? (
       <View
         style={{
           width: "100%",
@@ -375,6 +376,7 @@ function ZoomableImage({ uri, style, onZoomChange }) {
           <Text style={{ color: "#FFFFFF", fontSize: 16 }}>＋</Text>
         </TouchableOpacity>
       </View>
+      ) : null}
     </View>
   );
 }
@@ -6521,7 +6523,7 @@ export default function App() {
 
       {activeTab !== "Reels" && activeTab !== "Home" && renderAppHeader()}
 
-      {!serverOnline && (
+      {activeTab !== "Reels" && !serverOnline && (
         <Text
           style={{
             paddingHorizontal: 12,
@@ -6533,7 +6535,7 @@ export default function App() {
           Server connection unavailable
         </Text>
       )}
-      {busy && (
+      {activeTab !== "Reels" && busy && (
         <Text style={{ padding: 5, color: "#D8B86A" }}>Uploading media…</Text>
       )}
 
@@ -8307,7 +8309,7 @@ export default function App() {
                 <ReelVideo
                   uri={selectedStory.uri}
                   height={Dimensions.get("window").height}
-                  zoomControls
+                  
                   loop={false}
                   onPlayToEnd={() => moveStory(1)}
                   onTimeUpdate={(currentTime, duration) => {
@@ -8324,6 +8326,7 @@ export default function App() {
                   uri={selectedStory.uri}
                   style={{ width: "100%", height: "100%" }}
                   onZoomChange={(level) => setStoryImageZoomed(level > 1.01)}
+                  showControls={false}
                 />
               )
             ) : (
