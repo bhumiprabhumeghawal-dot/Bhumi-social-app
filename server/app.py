@@ -4,6 +4,7 @@ import urllib.request
 import urllib.error
 import sqlite3
 import uuid
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from dotenv import load_dotenv
@@ -436,6 +437,35 @@ def create_content(kind):
                 "SELECT * FROM content WHERE id=?",
                 (cursor.lastrowid,),
             ).fetchone()
+
+            # Notify mentioned users; only real accounts can be mentioned.
+            mentioned = {
+                value.casefold()
+                for value in re.findall(r"(?<![A-Za-z0-9_.])@([A-Za-z0-9_.]{2,50})", caption)
+            }
+            for handle in mentioned:
+                target = db.execute(
+                    "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+                    (handle,),
+                ).fetchone()
+                if not target or target["username"].casefold() == username.casefold():
+                    continue
+                target_name = target["username"]
+                blocked = db.execute(
+                    """SELECT 1 FROM people_blocks
+                       WHERE (blocker=? AND blocked=?) OR (blocker=? AND blocked=?)
+                       LIMIT 1""",
+                    (username, target_name, target_name, username),
+                ).fetchone()
+                if blocked:
+                    continue
+                db.execute(
+                    """INSERT INTO people_notifications
+                       (id, recipient, actor, kind, reference_id, created_at, is_read)
+                       VALUES (?, ?, ?, ?, ?, ?, 0)""",
+                    (uuid.uuid4().hex, target_name, username, f"mention_{kind}",
+                     str(row["id"]), created_at),
+                )
 
         return jsonify({"ok": True, "item": content_json(row)}), 201
 
