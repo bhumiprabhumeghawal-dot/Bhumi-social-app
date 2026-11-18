@@ -4399,7 +4399,7 @@ export default function App() {
   };
 
   React.useEffect(() => {
-    const match = String(mediaDraftCaption || "").match(/(?:^|\\s)@([A-Za-z0-9_.]{2,50})$/);
+    const match = String(mediaDraftCaption || "").match(/(?:^|\s)@([A-Za-z0-9_.]{2,50})$/);
     const query = match?.[1] || "";
     setMentionToken(query);
     if (query.length < 2) {
@@ -4425,7 +4425,7 @@ export default function App() {
     const username = String(user?.username || "").replace(/^@/, "");
     if (!username) return;
     setMediaDraftCaption((current) =>
-      String(current || "").replace(/(?:^|\\s)@[A-Za-z0-9_.]{2,50}$/, (match) => {
+      String(current || "").replace(/(?:^|\s)@[A-Za-z0-9_.]{2,50}$/, (match) => {
         const prefix = match.startsWith(" ") ? " " : "";
         return prefix + "@" + username + " ";
       }),
