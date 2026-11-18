@@ -3889,6 +3889,11 @@ export default function App() {
 
 
   const persistBusinessProfile = async () => {
+    if (privacySettings.accountType !== "business") {
+      setBusinessProfileOpen(false);
+      Alert.alert("Business Account only", "Business tools are available only in Business Account.");
+      return;
+    }
     if (businessProfileBusy) return;
     if (!businessProfile.businessName.trim() || !businessProfile.city.trim()) {
       Alert.alert("Details required", "Business name and city are required for area-wise discovery.");
@@ -3914,6 +3919,7 @@ export default function App() {
 
 
   const addBusinessCatalogItem = async () => {
+    if (privacySettings.accountType !== "business") return Alert.alert("Business Account only", "Switch to Business Account to manage your catalogue.");
     if (!catalogDraft.title.trim()) return Alert.alert("Catalog", "Enter a product or service name.");
     try {
       const item = await createBusinessCatalogItem(catalogDraft);
@@ -3930,6 +3936,7 @@ export default function App() {
   };
 
   const addBusinessQuickReply = async () => {
+    if (privacySettings.accountType !== "business") return Alert.alert("Business Account only", "Switch to Business Account to manage quick replies.");
     if (!quickReplyDraft.shortcut.trim() || !quickReplyDraft.message.trim()) return Alert.alert("Quick Replies", "Enter a shortcut and message.");
     try {
       const item = await createBusinessQuickReply(quickReplyDraft);
@@ -3946,6 +3953,11 @@ export default function App() {
   };
 
   const searchBusinessDirectory = async () => {
+    if (privacySettings.accountType !== "business") {
+      Alert.alert("Business Account only", "Switch to Business Account to use area-wise business discovery.");
+      setBusinessDirectoryOpen(false);
+      return;
+    }
     setBusinessDirectoryBusy(true);
     try {
       const results = await discoverBusinesses(businessDirectoryFilters);
@@ -8260,6 +8272,7 @@ export default function App() {
                   </Text>
                 </TouchableOpacity>
               </View>
+              {privacySettings.accountType === "business" && (
               <TouchableOpacity
                 onPress={() => { setBusinessDirectoryResults([]); setBusinessDirectoryOpen(true); }}
                 style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#80602E", backgroundColor: "#171020", flexDirection: "row", alignItems: "center" }}
@@ -8271,6 +8284,7 @@ export default function App() {
                 </View>
                 <Ionicons name="chevron-forward" size={18} color="#D8B86A" />
               </TouchableOpacity>
+              )}
               <View>
                 <View
                   style={{
@@ -9645,7 +9659,7 @@ export default function App() {
 
 
       <Modal
-        visible={businessProfileOpen}
+        visible={businessProfileOpen && privacySettings.accountType === "business"}
         transparent
         animationType="slide"
         onRequestClose={() => !businessProfileBusy && setBusinessProfileOpen(false)}
@@ -9773,7 +9787,7 @@ export default function App() {
       </Modal>
 
 
-      <Modal visible={businessDirectoryOpen} transparent animationType="slide" onRequestClose={() => setBusinessDirectoryOpen(false)}>
+      <Modal visible={businessDirectoryOpen && privacySettings.accountType === "business"} transparent animationType="slide" onRequestClose={() => setBusinessDirectoryOpen(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "rgba(5,2,12,0.88)", justifyContent: "flex-end" }}>
           <View style={{ maxHeight: "90%", backgroundColor: "#100B19", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: "#80602E", padding: 17 }}>
             <ScrollView keyboardShouldPersistTaps="handled">
