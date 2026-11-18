@@ -1246,6 +1246,16 @@ def business_insights():
 
 @app.get("/api/businesses")
 def discover_businesses():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        account = db.execute(
+            "SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if not account or account["account_type"] != "business":
+            return jsonify({"error": "Business Account is required to use area-wise business discovery."}), 403
     city = request.args.get("city", "").strip()[:100]
     area = request.args.get("area", "").strip()[:100]
     category = request.args.get("category", "").strip()[:100]
