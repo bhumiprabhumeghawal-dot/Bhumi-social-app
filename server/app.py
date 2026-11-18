@@ -445,6 +445,45 @@ def create_content(kind):
         return jsonify({"error": "Could not save media"}), 500
 
 
+
+@app.delete("/api/<kind>/<int:content_id>")
+def delete_content(kind, content_id):
+    if kind not in ALLOWED_EXTENSIONS:
+        return jsonify({"error": "Unknown content type"}), 404
+
+    actor = getattr(g, "auth_username", None)
+    if not actor:
+        return jsonify({"error": "Please log in first."}), 401
+
+    with get_db() as db:
+        row = db.execute(
+            "SELECT id, username, media_url FROM content WHERE id=? AND kind=?",
+            (content_id, kind),
+        ).fetchone()
+        if row is None:
+            return jsonify({"error": "Content not found."}), 404
+        if str(row["username"] or "").casefold() != str(actor).casefold():
+            return jsonify({"error": "You can only delete your own content."}), 403
+
+        # Remove dependent engagement records before deleting the content row.
+        db.execute("DELETE FROM post_likes WHERE content_id=?", (content_id,))
+        db.execute("DELETE FROM post_comments WHERE content_id=?", (content_id,))
+        db.execute(
+            "DELETE FROM saved_content WHERE content_id=? AND kind=?",
+            (content_id, kind),
+        )
+        db.execute("DELETE FROM content WHERE id=? AND kind=?", (content_id, kind))
+
+    media_url = str(row["media_url"] or "")
+    prefix = f"/uploads/{kind}/"
+    if media_url.startswith(prefix):
+        filename = media_url[len(prefix):]
+        if filename and "/" not in filename and "\\" not in filename:
+            (UPLOAD_DIR / kind / filename).unlink(missing_ok=True)
+
+    return jsonify({"ok": True, "id": content_id, "kind": kind})
+
+
 @app.get("/uploads/<kind>/<filename>")
 def uploaded_file(kind, filename):
     if kind not in ALLOWED_EXTENSIONS and kind not in {"profiles", "chat"}:
