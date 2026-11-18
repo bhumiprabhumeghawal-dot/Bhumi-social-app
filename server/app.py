@@ -624,6 +624,9 @@ def init_profile_tables():
                 updated_at TEXT NOT NULL
             )
         """)
+        settings_columns = {row["name"] for row in db.execute("PRAGMA table_info(user_settings)").fetchall()}
+        if "account_type" not in settings_columns:
+            db.execute("ALTER TABLE user_settings ADD COLUMN account_type TEXT NOT NULL DEFAULT 'personal'")
 
 
 def profile_json(db, username):
@@ -1548,7 +1551,7 @@ def get_user_settings(username):
             return jsonify({"error": "User not found"}), 404
 
         row = db.execute(
-            """SELECT is_private, show_activity, allow_messages
+            """SELECT is_private, show_activity, allow_messages, account_type
                FROM user_settings WHERE username=?""",
             (user["username"],),
         ).fetchone()
@@ -1556,12 +1559,14 @@ def get_user_settings(username):
         if row is None:
             settings = {
                 "isPrivate": False,
+                "accountType": "personal",
                 "showActivity": True,
                 "allowMessages": True,
             }
         else:
             settings = {
                 "isPrivate": bool(row["is_private"]),
+                "accountType": row["account_type"] or "personal",
                 "showActivity": bool(row["show_activity"]),
                 "allowMessages": bool(row["allow_messages"]),
             }
@@ -1588,12 +1593,14 @@ def update_user_settings(username):
         "showActivity": "show_activity",
         "allowMessages": "allow_messages",
     }
-
-    if not data or any(key not in fields for key in data):
+    if not data or any(key not in fields and key != "accountType" for key in data):
         return jsonify({"error": "Provide valid settings"}), 400
-
-    if any(not isinstance(value, bool) for value in data.values()):
-        return jsonify({"error": "Setting values must be true or false"}), 400
+    for key, value in data.items():
+        if key == "accountType":
+            if value not in ("personal", "business"):
+                return jsonify({"error": "Account type must be personal or business."}), 400
+        elif not isinstance(value, bool):
+            return jsonify({"error": "Setting values must be true or false"}), 400
 
     now = datetime.now(timezone.utc).isoformat()
 
@@ -1615,13 +1622,24 @@ def update_user_settings(username):
         )
 
         for key, value in data.items():
-            db.execute(
-                f"UPDATE user_settings SET {fields[key]}=?, updated_at=? WHERE username=?",
-                (int(value), now, canonical_username),
-            )
+            if key == "accountType":
+                db.execute(
+                    "UPDATE user_settings SET account_type=?, updated_at=? WHERE username=?",
+                    (value, now, canonical_username),
+                )
+                if value == "business":
+                    db.execute(
+                        "UPDATE user_settings SET is_private=0, updated_at=? WHERE username=?",
+                        (now, canonical_username),
+                    )
+            else:
+                db.execute(
+                    f"UPDATE user_settings SET {fields[key]}=?, updated_at=? WHERE username=?",
+                    (int(value), now, canonical_username),
+                )
 
         row = db.execute(
-            """SELECT is_private, show_activity, allow_messages
+            """SELECT is_private, show_activity, allow_messages, account_type
                FROM user_settings WHERE username=?""",
             (canonical_username,),
         ).fetchone()
@@ -1630,6 +1648,7 @@ def update_user_settings(username):
             "ok": True,
             "settings": {
                 "isPrivate": bool(row["is_private"]),
+                "accountType": row["account_type"] or "personal",
                 "showActivity": bool(row["show_activity"]),
                 "allowMessages": bool(row["allow_messages"]),
             },
