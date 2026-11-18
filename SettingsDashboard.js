@@ -67,14 +67,14 @@ const SECTIONS = [
     ["messages.unknownFilter","Unknown Message Filter","Filter messages from unknown accounts",true],
   ]},
   { key:"story", title:"Story Settings", subtitle:"Manage story audience and replies", icon:"images-outline", fields:[
-    ["story.closeFriends","Close Friends","Enable your private close-friends list",true],
+    ["story.closeFriends","Close Friends","Manage your Close Friends membership from each friend’s Chat Studio",true],
     ["story.hideFrom","Hide Story From","Manage people who cannot view your stories",false],
     ["story.replies","Allow Story Replies","Control story reply availability",true],
     ["story.mentions","Allow Story Mentions","Control mentions in stories",true],
     ["story.autoSave","Auto Save Stories","Save your own stories to your archive",false],
   ]},
   { key:"feed", title:"Feed & Reels Settings", subtitle:"Control what and how you watch", icon:"play-circle-outline", fields:[
-    ["feed.favorites","Favorites Feed","Prioritize selected accounts in your feed",true],
+    ["feed.favorites","Favorites Feed","Mark friends as Favourite in Chat Studio to prioritize their chats and feed",true],
     ["feed.mutedAccounts","Muted Accounts","Manage accounts muted from your feed",false],
     ["feed.suggested","Suggested Posts","Control suggested content",true],
     ["feed.autoPlay","Video Auto-play","Automatically play feed videos",true],
@@ -183,6 +183,12 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               <View style={{ backgroundColor:"#21162F",borderRadius:14,padding:13,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"800",fontSize:12 }}>SECURITY NOTE</Text>
                 <Text style={{ color:MUTED,fontSize:11,lineHeight:17,marginTop:5 }}>These saved preferences do not replace server-side verification or device-level biometric protection. Those workflows require their dedicated secure implementation.</Text>
+              </View>
+            ) : null}
+            {section.key === "messages" ? (
+              <View style={{ backgroundColor:"#21162F",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
+                <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>CHAT PERSONALIZATION STUDIO</Text>
+                <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Open Messages, enter any conversation, then tap the palette icon. Choose a separate chat theme, set a private name for that friend, and add or remove them from Favourite Friends or Close Friends. Favourite and Close Friends filters appear above your chat list.</Text>
               </View>
             ) : null}
             {section.fields.map(renderField)}
