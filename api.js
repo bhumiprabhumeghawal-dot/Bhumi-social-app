@@ -577,6 +577,36 @@ export async function loadProfileConnections(username, type = 'followers') {
   return data;
 }
 
+
+export async function loadBusinessProfile() {
+  const response = await fetch(`${API_BASE_URL}/api/business/profile`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Business profile could not be loaded.");
+  return data.businessProfile || {};
+}
+
+export async function saveBusinessProfile(changes) {
+  const response = await fetch(`${API_BASE_URL}/api/business/profile`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(changes),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Business profile could not be saved.");
+  return data.businessProfile || {};
+}
+
+export async function discoverBusinesses(filters = {}) {
+  const query = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim()) query.set(key, String(value).trim());
+  });
+  const response = await fetch(`${API_BASE_URL}/api/businesses?${query.toString()}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Businesses could not be loaded.");
+  return Array.isArray(data.businesses) ? data.businesses : [];
+}
+
 export async function loadPrivacySettings(username = 'you') {
   const response = await fetch(
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/settings`
