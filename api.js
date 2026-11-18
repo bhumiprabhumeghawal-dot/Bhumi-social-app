@@ -933,19 +933,34 @@ export async function uploadChatAttachment(asset) {
     ? suppliedName
     : `${suppliedName || 'chat-attachment'}.${extension}`;
 
-  const form = new FormData();
-  form.append('file', {
-    uri: asset.uri,
-    name,
-    type: mimeType,
-  });
+  const authSession = await getAuthSession();
+  if (!authSession?.token) {
+    throw new Error('कृपया पहले लॉगिन करें।');
+  }
 
-  const response = await fetch(`${API_BASE_URL}/api/messages/upload-attachment`, {
-    method: 'POST',
-    body: form,
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Could not upload chat attachment.');
+  // Use Expo FileSystem's native multipart uploader. React Native 0.88's
+  // fetch/FormData rejects the legacy { uri, name, type } file-part shape.
+  const result = await FileSystem.uploadAsync(
+    `${API_BASE_URL}/api/messages/upload-attachment`,
+    asset.uri,
+    {
+      httpMethod: 'POST',
+      headers: { Authorization: `Bearer ${authSession.token}` },
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: 'file',
+      mimeType,
+    }
+  );
+
+  let data;
+  try {
+    data = JSON.parse(result.body);
+  } catch {
+    throw new Error(`अटैचमेंट अपलोड का जवाब पढ़ा नहीं जा सका (HTTP ${result.status})`);
+  }
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(data.error || `Could not upload chat attachment (HTTP ${result.status}).`);
+  }
   if (!data.attachmentUrl) throw new Error('Server did not return an attachment URL.');
   return data;
 }
