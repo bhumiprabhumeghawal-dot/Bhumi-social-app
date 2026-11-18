@@ -1126,7 +1126,7 @@ function PostCard({
             left: 0,
             right: 0,
             zIndex: 10,
-            backgroundColor: "#FFFFFF",
+            backgroundColor: "#100B19",
           },
         ]}
       >
@@ -1294,7 +1294,7 @@ function PostCard({
           left: 0,
           right: 0,
           zIndex: 30,
-          backgroundColor: "#FFFFFF",
+          backgroundColor: "#100B19",
           paddingBottom: 10,
           paddingTop: 6,
         }}
@@ -1364,7 +1364,7 @@ function PostCard({
           >
             <View
               style={{
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "#100B19",
                 borderTopLeftRadius: 18,
                 borderTopRightRadius: 18,
                 padding: 18,
@@ -4962,7 +4962,9 @@ export default function App() {
                 width: 112,
                 height: 112,
                 borderRadius: 34,
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "#21162F",
+                borderWidth: 1,
+                borderColor: "#D8B86A",
                 alignItems: "center",
                 justifyContent: "center",
                 padding: 8,
@@ -4970,7 +4972,7 @@ export default function App() {
               }}
             >
               <Image
-                source={require("./assets/icon.png")}
+                source={require("./assets/favicon.png")}
                 style={{ width: 96, height: 96, borderRadius: 28 }}
                 resizeMode="contain"
               />
@@ -5875,14 +5877,14 @@ export default function App() {
                             marginRight: 8,
                             height: 48,
                             borderRadius: 25,
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "#D8B86A",
                             alignItems: "center",
                             justifyContent: "center",
                           }}
                         >
                           <Text
                             style={{
-                              color: "#111111",
+                              color: "#1A1028",
                               fontSize: 14,
                               fontWeight: "700",
                             }}
@@ -6446,8 +6448,8 @@ export default function App() {
                       paddingTop: 10,
                       paddingBottom: 22,
                       borderTopWidth: 1,
-                      borderTopColor: "#EEEEEE",
-                      backgroundColor: "#FFFFFF",
+                      borderTopColor: "#49345F",
+                      backgroundColor: "#100B19",
                       display: mediaDraft?.kind === "stories" ? "none" : "flex",
                     }}
                   >
@@ -6459,7 +6461,9 @@ export default function App() {
                         alignItems: "center",
                         justifyContent: "center",
                         paddingVertical: 14,
-                        backgroundColor: "#0095F6",
+                        backgroundColor: "#6D28D9",
+                        borderWidth: 1,
+                        borderColor: "#D8B86A",
                         borderRadius: 10,
                         opacity: busy ? 0.6 : 1,
                       }}
