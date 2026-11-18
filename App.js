@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import appConfig from "./app.json";
 import SettingsDashboard from "./SettingsDashboard";
+import ChatPersonalization from "./ChatPersonalization";
 import * as SecureStore from "expo-secure-store";
 import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
@@ -2501,6 +2502,16 @@ export default function App() {
   const [messagesOpen, setMessagesOpen] = React.useState(false);
   const [messageConversations, setMessageConversations] = React.useState([]);
   const [selectedChatUser, setSelectedChatUser] = React.useState("");
+  const [chatPersonalizationOpen, setChatPersonalizationOpen] = React.useState(false);
+  const [chatPreferences, setChatPreferences] = React.useState({ name: "", theme: "royal", favorite: false, closeFriend: false });
+  const chatThemeColors = ({
+    royal: { bg: "#100B19", mine: "#49345F", other: "#21162F", accent: "#D8B86A" },
+    midnight: { bg: "#080B12", mine: "#253044", other: "#151B27", accent: "#8FA8D8" },
+    ocean: { bg: "#071521", mine: "#12415A", other: "#102A3A", accent: "#61C5E8" },
+    rose: { bg: "#1B0B16", mine: "#63304A", other: "#321A29", accent: "#F0A0C0" },
+    emerald: { bg: "#071710", mine: "#1D513A", other: "#153324", accent: "#7AD6A4" },
+    sunset: { bg: "#1C100A", mine: "#75402B", other: "#382319", accent: "#FFB078" },
+  })[chatPreferences.theme] || { bg: "#100B19", mine: "#49345F", other: "#21162F", accent: "#D8B86A" };
   const [directMessages, setDirectMessages] = React.useState([]);
   const [newChatUsername, setNewChatUsername] = React.useState("");
   const [chatDraft, setChatDraft] = React.useState("");
@@ -10294,6 +10305,13 @@ export default function App() {
         </KeyboardAvoidingView>
       </Modal>
 
+      <ChatPersonalization
+        visible={chatPersonalizationOpen && !!selectedChatUser}
+        username={selectedChatUser}
+        onClose={() => setChatPersonalizationOpen(false)}
+        onSaved={(next) => setChatPreferences(next)}
+      />
+
       {/* SOCIALAPP_DIRECT_MESSAGES_MODAL_V1 */}
       <Modal
         visible={messagesOpen}
@@ -10304,7 +10322,7 @@ export default function App() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
-          <SafeAreaView style={{ flex: 1, backgroundColor: "#100B19", paddingBottom: Platform.OS === "android" ? 28 : 0 }}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: selectedChatUser ? chatThemeColors.bg : "#100B19", paddingBottom: Platform.OS === "android" ? 28 : 0 }}>
             <View
               style={{
                 flexDirection: "row",
@@ -10312,7 +10330,7 @@ export default function App() {
                 paddingHorizontal: 18,
                 paddingTop: 12,
                 paddingBottom: 16,
-                backgroundColor: "#100B19",
+                backgroundColor: selectedChatUser ? chatThemeColors.bg : "#100B19",
                 minHeight: 76,
               }}
             >
@@ -10399,7 +10417,7 @@ export default function App() {
                         color: "#F4EFFA",
                       }}
                     >
-                      {messageConversations.find(
+                      {chatPreferences.name || messageConversations.find(
                         (c) =>
                           String(c.username || "").toLowerCase() ===
                           selectedChatUser.toLowerCase(),
@@ -10408,9 +10426,12 @@ export default function App() {
                     <Text
                       style={{ fontSize: 12, color: "#A7A9AE", marginTop: 2 }}
                     >
-                      @{selectedChatUser}
+                      @{selectedChatUser}{chatPreferences.favorite ? "  ★ Favourite" : ""}{chatPreferences.closeFriend ? "  · Close Friend" : ""}
                     </Text>
                   </View>
+                  <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel="Chat personalization" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#21162F", borderWidth: 1, borderColor: chatThemeColors.accent, alignItems: "center", justifyContent: "center" }}>
+                    <Ionicons name="color-palette-outline" size={21} color={chatThemeColors.accent} />
+                  </TouchableOpacity>
                 </View>
               ) : (
                 <View
