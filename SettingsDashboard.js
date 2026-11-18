@@ -74,7 +74,7 @@ const SECTIONS = [
     ["story.autoSave","Auto Save Stories","Save your own stories to your archive",false],
   ]},
   { key:"feed", title:"Feed & Reels Settings", subtitle:"Control what and how you watch", icon:"play-circle-outline", fields:[
-    ["feed.favorites","Favorites Feed","Mark friends as Favourite in Chat Studio to prioritize their chats and feed",true],
+    ["feed.favorites","Favorites Feed","Prioritize selected accounts in your feed",true],
     ["feed.mutedAccounts","Muted Accounts","Manage accounts muted from your feed",false],
     ["feed.suggested","Suggested Posts","Control suggested content",true],
     ["feed.autoPlay","Video Auto-play","Automatically play feed videos",true],
