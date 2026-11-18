@@ -2880,6 +2880,217 @@ def _chat_current_user():
 
 
 
+# SOCIALAPP_LIVEKIT_CALLS_V1
+def init_call_tables():
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS call_sessions (
+                id TEXT PRIMARY KEY,
+                caller_username TEXT NOT NULL,
+                callee_username TEXT NOT NULL,
+                call_type TEXT NOT NULL,
+                room_name TEXT NOT NULL UNIQUE,
+                status TEXT NOT NULL DEFAULT 'ringing',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_call_sessions_callee_status
+            ON call_sessions(callee_username, status, created_at DESC)
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_call_sessions_caller_status
+            ON call_sessions(caller_username, status, created_at DESC)
+        """)
+
+
+def _call_user():
+    return _chat_current_user()
+
+
+def _call_json(row):
+    return {
+        "id": row["id"],
+        "caller": row["caller_username"],
+        "callee": row["callee_username"],
+        "type": row["call_type"],
+        "status": row["status"],
+        "createdAt": row["created_at"],
+        "expiresAt": row["expires_at"],
+    }
+
+
+@app.post("/api/calls")
+def create_call():
+    caller = _call_user()
+    if not caller:
+        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+    payload = request.get_json(silent=True) or {}
+    callee = str(payload.get("username") or "").strip().lstrip("@")
+    call_type = str(payload.get("type") or "").strip().lower()
+    if not callee or len(callee) > 60 or call_type not in ("audio", "video"):
+        return jsonify({"error": "Valid username and call type are required."}), 400
+    if callee.casefold() == caller.casefold():
+        return jsonify({"error": "You cannot call yourself."}), 400
+
+    now = datetime.now(timezone.utc)
+    now_text = now.isoformat()
+    expires_text = (now + timedelta(seconds=45)).isoformat()
+    call_id = uuid.uuid4().hex
+    room_name = "bhumi-call-" + uuid.uuid4().hex
+
+    with get_db() as db:
+        target = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?) LIMIT 1",
+            (callee,),
+        ).fetchone()
+        if not target:
+            return jsonify({"error": "User not found."}), 404
+        callee = target["username"]
+
+        blocked = db.execute("""
+            SELECT 1 FROM people_blocks
+            WHERE (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+               OR (LOWER(blocker)=LOWER(?) AND LOWER(blocked)=LOWER(?))
+            LIMIT 1
+        """, (caller, callee, callee, caller)).fetchone()
+        if blocked:
+            return jsonify({"error": "Calls are unavailable for this account."}), 403
+
+        active = db.execute("""
+            SELECT id FROM call_sessions
+            WHERE status IN ('ringing', 'accepted')
+              AND expires_at > ?
+              AND (LOWER(caller_username)=LOWER(?) OR LOWER(callee_username)=LOWER(?))
+            LIMIT 1
+        """, (now_text, caller, caller)).fetchone()
+        if active:
+            return jsonify({"error": "You already have an active call."}), 409
+
+        db.execute("""
+            UPDATE call_sessions SET status='missed', updated_at=?
+            WHERE status='ringing' AND expires_at<=?
+        """, (now_text, now_text))
+        db.execute("""
+            INSERT INTO call_sessions
+                (id, caller_username, callee_username, call_type, room_name,
+                 status, created_at, updated_at, expires_at)
+            VALUES (?, ?, ?, ?, ?, 'ringing', ?, ?, ?)
+        """, (call_id, caller, callee, call_type, room_name, now_text, now_text, expires_text))
+        row = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
+
+    return jsonify({"ok": True, "call": _call_json(row)}), 201
+
+
+@app.get("/api/calls/pending")
+def get_pending_calls():
+    username = _call_user()
+    if not username:
+        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        db.execute("""
+            UPDATE call_sessions SET status='missed', updated_at=?
+            WHERE status='ringing' AND expires_at<=?
+        """, (now, now))
+        rows = db.execute("""
+            SELECT * FROM call_sessions
+            WHERE LOWER(callee_username)=LOWER(?) AND status='ringing' AND expires_at>?
+            ORDER BY created_at DESC LIMIT 5
+        """, (username, now)).fetchall()
+    return jsonify({"calls": [_call_json(row) for row in rows]})
+
+
+@app.post("/api/calls/<call_id>/<action>")
+def update_call(call_id, action):
+    username = _call_user()
+    if not username:
+        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+    if action not in ("accept", "reject", "end"):
+        return jsonify({"error": "Invalid call action."}), 404
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        row = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
+        if row is None:
+            return jsonify({"error": "Call not found."}), 404
+        caller = row["caller_username"].casefold() == username.casefold()
+        callee = row["callee_username"].casefold() == username.casefold()
+        if not (caller or callee):
+            return jsonify({"error": "You are not a participant in this call."}), 403
+        if action in ("accept", "reject") and not callee:
+            return jsonify({"error": "Only the recipient can answer this call."}), 403
+        if action == "accept":
+            if row["status"] != "ringing" or row["expires_at"] <= now:
+                return jsonify({"error": "This call has expired."}), 409
+            status = "accepted"
+            expires = (datetime.now(timezone.utc) + timedelta(hours=2)).isoformat()
+        elif action == "reject":
+            if row["status"] != "ringing":
+                return jsonify({"error": "This call is no longer ringing."}), 409
+            status, expires = "rejected", row["expires_at"]
+        else:
+            if row["status"] not in ("ringing", "accepted"):
+                return jsonify({"error": "This call has already ended."}), 409
+            status, expires = "ended", row["expires_at"]
+        db.execute(
+            "UPDATE call_sessions SET status=?, updated_at=?, expires_at=? WHERE id=?",
+            (status, now, expires, call_id),
+        )
+        updated = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
+    return jsonify({"ok": True, "call": _call_json(updated)})
+
+
+@app.post("/api/calls/<call_id>/token")
+def get_call_token(call_id):
+    username = _call_user()
+    if not username:
+        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+    livekit_url = (os.environ.get("LIVEKIT_URL") or "").strip()
+    api_key = (os.environ.get("LIVEKIT_API_KEY") or "").strip()
+    api_secret = (os.environ.get("LIVEKIT_API_SECRET") or "").strip()
+    if not (livekit_url and api_key and api_secret):
+        return jsonify({"error": "Voice/video calling is not configured on the server yet."}), 503
+
+    with get_db() as db:
+        row = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
+    if row is None:
+        return jsonify({"error": "Call not found."}), 404
+    if row["status"] != "accepted":
+        return jsonify({"error": "The other person has not accepted the call yet."}), 409
+    if username.casefold() not in (
+        row["caller_username"].casefold(), row["callee_username"].casefold()
+    ):
+        return jsonify({"error": "You are not a participant in this call."}), 403
+
+    try:
+        from livekit import api as livekit_api
+        identity = "u_" + __import__("hashlib").sha256(username.casefold().encode()).hexdigest()[:24]
+        token = (
+            livekit_api.AccessToken(api_key, api_secret)
+            .with_identity(identity)
+            .with_name(username)
+            .with_grants(livekit_api.VideoGrants(
+                room_join=True,
+                room=row["room_name"],
+                can_publish=True,
+                can_subscribe=True,
+            ))
+            .with_ttl(timedelta(minutes=30))
+            .to_jwt()
+        )
+    except ImportError:
+        app.logger.exception("LiveKit server SDK is not installed")
+        return jsonify({"error": "Calling service is being installed. Please try again later."}), 503
+    except Exception:
+        app.logger.exception("Could not generate LiveKit call token")
+        return jsonify({"error": "Could not prepare the call connection."}), 500
+
+    normalized_url = livekit_url.replace("https://", "wss://").replace("http://", "ws://")
+    return jsonify({"ok": True, "url": normalized_url, "token": token, "type": row["call_type"]})
+
+
 # SOCIALAPP_NOTES_API_V1
 def init_notes_tables():
     with get_db() as db:
@@ -3480,6 +3691,7 @@ init_db()
 init_profile_tables()
 init_auth_tables()
 init_chat_tables()
+init_call_tables()
 init_notes_tables()
 init_people_connect_tables()
 
