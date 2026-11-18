@@ -10,7 +10,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as DocumentPicker from "expo-document-picker";
-import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import { useAudioPlayer, useAudioPlayerStatus, useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from "expo-audio";
 import {
   Gesture,
   GestureDetector,
@@ -94,7 +94,7 @@ import {
   loadDirectMessages,
   sendDirectMessage,
   unsendDirectMessage,
-  uploadChatPhoto,
+  uploadChatAttachment,
   updateChatTyping,
   loadChatTyping,
   loadNotifications,
@@ -2004,6 +2004,84 @@ function CustomAlertHost() {
   );
 }
 
+function ChatVideoAttachment({ uri, token, mine }) {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const player = useVideoPlayer({ uri, headers, useCaching: true }, (p) => {
+    p.loop = false;
+  });
+
+  return (
+    <View style={{
+      width: 230,
+      height: 190,
+      borderRadius: 14,
+      overflow: "hidden",
+      backgroundColor: "#000000",
+      marginBottom: 6,
+    }}>
+      <VideoView
+        player={player}
+        style={{ width: "100%", height: "100%" }}
+        contentFit="contain"
+        nativeControls
+      />
+    </View>
+  );
+}
+
+function ChatAudioAttachment({ uri, token, mine, name }) {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const player = useAudioPlayer({ uri, headers });
+  const audioStatus = useAudioPlayerStatus(player);
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={() => {
+        try {
+          if (audioStatus.playing) player.pause();
+          else player.play();
+        } catch (error) {
+          console.log("CHAT_AUDIO_PLAY_ERROR:", error?.message);
+        }
+      }}
+      style={{
+        width: 230,
+        minHeight: 62,
+        padding: 13,
+        borderRadius: 14,
+        marginBottom: 6,
+        backgroundColor: mine ? "rgba(255,255,255,0.16)" : "#FFFFFF",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+      }}
+    >
+      <Ionicons
+        name={audioStatus.playing ? "pause-circle" : "play-circle"}
+        size={34}
+        color={mine ? "#FFFFFF" : "#0095F6"}
+      />
+      <View style={{ flex: 1 }}>
+        <Text numberOfLines={2} style={{
+          color: mine ? "#FFFFFF" : "#262626",
+          fontSize: 13,
+          fontWeight: "700",
+        }}>
+          {name || "Voice message"}
+        </Text>
+        <Text style={{
+          color: mine ? "#EAF5FF" : "#7A8490",
+          fontSize: 11,
+          marginTop: 3,
+        }}>
+          {audioStatus.playing ? "Playing · Tap to pause" : "Audio · Tap to play"}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export default function App() {
   // BHUMI_CRASH_DISPLAY
   React.useEffect(() => {
@@ -2236,6 +2314,7 @@ export default function App() {
   const [musicVolume, setMusicVolume] = React.useState(0.8);
   const [musicStart, setMusicStart] = React.useState(0);
   const [keepOriginalAudio, setKeepOriginalAudio] = React.useState(true);
+  const chatVoiceRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const musicPlayer = useAudioPlayer(null);
   const musicPlayerStatus = useAudioPlayerStatus(musicPlayer);
 
@@ -2367,6 +2446,7 @@ export default function App() {
   const [newChatUsername, setNewChatUsername] = React.useState("");
   const [chatDraft, setChatDraft] = React.useState("");
   const [chatMediaDraft, setChatMediaDraft] = React.useState(null);
+  const [isChatRecording, setIsChatRecording] = React.useState(false);
   const [chatEmojiOpen, setChatEmojiOpen] = React.useState(false);
   const [chatReplyTo, setChatReplyTo] = React.useState(null);
   const [chatUnsendTarget, setChatUnsendTarget] = React.useState(null);
@@ -2558,25 +2638,24 @@ export default function App() {
 
   // SOCIALAPP_CHAT_MEDIA_CONTROLS_V1
   const chooseChatMedia = async (useCamera = false) => {
-    setChatError("");
-    try {
-      const options = {
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        quality: 0.85,
-      };
-      const result = useCamera
-        ? await ImagePicker.launchCameraAsync(options)
-        : await ImagePicker.launchImageLibraryAsync(options);
-      if (!result.canceled && result.assets?.[0]) {
-        setChatMediaDraft(result.assets[0]);
-      }
-    } catch (error) {
-      setChatError(
-        error?.message || "Photo selection failed. Please try again.",
-      );
+  setChatError("");
+  try {
+    const options = {
+      mediaTypes: ["images", "videos"],
+      allowsEditing: false,
+      quality: 0.85,
+      videoMaxDuration: 180,
+    };
+    const result = useCamera
+      ? await ImagePicker.launchCameraAsync({ ...options, mediaTypes: ["images"] })
+      : await ImagePicker.launchImageLibraryAsync(options);
+    if (!result.canceled && result.assets?.[0]) {
+      setChatMediaDraft(result.assets[0]);
     }
-  };
+  } catch (error) {
+    setChatError(error?.message || "Media selection failed. Please try again.");
+  }
+};
 
   const handleChatDraftChange = (value) => {
     setChatDraft(value);
@@ -2587,33 +2666,86 @@ export default function App() {
     }
   };
 
-  const sendChatDraft = async () => {
-    const text = chatDraft.trim();
-    if ((!text && !chatMediaDraft) || !selectedChatUser || chatBusy) return;
-    setChatBusy(true);
+  const chooseChatDocument = async () => {
     setChatError("");
     try {
-      let imageUrl = null;
-      if (chatMediaDraft) imageUrl = await uploadChatPhoto(chatMediaDraft);
-      const message = await sendDirectMessage(
-        selectedChatUser,
-        text,
-        imageUrl,
-        chatReplyTo?.id || null,
-      );
-      setDirectMessages((previous) => [...previous, message]);
-      setChatDraft("");
-      setChatMediaDraft(null);
-      setChatEmojiOpen(false);
-      setChatReplyTo(null);
-      updateChatTyping(selectedChatUser, false).catch(() => {});
-      setMessageConversations(await loadMessageConversations());
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "*/*",
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (!result.canceled && result.assets?.[0]) {
+        setChatMediaDraft(result.assets[0]);
+      }
     } catch (error) {
-      setChatError(error?.message || "Could not send message.");
-    } finally {
-      setChatBusy(false);
+      setChatError(error?.message || "Could not select document.");
     }
   };
+
+  const startChatVoiceRecording = async () => {
+    if (isChatRecording || chatBusy) return;
+    setChatError("");
+    try {
+      const permission = await requestRecordingPermissionsAsync();
+      if (!permission.granted) {
+        throw new Error("Voice message रिकॉर्ड करने के लिए Microphone permission दें।");
+      }
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await chatVoiceRecorder.prepareToRecordAsync();
+      chatVoiceRecorder.record();
+      setIsChatRecording(true);
+    } catch (error) {
+      setChatError(error?.message || "Voice recording शुरू नहीं हो सकी।");
+      await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
+    }
+  };
+
+  const stopChatVoiceRecording = async () => {
+    if (!isChatRecording) return;
+    setChatError("");
+    try {
+      await chatVoiceRecorder.stop();
+      const uri = chatVoiceRecorder.uri;
+      if (!uri) throw new Error("रिकॉर्ड की गई आवाज़ की फाइल नहीं मिली।");
+      setChatMediaDraft({
+        uri,
+        name: "Voice message.m4a",
+        mimeType: "audio/mp4",
+        type: "audio/mp4",
+      });
+    } catch (error) {
+      setChatError(error?.message || "Voice recording सेव नहीं हो सकी।");
+    } finally {
+      setIsChatRecording(false);
+      await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
+    }
+  };
+
+  const sendChatDraft = async () => {
+  const text = chatDraft.trim();
+  if ((!text && !chatMediaDraft) || !selectedChatUser || chatBusy) return;
+  setChatBusy(true);
+  setChatError("");
+  try {
+    const attachment = chatMediaDraft
+      ? await uploadChatAttachment(chatMediaDraft)
+      : null;
+    const message = await sendDirectMessage(
+      selectedChatUser, text, attachment, chatReplyTo?.id || null
+    );
+    setDirectMessages(previous => [...previous, message]);
+    setChatDraft("");
+    setChatMediaDraft(null);
+    setChatEmojiOpen(false);
+    setChatReplyTo(null);
+    updateChatTyping(selectedChatUser, false).catch(() => {});
+    loadMessageConversations().then(setMessageConversations).catch(() => {});
+  } catch (error) {
+    setChatError(error?.message || "Could not send message.");
+  } finally {
+    setChatBusy(false);
+  }
+};
 
   const handleUnsendChatMessage = async () => {
     const target = chatUnsendTarget;
@@ -10609,22 +10741,149 @@ export default function App() {
                               </Text>
                             </View>
                           ) : null}
-                          {message.imageUrl ? (
-                            <Image
-                              source={{
-                                uri: message.imageUrl.startsWith("http")
-                                  ? message.imageUrl
-                                  : `https://bhumi-social-app-1.onrender.com${message.imageUrl}`,
-                              }}
-                              style={{
-                                width: 230,
-                                height: 230,
-                                borderRadius: 16,
-                                marginBottom: message.text ? 8 : 0,
-                              }}
-                              resizeMode="cover"
-                            />
-                          ) : null}
+                          {(message.attachmentUrl || message.imageUrl) ? (
+  (() => {
+    const attachmentPath = message.attachmentUrl || message.imageUrl;
+    const attachmentUrl = attachmentPath.startsWith("http")
+      ? attachmentPath
+      : `https://bhumi-social-app-1.onrender.com${attachmentPath}`;
+    const attachmentType = message.attachmentType || "image";
+    const authHeaders = authSession?.token
+      ? { Authorization: `Bearer ${authSession.token}` }
+      : {};
+
+    if (attachmentType === "image") {
+      return (
+        <Image
+          source={{ uri: attachmentUrl, headers: authHeaders }}
+          style={{
+            width: 230,
+            height: 230,
+            borderRadius: 16,
+            marginBottom: message.text ? 8 : 0,
+          }}
+          resizeMode="cover"
+        />
+      );
+    }
+
+    if (attachmentType === "video") {
+      return (
+        <ChatVideoAttachment
+          uri={attachmentUrl}
+          token={authSession?.token}
+          mine={mine}
+        />
+      );
+    }
+
+    if (attachmentType === "audio") {
+      return (
+        <ChatAudioAttachment
+          uri={attachmentUrl}
+          token={authSession?.token}
+          mine={mine}
+          name={message.attachmentName}
+        />
+      );
+    }
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={async () => {
+          try {
+            if (Platform.OS !== "android") {
+              await Share.share({
+                message: `${message.attachmentName || "Chat attachment"}\n${attachmentUrl}`,
+              });
+              return;
+            }
+
+            const fileName = String(message.attachmentName || "chat-document")
+              .replace(/[^a-zA-Z0-9._-]/g, "_");
+            const destination = `${FileSystem.cacheDirectory}chat-${Date.now()}-${fileName}`;
+            const download = await FileSystem.downloadAsync(
+              attachmentUrl,
+              destination,
+              { headers: authHeaders }
+            );
+            const info = await FileSystem.getInfoAsync(download.uri);
+            if (!info.exists || !info.size) {
+              throw new Error("Document download अधूरा है।");
+            }
+
+            const extension = fileName.split(".").pop().toLowerCase();
+            const mimeTypes = {
+              pdf: "application/pdf",
+              txt: "text/plain",
+              doc: "application/msword",
+              docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              xls: "application/vnd.ms-excel",
+              xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              ppt: "application/vnd.ms-powerpoint",
+              pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+              csv: "text/csv",
+              rtf: "application/rtf",
+            };
+            const receivedMimeType = String(message.mimeType || "").toLowerCase();
+            const mimeType =
+              !receivedMimeType || receivedMimeType === "application/octet-stream"
+                ? (mimeTypes[extension] || "*/*")
+                : receivedMimeType;
+            const contentUri = await FileSystem.getContentUriAsync(download.uri);
+
+            await IntentLauncher.startActivityAsync(
+              "android.intent.action.VIEW",
+              {
+                data: contentUri,
+                type: mimeType,
+                flags: 1,
+              }
+            );
+          } catch (error) {
+            NativeAlert.alert(
+              "Attachment",
+              error?.message || "Document खुल नहीं सका।"
+            );
+          }
+        }}
+        style={{
+          width: 230,
+          padding: 14,
+          borderRadius: 14,
+          marginBottom: message.text ? 8 : 0,
+          backgroundColor: mine ? "rgba(255,255,255,0.16)" : "#FFFFFF",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <Ionicons
+          name="document-text"
+          size={30}
+          color={mine ? "#FFFFFF" : "#0095F6"}
+        />
+        <View style={{ flex: 1 }}>
+          <Text numberOfLines={2} style={{
+            color: mine ? "#FFFFFF" : "#262626",
+            fontSize: 13,
+            fontWeight: "700",
+          }}>
+            {message.attachmentName || "Document"}
+          </Text>
+          <Text style={{
+            color: mine ? "#EAF5FF" : "#7A8490",
+            fontSize: 11,
+            marginTop: 3,
+          }}>
+            DOCUMENT · Tap to open
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  })()
+) : null}
                           {message.text ? (
                             <Text
                               style={{
@@ -10905,78 +11164,44 @@ export default function App() {
                   </Text>
                 ) : null}
                 <View>
-                  {chatMediaDraft ? (
-                    <View
-                      style={{
-                        marginHorizontal: 14,
-                        marginTop: 10,
-                        marginBottom: 8,
-                        padding: 11,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 13,
-                        backgroundColor: "#FFFFFF",
-                        borderRadius: 18,
-                        borderWidth: 1,
-                        borderColor: "#E5E5E5",
-                        elevation: 2,
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 78,
-                          height: 78,
-                          borderRadius: 14,
-                          overflow: "hidden",
-                          backgroundColor: "#F2F2F2",
-                          borderWidth: 1,
-                          borderColor: "#E5E5E5",
-                        }}
-                      >
-                        <Image
-                          source={{ uri: chatMediaDraft.uri }}
-                          style={{ width: "100%", height: "100%" }}
-                          resizeMode="cover"
-                        />
+                  {chatMediaDraft ? (() => {
+                    const draftType = String(chatMediaDraft.mimeType || chatMediaDraft.type || "").toLowerCase();
+                    const draftName = chatMediaDraft.name || chatMediaDraft.fileName || "Attachment";
+                    const isPhoto = draftType.startsWith("image/");
+                    const isVideo = draftType.startsWith("video/");
+                    const isAudio = draftType.startsWith("audio/");
+                    return (
+                      <View style={{
+                        marginHorizontal: 14, marginTop: 10, marginBottom: 8, padding: 11,
+                        flexDirection: "row", alignItems: "center", gap: 13,
+                        backgroundColor: "#FFFFFF", borderRadius: 18,
+                        borderWidth: 1, borderColor: "#E5E5E5", elevation: 2,
+                      }}>
+                        <View style={{
+                          width: 66, height: 66, borderRadius: 13, overflow: "hidden",
+                          backgroundColor: "#F2F2F2", alignItems: "center", justifyContent: "center",
+                        }}>
+                          {isPhoto ? (
+                            <Image source={{ uri: chatMediaDraft.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+                          ) : (
+                            <Ionicons name={isVideo ? "videocam" : isAudio ? "mic" : "document-text"} size={32} color="#262626" />
+                          )}
+                        </View>
+                        <View style={{ flex: 1, justifyContent: "center", gap: 5 }}>
+                          <Text style={{ color: "#262626", fontSize: 14, fontWeight: "800" }}>
+                            {isPhoto ? "Photo attached" : isVideo ? "Video attached" : isAudio ? "Voice message attached" : "Document attached"}
+                          </Text>
+                          <Text numberOfLines={2} style={{ color: "#737373", fontSize: 11, fontWeight: "500" }}>
+                            {draftName} · Ready to share
+                          </Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setChatMediaDraft(null)} accessibilityLabel="Remove attachment"
+                          style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: "#F5F5F5" }}>
+                          <Ionicons name="close" size={19} color="#B42318" />
+                        </TouchableOpacity>
                       </View>
-                      <View
-                        style={{ flex: 1, justifyContent: "center", gap: 5 }}
-                      >
-                        <Text
-                          style={{
-                            color: "#262626",
-                            fontSize: 14,
-                            fontWeight: "800",
-                          }}
-                        >
-                          Photo attached
-                        </Text>
-                        <Text
-                          style={{
-                            color: "#737373",
-                            fontSize: 11,
-                            fontWeight: "500",
-                          }}
-                        >
-                          Ready to share in this chat
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => setChatMediaDraft(null)}
-                        accessibilityLabel="Remove attached photo"
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 18,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: "#F5F5F5",
-                        }}
-                      >
-                        <Ionicons name="close" size={19} color="#B42318" />
-                      </TouchableOpacity>
-                    </View>
-                  ) : null}
+                    );
+                  })() : null}
                   {chatEmojiOpen ? (
                     <View
                       style={{
@@ -11058,6 +11283,17 @@ export default function App() {
                         color="#262626"
                       />
                     </TouchableOpacity>
+                    <TouchableOpacity onPress={chooseChatDocument} accessibilityLabel="Attach document">
+                      <Ionicons name="document-attach-outline" size={23} color="#262626" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={isChatRecording ? stopChatVoiceRecording : startChatVoiceRecording}
+                      disabled={chatBusy}
+                      accessibilityLabel={isChatRecording ? "Stop voice recording" : "Start voice recording"}
+                      style={{ width: 34, height: 40, alignItems: "center", justifyContent: "center" }}
+                    >
+                      <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#262626"} />
+                    </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setChatEmojiOpen((v) => !v)}
                       accessibilityLabel="Open emoji picker"
@@ -11090,7 +11326,7 @@ export default function App() {
                     <TouchableOpacity
                       onPress={sendChatDraft}
                       disabled={
-                        chatBusy || (!chatDraft.trim() && !chatMediaDraft)
+                        chatBusy || isChatRecording || (!chatDraft.trim() && !chatMediaDraft)
                       }
                       accessibilityLabel="Send message"
                       style={{
@@ -11100,7 +11336,7 @@ export default function App() {
                         alignItems: "center",
                         justifyContent: "center",
                         backgroundColor:
-                          chatBusy || (!chatDraft.trim() && !chatMediaDraft)
+                          chatBusy || isChatRecording || (!chatDraft.trim() && !chatMediaDraft)
                             ? "#BDBDBD"
                             : "#262626",
                         elevation: 3,
