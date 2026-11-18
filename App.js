@@ -8693,7 +8693,12 @@ export default function App() {
               }}
             >
               POST BY {selectedPost?.user || "you"}
-            </Tex      <SettingsDashboard
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
+      <SettingsDashboard
         visible={settingsHubOpen}
         username={authSession?.username || ""}
         onClose={() => setSettingsHubOpen(false)}
@@ -8709,11 +8714,6 @@ export default function App() {
           else if (key === "restricted") openRestrictedAccounts();
         }}
       />
-
-y>
-          </View>
-        </View>
-      </Modal>
 
       <Modal
         visible={blockedAccountsOpen}
