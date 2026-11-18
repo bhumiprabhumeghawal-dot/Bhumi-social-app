@@ -5823,14 +5823,14 @@ export default function App() {
                         <View style={{ position: "absolute", top: 72, left: 10, right: 10, gap: 7 }}>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
                             {VIDEO_FILTERS.map((filter, index) => (
-                              <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#D8B86A" : "rgba(0,0,0,0.68)" }}>
+                              <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#D7AE55" : "rgba(20,12,32,0.88)", borderWidth: 1, borderColor: videoFilterIndex === index ? "#FFE7A3" : "rgba(215,174,85,0.55)", shadowColor: "#D7AE55", shadowOpacity: videoFilterIndex === index ? 0.55 : 0.18, shadowRadius: videoFilterIndex === index ? 10 : 4, elevation: videoFilterIndex === index ? 7 : 2 }}>
                                 <Text style={{ color: videoFilterIndex === index ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}</Text>
                               </TouchableOpacity>
                             ))}
                           </ScrollView>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
                             {VOICE_EFFECTS.map((effect) => (
-                              <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 16, backgroundColor: voiceEffect === effect.name ? "#D8B86A" : "rgba(0,0,0,0.68)" }}>
+                              <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 16, backgroundColor: voiceEffect === effect.name ? "#D7AE55" : "rgba(20,12,32,0.88)", borderWidth: 1, borderColor: voiceEffect === effect.name ? "#FFE7A3" : "rgba(215,174,85,0.55)", shadowColor: "#D7AE55", shadowOpacity: voiceEffect === effect.name ? 0.55 : 0.18, shadowRadius: voiceEffect === effect.name ? 10 : 4, elevation: voiceEffect === effect.name ? 7 : 2 }}>
                                 <Text style={{ color: voiceEffect === effect.name ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{effect.name} Voice</Text>
                               </TouchableOpacity>
                             ))}
@@ -5864,7 +5864,7 @@ export default function App() {
                       ) : (
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ position: "absolute", top: 74, left: 8, right: 8, maxHeight: 42 }} contentContainerStyle={{ gap: 6 }}>
                           {POST_PHOTO_FILTERS.map((filter, index) => (
-                            <TouchableOpacity key={filter.name} onPress={() => handlePhotoEdit(`filter:${index}`)} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 16, backgroundColor: Number(asset.photoFilterIndex || 0) === index ? "#D8B86A" : "rgba(0,0,0,0.68)" }}>
+                            <TouchableOpacity key={filter.name} onPress={() => handlePhotoEdit(`filter:${index}`)} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 16, backgroundColor: Number(asset.photoFilterIndex || 0) === index ? "#D7AE55" : "rgba(20,12,32,0.88)", borderWidth: 1, borderColor: Number(asset.photoFilterIndex || 0) === index ? "#FFE7A3" : "rgba(215,174,85,0.55)", shadowColor: "#D7AE55", shadowOpacity: 0.3, shadowRadius: 7, elevation: 4 }}>
                               <Text style={{ color: Number(asset.photoFilterIndex || 0) === index ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}</Text>
                             </TouchableOpacity>
                           ))}
@@ -5881,7 +5881,13 @@ export default function App() {
                           width: 42,
                           height: 42,
                           borderRadius: 21,
-                          backgroundColor: "rgba(0,0,0,0.58)",
+                          backgroundColor: "rgba(20,12,32,0.92)",
+                          borderWidth: 1,
+                          borderColor: "#D7AE55",
+                          shadowColor: "#D7AE55",
+                          shadowOpacity: 0.5,
+                          shadowRadius: 12,
+                          elevation: 8,
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -5926,18 +5932,24 @@ export default function App() {
                               disabled={busy}
                               onPress={() => handlePhotoEdit(tool.action)}
                               style={{
-                                width: 43,
-                                height: 43,
-                                borderRadius: 22,
-                                backgroundColor: "rgba(0,0,0,0.58)",
+                                width: 50,
+                                height: 50,
+                                borderRadius: 25,
+                                backgroundColor: "rgba(20,12,32,0.94)",
+                                borderWidth: 1,
+                                borderColor: "#D7AE55",
+                                shadowColor: "#D7AE55",
+                                shadowOpacity: 0.5,
+                                shadowRadius: 10,
+                                elevation: 7,
                                 alignItems: "center",
                                 justifyContent: "center",
                               }}
                             >
                               <Ionicons
                                 name={tool.icon}
-                                size={22}
-                                color="#FFFFFF"
+                                size={23}
+                                color="#F5D88A"
                               />
                             </TouchableOpacity>
                           ))}
@@ -6038,12 +6050,18 @@ export default function App() {
                             height: 50,
                             marginLeft: 8,
                             borderRadius: 25,
-                            backgroundColor: "#1688F8",
+                            backgroundColor: "#D7AE55",
+                            borderWidth: 1,
+                            borderColor: "#FFE7A3",
+                            shadowColor: "#D7AE55",
+                            shadowOpacity: 0.65,
+                            shadowRadius: 12,
+                            elevation: 9,
                             alignItems: "center",
                             justifyContent: "center",
                           }}
                         >
-                          <Ionicons name="arrow-up" size={25} color="#FFFFFF" />
+                          <Ionicons name="sparkles" size={25} color="#24172D" />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -6214,16 +6232,20 @@ export default function App() {
                                 minWidth: 76,
                                 paddingHorizontal: 12,
                                 paddingVertical: 10,
-                                borderRadius: 10,
+                                borderRadius: 16,
                                 alignItems: "center",
-                                backgroundColor: selected ? "#1685D9" : "#F1F3F5",
+                                backgroundColor: selected ? "#D7AE55" : "#170F22",
                                 borderWidth: 1,
-                                borderColor: selected ? "#1685D9" : "#D9DDE2",
+                                borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.48)",
+                                shadowColor: "#D7AE55",
+                                shadowOpacity: selected ? 0.55 : 0.12,
+                                shadowRadius: selected ? 9 : 3,
+                                elevation: selected ? 6 : 1,
                                 opacity: busy ? 0.55 : 1,
                               }}
                             >
                               <Text style={{
-                                color: selected ? "#FFFFFF" : "#222222",
+                                color: selected ? "#24172D" : "#F5EBD2",
                                 fontSize: 12,
                                 fontWeight: selected ? "700" : "500",
                               }}>
