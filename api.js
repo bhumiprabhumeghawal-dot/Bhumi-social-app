@@ -359,6 +359,32 @@ async function uploadContentOnce(type, asset, caption = '', groupId = '') {
 }
 
 
+
+export async function deleteContent(type, contentId) {
+  if (!['posts', 'stories', 'reels'].includes(type)) {
+    throw new Error('अमान्य कंटेंट प्रकार।');
+  }
+  const id = Number(contentId);
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new Error('यह कंटेंट डिलीट नहीं किया जा सकता।');
+  }
+  const response = await fetch(`${API_BASE_URL}/api/${type}/${id}`, {
+    method: 'DELETE',
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'कंटेंट डिलीट नहीं हो सका।');
+
+  CONTENT_MEMORY_CACHE.delete(type);
+  CONTENT_REQUESTS_IN_FLIGHT.delete(type);
+  try {
+    const items = await getCachedContent(type);
+    if (Array.isArray(items)) {
+      await saveCachedContent(type, items.filter(item => String(item.id) !== String(id)));
+    }
+  } catch (_) {}
+  return data;
+}
+
 export function uploadContent(type, asset, caption = '', groupId = '') {
   const uri = String(asset?.uri || '');
   const key = [type, uri, caption].join('|');
