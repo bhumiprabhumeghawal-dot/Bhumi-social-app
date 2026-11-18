@@ -1111,3 +1111,22 @@ export async function toggleSavedContent(kind, contentId) {
   if (!response.ok) throw new Error(data.error || 'Could not update Saved content.');
   return data;
 }
+
+
+export async function loadSettingsPreferences() {
+  const response = await fetch(`${API_BASE_URL}/api/settings/preferences`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not load settings.");
+  return data.preferences || {};
+}
+
+export async function saveSettingsPreferences(changes) {
+  const response = await fetch(`${API_BASE_URL}/api/settings/preferences`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(changes),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not save settings.");
+  return data.preferences || {};
+}
