@@ -35,6 +35,9 @@ import {
   applyZoomEffect,
   createVideoFromPhotos,
   addMusicToVideo,
+  applyVideoEffects,
+  VIDEO_FILTERS,
+  VOICE_EFFECTS,
 } from "./videoEditor";
 import { editPhotoAsset, POST_PHOTO_FILTERS, getPostPhotoFilter, applyPostPhotoFilter } from "./photoEditor";
 import {
@@ -2342,6 +2345,8 @@ export default function App() {
   const [musicVolume, setMusicVolume] = React.useState(0.8);
   const [musicStart, setMusicStart] = React.useState(0);
   const [keepOriginalAudio, setKeepOriginalAudio] = React.useState(true);
+  const [videoFilterIndex, setVideoFilterIndex] = React.useState(0);
+  const [voiceEffect, setVoiceEffect] = React.useState("Original");
   const chatVoiceRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const musicPlayer = useAudioPlayer(null);
   const musicPlayerStatus = useAudioPlayerStatus(musicPlayer);
@@ -4354,14 +4359,14 @@ export default function App() {
           asset.type === "video" ||
           /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || "");
 
-        if (kind === "reels" && assetIsVideo && zoomEffectEnabled) {
-          uploadAsset = await applyZoomEffect(asset.uri, {
-            zoom: zoomEffectLevel,
-            duration: zoomEffectDuration,
+        if (assetIsVideo && (videoFilterIndex > 0 || voiceEffect !== "Original")) {
+          uploadAsset = await applyVideoEffects(uploadAsset.uri, {
+            videoFilterIndex,
+            voiceEffect,
           });
         }
 
-        if (kind === "reels" && assetIsVideo && musicAsset?.uri) {
+        if (assetIsVideo && musicAsset?.uri) {
           uploadAsset = await addMusicToVideo(uploadAsset.uri, musicAsset.uri, {
             musicVolume,
             musicStart,
@@ -4389,6 +4394,8 @@ export default function App() {
       setMusicStart(0);
       setMusicVolume(0.8);
       setKeepOriginalAudio(true);
+      setVideoFilterIndex(0);
+      setVoiceEffect("Original");
       if (kind === "posts") {
         await refreshContent(true);
         setActiveTab("Home");
@@ -4434,6 +4441,8 @@ export default function App() {
     setMusicStart(0);
     setMusicVolume(0.8);
     setKeepOriginalAudio(true);
+    setVideoFilterIndex(0);
+    setVoiceEffect("Original");
   };
 
   const pickImage = () => chooseMedia("posts");
@@ -6215,7 +6224,7 @@ export default function App() {
                       color: "#F4EFFA",
                     }}
                   />
-                  {mediaDraft.kind === "reels" && isVideo && (
+                  {isVideo && (
                     <View style={{ paddingTop: 10, paddingBottom: 8 }}>
                       <TouchableOpacity
                         disabled={busy}
