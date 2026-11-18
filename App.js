@@ -7033,7 +7033,7 @@ export default function App() {
         >
           <Text
             style={{
-              color: "#171717",
+              color: "#F4EFFA",
               fontSize: 26,
               fontWeight: "800",
               marginBottom: 16,
@@ -7045,7 +7045,7 @@ export default function App() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: "#F2F2F2",
+              backgroundColor: "#21162F",
               borderRadius: 12,
               paddingHorizontal: 14,
               marginBottom: 18,
@@ -7066,7 +7066,7 @@ export default function App() {
                 flex: 1,
                 paddingVertical: 14,
                 paddingHorizontal: 10,
-                color: "#171717",
+                color: "#F4EFFA",
                 fontSize: 15,
               }}
             />
@@ -7080,11 +7080,11 @@ export default function App() {
             )}
           </View>
           {searchQuery.trim().length < 2 ? (
-            <Text style={{ color: "#777777", paddingVertical: 12 }}>
+            <Text style={{ color: "#B8AACB", paddingVertical: 12 }}>
               Enter at least 2 characters to search for people.
             </Text>
           ) : searchLoading ? (
-            <Text style={{ color: "#777777", paddingVertical: 12 }}>
+            <Text style={{ color: "#B8AACB", paddingVertical: 12 }}>
               Searching...
             </Text>
           ) : searchError ? (
@@ -7092,7 +7092,7 @@ export default function App() {
               {searchError}
             </Text>
           ) : searchResults.length === 0 ? (
-            <Text style={{ color: "#777777", paddingVertical: 12 }}>
+            <Text style={{ color: "#B8AACB", paddingVertical: 12 }}>
               No users found.
             </Text>
           ) : (
@@ -7159,7 +7159,7 @@ export default function App() {
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text
                       style={{
-                        color: "#171717",
+                        color: "#F4EFFA",
                         fontWeight: "700",
                         fontSize: 15,
                       }}
@@ -7167,7 +7167,7 @@ export default function App() {
                       {item.displayName || item.username}
                     </Text>
                     <Text
-                      style={{ color: "#777777", fontSize: 13, marginTop: 3 }}
+                      style={{ color: "#B8AACB", fontSize: 13, marginTop: 3 }}
                     >
                       @{item.username}
                     </Text>
@@ -7284,7 +7284,7 @@ export default function App() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
         >
           {!profile ? (
-            <Text style={{ color: "#777", textAlign: "center", padding: 24 }}>
+            <Text style={{ color: "#B8AACB", textAlign: "center", padding: 24 }}>
               Loading profile…
             </Text>
           ) : (
@@ -7312,7 +7312,7 @@ export default function App() {
                       height: 96,
                       borderRadius: 48,
                       borderWidth: 3,
-                      borderColor: "#C13584",
+                      borderColor: "#D8B86A",
                       padding: 2,
                       alignItems: "center",
                       justifyContent: "center",
@@ -7354,7 +7354,7 @@ export default function App() {
                       >
                         <Text
                           style={{
-                            color: "#262626",
+                            color: "#F4EFFA",
                             fontSize: 32,
                             fontWeight: "700",
                           }}
@@ -7366,7 +7366,7 @@ export default function App() {
                   </View>
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F4EFFA",
                       fontSize: 12,
                       textAlign: "center",
                       marginTop: 5,
@@ -7379,7 +7379,7 @@ export default function App() {
                 <View style={{ flex: 1, marginLeft: 16 }}>
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F4EFFA",
                       fontSize: 21,
                       fontWeight: "800",
                     }}
@@ -7387,7 +7387,7 @@ export default function App() {
                     {profile.displayName || "you"}
                   </Text>
                   <Text
-                    style={{ color: "#737373", marginTop: 5, fontSize: 13 }}
+                    style={{ color: "#B8AACB", marginTop: 5, fontSize: 13 }}
                   >
                     @{profile.username || "you"}
                   </Text>
@@ -7401,14 +7401,14 @@ export default function App() {
                     <View style={{ alignItems: "center" }}>
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F4EFFA",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
                       >
                         {profile.postsCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#737373", fontSize: 11 }}>
+                      <Text style={{ color: "#B8AACB", fontSize: 11 }}>
                         Posts
                       </Text>
                     </View>
@@ -7425,7 +7425,7 @@ export default function App() {
                       >
                         {profile.followersCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#737373", fontSize: 11 }}>
+                      <Text style={{ color: "#B8AACB", fontSize: 11 }}>
                         Followers
                       </Text>
                     </TouchableOpacity>
@@ -7442,7 +7442,7 @@ export default function App() {
                       >
                         {profile.followingCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#737373", fontSize: 11 }}>
+                      <Text style={{ color: "#B8AACB", fontSize: 11 }}>
                         Following
                       </Text>
                     </TouchableOpacity>
@@ -7462,7 +7462,7 @@ export default function App() {
                 >
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F4EFFA",
                       fontSize: 15,
                       fontWeight: "800",
                       marginBottom: 10,
@@ -7499,7 +7499,7 @@ export default function App() {
                             paddingVertical: 10,
                             paddingHorizontal: 14,
                             borderRadius: 20,
-                            backgroundColor: "#F2F2F2",
+                            backgroundColor: "#21162F",
                             flexDirection: "row",
                             alignItems: "center",
                             gap: 5,
@@ -7510,7 +7510,7 @@ export default function App() {
                             size={18}
                             color="#262626"
                           />
-                          <Text style={{ color: "#262626", fontWeight: "700" }}>
+                          <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>
                             Add Status
                           </Text>
                         </TouchableOpacity>
@@ -7523,7 +7523,7 @@ export default function App() {
               {!!profile.bio && (
                 <Text
                   style={{
-                    color: "#262626",
+                    color: "#F4EFFA",
                     marginBottom: 20,
                     lineHeight: 23,
                     fontSize: 14,
@@ -7535,7 +7535,7 @@ export default function App() {
 
               {profileEditing ? (
                 <View>
-                  <Text style={{ color: "#262626", marginBottom: 5 }}>
+                  <Text style={{ color: "#F4EFFA", marginBottom: 5 }}>
                     Display Name
                   </Text>
                   <TextInput
@@ -7550,17 +7550,17 @@ export default function App() {
                       borderColor: "#DBDBDB",
                       borderRadius: 12,
                       padding: 11,
-                      color: "#262626",
+                      color: "#F4EFFA",
                       marginBottom: 12,
                     }}
                   />
-                  <Text style={{ color: "#555", marginBottom: 5 }}>
+                  <Text style={{ color: "#B8AACB", marginBottom: 5 }}>
                     Username (स्थायी)
                   </Text>
-                  <Text style={{ color: "#737373", paddingVertical: 10 }}>
+                  <Text style={{ color: "#B8AACB", paddingVertical: 10 }}>
                     @{profile.username || "you"}
                   </Text>
-                  <Text style={{ color: "#555", marginBottom: 5 }}>Bio</Text>
+                  <Text style={{ color: "#B8AACB", marginBottom: 5 }}>Bio</Text>
                   <TextInput
                     value={profileDraft.bio}
                     onChangeText={(v) =>
@@ -7585,7 +7585,7 @@ export default function App() {
                       onPress={saveProfile}
                       disabled={profileBusy}
                       style={{
-                        backgroundColor: "#262626",
+                        backgroundColor: "#6D28D9",
                         paddingVertical: 13,
                         paddingHorizontal: 24,
                         borderRadius: 13,
@@ -7606,7 +7606,7 @@ export default function App() {
                       }}
                       style={{ padding: 12 }}
                     >
-                      <Text style={{ color: "#555" }}>Back</Text>
+                      <Text style={{ color: "#B8AACB" }}>Back</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -7624,7 +7624,7 @@ export default function App() {
                       borderWidth: 1,
                       borderColor: "#2563EB",
                       borderRadius: 14,
-                      backgroundColor: "#262626",
+                      backgroundColor: "#6D28D9",
                       paddingVertical: 13,
                       paddingHorizontal: 24,
                       marginRight: 8,
@@ -7673,7 +7673,7 @@ export default function App() {
                   borderWidth: 1,
                   borderColor: "#EFEFEF",
                   borderRadius: 17,
-                  backgroundColor: "#FFFFFF",
+                  backgroundColor: "#100B19",
                 }}
               >
                 <View
@@ -7686,7 +7686,7 @@ export default function App() {
                 >
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F4EFFA",
                       fontWeight: "800",
                       fontSize: 17,
                     }}
@@ -7697,13 +7697,13 @@ export default function App() {
                     onPress={refreshFollowRequests}
                     disabled={followRequestsBusy}
                   >
-                    <Text style={{ color: "#262626", fontWeight: "700" }}>
+                    <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>
                       {followRequestsBusy ? "Loading…" : "Refresh"}
                     </Text>
                   </TouchableOpacity>
                 </View>
                 {followRequests.length === 0 ? (
-                  <Text style={{ color: "#737373", paddingVertical: 8 }}>
+                  <Text style={{ color: "#B8AACB", paddingVertical: 8 }}>
                     अभी कोई pending follow request नहीं है।
                   </Text>
                 ) : (
@@ -7715,14 +7715,14 @@ export default function App() {
                         alignItems: "center",
                         paddingVertical: 10,
                         borderTopWidth: 1,
-                        borderTopColor: "#EFEFEF",
+                        borderTopColor: "#49345F",
                       }}
                     >
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: "#262626", fontWeight: "800" }}>
+                        <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>
                           {request.displayName || request.username}
                         </Text>
-                        <Text style={{ color: "#737373", fontSize: 12 }}>
+                        <Text style={{ color: "#B8AACB", fontSize: 12 }}>
                           @{request.username}
                         </Text>
                       </View>
@@ -7732,7 +7732,7 @@ export default function App() {
                           resolveFollowRequest(request.id, "accept")
                         }
                         style={{
-                          backgroundColor: "#262626",
+                          backgroundColor: "#6D28D9",
                           paddingHorizontal: 13,
                           paddingVertical: 9,
                           borderRadius: 10,
@@ -7749,7 +7749,7 @@ export default function App() {
                           resolveFollowRequest(request.id, "reject")
                         }
                         style={{
-                          backgroundColor: "#F2F2F2",
+                          backgroundColor: "#21162F",
                           paddingHorizontal: 13,
                           paddingVertical: 9,
                           borderRadius: 10,
@@ -7774,7 +7774,7 @@ export default function App() {
                 }}
               >
                 <Text
-                  style={{ color: "#262626", fontWeight: "800", fontSize: 19 }}
+                  style={{ color: "#F4EFFA", fontWeight: "800", fontSize: 19 }}
                 >
                   Profile Settings
                 </Text>
@@ -7786,16 +7786,16 @@ export default function App() {
                     width: 42,
                     height: 42,
                     borderRadius: 13,
-                    backgroundColor: "#F5F5F5",
+                    backgroundColor: "#21162F",
                     borderWidth: 1,
-                    borderColor: "#E5E5E5",
+                    borderColor: "#49345F",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F4EFFA",
                       fontSize: 23,
                       fontWeight: "800",
                     }}
@@ -7808,12 +7808,12 @@ export default function App() {
                 <View
                   style={{
                     borderWidth: 1,
-                    borderColor: "#E5E5E5",
+                    borderColor: "#49345F",
                     borderRadius: 16,
                     paddingHorizontal: 15,
                     paddingVertical: 15,
                     marginBottom: 12,
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: "#100B19",
                   }}
                 >
                   <View
@@ -7826,7 +7826,7 @@ export default function App() {
                     <View style={{ flex: 1, paddingRight: 12 }}>
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F4EFFA",
                           fontWeight: "700",
                           fontSize: 15,
                         }}
@@ -7834,7 +7834,7 @@ export default function App() {
                         Notifications
                       </Text>
                       <Text
-                        style={{ color: "#737373", fontSize: 12, marginTop: 4 }}
+                        style={{ color: "#B8AACB", fontSize: 12, marginTop: 4 }}
                       >
                         {notificationsEnabled
                           ? "Preference enabled"
@@ -7855,20 +7855,20 @@ export default function App() {
                   disabled={notificationsBusy}
                   style={{
                     borderWidth: 1,
-                    borderColor: "#E5E5E5",
+                    borderColor: "#49345F",
                     borderRadius: 14,
                     padding: 14,
                     marginBottom: 11,
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: "#100B19",
                   }}
                 >
-                  <Text style={{ color: "#262626", fontWeight: "700" }}>
+                  <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>
                     {notificationDetailsOpen
                       ? "Hide notification options"
                       : "Manage notification options"}
                   </Text>
                   <Text
-                    style={{ color: "#737373", fontSize: 12, marginTop: 4 }}
+                    style={{ color: "#B8AACB", fontSize: 12, marginTop: 4 }}
                   >
                     Likes, comments, follows, messages and system alerts
                   </Text>
@@ -7877,11 +7877,11 @@ export default function App() {
                   <View
                     style={{
                       borderWidth: 1,
-                      borderColor: "#E5E5E5",
+                      borderColor: "#49345F",
                       borderRadius: 14,
                       padding: 14,
                       marginBottom: 12,
-                      backgroundColor: "#FFFFFF",
+                      backgroundColor: "#100B19",
                     }}
                   >
                     {[
@@ -7900,7 +7900,7 @@ export default function App() {
                           paddingVertical: 8,
                         }}
                       >
-                        <Text style={{ color: "#262626", fontWeight: "600" }}>
+                        <Text style={{ color: "#F4EFFA", fontWeight: "600" }}>
                           {item.label}
                         </Text>
                         <Switch
@@ -7947,16 +7947,16 @@ export default function App() {
                       paddingVertical: 15,
                       paddingHorizontal: 15,
                       borderWidth: 1,
-                      borderColor: "#E5E5E5",
+                      borderColor: "#49345F",
                       borderRadius: 15,
                       marginBottom: 10,
-                      backgroundColor: "#FFFFFF",
+                      backgroundColor: "#100B19",
                       elevation: 1,
                     }}
                   >
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#F4EFFA",
                         fontWeight: "700",
                         fontSize: 15,
                       }}
@@ -7964,7 +7964,7 @@ export default function App() {
                       {item.title}
                     </Text>
                     <Text
-                      style={{ color: "#737373", fontSize: 11, marginTop: 4 }}
+                      style={{ color: "#B8AACB", fontSize: 11, marginTop: 4 }}
                     >
                       {item.subtitle}
                     </Text>
@@ -7981,9 +7981,9 @@ export default function App() {
                   paddingHorizontal: 15,
                   paddingVertical: 14,
                   borderRadius: 14,
-                  backgroundColor: "#F5F5F5",
+                  backgroundColor: "#21162F",
                   borderWidth: 1,
-                  borderColor: "#E5E5E5",
+                  borderColor: "#49345F",
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -8000,7 +8000,7 @@ export default function App() {
                   <View>
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#F4EFFA",
                         fontWeight: "800",
                         fontSize: 15,
                       }}
@@ -8008,7 +8008,7 @@ export default function App() {
                       Saved
                     </Text>
                     <Text
-                      style={{ color: "#737373", fontSize: 11, marginTop: 2 }}
+                      style={{ color: "#B8AACB", fontSize: 11, marginTop: 2 }}
                     >
                       Your saved posts and reels
                     </Text>
@@ -8026,7 +8026,7 @@ export default function App() {
                 }}
               >
                 <Text
-                  style={{ color: "#262626", fontSize: 19, fontWeight: "800" }}
+                  style={{ color: "#F4EFFA", fontSize: 19, fontWeight: "800" }}
                 >
                   Your Posts
                 </Text>
@@ -8060,13 +8060,13 @@ export default function App() {
                         style={{
                           width: "32.5%",
                           aspectRatio: 1,
-                          backgroundColor: "#F2F2F2",
+                          backgroundColor: "#21162F",
                           borderRadius: 11,
                           overflow: "hidden",
                           alignItems: "center",
                           justifyContent: "center",
                           borderWidth: 1,
-                          borderColor: "#E5E5E5",
+                          borderColor: "#49345F",
                         }}
                       >
                         {media.uri &&
@@ -8158,10 +8158,10 @@ export default function App() {
                     alignItems: "center",
                     paddingVertical: 28,
                     paddingHorizontal: 18,
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: "#100B19",
                     borderRadius: 16,
                     borderWidth: 1,
-                    borderColor: "#E5E5E5",
+                    borderColor: "#49345F",
                   }}
                 >
                   <View
@@ -8169,7 +8169,7 @@ export default function App() {
                       width: 58,
                       height: 58,
                       borderRadius: 20,
-                      backgroundColor: "#F2F2F2",
+                      backgroundColor: "#21162F",
                       alignItems: "center",
                       justifyContent: "center",
                       marginBottom: 12,
@@ -8179,7 +8179,7 @@ export default function App() {
                   </View>
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F4EFFA",
                       fontSize: 16,
                       fontWeight: "800",
                       marginBottom: 6,
@@ -8189,7 +8189,7 @@ export default function App() {
                   </Text>
                   <Text
                     style={{
-                      color: "#737373",
+                      color: "#B8AACB",
                       fontSize: 12,
                       textAlign: "center",
                       lineHeight: 18,
@@ -8202,7 +8202,7 @@ export default function App() {
                     onPress={() => handleTab("Create")}
                     activeOpacity={0.85}
                     style={{
-                      backgroundColor: "#262626",
+                      backgroundColor: "#6D28D9",
                       paddingHorizontal: 22,
                       paddingVertical: 11,
                       borderRadius: 12,
@@ -8227,7 +8227,7 @@ export default function App() {
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
-          <Text style={{ color: "#555" }}>{activeTab}</Text>
+          <Text style={{ color: "#B8AACB" }}>{activeTab}</Text>
         </View>
       )}
 
@@ -9813,7 +9813,7 @@ export default function App() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
-          <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: "#100B19" }}>
             <View
               style={{
                 flexDirection: "row",
@@ -9821,7 +9821,7 @@ export default function App() {
                 paddingHorizontal: 18,
                 paddingTop: 12,
                 paddingBottom: 16,
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "#100B19",
                 minHeight: 76,
               }}
             >
@@ -9858,7 +9858,7 @@ export default function App() {
                       width: 43,
                       height: 43,
                       borderRadius: 22,
-                      backgroundColor: "#F5F5F5",
+                      backgroundColor: "#21162F",
                       alignItems: "center",
                       justifyContent: "center",
                       overflow: "hidden",
@@ -9890,7 +9890,7 @@ export default function App() {
                     ) : (
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F4EFFA",
                           fontSize: 17,
                           fontWeight: "800",
                         }}
@@ -9905,7 +9905,7 @@ export default function App() {
                       style={{
                         fontSize: 17,
                         fontWeight: "800",
-                        color: "#262626",
+                        color: "#F4EFFA",
                       }}
                     >
                       {messageConversations.find(
@@ -9951,7 +9951,7 @@ export default function App() {
                     <Text
                       numberOfLines={1}
                       style={{
-                        color: "#262626",
+                        color: "#F4EFFA",
                         fontSize: 23,
                         fontWeight: "900",
                         letterSpacing: -0.7,
@@ -10007,7 +10007,7 @@ export default function App() {
                         marginBottom: 8,
                         marginRight: 14,
                         borderRadius: 22,
-                        backgroundColor: "#262626",
+                        backgroundColor: "#6D28D9",
                         gap: 7,
                       }}
                     >
@@ -10021,7 +10021,7 @@ export default function App() {
 
             {!selectedChatUser ? (
               <View
-                style={{ flex: 1, backgroundColor: "#FFFFFF", paddingTop: 12 }}
+                style={{ flex: 1, backgroundColor: "#100B19", paddingTop: 12 }}
               >
                 {chatError ? (
                   <Text
@@ -10043,7 +10043,7 @@ export default function App() {
                     marginBottom: 17,
                     height: 44,
                     borderRadius: 24,
-                    backgroundColor: "#F5F5F5",
+                    backgroundColor: "#21162F",
                   }}
                 >
                   <Ionicons name="search" size={23} color="#737373" />
@@ -10057,7 +10057,7 @@ export default function App() {
                     style={{
                       flex: 1,
                       paddingHorizontal: 13,
-                      color: "#262626",
+                      color: "#F4EFFA",
                       fontSize: 16,
                     }}
                   />
@@ -10079,7 +10079,7 @@ export default function App() {
                   <TouchableOpacity onPress={() => setChatSearchQuery("")}>
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#F4EFFA",
                         fontSize: 16,
                         fontWeight: "800",
                       }}
@@ -10112,7 +10112,7 @@ export default function App() {
                         width: 68,
                         height: 68,
                         borderRadius: 34,
-                        backgroundColor: "#FFFFFF",
+                        backgroundColor: "#100B19",
                         borderWidth: 2,
                         borderColor: ownNote ? "#C13584" : "#D8D8D8",
                         alignItems: "center",
@@ -10143,9 +10143,9 @@ export default function App() {
                             paddingHorizontal: 7,
                             paddingVertical: 5,
                             borderRadius: 12,
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "#100B19",
                             borderWidth: 1,
-                            borderColor: "#E5E5E5",
+                            borderColor: "#49345F",
                             alignItems: "center",
                             justifyContent: "center",
                             zIndex: 2,
@@ -10154,7 +10154,7 @@ export default function App() {
                           <Text
                             numberOfLines={2}
                             style={{
-                              color: "#262626",
+                              color: "#F4EFFA",
                               fontSize: 9,
                               textAlign: "center",
                             }}
@@ -10171,7 +10171,7 @@ export default function App() {
                           width: 24,
                           height: 24,
                           borderRadius: 12,
-                          backgroundColor: "#262626",
+                          backgroundColor: "#6D28D9",
                           alignItems: "center",
                           justifyContent: "center",
                           borderWidth: 2,
@@ -10183,7 +10183,7 @@ export default function App() {
                     </View>
                     <Text
                       numberOfLines={1}
-                      style={{ color: "#262626", fontSize: 12, marginTop: 7 }}
+                      style={{ color: "#F4EFFA", fontSize: 12, marginTop: 7 }}
                     >
                       Your note
                     </Text>
@@ -10199,9 +10199,9 @@ export default function App() {
                           width: 68,
                           height: 68,
                           borderRadius: 34,
-                          backgroundColor: "#FFFFFF",
+                          backgroundColor: "#100B19",
                           borderWidth: 2,
-                          borderColor: "#C13584",
+                          borderColor: "#D8B86A",
                           alignItems: "center",
                           justifyContent: "center",
                           overflow: "visible",
@@ -10219,7 +10219,7 @@ export default function App() {
                         ) : (
                           <Text
                             style={{
-                              color: "#262626",
+                              color: "#F4EFFA",
                               fontSize: 25,
                               fontWeight: "800",
                             }}
@@ -10239,9 +10239,9 @@ export default function App() {
                             paddingHorizontal: 7,
                             paddingVertical: 5,
                             borderRadius: 12,
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "#100B19",
                             borderWidth: 1,
-                            borderColor: "#E5E5E5",
+                            borderColor: "#49345F",
                             alignItems: "center",
                             justifyContent: "center",
                             zIndex: 2,
@@ -10250,7 +10250,7 @@ export default function App() {
                           <Text
                             numberOfLines={2}
                             style={{
-                              color: "#262626",
+                              color: "#F4EFFA",
                               fontSize: 9,
                               textAlign: "center",
                             }}
@@ -10261,7 +10261,7 @@ export default function App() {
                       </View>
                       <Text
                         numberOfLines={1}
-                        style={{ color: "#262626", fontSize: 12, marginTop: 7 }}
+                        style={{ color: "#F4EFFA", fontSize: 12, marginTop: 7 }}
                       >
                         {note.displayName || note.username}
                       </Text>
@@ -10312,12 +10312,12 @@ export default function App() {
                       marginBottom: 12,
                       padding: 16,
                       borderRadius: 16,
-                      backgroundColor: "#FFFFFF",
+                      backgroundColor: "#100B19",
                     }}
                   >
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#F4EFFA",
                         fontSize: 14,
                         fontWeight: "800",
                         marginBottom: 10,
@@ -10329,7 +10329,7 @@ export default function App() {
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        backgroundColor: "#F2F2F2",
+                        backgroundColor: "#21162F",
                         borderRadius: 22,
                         paddingHorizontal: 13,
                       }}
@@ -10351,7 +10351,7 @@ export default function App() {
                           flex: 1,
                           paddingHorizontal: 10,
                           paddingVertical: 12,
-                          color: "#262626",
+                          color: "#F4EFFA",
                         }}
                       />
                       {newChatUsername ? (
@@ -10367,7 +10367,7 @@ export default function App() {
                       ) : null}
                     </View>
                     {chatPeopleBusy ? (
-                      <Text style={{ color: "#8E8E93", padding: 10 }}>
+                      <Text style={{ color: "#A997B8", padding: 10 }}>
                         Searching people...
                       </Text>
                     ) : null}
@@ -10397,7 +10397,7 @@ export default function App() {
                             width: 42,
                             height: 42,
                             borderRadius: 22,
-                            backgroundColor: "#F2F2F2",
+                            backgroundColor: "#21162F",
                             alignItems: "center",
                             justifyContent: "center",
                             overflow: "hidden",
@@ -10418,7 +10418,7 @@ export default function App() {
                             />
                           ) : (
                             <Text
-                              style={{ color: "#262626", fontWeight: "800" }}
+                              style={{ color: "#F4EFFA", fontWeight: "800" }}
                             >
                               {String(person.username || "?")
                                 .slice(0, 1)
@@ -10427,10 +10427,10 @@ export default function App() {
                           )}
                         </View>
                         <View style={{ flex: 1 }}>
-                          <Text style={{ color: "#262626", fontWeight: "800" }}>
+                          <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>
                             {person.displayName || person.username}
                           </Text>
-                          <Text style={{ color: "#737373", fontSize: 13 }}>
+                          <Text style={{ color: "#B8AACB", fontSize: 13 }}>
                             @{person.username}
                           </Text>
                         </View>
@@ -10442,7 +10442,7 @@ export default function App() {
                     chatPeopleResults.length === 0 ? (
                       <Text
                         style={{
-                          color: "#8E8E93",
+                          color: "#A997B8",
                           textAlign: "center",
                           padding: 12,
                         }}
@@ -10456,7 +10456,7 @@ export default function App() {
                 {chatBusy ? (
                   <Text
                     style={{
-                      color: "#737373",
+                      color: "#B8AACB",
                       paddingHorizontal: 20,
                       paddingVertical: 8,
                     }}
@@ -10514,7 +10514,7 @@ export default function App() {
                               width: 56,
                               height: 56,
                               borderRadius: 28,
-                              backgroundColor: "#F2F2F2",
+                              backgroundColor: "#21162F",
                               alignItems: "center",
                               justifyContent: "center",
                               overflow: "hidden",
@@ -10541,7 +10541,7 @@ export default function App() {
                             ) : (
                               <Text
                                 style={{
-                                  color: "#262626",
+                                  color: "#F4EFFA",
                                   fontSize: 22,
                                   fontWeight: "800",
                                 }}
@@ -10554,7 +10554,7 @@ export default function App() {
                             <Text
                               numberOfLines={1}
                               style={{
-                                color: "#262626",
+                                color: "#F4EFFA",
                                 fontSize: 15,
                                 fontWeight: "700",
                               }}
@@ -10564,7 +10564,7 @@ export default function App() {
                             <Text
                               numberOfLines={1}
                               style={{
-                                color: "#737373",
+                                color: "#B8AACB",
                                 marginTop: 3,
                                 fontSize: 12,
                               }}
@@ -10586,7 +10586,7 @@ export default function App() {
                           <View
                             style={{ alignItems: "flex-end", minWidth: 35 }}
                           >
-                            <Text style={{ color: "#737373", fontSize: 13 }}>
+                            <Text style={{ color: "#B8AACB", fontSize: 13 }}>
                               {conversation.lastMessageAt
                                 ? (() => {
                                     const date = new Date(
@@ -10615,7 +10615,7 @@ export default function App() {
                                   minWidth: 20,
                                   height: 20,
                                   borderRadius: 10,
-                                  backgroundColor: "#262626",
+                                  backgroundColor: "#6D28D9",
                                   alignItems: "center",
                                   justifyContent: "center",
                                   paddingHorizontal: 5,
@@ -10642,7 +10642,7 @@ export default function App() {
                   messageConversations.length === 0 ? (
                     <Text
                       style={{
-                        color: "#737373",
+                        color: "#B8AACB",
                         textAlign: "center",
                         padding: 28,
                       }}
@@ -10952,7 +10952,7 @@ export default function App() {
                               borderRadius: 15,
                               marginLeft: 7,
                               marginBottom: 2,
-                              backgroundColor: "#F5F5F5",
+                              backgroundColor: "#21162F",
                               borderWidth: 1,
                               borderColor: "#EFEFEF",
                               alignItems: "center",
@@ -10972,7 +10972,7 @@ export default function App() {
                             ) : (
                               <Text
                                 style={{
-                                  color: "#262626",
+                                  color: "#F4EFFA",
                                   fontSize: 12,
                                   fontWeight: "800",
                                 }}
@@ -10990,7 +10990,7 @@ export default function App() {
                   {!chatBusy && directMessages.length === 0 && !chatError ? (
                     <Text
                       style={{
-                        color: "#737373",
+                        color: "#B8AACB",
                         textAlign: "center",
                         paddingHorizontal: 24,
                         paddingVertical: 44,
@@ -11005,7 +11005,7 @@ export default function App() {
                 {chatPeerTyping ? (
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F4EFFA",
                       fontSize: 12,
                       fontWeight: "700",
                       paddingHorizontal: 18,
@@ -11023,15 +11023,15 @@ export default function App() {
                       marginBottom: 3,
                       padding: 15,
                       borderRadius: 18,
-                      backgroundColor: "#F5F5F5",
+                      backgroundColor: "#21162F",
                       borderWidth: 1,
-                      borderColor: "#E5E5E5",
+                      borderColor: "#49345F",
                       elevation: 2,
                     }}
                   >
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#F4EFFA",
                         fontSize: 12,
                         fontWeight: "700",
                         marginBottom: 9,
@@ -11058,7 +11058,7 @@ export default function App() {
                           paddingHorizontal: 17,
                           paddingVertical: 10,
                           borderRadius: 20,
-                          backgroundColor: "#262626",
+                          backgroundColor: "#6D28D9",
                           elevation: 1,
                         }}
                       >
@@ -11104,7 +11104,7 @@ export default function App() {
                       >
                         <Text
                           style={{
-                            color: "#737373",
+                            color: "#B8AACB",
                             fontWeight: "700",
                             fontSize: 12,
                           }}
@@ -11124,9 +11124,9 @@ export default function App() {
                       paddingHorizontal: 14,
                       paddingVertical: 12,
                       borderRadius: 16,
-                      backgroundColor: "#F5F5F5",
+                      backgroundColor: "#21162F",
                       borderWidth: 1,
-                      borderColor: "#E5E5E5",
+                      borderColor: "#49345F",
                       flexDirection: "row",
                       alignItems: "center",
                       gap: 12,
@@ -11135,7 +11135,7 @@ export default function App() {
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F4EFFA",
                           fontSize: 11,
                           fontWeight: "800",
                         }}
@@ -11144,7 +11144,7 @@ export default function App() {
                       </Text>
                       <Text
                         numberOfLines={1}
-                        style={{ color: "#737373", fontSize: 12, marginTop: 4 }}
+                        style={{ color: "#B8AACB", fontSize: 12, marginTop: 4 }}
                       >
                         {chatReplyTo.text ||
                           (chatReplyTo.imageUrl ? "Photo" : "Message")}
@@ -11182,12 +11182,12 @@ export default function App() {
                       <View style={{
                         marginHorizontal: 14, marginTop: 10, marginBottom: 8, padding: 11,
                         flexDirection: "row", alignItems: "center", gap: 13,
-                        backgroundColor: "#FFFFFF", borderRadius: 18,
-                        borderWidth: 1, borderColor: "#E5E5E5", elevation: 2,
+                        backgroundColor: "#100B19", borderRadius: 18,
+                        borderWidth: 1, borderColor: "#49345F", elevation: 2,
                       }}>
                         <View style={{
                           width: 66, height: 66, borderRadius: 13, overflow: "hidden",
-                          backgroundColor: "#F2F2F2", alignItems: "center", justifyContent: "center",
+                          backgroundColor: "#21162F", alignItems: "center", justifyContent: "center",
                         }}>
                           {isPhoto ? (
                             <Image source={{ uri: chatMediaDraft.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
@@ -11196,15 +11196,15 @@ export default function App() {
                           )}
                         </View>
                         <View style={{ flex: 1, justifyContent: "center", gap: 5 }}>
-                          <Text style={{ color: "#262626", fontSize: 14, fontWeight: "800" }}>
+                          <Text style={{ color: "#F4EFFA", fontSize: 14, fontWeight: "800" }}>
                             {isPhoto ? "Photo attached" : isVideo ? "Video attached" : isAudio ? "Voice message attached" : "Document attached"}
                           </Text>
-                          <Text numberOfLines={2} style={{ color: "#737373", fontSize: 11, fontWeight: "500" }}>
+                          <Text numberOfLines={2} style={{ color: "#B8AACB", fontSize: 11, fontWeight: "500" }}>
                             {draftName} · Ready to share
                           </Text>
                         </View>
                         <TouchableOpacity onPress={() => setChatMediaDraft(null)} accessibilityLabel="Remove attachment"
-                          style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: "#F5F5F5" }}>
+                          style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: "#21162F" }}>
                           <Ionicons name="close" size={19} color="#B42318" />
                         </TouchableOpacity>
                       </View>
@@ -11218,9 +11218,9 @@ export default function App() {
                         paddingHorizontal: 16,
                         paddingVertical: 14,
                         gap: 14,
-                        backgroundColor: "#F5F5F5",
+                        backgroundColor: "#21162F",
                         borderTopWidth: 1,
-                        borderTopColor: "#EFEFEF",
+                        borderTopColor: "#49345F",
                       }}
                     >
                       {[
@@ -11249,7 +11249,7 @@ export default function App() {
                             height: 36,
                             alignItems: "center",
                             justifyContent: "center",
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "#100B19",
                             borderRadius: 12,
                           }}
                         >
@@ -11265,8 +11265,8 @@ export default function App() {
                       paddingHorizontal: 12,
                       paddingVertical: 9,
                       borderTopWidth: 1,
-                      borderTopColor: "#EFEFEF",
-                      backgroundColor: "#FFFFFF",
+                      borderTopColor: "#49345F",
+                      backgroundColor: "#100B19",
                       gap: 11,
                       elevation: 7,
                     }}
@@ -11321,13 +11321,13 @@ export default function App() {
                       style={{
                         flex: 1,
                         maxHeight: 110,
-                        backgroundColor: "#F2F2F2",
+                        backgroundColor: "#21162F",
                         borderWidth: 1,
-                        borderColor: "#E5E5E5",
+                        borderColor: "#49345F",
                         borderRadius: 25,
                         paddingHorizontal: 18,
                         paddingVertical: 13,
-                        color: "#262626",
+                        color: "#F4EFFA",
                         fontSize: 15,
                       }}
                     />
@@ -11414,7 +11414,7 @@ export default function App() {
           >
             <View
               style={{
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "#100B19",
                 borderRadius: 20,
                 padding: 20,
               }}
@@ -11423,7 +11423,7 @@ export default function App() {
                 style={{
                   fontSize: 19,
                   fontWeight: "700",
-                  color: "#262626",
+                  color: "#F4EFFA",
                   marginBottom: 14,
                 }}
               >
@@ -11440,16 +11440,16 @@ export default function App() {
                 style={{
                   minHeight: 90,
                   borderWidth: 1,
-                  borderColor: "#E5E5E5",
+                  borderColor: "#49345F",
                   borderRadius: 12,
                   padding: 12,
-                  color: "#262626",
+                  color: "#F4EFFA",
                   fontSize: 16,
                   textAlignVertical: "top",
                 }}
               />
               <Text
-                style={{ color: "#737373", textAlign: "right", marginTop: 6 }}
+                style={{ color: "#B8AACB", textAlign: "right", marginTop: 6 }}
               >
                 {noteDraft.length}/60
               </Text>
@@ -11462,7 +11462,7 @@ export default function App() {
                 onPress={submitUserNote}
                 disabled={!noteDraft.trim() || noteBusy}
                 style={{
-                  backgroundColor: "#262626",
+                  backgroundColor: "#6D28D9",
                   borderRadius: 10,
                   paddingVertical: 12,
                   alignItems: "center",
@@ -11489,7 +11489,7 @@ export default function App() {
                 onPress={() => setNoteComposerOpen(false)}
                 style={{ paddingVertical: 10, alignItems: "center" }}
               >
-                <Text style={{ color: "#737373", fontWeight: "600" }}>
+                <Text style={{ color: "#B8AACB", fontWeight: "600" }}>
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -11518,7 +11518,7 @@ export default function App() {
             activeOpacity={1}
             onPress={() => {}}
             style={{
-              backgroundColor: "#FFFFFF",
+              backgroundColor: "#100B19",
               borderRadius: 20,
               padding: 22,
             }}
@@ -11527,13 +11527,13 @@ export default function App() {
               style={{
                 fontSize: 16,
                 fontWeight: "700",
-                color: "#262626",
+                color: "#F4EFFA",
                 marginBottom: 14,
               }}
             >
               {noteViewer?.displayName || noteViewer?.username || "Note"}
             </Text>
-            <Text style={{ fontSize: 18, color: "#262626", lineHeight: 26 }}>
+            <Text style={{ fontSize: 18, color: "#F4EFFA", lineHeight: 26 }}>
               {noteViewer?.text || ""}
             </Text>
             <TouchableOpacity
@@ -11545,7 +11545,7 @@ export default function App() {
                 paddingHorizontal: 14,
               }}
             >
-              <Text style={{ color: "#262626", fontWeight: "700" }}>Close</Text>
+              <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>Close</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
