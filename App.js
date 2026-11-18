@@ -1376,6 +1376,7 @@ function PostCard({
             style={{
               flex: 1,
               justifyContent: "flex-end",
+              paddingBottom: Platform.OS === "android" ? 38 : 0,
               backgroundColor: "rgba(0,0,0,0.35)",
             }}
           >
@@ -1694,6 +1695,7 @@ function PostDetailActions({ post, authSession }) {
             style={{
               flex: 1,
               justifyContent: "flex-end",
+              paddingBottom: Platform.OS === "android" ? 38 : 0,
               backgroundColor: "rgba(0,0,0,0.55)",
             }}
           >
@@ -5426,7 +5428,7 @@ export default function App() {
           setRecordedPhoto(null);
         }}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#090909" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#090909", paddingBottom: Platform.OS === "android" ? 28 : 0 }}>
           <View
             style={{
               flexDirection: "row",
@@ -8714,6 +8716,7 @@ export default function App() {
             flex: 1,
             backgroundColor: "rgba(5, 2, 12, 0.78)",
             justifyContent: "flex-end",
+            paddingBottom: Platform.OS === "android" ? 38 : 0,
           }}
         >
           <View
@@ -9266,7 +9269,7 @@ export default function App() {
         animationType="slide"
         onRequestClose={() => setAboutAppOpen(false)}
       >
-        <View style={{ flex: 1, backgroundColor: "rgba(5, 2, 12, 0.82)", justifyContent: "flex-end" }}>
+        <View style={{ flex: 1, backgroundColor: "rgba(5, 2, 12, 0.82)", justifyContent: "flex-end", paddingBottom: Platform.OS === "android" ? 38 : 0 }}>
           <View style={{ backgroundColor: "#100B19", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#49345F", paddingHorizontal: 22, paddingTop: 26, paddingBottom: 30 }}>
             <View style={{ alignItems: "center", marginBottom: 20 }}>
               <View style={{ width: 62, height: 62, borderRadius: 20, backgroundColor: "#21162F", borderWidth: 1, borderColor: "#D8B86A", alignItems: "center", justifyContent: "center", marginBottom: 13 }}>
@@ -9429,6 +9432,7 @@ export default function App() {
               backgroundColor: "rgba(5, 2, 12, 0.78)",
               justifyContent: "flex-end",
               padding: 20,
+              paddingBottom: Platform.OS === "android" ? 56 : 20,
             }}
           >
             <View
@@ -9625,7 +9629,7 @@ export default function App() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
-          <SafeAreaView style={{ flex: 1, backgroundColor: "#100B19" }}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: "#100B19", paddingBottom: Platform.OS === "android" ? 28 : 0 }}>
             <View
               style={{
                 flexDirection: "row",
@@ -11569,6 +11573,7 @@ export default function App() {
             flex: 1,
             backgroundColor: "rgba(5, 2, 12, 0.78)",
             justifyContent: "flex-end",
+            paddingBottom: Platform.OS === "android" ? 38 : 0,
           }}
         >
           <View
@@ -11736,6 +11741,7 @@ export default function App() {
           style={{
             flex: 1,
             justifyContent: "flex-end",
+            paddingBottom: Platform.OS === "android" ? 38 : 0,
             backgroundColor: "rgba(0,0,0,0.38)",
           }}
         >
