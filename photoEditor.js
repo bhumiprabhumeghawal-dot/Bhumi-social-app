@@ -17,6 +17,18 @@ export const POST_PHOTO_FILTERS = [
   { name: 'Perpetua', value: 'colorbalance=rs=-0.025:gs=0.025:bs=0.06,eq=contrast=1.02:saturation=0.92', overlay: '#4B9A9A', opacity: 0.09 },
   { name: 'Amaro', value: 'colorbalance=rs=0.07:gs=0.02:bs=-0.035,eq=brightness=0.045:contrast=0.96:saturation=1.08', overlay: '#D9A66D', opacity: 0.10 },
   { name: 'Valencia', value: 'colorbalance=rs=0.09:gs=0.025:bs=-0.055,eq=brightness=0.025:contrast=0.96:saturation=0.92', overlay: '#D98D55', opacity: 0.11 },
+  { name: 'Inkwell', value: 'hue=s=0,eq=contrast=1.18:brightness=0.015', overlay: '#30343B', opacity: 0.08 },
+  { name: 'Sierra', value: 'colorbalance=rs=0.045:gs=0.02:bs=-0.02,eq=contrast=0.94:saturation=0.9', overlay: '#D4B58B', opacity: 0.09 },
+  { name: 'Hefe', value: 'eq=contrast=1.22:saturation=1.2:brightness=-0.015', overlay: '#B98A58', opacity: 0.10 },
+  { name: 'Nashville', value: 'colorbalance=rs=0.09:gs=0.025:bs=-0.07,eq=contrast=0.92:saturation=0.88', overlay: '#D9B28C', opacity: 0.12 },
+  { name: 'Brooklyn', value: 'colorbalance=rs=-0.025:gs=0.025:bs=0.07,eq=contrast=0.9:saturation=0.86', overlay: '#9BB6C8', opacity: 0.10 },
+  { name: 'Maven', value: 'eq=brightness=0.025:contrast=0.92:saturation=0.82', overlay: '#B9A1A0', opacity: 0.08 },
+  { name: 'Rise', value: 'colorbalance=rs=0.07:gs=0.02:bs=-0.035,eq=brightness=0.045:contrast=0.9:saturation=0.9', overlay: '#E1B28B', opacity: 0.10 },
+  { name: 'X-Pro', value: 'eq=contrast=1.3:saturation=1.18:brightness=-0.02', overlay: '#405B72', opacity: 0.08 },
+  { name: 'Lo-Fi', value: 'eq=contrast=1.35:saturation=1.3', overlay: '#A66B48', opacity: 0.07 },
+  { name: 'Soft Glow', value: 'gblur=sigma=0.25,eq=brightness=0.035:contrast=0.92:saturation=0.96', overlay: '#E4C9B8', opacity: 0.08 },
+  { name: 'Arctic', value: 'colorbalance=rs=-0.08:gs=0.015:bs=0.12,eq=contrast=1.06:saturation=0.94', overlay: '#8DB5D4', opacity: 0.08 },
+  { name: 'Sunset', value: 'colorbalance=rs=0.13:gs=0.035:bs=-0.12,eq=brightness=0.025:saturation=1.18', overlay: '#F09A67', opacity: 0.10 },
 ];
 
 export function getPostPhotoFilter(index) {
