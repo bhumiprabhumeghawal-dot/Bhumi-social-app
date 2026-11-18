@@ -221,7 +221,10 @@ async function saveCachedContent(type, items) {
   }
 }
 
-export async function loadContent(type) {
+const CONTENT_REQUESTS_IN_FLIGHT = new Map();
+const UPLOAD_REQUESTS_IN_FLIGHT = new Map();
+
+async function loadContentOnce(type) {
   const response = await fetch(`${API_BASE_URL}/api/${type}`);
   if (!response.ok) {
     throw new Error(`Could not load ${type}`);
@@ -316,7 +319,22 @@ export async function loadContent(type) {
   void saveCachedContent(type, normalizedItems);
   return normalizedItems;
 }
-export async function uploadContent(type, asset, caption = '', groupId = '') {
+export function loadContent(type) {
+  if (!['posts', 'stories', 'reels'].includes(type)) {
+    return loadContentOnce(type);
+  }
+  const pending = CONTENT_REQUESTS_IN_FLIGHT.get(type);
+  if (pending) return pending;
+  const request = loadContentOnce(type).finally(() => {
+    if (CONTENT_REQUESTS_IN_FLIGHT.get(type) === request) {
+      CONTENT_REQUESTS_IN_FLIGHT.delete(type);
+    }
+  });
+  CONTENT_REQUESTS_IN_FLIGHT.set(type, request);
+  return request;
+}
+
+async function uploadContentOnce(type, asset, caption = '', groupId = '') {
   const extension = (
     asset.fileName || asset.uri || ''
   ).split('.').pop().split('?')[0].toLowerCase();
@@ -381,6 +399,22 @@ export async function uploadContent(type, asset, caption = '', groupId = '') {
     uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
     likes: '0',
   };
+}
+
+
+export function uploadContent(type, asset, caption = '', groupId = '') {
+  const uri = String(asset?.uri || '');
+  const key = [type, uri, groupId, caption].join('|');
+  const pending = UPLOAD_REQUESTS_IN_FLIGHT.get(key);
+  if (pending) return pending;
+
+  const request = uploadContentOnce(type, asset, caption, groupId).finally(() => {
+    if (UPLOAD_REQUESTS_IN_FLIGHT.get(key) === request) {
+      UPLOAD_REQUESTS_IN_FLIGHT.delete(key);
+    }
+  });
+  UPLOAD_REQUESTS_IN_FLIGHT.set(key, request);
+  return request;
 }
 
 
