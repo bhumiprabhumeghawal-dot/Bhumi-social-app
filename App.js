@@ -2455,6 +2455,7 @@ export default function App() {
   const [chatError, setChatError] = React.useState("");
   const [chatSearchQuery, setChatSearchQuery] = React.useState("");
   const [chatUnreadOnly, setChatUnreadOnly] = React.useState(false);
+  const [chatInboxTab, setChatInboxTab] = React.useState("All");
   const [newChatComposerOpen, setNewChatComposerOpen] = React.useState(false);
   const [ownNote, setOwnNote] = React.useState(null);
   const [friendsNotes, setFriendsNotes] = React.useState([]);
@@ -10254,40 +10255,53 @@ export default function App() {
                 </ScrollView>
 
                 <View
-    style={{
-        flexDirection: "row",
-        paddingHorizontal: 18,
-        marginBottom: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: "#49345F",
-    }}
->
-    {["All", "Primary", "General", "Requests"].map((tab, i) => (
-        <View
-            key={tab}
-            style={{
-                flex: 1,
-                minHeight: 43,
-                alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "row",
-                borderBottomWidth: i === 0 ? 2 : 0,
-                borderBottomColor: i === 0 ? "#D8B86A" : "transparent",
-            }}
-        >
-            <Text style={{
-                color: i === 0 ? "#D8B86A" : "#B8AACB",
-                fontSize: 14,
-                fontWeight: i === 0 ? "700" : "600",
-            }}>
-                {tab}
-            </Text>
-            {tab === "Requests" ? (
-                <Ionicons name="chevron-forward" size={15} color="#8E8E93" style={{ marginLeft: 2 }} />
-            ) : null}
-        </View>
-    ))}
-</View>
+                  style={{
+                    flexDirection: "row",
+                    paddingHorizontal: 18,
+                    marginBottom: 10,
+                    borderBottomWidth: 1,
+                    borderBottomColor: "#49345F",
+                  }}
+                >
+                  {["All", "Primary", "General", "Requests"].map((tab) => {
+                    const active = chatInboxTab === tab;
+                    return (
+                      <TouchableOpacity
+                        key={tab}
+                        onPress={() => setChatInboxTab(tab)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: active }}
+                        style={{
+                          flex: 1,
+                          minHeight: 43,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexDirection: "row",
+                          borderBottomWidth: active ? 2 : 0,
+                          borderBottomColor: active ? "#D8B86A" : "transparent",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: active ? "#D8B86A" : "#B8AACB",
+                            fontSize: 14,
+                            fontWeight: active ? "800" : "600",
+                          }}
+                        >
+                          {tab}
+                        </Text>
+                        {tab === "Requests" ? (
+                          <Ionicons
+                            name="chevron-forward"
+                            size={15}
+                            color="#B8AACB"
+                            style={{ marginLeft: 2 }}
+                          />
+                        ) : null}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
 
                 {newChatComposerOpen ? (
                   <View
@@ -10461,6 +10475,13 @@ export default function App() {
                         conversation.user?.username ||
                         "";
                       const term = chatSearchQuery.trim().toLowerCase();
+                      const folder = String(
+                        conversation.folder || conversation.inboxTab || conversation.category || ""
+                      ).toLowerCase();
+                      const requestStatus = String(conversation.requestStatus || "").toLowerCase();
+                      const isRequest = Boolean(conversation.isRequest) || ["pending", "requested"].includes(requestStatus) || folder === "requests";
+                      if (chatInboxTab === "Requests" && !isRequest) return false;
+                      if ((chatInboxTab === "Primary" || chatInboxTab === "General") && folder && folder !== chatInboxTab.toLowerCase()) return false;
                       if (chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
                       return (
                         !term ||
