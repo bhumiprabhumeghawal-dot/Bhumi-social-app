@@ -231,3 +231,67 @@ export async function addMusicToVideo(videoUri, audioUri, options = {}) {
     fileSize: info.size,
   };
 }
+
+
+export const VIDEO_FILTERS = [
+  { name: 'Original', value: '' },
+  { name: 'Vivid', value: 'eq=contrast=1.18:saturation=1.35:brightness=0.02' },
+  { name: 'Cinema', value: 'eq=contrast=1.12:saturation=0.92:brightness=-0.02,colorbalance=rs=0.04:bs=-0.04' },
+  { name: 'Warm', value: 'colorbalance=rs=0.10:gs=0.025:bs=-0.08,eq=saturation=1.08' },
+  { name: 'Cool', value: 'colorbalance=rs=-0.06:gs=0.015:bs=0.10,eq=saturation=1.04' },
+  { name: 'Vintage', value: 'curves=vintage,eq=saturation=0.82:contrast=0.94' },
+  { name: 'B&W', value: 'hue=s=0,eq=contrast=1.12' },
+  { name: 'Dream', value: 'gblur=sigma=0.35,eq=brightness=0.035:saturation=0.9' },
+  { name: 'Golden', value: 'colorbalance=rs=0.12:gs=0.04:bs=-0.10,eq=contrast=1.06:saturation=1.16' },
+  { name: 'Fade', value: 'eq=contrast=0.82:brightness=0.04:saturation=0.82' },
+];
+
+export const VOICE_EFFECTS = [
+  { name: 'Original', value: '' },
+  { name: 'Deep', value: 'asetrate=44100*0.82,aresample=44100,atempo=1.2195' },
+  { name: 'High', value: 'asetrate=44100*1.20,aresample=44100,atempo=0.8333' },
+  { name: 'Echo', value: 'aecho=0.8:0.88:650:0.32' },
+  { name: 'Robot', value: 'highpass=f=250,lowpass=f=3000,aecho=0.8:0.7:45:0.25' },
+  { name: 'Radio', value: 'highpass=f=350,lowpass=f=3000,acompressor=threshold=0.08:ratio=3:attack=10:release=100' },
+];
+
+export async function applyVideoEffects(videoUri, options = {}) {
+  if (!videoUri) throw new Error('Please select a video first.');
+  const filter = VIDEO_FILTERS[clamp(options.videoFilterIndex ?? 0, 0, VIDEO_FILTERS.length - 1)]?.value || '';
+  const voice = VOICE_EFFECTS.find(item => item.name === options.voiceEffect)?.value || '';
+  if (!filter && !voice) return { uri: videoUri, type: 'video', mimeType: 'video/mp4' };
+
+  const inputPath = normalizePath(videoUri);
+  const outputPath = `${FileSystem.cacheDirectory}edited_video_${Date.now()}.mp4`;
+  const media = await getMediaInformation(inputPath);
+  const streams = media?.streams || [];
+  const hasAudio = streams.some(stream => stream.codec_type === 'audio');
+  const videoEncoder = await pickEncoder(['h264_mediacodec', 'libopenh264', 'libx264']);
+  if (!videoEncoder) throw new Error('No supported MP4 video encoder was found.');
+
+  const args = ['-y', '-i', inputPath];
+  if (filter) args.push('-vf', filter);
+  args.push('-map', '0:v:0');
+  if (hasAudio) {
+    args.push('-map', '0:a:0');
+    if (voice) args.push('-af', voice);
+    args.push('-c:a', 'aac', '-b:a', '192k');
+  } else {
+    args.push('-an');
+  }
+  args.push('-c:v', videoEncoder, '-pix_fmt', 'yuv420p', '-movflags', '+faststart', outputPath);
+
+  const result = await execute(args);
+  if (!result.success || result.returnCode !== 0) {
+    throw new Error(`Video editing failed: ${result.output || 'FFmpeg error'}`);
+  }
+  const info = await FileSystem.getInfoAsync(outputPath);
+  if (!info.exists || !info.size) throw new Error('Edited video file was not created.');
+  return {
+    uri: outputPath,
+    fileName: `edited_video_${Date.now()}.mp4`,
+    type: 'video',
+    mimeType: 'video/mp4',
+    fileSize: info.size,
+  };
+}
