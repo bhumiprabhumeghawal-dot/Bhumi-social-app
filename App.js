@@ -2454,6 +2454,7 @@ export default function App() {
   const [chatBusy, setChatBusy] = React.useState(false);
   const [chatError, setChatError] = React.useState("");
   const [chatSearchQuery, setChatSearchQuery] = React.useState("");
+  const [chatUnreadOnly, setChatUnreadOnly] = React.useState(false);
   const [newChatComposerOpen, setNewChatComposerOpen] = React.useState(false);
   const [ownNote, setOwnNote] = React.useState(null);
   const [friendsNotes, setFriendsNotes] = React.useState([]);
@@ -9980,6 +9981,18 @@ export default function App() {
                     />
                   </View>
                   <TouchableOpacity
+                    onPress={() => {
+                      setNewChatComposerOpen(true);
+                      setNewChatUsername("");
+                      setChatPeopleResults([]);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel="New message"
+                    style={{ paddingHorizontal: 9 }}
+                  >
+                    <Ionicons name="create-outline" size={25} color="#D8B86A" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     onPress={closeMessages}
                     style={{ paddingHorizontal: 8 }}
                   >
@@ -9991,36 +10004,6 @@ export default function App() {
                   </TouchableOpacity>
                 </View>
               )}
-              {!selectedChatUser ? (
-                    <TouchableOpacity
-                      onPress={() => {
-                        setNewChatComposerOpen(true);
-                        setNewChatUsername("");
-                        setChatPeopleResults([]);
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel="New message"
-                      style={{
-                        minHeight: 42,
-                        alignSelf: "flex-end",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        paddingHorizontal: 15,
-                        marginTop: 8,
-                        marginBottom: 8,
-                        marginRight: 14,
-                        borderRadius: 22,
-                        backgroundColor: "#6D28D9",
-                        gap: 7,
-                      }}
-                    >
-                      <Ionicons name="create-outline" size={19} color="#FFFFFF" />
-                      <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800" }}>
-                        New Message
-                      </Text>
-                    </TouchableOpacity>
-                  ) : null}
             </View>
 
             {!selectedChatUser ? (
@@ -10042,9 +10025,9 @@ export default function App() {
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
-                    paddingHorizontal: 25,
-                    marginHorizontal: 14,
-                    marginBottom: 17,
+                    paddingHorizontal: 16,
+                    marginHorizontal: 16,
+                    marginBottom: 14,
                     height: 44,
                     borderRadius: 24,
                     backgroundColor: "#21162F",
@@ -10070,29 +10053,26 @@ export default function App() {
                       <Ionicons name="close-circle" size={19} color="#8E8E93" />
                     </TouchableOpacity>
                   ) : null}
-                </View>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "flex-end",
-                    paddingHorizontal: 24,
-                    marginTop: 0,
-                    marginBottom: 14,
-                  }}
-                >
-                  <TouchableOpacity onPress={() => setChatSearchQuery("")}>
-                    <Text
-                      style={{
-                        color: "#F4EFFA",
-                        fontSize: 16,
-                        fontWeight: "800",
-                      }}
-                    >
-                      Filter
-                    </Text>
+                  <TouchableOpacity
+                    onPress={() => setChatUnreadOnly((value) => !value)}
+                    accessibilityRole="button"
+                    accessibilityLabel={chatUnreadOnly ? "Show all messages" : "Show unread messages"}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: chatUnreadOnly ? "#49345F" : "transparent",
+                    }}
+                  >
+                    <Ionicons
+                      name="options-outline"
+                      size={21}
+                      color="#D8B86A"
+                    />
                   </TouchableOpacity>
                 </View>
-
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -10481,6 +10461,7 @@ export default function App() {
                         conversation.user?.username ||
                         "";
                       const term = chatSearchQuery.trim().toLowerCase();
+                      if (chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
                       return (
                         !term ||
                         String(username).toLowerCase().includes(term) ||
@@ -11302,7 +11283,7 @@ export default function App() {
                       accessibilityLabel={isChatRecording ? "Stop voice recording" : "Start voice recording"}
                       style={{ width: 34, height: 40, alignItems: "center", justifyContent: "center" }}
                     >
-                      <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#262626"} />
+                      <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#D8B86A"} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setChatEmojiOpen((v) => !v)}
@@ -11347,8 +11328,8 @@ export default function App() {
                         justifyContent: "center",
                         backgroundColor:
                           chatBusy || isChatRecording || (!chatDraft.trim() && !chatMediaDraft)
-                            ? "#BDBDBD"
-                            : "#262626",
+                            ? "#49345F"
+                            : "#6D28D9",
                         elevation: 3,
                       }}
                     >
@@ -11379,7 +11360,7 @@ export default function App() {
                   <Ionicons
                     name={tab.icon}
                     size={25}
-                    color={activeTab === tab.name ? "#262626" : "#8E8E93"}
+                    color={activeTab === tab.name ? "#D8B86A" : "#8E8E93"}
                   />
                   <Text
                     style={[
