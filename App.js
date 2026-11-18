@@ -61,6 +61,12 @@ import {
   saveBusinessProfile,
   loadBusinessInsights,
   discoverBusinesses,
+  loadBusinessCatalog,
+  createBusinessCatalogItem,
+  deleteBusinessCatalogItem,
+  loadBusinessQuickReplies,
+  createBusinessQuickReply,
+  deleteBusinessQuickReply,
   loadBlockedAccounts,
   unblockAccount,
   loadRestrictedAccounts,
@@ -2994,6 +3000,10 @@ export default function App() {
   const [businessProfileOpen, setBusinessProfileOpen] = React.useState(false);
   const [businessProfileBusy, setBusinessProfileBusy] = React.useState(false);
   const [businessInsights, setBusinessInsights] = React.useState({ contentCount: 0, followers: 0, likes: 0, comments: 0 });
+  const [businessCatalog, setBusinessCatalog] = React.useState([]);
+  const [businessQuickReplies, setBusinessQuickReplies] = React.useState([]);
+  const [catalogDraft, setCatalogDraft] = React.useState({ itemType: "product", title: "", description: "", price: "", category: "" });
+  const [quickReplyDraft, setQuickReplyDraft] = React.useState({ shortcut: "", message: "" });
   const [businessDirectoryOpen, setBusinessDirectoryOpen] = React.useState(false);
   const [businessDirectoryBusy, setBusinessDirectoryBusy] = React.useState(false);
   const [businessDirectoryFilters, setBusinessDirectoryFilters] = React.useState({ city: "", area: "", category: "", q: "" });
@@ -3855,7 +3865,14 @@ export default function App() {
       if (mode === "business") {
         const details = await loadBusinessProfile();
         setBusinessProfile((current) => ({ ...current, ...details }));
-        try { setBusinessInsights(await loadBusinessInsights()); } catch (_) {}
+        try {
+          const [insights, catalog, replies] = await Promise.all([
+            loadBusinessInsights(), loadBusinessCatalog(), loadBusinessQuickReplies(),
+          ]);
+          setBusinessInsights(insights);
+          setBusinessCatalog(catalog);
+          setBusinessQuickReplies(replies);
+        } catch (_) {}
         setBusinessProfileOpen(true);
       } else {
         Alert.alert(
@@ -3894,6 +3911,39 @@ export default function App() {
     }
   };
 
+
+
+  const addBusinessCatalogItem = async () => {
+    if (!catalogDraft.title.trim()) return Alert.alert("Catalog", "Enter a product or service name.");
+    try {
+      const item = await createBusinessCatalogItem(catalogDraft);
+      setBusinessCatalog((items) => [item, ...items]);
+      setCatalogDraft({ itemType: "product", title: "", description: "", price: "", category: "" });
+    } catch (error) { Alert.alert("Catalog", error.message || "Could not save item."); }
+  };
+
+  const removeBusinessCatalogItem = async (id) => {
+    try {
+      await deleteBusinessCatalogItem(id);
+      setBusinessCatalog((items) => items.filter((item) => item.id !== id));
+    } catch (error) { Alert.alert("Catalog", error.message || "Could not delete item."); }
+  };
+
+  const addBusinessQuickReply = async () => {
+    if (!quickReplyDraft.shortcut.trim() || !quickReplyDraft.message.trim()) return Alert.alert("Quick Replies", "Enter a shortcut and message.");
+    try {
+      const item = await createBusinessQuickReply(quickReplyDraft);
+      setBusinessQuickReplies((items) => [item, ...items]);
+      setQuickReplyDraft({ shortcut: "", message: "" });
+    } catch (error) { Alert.alert("Quick Replies", error.message || "Could not save reply."); }
+  };
+
+  const removeBusinessQuickReply = async (id) => {
+    try {
+      await deleteBusinessQuickReply(id);
+      setBusinessQuickReplies((items) => items.filter((item) => item.id !== id));
+    } catch (error) { Alert.alert("Quick Replies", error.message || "Could not delete reply."); }
+  };
 
   const searchBusinessDirectory = async () => {
     setBusinessDirectoryBusy(true);
@@ -9615,6 +9665,57 @@ export default function App() {
                   />
                 </View>
               ))}
+
+              <View style={{ borderTopWidth: 1, borderTopColor: "#49345F", paddingTop: 15, marginBottom: 15 }}>
+                <Text style={{ color: "#D8B86A", fontSize: 16, fontWeight: "900", marginBottom: 9 }}>Product & Service Catalogue</Text>
+                <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
+                  {["product", "service"].map((type) => (
+                    <TouchableOpacity key={type} onPress={() => setCatalogDraft((old) => ({ ...old, itemType: type }))} style={{ paddingHorizontal: 13, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: catalogDraft.itemType === type ? "#D8B86A" : "#49345F", backgroundColor: catalogDraft.itemType === type ? "#382A1A" : "#171020" }}>
+                      <Text style={{ color: catalogDraft.itemType === type ? "#D8B86A" : "#B8AACB", fontWeight: "800" }}>{type === "product" ? "Product" : "Service"}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                {[
+                  ["title", "Item name", "Name of product or service"],
+                  ["category", "Category", "e.g. Clothing, Repair, Beauty"],
+                  ["price", "Price / Starting price", "e.g. ₹499 or Contact for price"],
+                  ["description", "Description", "Details, benefits and availability"],
+                ].map(([key, label, placeholder]) => (
+                  <View key={key} style={{ marginBottom: 7 }}>
+                    <Text style={{ color: "#B8AACB", fontSize: 11, marginBottom: 3 }}>{label}</Text>
+                    <TextInput value={catalogDraft[key]} onChangeText={(value) => setCatalogDraft((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#776987" multiline={key === "description"} style={{ color: "#F4EFFA", backgroundColor: "#171020", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, padding: 10, minHeight: key === "description" ? 60 : 40 }} />
+                  </View>
+                ))}
+                <TouchableOpacity onPress={addBusinessCatalogItem} style={{ backgroundColor: "#D8B86A", borderRadius: 10, padding: 11, alignItems: "center" }}>
+                  <Text style={{ color: "#1A1028", fontWeight: "900" }}>Add to Catalogue</Text>
+                </TouchableOpacity>
+                {businessCatalog.map((item) => (
+                  <View key={item.id} style={{ flexDirection: "row", alignItems: "center", padding: 10, borderBottomWidth: 1, borderBottomColor: "#352443" }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>{item.title}</Text>
+                      <Text style={{ color: "#B8AACB", fontSize: 11 }}>{item.item_type} · {item.price || "Price on request"}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => removeBusinessCatalogItem(item.id)}><Ionicons name="trash-outline" size={18} color="#D8B86A" /></TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+              <View style={{ borderTopWidth: 1, borderTopColor: "#49345F", paddingTop: 15, marginBottom: 15 }}>
+                <Text style={{ color: "#D8B86A", fontSize: 16, fontWeight: "900", marginBottom: 8 }}>Customer Quick Replies</Text>
+                <TextInput value={quickReplyDraft.shortcut} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, shortcut: value }))} placeholder="Shortcut e.g. welcome" placeholderTextColor="#776987" style={{ color: "#F4EFFA", backgroundColor: "#171020", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, padding: 10, marginBottom: 7 }} />
+                <TextInput value={quickReplyDraft.message} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, message: value }))} placeholder="Saved reply message..." placeholderTextColor="#776987" multiline style={{ color: "#F4EFFA", backgroundColor: "#171020", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, padding: 10, minHeight: 62, marginBottom: 7 }} />
+                <TouchableOpacity onPress={addBusinessQuickReply} style={{ backgroundColor: "#382A1A", borderWidth: 1, borderColor: "#80602E", borderRadius: 10, padding: 11, alignItems: "center" }}>
+                  <Text style={{ color: "#D8B86A", fontWeight: "900" }}>Save Quick Reply</Text>
+                </TouchableOpacity>
+                {businessQuickReplies.map((reply) => (
+                  <View key={reply.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "#352443" }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: "#D8B86A", fontWeight: "800" }}>/{reply.shortcut}</Text>
+                      <Text numberOfLines={2} style={{ color: "#B8AACB", fontSize: 11 }}>{reply.message}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => removeBusinessQuickReply(reply.id)}><Ionicons name="trash-outline" size={18} color="#D8B86A" /></TouchableOpacity>
+                  </View>
+                ))}
+              </View>
               <View style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#80602E", borderRadius: 14, padding: 12, marginTop: 2, marginBottom: 14 }}>
                 <Text style={{ color: "#D8B86A", fontWeight: "800" }}>Area-wise Business Discovery</Text>
                 <Text style={{ color: "#B8AACB", fontSize: 12, marginTop: 4 }}>Customers can discover your business by city, locality, category and service areas.</Text>
