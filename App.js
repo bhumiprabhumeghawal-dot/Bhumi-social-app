@@ -11116,7 +11116,7 @@ export default function App() {
                                 fontWeight: "700",
                               }}
                             >
-                              {conversation.displayName || username}
+                              {chatFriendPrefs["messages.chatName." + String(username).toLowerCase()] || conversation.displayName || username}
                               {chatFriendPrefs["messages.favorite." + String(username).toLowerCase()] ? "  ★" : ""}
                               {chatFriendPrefs["messages.closeFriend." + String(username).toLowerCase()] ? "  ♥" : ""}
                             </Text>
