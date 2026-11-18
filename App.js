@@ -3950,7 +3950,7 @@ export default function App() {
     }
   };
 
-  const refreshContent = React.useCallback(async () => {
+  const refreshContent = React.useCallback(async (forceRefresh = false) => {
     let freshLoaded = false;
 
     const cachePromise = Promise.all([
@@ -3977,9 +3977,9 @@ export default function App() {
 
     try {
       const [p, s, r] = await Promise.all([
-        loadContent("posts"),
-        loadContent("stories"),
-        loadContent("reels"),
+        loadContent("posts", { force: forceRefresh }),
+        loadContent("stories", { force: forceRefresh }),
+        loadContent("reels", { force: forceRefresh }),
       ]);
 
       freshLoaded = true;
@@ -4358,7 +4358,7 @@ export default function App() {
       setMusicVolume(0.8);
       setKeepOriginalAudio(true);
       if (kind === "posts") {
-        await refreshContent();
+        await refreshContent(true);
         setActiveTab("Home");
       } else if (kind === "stories") {
         setServerStories((current) => [
