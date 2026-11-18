@@ -36,7 +36,17 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
       setName(String(prefs[keyFor("chatName", username)] || ""));
       setTheme(String(prefs[keyFor("chatTheme", username)] || "royal"));
       setFavorite(!!prefs[keyFor("favorite", username)]);
-      setCloseFriend(!!prefs[keyFor("closeFriend", username)]);
+      const loaded = {
+        name: String(prefs[keyFor("chatName", username)] || ""),
+        theme: String(prefs[keyFor("chatTheme", username)] || "royal"),
+        favorite: !!prefs[keyFor("favorite", username)],
+        closeFriend: !!prefs[keyFor("closeFriend", username)],
+      };
+      setName(loaded.name);
+      setTheme(loaded.theme);
+      setFavorite(loaded.favorite);
+      setCloseFriend(loaded.closeFriend);
+      onSaved?.(loaded);
     }).catch((e) => {
       if (alive) setError(e?.message || "Chat preferences load नहीं हो सके।");
     }).finally(() => { if (alive) setBusy(false); });
