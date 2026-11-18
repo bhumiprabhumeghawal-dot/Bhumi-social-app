@@ -418,6 +418,45 @@ export async function loadProfile(username = 'you', viewer = 'you') {
   return data;
 }
 
+export async function loadProfilePosts(username, viewer = '', pageSize = 100) {
+  const normalizedUsername = String(username || '').trim().replace(/^@/, '');
+  if (!normalizedUsername) throw new Error('यूज़रनेम नहीं मिला।');
+
+  const limit = Math.min(Math.max(Number(pageSize) || 100, 1), 100);
+  const items = [];
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const query = new URLSearchParams({
+      viewer: String(viewer || ''),
+      limit: String(limit),
+      offset: String(offset),
+    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/profile/${encodeURIComponent(normalizedUsername)}/posts?${query.toString()}`
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल पोस्ट लोड नहीं हुई।');
+
+    const pageItems = Array.isArray(data.items) ? data.items : [];
+    items.push(...pageItems);
+    hasMore = Boolean(data.hasMore);
+    offset = Number(data.nextOffset ?? (offset + pageItems.length));
+    if (!pageItems.length) break;
+  }
+
+  return items.map(item => ({
+    ...item,
+    avatarUrl: item.avatarUrl
+      ? (item.avatarUrl.startsWith('http') ? item.avatarUrl : API_BASE_URL + item.avatarUrl)
+      : null,
+    uri: item.mediaUrl
+      ? (item.mediaUrl.startsWith('http') ? item.mediaUrl : API_BASE_URL + item.mediaUrl)
+      : null,
+  }));
+}
+
 export async function updateProfile(username = 'you', changes = {}) {
   const response = await fetch(
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}`,
