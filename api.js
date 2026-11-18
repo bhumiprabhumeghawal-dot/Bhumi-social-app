@@ -1217,3 +1217,61 @@ export async function saveSettingsPreferences(changes) {
   if (!response.ok) throw new Error(data.error || "Could not save settings.");
   return data.preferences || {};
 }
+
+// SOCIALAPP_LIVEKIT_CALL_API_V1
+async function callApi(path, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: await authHeaders({
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers || {}),
+    }),
+  });
+  let data = {};
+  try { data = await response.json(); } catch (_) {}
+  if (!response.ok) {
+    throw new Error(data.error || 'Call request failed. Please try again.');
+  }
+  return data;
+}
+
+export async function createVoiceVideoCall(username, type = 'audio') {
+  const target = String(username || '').trim().replace(/^@/, '');
+  const callType = String(type || '').toLowerCase();
+  if (!target) throw new Error('कॉल करने के लिए यूज़रनेम जरूरी है।');
+  if (!['audio', 'video'].includes(callType)) {
+    throw new Error('कॉल का प्रकार सही नहीं है।');
+  }
+  const data = await callApi('/api/calls', {
+    method: 'POST',
+    body: JSON.stringify({ username: target, type: callType }),
+  });
+  return data.call;
+}
+
+export async function loadPendingCalls() {
+  const data = await callApi('/api/calls/pending');
+  return Array.isArray(data.calls) ? data.calls : [];
+}
+
+export async function respondToCall(callId, action) {
+  const id = String(callId || '').trim();
+  if (!id || !['accept', 'reject', 'end'].includes(action)) {
+    throw new Error('कॉल अनुरोध सही नहीं है।');
+  }
+  const data = await callApi(`/api/calls/${encodeURIComponent(id)}/${action}`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+  return data.call || data;
+}
+
+export async function getCallConnectionToken(callId) {
+  const id = String(callId || '').trim();
+  if (!id) throw new Error('कॉल आईडी नहीं मिली।');
+  return callApi(`/api/calls/${encodeURIComponent(id)}/token`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+}
+
