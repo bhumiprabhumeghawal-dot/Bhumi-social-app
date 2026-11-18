@@ -3929,13 +3929,6 @@ def send_direct_message(username):
         if not user:
             return jsonify({"error": "User not found."}), 404
         target = user["username"]
-        if not _chat_preference(db, current, "messages.typing", True):
-            db.execute("""
-                DELETE FROM direct_message_typing
-                WHERE LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?)
-            """, (current, target))
-            return jsonify({"ok": True, "typing": False})
-
         blocked_pair = db.execute("""
             SELECT 1 FROM people_blocks
             WHERE
@@ -4086,6 +4079,12 @@ def update_chat_typing(username):
             return jsonify({"error": "User not found."}), 404
 
         target = user["username"]
+        if not _chat_preference(db, current, "messages.typing", True):
+            db.execute("""
+                DELETE FROM direct_message_typing
+                WHERE LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?)
+            """, (current, target))
+            return jsonify({"ok": True, "typing": False})
 
         blocked_pair = db.execute("""
             SELECT 1 FROM people_blocks
