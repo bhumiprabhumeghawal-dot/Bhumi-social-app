@@ -598,6 +598,52 @@ export async function saveBusinessProfile(changes) {
   return data.businessProfile || {};
 }
 
+
+export async function loadBusinessCatalog() {
+  const response = await fetch(`${API_BASE_URL}/api/business/catalog`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Catalog could not be loaded.");
+  return data.items || [];
+}
+export async function createBusinessCatalogItem(item) {
+  const response = await fetch(`${API_BASE_URL}/api/business/catalog`, {
+    method: "POST", headers: await authHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(item),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Catalog item could not be saved.");
+  return data.item;
+}
+export async function deleteBusinessCatalogItem(id) {
+  const response = await fetch(`${API_BASE_URL}/api/business/catalog/${encodeURIComponent(id)}`, {
+    method: "DELETE", headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Catalog item could not be deleted.");
+  return data;
+}
+export async function loadBusinessQuickReplies() {
+  const response = await fetch(`${API_BASE_URL}/api/business/quick-replies`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Quick replies could not be loaded.");
+  return data.items || [];
+}
+export async function createBusinessQuickReply(item) {
+  const response = await fetch(`${API_BASE_URL}/api/business/quick-replies`, {
+    method: "POST", headers: await authHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(item),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Quick reply could not be saved.");
+  return data.item;
+}
+export async function deleteBusinessQuickReply(id) {
+  const response = await fetch(`${API_BASE_URL}/api/business/quick-replies/${encodeURIComponent(id)}`, {
+    method: "DELETE", headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Quick reply could not be deleted.");
+  return data;
+}
+
 export async function loadBusinessInsights() {
   const response = await fetch(`${API_BASE_URL}/api/business/insights`, {
     headers: await authHeaders(),
