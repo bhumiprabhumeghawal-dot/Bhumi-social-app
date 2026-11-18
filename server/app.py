@@ -1040,7 +1040,24 @@ def update_business_profile():
                 f"UPDATE business_profiles SET {', '.join(assignments)}, updated_at=? WHERE LOWER(username)=LOWER(?)",
                 params,
             )
-        return get_business_profile()
+        saved = db.execute(
+            "SELECT * FROM business_profiles WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        business_fields = {
+            "businessName": "business_name", "category": "category",
+            "description": "description", "phone": "phone", "whatsapp": "whatsapp",
+            "email": "email", "website": "website", "address": "address",
+            "area": "area", "city": "city", "state": "state", "pincode": "pincode",
+            "serviceAreas": "service_areas", "serviceRadiusKm": "service_radius_km",
+            "openingHours": "opening_hours",
+        }
+        return jsonify({
+            "ok": True,
+            "businessProfile": {
+                key: saved[column] for key, column in business_fields.items()
+            },
+        })
 
 
 @app.get("/api/businesses")
