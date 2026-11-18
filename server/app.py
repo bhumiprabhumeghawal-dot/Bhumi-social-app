@@ -655,8 +655,13 @@ def profile_json(db, username):
     following = db.execute(
         "SELECT COUNT(*) FROM follows WHERE LOWER(follower)=LOWER(?)", (username,)
     ).fetchone()[0]
+    account = db.execute(
+        "SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)",
+        (username,),
+    ).fetchone()
     return {
         "username": row["username"],
+        "accountType": (account["account_type"] if account else "personal") or "personal",
         "displayName": row["display_name"],
         "bio": row["bio"],
         "avatarUrl": row["avatar_url"],
