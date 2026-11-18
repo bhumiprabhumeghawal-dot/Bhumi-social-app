@@ -222,6 +222,8 @@ async function saveCachedContent(type, items) {
 }
 
 const CONTENT_REQUESTS_IN_FLIGHT = new Map();
+const CONTENT_MEMORY_CACHE = new Map();
+const CONTENT_CACHE_TTL_MS = 60 * 1000;
 const UPLOAD_REQUESTS_IN_FLIGHT = new Map();
 
 async function loadContentOnce(type) {
@@ -319,13 +321,21 @@ async function loadContentOnce(type) {
   void saveCachedContent(type, normalizedItems);
   return normalizedItems;
 }
-export function loadContent(type) {
+export function loadContent(type, options = {}) {
   if (!['posts', 'stories', 'reels'].includes(type)) {
     return loadContentOnce(type);
   }
+  const forceRefresh = options?.force === true;
+  const cached = CONTENT_MEMORY_CACHE.get(type);
+  if (!forceRefresh && cached && Date.now() - cached.savedAt < CONTENT_CACHE_TTL_MS) {
+    return Promise.resolve(cached.items);
+  }
   const pending = CONTENT_REQUESTS_IN_FLIGHT.get(type);
   if (pending) return pending;
-  const request = loadContentOnce(type).finally(() => {
+  const request = loadContentOnce(type).then((items) => {
+    CONTENT_MEMORY_CACHE.set(type, { items, savedAt: Date.now() });
+    return items;
+  }).finally(() => {
     if (CONTENT_REQUESTS_IN_FLIGHT.get(type) === request) {
       CONTENT_REQUESTS_IN_FLIGHT.delete(type);
     }
