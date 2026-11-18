@@ -596,6 +596,13 @@ export async function saveBusinessProfile(changes) {
   return data.businessProfile || {};
 }
 
+export async function loadBusinessInsights() {
+  const response = await fetch(`${API_BASE_URL}/api/business/insights`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Business insights could not be loaded.");
+  return data.insights || {};
+}
+
 export async function discoverBusinesses(filters = {}) {
   const query = new URLSearchParams();
   Object.entries(filters).forEach(([key, value]) => {
