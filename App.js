@@ -3875,9 +3875,13 @@ export default function App() {
         } catch (_) {}
         setBusinessProfileOpen(true);
       } else {
+        setBusinessProfileOpen(false);
+        setBusinessDirectoryOpen(false);
         Alert.alert(
           "Account updated",
-          mode === "private" ? "Your account is now private." : "Your account is now public.",
+          mode === "private"
+            ? "Your account is now private. Business tools are disabled."
+            : "Your account is now public. Business tools are disabled.",
         );
       }
     } catch (error) {
