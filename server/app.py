@@ -628,6 +628,30 @@ def init_profile_tables():
         if "account_type" not in settings_columns:
             db.execute("ALTER TABLE user_settings ADD COLUMN account_type TEXT NOT NULL DEFAULT 'personal'")
 
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS business_profiles (
+                username TEXT PRIMARY KEY,
+                business_name TEXT NOT NULL DEFAULT '',
+                category TEXT NOT NULL DEFAULT '',
+                description TEXT NOT NULL DEFAULT '',
+                phone TEXT NOT NULL DEFAULT '',
+                whatsapp TEXT NOT NULL DEFAULT '',
+                email TEXT NOT NULL DEFAULT '',
+                website TEXT NOT NULL DEFAULT '',
+                address TEXT NOT NULL DEFAULT '',
+                area TEXT NOT NULL DEFAULT '',
+                city TEXT NOT NULL DEFAULT '',
+                state TEXT NOT NULL DEFAULT '',
+                pincode TEXT NOT NULL DEFAULT '',
+                service_areas TEXT NOT NULL DEFAULT '',
+                service_radius_km INTEGER NOT NULL DEFAULT 0,
+                opening_hours TEXT NOT NULL DEFAULT '',
+                updated_at TEXT NOT NULL
+            )
+        """)
+        db.execute("CREATE INDEX IF NOT EXISTS idx_business_area ON business_profiles(city, area, category)")
+
+
 
 def profile_json(db, username):
     row = db.execute(
@@ -659,8 +683,32 @@ def profile_json(db, username):
         "SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)",
         (username,),
     ).fetchone()
+    business_row = db.execute(
+        "SELECT * FROM business_profiles WHERE LOWER(username)=LOWER(?)",
+        (username,),
+    ).fetchone()
+    business_profile = None
+    if business_row:
+        business_profile = {
+            "businessName": business_row["business_name"],
+            "category": business_row["category"],
+            "description": business_row["description"],
+            "phone": business_row["phone"],
+            "whatsapp": business_row["whatsapp"],
+            "email": business_row["email"],
+            "website": business_row["website"],
+            "address": business_row["address"],
+            "area": business_row["area"],
+            "city": business_row["city"],
+            "state": business_row["state"],
+            "pincode": business_row["pincode"],
+            "serviceAreas": business_row["service_areas"],
+            "serviceRadiusKm": business_row["service_radius_km"],
+            "openingHours": business_row["opening_hours"],
+        }
     return {
         "username": row["username"],
+        "businessProfile": business_profile,
         "accountType": (account["account_type"] if account else "personal") or "personal",
         "displayName": row["display_name"],
         "bio": row["bio"],
@@ -887,6 +935,150 @@ def get_profile(username):
         result["followRequestStatus"] = request_row["status"] if request_row else None
 
         return jsonify({"profile": result})
+
+
+
+@app.get("/api/business/profile")
+def get_business_profile():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        account = db.execute(
+            "SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if not account or account["account_type"] != "business":
+            return jsonify({"error": "Switch to a Business Account first."}), 403
+        row = db.execute(
+            "SELECT * FROM business_profiles WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        fields = {
+            "businessName": "business_name", "category": "category",
+            "description": "description", "phone": "phone", "whatsapp": "whatsapp",
+            "email": "email", "website": "website", "address": "address",
+            "area": "area", "city": "city", "state": "state", "pincode": "pincode",
+            "serviceAreas": "service_areas", "serviceRadiusKm": "service_radius_km",
+            "openingHours": "opening_hours",
+        }
+        result = {key: (row[column] if row else (0 if key == "serviceRadiusKm" else "")) for key, column in fields.items()}
+        return jsonify({"businessProfile": result})
+
+
+@app.patch("/api/business/profile")
+def update_business_profile():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    data = request.get_json(silent=True) or {}
+    columns = {
+        "businessName": "business_name", "category": "category",
+        "description": "description", "phone": "phone", "whatsapp": "whatsapp",
+        "email": "email", "website": "website", "address": "address",
+        "area": "area", "city": "city", "state": "state", "pincode": "pincode",
+        "serviceAreas": "service_areas", "serviceRadiusKm": "service_radius_km",
+        "openingHours": "opening_hours",
+    }
+    if not isinstance(data, dict) or not data or any(key not in columns for key in data):
+        return jsonify({"error": "Business profile data is invalid."}), 400
+    values = {}
+    for key, value in data.items():
+        if key == "serviceRadiusKm":
+            try:
+                radius = int(value)
+            except (TypeError, ValueError):
+                return jsonify({"error": "Service radius must be a whole number."}), 400
+            if radius < 0 or radius > 500:
+                return jsonify({"error": "Service radius must be between 0 and 500 km."}), 400
+            values[key] = radius
+        else:
+            if not isinstance(value, str) or len(value) > (3000 if key == "description" else 500):
+                return jsonify({"error": "Please check the business profile fields."}), 400
+            values[key] = value.strip()
+    if "businessName" in values and not values["businessName"]:
+        return jsonify({"error": "Business name is required."}), 400
+    if "city" in values and not values["city"]:
+        return jsonify({"error": "City is required for area-wise discovery."}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        account = db.execute(
+            "SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if not account or account["account_type"] != "business":
+            return jsonify({"error": "Switch to a Business Account first."}), 403
+        row = db.execute(
+            "SELECT username FROM business_profiles WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if row is None:
+            defaults = {
+                "business_name": "", "category": "", "description": "", "phone": "",
+                "whatsapp": "", "email": "", "website": "", "address": "", "area": "",
+                "city": "", "state": "", "pincode": "", "service_areas": "",
+                "service_radius_km": 0, "opening_hours": "",
+            }
+            defaults.update({columns[key]: value for key, value in values.items()})
+            db.execute("""
+                INSERT INTO business_profiles (
+                    username, business_name, category, description, phone, whatsapp,
+                    email, website, address, area, city, state, pincode, service_areas,
+                    service_radius_km, opening_hours, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                username, defaults["business_name"], defaults["category"], defaults["description"],
+                defaults["phone"], defaults["whatsapp"], defaults["email"], defaults["website"],
+                defaults["address"], defaults["area"], defaults["city"], defaults["state"],
+                defaults["pincode"], defaults["service_areas"], defaults["service_radius_km"],
+                defaults["opening_hours"], now,
+            ))
+        else:
+            assignments = [f"{columns[key]}=?" for key in values]
+            params = list(values.values()) + [now, username]
+            db.execute(
+                f"UPDATE business_profiles SET {', '.join(assignments)}, updated_at=? WHERE LOWER(username)=LOWER(?)",
+                params,
+            )
+        return get_business_profile()
+
+
+@app.get("/api/businesses")
+def discover_businesses():
+    city = request.args.get("city", "").strip()[:100]
+    area = request.args.get("area", "").strip()[:100]
+    category = request.args.get("category", "").strip()[:100]
+    query = request.args.get("q", "").strip()[:100]
+    try:
+        limit = min(max(int(request.args.get("limit", 30)), 1), 100)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid result limit."}), 400
+    if not any((city, area, category, query)):
+        return jsonify({"businesses": []})
+    clauses = []
+    params = []
+    for value, column in ((city, "city"), (area, "area"), (category, "category")):
+        if value:
+            clauses.append(f"LOWER({column}) LIKE ?")
+            params.append("%" + value.lower() + "%")
+    if query:
+        clauses.append("(LOWER(business_name) LIKE ? OR LOWER(description) LIKE ? OR LOWER(category) LIKE ?)")
+        params.extend(["%" + query.lower() + "%"] * 3)
+    with get_db() as db:
+        rows = db.execute(
+            "SELECT * FROM business_profiles WHERE " + " AND ".join(clauses) +
+            " ORDER BY business_name COLLATE NOCASE LIMIT ?",
+            (*params, limit),
+        ).fetchall()
+        results = [{
+            "username": row["username"], "businessName": row["business_name"],
+            "category": row["category"], "description": row["description"],
+            "area": row["area"], "city": row["city"], "state": row["state"],
+            "address": row["address"], "phone": row["phone"], "whatsapp": row["whatsapp"],
+            "website": row["website"], "serviceAreas": row["service_areas"],
+            "serviceRadiusKm": row["service_radius_km"],
+        } for row in rows]
+    return jsonify({"businesses": results})
 
 
 @app.get("/api/profile/<username>/posts")
