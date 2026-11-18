@@ -6849,18 +6849,13 @@ export default function App() {
           )}
         </View>
       ) : activeTab === "Home" ? (
-        <View style={styles.content}>
+        <View style={[styles.content, { flex: 1 }]}>
+          {/* Keep the Instagram-style top bar fixed; only stories and feed content scroll. */}
+          {renderAppHeader()}
           <GestureDetector gesture={feedScrollGesture}>
             <FlatList
               ListHeaderComponent={
-                <View
-                  onLayout={(event) => {
-                    const height = event.nativeEvent.layout.height;
-                    if (height > 0 && height !== feedHeaderHeight)
-                      setFeedHeaderHeight(height);
-                  }}
-                >
-                  {renderAppHeader()}
+                <View>
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -6942,20 +6937,7 @@ export default function App() {
                 String(item.groupId || item.id || `${item.user}-${index}`)
               }
               style={{ flex: 1 }}
-              snapToOffsets={
-                feedViewportHeight > 0 && feedHeaderHeight > 0
-                  ? Array.from(
-                      { length: groupPostItems(feedPosts).length + 1 },
-                      (_, index) =>
-                        index === 0
-                          ? 0
-                          : feedHeaderHeight + (index - 1) * feedViewportHeight,
-                    )
-                  : undefined
-              }
-              snapToAlignment="start"
-              decelerationRate="fast"
-              disableIntervalMomentum
+              decelerationRate="normal"
               nestedScrollEnabled
               showsVerticalScrollIndicator={false}
               initialNumToRender={2}
@@ -6966,7 +6948,7 @@ export default function App() {
                 feedViewportHeight > 0
                   ? (_, index) => ({
                       length: feedViewportHeight,
-                      offset: feedHeaderHeight + feedViewportHeight * index,
+                      offset: feedViewportHeight * index,
                       index,
                     })
                   : undefined
@@ -6979,8 +6961,7 @@ export default function App() {
                     0,
                     Math.min(
                       Math.round(
-                        (event.nativeEvent.contentOffset.y - feedHeaderHeight) /
-                          feedViewportHeight,
+                        event.nativeEvent.contentOffset.y / feedViewportHeight,
                       ),
                       Math.max(0, count - 1),
                     ),
