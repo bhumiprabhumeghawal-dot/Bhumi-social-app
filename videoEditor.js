@@ -248,8 +248,8 @@ export const VIDEO_FILTERS = [
 
 export const VOICE_EFFECTS = [
   { name: 'Original', value: '' },
-  { name: 'Deep', value: 'asetrate=44100*0.82,aresample=44100,atempo=1.2195' },
-  { name: 'High', value: 'asetrate=44100*1.20,aresample=44100,atempo=0.8333' },
+  { name: 'Deep', value: 'asetrate=36162,aresample=44100,atempo=1.2195' },
+  { name: 'High', value: 'asetrate=52920,aresample=44100,atempo=0.8333' },
   { name: 'Echo', value: 'aecho=0.8:0.88:650:0.32' },
   { name: 'Robot', value: 'highpass=f=250,lowpass=f=3000,aecho=0.8:0.7:45:0.25' },
   { name: 'Radio', value: 'highpass=f=350,lowpass=f=3000,acompressor=threshold=0.08:ratio=3:attack=10:release=100' },
