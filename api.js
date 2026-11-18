@@ -546,7 +546,7 @@ export async function followProfile(username, viewer = 'you') {
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ viewer }),
     }
   );
@@ -558,7 +558,7 @@ export async function followProfile(username, viewer = 'you') {
 export async function unfollowProfile(username, viewer = 'you') {
   const response = await fetch(
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/follow?viewer=${encodeURIComponent(viewer)}`,
-    { method: 'DELETE' }
+    { method: 'DELETE', headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Unfollow नहीं हो सका।');
@@ -911,21 +911,21 @@ export async function searchUsers(query) {
 }
 
 export async function loadFollowRequests() {
-  const response = await fetch(`${API_BASE_URL}/api/follow-requests`);
+  const response = await fetch(`${API_BASE_URL}/api/follow-requests`, { headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Follow requests load नहीं हुईं।');
   return data.requests || [];
 }
 
 export async function acceptFollowRequest(requestId) {
-  const response = await fetch(`${API_BASE_URL}/api/follow-requests/${encodeURIComponent(requestId)}/accept`, { method: 'POST' });
+  const response = await fetch(`${API_BASE_URL}/api/follow-requests/${encodeURIComponent(requestId)}/accept`, { method: 'POST', headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Request accept नहीं हुई।');
   return data;
 }
 
 export async function rejectFollowRequest(requestId) {
-  const response = await fetch(`${API_BASE_URL}/api/follow-requests/${encodeURIComponent(requestId)}/reject`, { method: 'POST' });
+  const response = await fetch(`${API_BASE_URL}/api/follow-requests/${encodeURIComponent(requestId)}/reject`, { method: 'POST', headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Request reject नहीं हुई।');
   return data;
