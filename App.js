@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import appConfig from "./app.json";
+import SettingsDashboard from "./SettingsDashboard";
 import * as SecureStore from "expo-secure-store";
 import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
@@ -8677,217 +8678,24 @@ export default function App() {
               }}
             >
               POST BY {selectedPost?.user || "you"}
-            </Text>
-          </View>
-        </View>
-      </Modal>
-
-      {/* SOCIALAPP_PREMIUM_SETTINGS_HUB_V1 */}
-      <Modal
+            </Tex      <SettingsDashboard
         visible={settingsHubOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSettingsHubOpen(false)}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(5, 2, 12, 0.78)",
-            justifyContent: "flex-end",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "#100B19",
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              paddingHorizontal: 20,
-              paddingTop: 12,
-              paddingBottom: 28,
-              maxHeight: "92%",
-            }}
-          >
-            <View
-              style={{
-                alignSelf: "center",
-                width: 42,
-                height: 5,
-                borderRadius: 4,
-                backgroundColor: "#6D4BC3",
-                marginBottom: 18,
-              }}
-            />
-            <View
-              style={{
-                backgroundColor: "#1A1028",
-                borderRadius: 22,
-                padding: 20,
-                marginBottom: 20,
-              }}
-            >
-              <Text
-                style={{
-                  color: "#D8B86A",
-                  fontSize: 12,
-                  fontWeight: "800",
-                  letterSpacing: 1.4,
-                }}
-              >
-                BHOOMI SOCIAL
-              </Text>
-              <Text
-                style={{
-                  color: "#F4EFFA",
-                  fontSize: 25,
-                  fontWeight: "900",
-                  marginTop: 7,
-                }}
-              >
-                Settings
-              </Text>
-              <Text style={{ color: "#B8AACB", fontSize: 13, marginTop: 5 }}>
-                Manage your account and preferences
-              </Text>
-            </View>
-            {[
-              {
-                title: "Notifications",
-                subtitle: "Choose which alerts you receive",
-                icon: "♧",
-                color: "#D8B86A",
-                action: () => {
-                  setSettingsHubOpen(false);
-                  openNotificationSettings();
-                },
-              },
-              {
-                title: "Account Security",
-                subtitle: "Change your password",
-                icon: "▣",
-                color: "#D8B86A",
-                action: () => {
-                  setSettingsHubOpen(false);
-                  setPasswordOpen(true);
-                },
-              },
-              {
-                title: "Privacy",
-                subtitle: "Manage account visibility and messages",
-                icon: "◈",
-                color: "#D8B86A",
-                action: () => {
-                  setSettingsHubOpen(false);
-                  openPrivacySettings();
-                },
-              },
-              {
-                title: "Blocked Accounts",
-                subtitle: "View blocked people and unblock accounts",
-                icon: "⊘",
-                color: "#D8B86A",
-                action: openBlockedAccounts,
-              },
-              {
-                title: "Restricted Accounts",
-                subtitle: "Manage accounts you have restricted",
-                icon: "◉",
-                color: "#D8B86A",
-                action: openRestrictedAccounts,
-              },
-              {
-                title: "Account Settings",
-                subtitle: "Update your email and phone number",
-                icon: "◎",
-                color: "#D8B86A",
-                action: () => {
-                  setSettingsHubOpen(false);
-                  openAccountSettings();
-                },
-              },
-              {
-                title: "Log Out",
-                subtitle: "Sign out of this account",
-                icon: "↪",
-                color: "#D8B86A",
-                action: handleSettingsLogout,
-              },
-              {
-                title: "About & App Updates",
-                subtitle: "Version, updates, download and share",
-                icon: "ⓘ",
-                color: "#D8B86A",
-                action: openAboutApp,
-              },
-            ].map((item) => (
-              <TouchableOpacity
-                key={item.title}
-                onPress={item.action}
-                accessibilityRole="button"
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: "#100B19",
-                  borderRadius: 14,
-                  padding: 14,
-                  marginBottom: 10,
-                  borderWidth: 1,
-                  borderColor: "#352443",
-                }}
-              >
-                <View
-                  style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: 14,
-                    backgroundColor: "#21162F",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginRight: 13,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "#F4EFFA",
-                      fontSize: 23,
-                      fontWeight: "800",
-                    }}
-                  >
-                    {item.icon}
-                  </Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: "#F4EFFA",
-                      fontWeight: "800",
-                      fontSize: 15,
-                    }}
-                  >
-                    {item.title}
-                  </Text>
-                  <Text
-                    style={{ color: "#B8AACB", fontSize: 12, marginTop: 4 }}
-                  >
-                    {item.subtitle}
-                  </Text>
-                </View>
-                <Text style={{ color: "#D8B86A", fontSize: 23 }}>›</Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              onPress={() => setSettingsHubOpen(false)}
-              style={{
-                alignItems: "center",
-                paddingVertical: 14,
-                marginTop: 2,
-              }}
-            >
-              <Text
-                style={{ color: "#F4EFFA", fontWeight: "800", fontSize: 14 }}
-              >
-                Close Settings
-              </Text>
-            </TouchableOpacity>
+        username={authSession?.username || ""}
+        onClose={() => setSettingsHubOpen(false)}
+        onLogout={handleSettingsLogout}
+        onAbout={() => { setSettingsHubOpen(false); openAboutApp(); }}
+        onLegacyOpen={(key) => {
+          setSettingsHubOpen(false);
+          if (key === "privacy") openPrivacySettings();
+          else if (key === "notifications") openNotificationSettings();
+          else if (key === "security") setPasswordOpen(true);
+          else if (key === "account") openAccountSettings();
+          else if (key === "blocked") openBlockedAccounts();
+          else if (key === "restricted") openRestrictedAccounts();
+        }}
+      />
+
+y>
           </View>
         </View>
       </Modal>
