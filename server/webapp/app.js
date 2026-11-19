@@ -17,7 +17,7 @@ function setAuthMode(mode){
  $('signupForm').hidden=!signup;
  $('authTitle').textContent=signup?'Create your account':'Welcome back';
  $('authSubtitle').textContent=signup?'Join Bhumi Social AI — connect, create and share.':'Sign in to continue to Bhumi Social AI.';
- $('authSwitchBtn').textContent=signup?'Already have an account? Sign in':'Create a new account';
+ $('authSwitchBtn').textContent=signup?'Already have an account? Sign in':'Sign Up';
  $('iosInstallHelp').hidden=!signup;
  $('installSignupBtn').hidden=!signup;
  $('authMessage').textContent='';$('signupMessage').textContent='';
