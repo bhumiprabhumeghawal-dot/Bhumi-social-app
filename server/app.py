@@ -287,7 +287,7 @@ def options_handler(unused):
 def app_version():
     apk_url = "https://github.com/bhumiprabhumeghawal-dot/Bhumi-social-app/releases/latest/download/SocialApp.apk"
     return jsonify({
-        "version": os.environ.get("SOCIALAPP_LATEST_VERSION", "1.0.3"),
+        "version": os.environ.get("SOCIALAPP_LATEST_VERSION", "1.0.5"),
         "download_url": request.host_url.rstrip("/") + "/download",
         "apk_url": apk_url,
         "force_update": os.environ.get("SOCIALAPP_FORCE_UPDATE", "false").lower() == "true",
