@@ -38,7 +38,6 @@ const SECTIONS = [
     ["privacy.tags","Allow Tags","Control who can tag you",true],
     ["privacy.mentions","Allow Mentions","Control who can mention you",true],
     ["privacy.comments","Allow Comments","Control who can comment on your posts",true],
-    ["privacy.messageRequests","Message Requests","Filter messages from people you do not follow",true],
     ["privacy.storyReplies","Story Replies","Allow replies to your stories",true],
   ]},
   { key:"security", title:"Security Settings", subtitle:"Protect your account and sessions", icon:"lock-closed-outline", legacy:"security", fields:[
