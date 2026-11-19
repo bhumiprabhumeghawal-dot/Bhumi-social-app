@@ -112,8 +112,6 @@ const SECTIONS = [
     ["feed.notInterested","Content Preferences","Tune suggested content preferences",true],
     ["feed.sensitive","Sensitive Content Control","Limit sensitive recommended content",true],
   ]},
-  { key:"blocked", title:"Blocked Accounts", subtitle:"Review and unblock accounts", icon:"person-remove-outline", legacy:"blocked", fields:[] },
-  { key:"restricted", title:"Restricted Accounts", subtitle:"Manage limited interactions", icon:"eye-off-outline", legacy:"restricted", fields:[] },
   { key:"appearance", title:"Appearance Settings", subtitle:"Make the app feel like yours", icon:"color-palette-outline", fields:[
     ["appearance.theme","App Theme","Choose your preferred appearance",true],
     ["appearance.royalTheme","Royal Purple + Gold","Use the Bhumi premium theme",true],
@@ -124,7 +122,7 @@ const SECTIONS = [
     ["appearance.display","Display Settings","Customize display preferences",true],
     ["appearance.chat","Chat Appearance","Customize chat appearance",true],
   ]},
-  { key:"advanced", title:"Advanced Settings", subtitle:"Data, storage and app permissions", icon:"options-outline", fields:[
+  { key:"advanced", title:"Data & Storage Settings", subtitle:"Manage network usage, downloads, permissions and storage", icon:"options-outline", fields:[
     ["advanced.dataSaver","Data Saver","Reduce media data usage",false],
     ["advanced.cache","Cache Management","Allow the app to manage cached media",true],
     ["advanced.backgroundData","Background Data","Allow background network activity",true],
@@ -134,6 +132,12 @@ const SECTIONS = [
     ["advanced.clearCache","Clear Cache","Clear temporary cached files",false],
     ["advanced.downloads","Download Preferences","Choose media download preferences",true],
     ["advanced.wifiOnly","Wi-Fi Only Downloads","Restrict automatic downloads to Wi-Fi",false],
+["data.saver","Data Saver","Reduce mobile data usage",false],
+    ["data.storage","Storage Usage","Review app storage usage",true],
+    ["data.autoDownload","Media Auto Download","Automatically download supported media",true],
+    ["data.wifiOnly","Wi-Fi Only Downloads","Download media only on Wi-Fi",false],
+    ["data.background","Background Data","Allow background network activity",true],
+    ["data.highQuality","High Quality Uploads","Prefer high quality uploads",true],
   ]},
   { key:"creator", title:"Creator & Professional", subtitle:"Tools for creators and business profiles", icon:"analytics-outline", fields:[
     ["creator.accountType","Creator Account","Enable creator account preference",false],
@@ -154,14 +158,6 @@ const SECTIONS = [
     ["protection.recording","Screen Recording Protection","Request protection where the device supports it",false],
     ["protection.hiddenChats","Hidden Chats","Enable hidden chat preference",false],
   ]},
-  { key:"data", title:"Data & Storage", subtitle:"Manage network usage, downloads and storage", icon:"server-outline", fields:[
-    ["data.saver","Data Saver","Reduce mobile data usage",false],
-    ["data.storage","Storage Usage","Review app storage usage",true],
-    ["data.autoDownload","Media Auto Download","Automatically download supported media",true],
-    ["data.wifiOnly","Wi-Fi Only Downloads","Download media only on Wi-Fi",false],
-    ["data.background","Background Data","Allow background network activity",true],
-    ["data.highQuality","High Quality Uploads","Prefer high quality uploads",true],
-  ]},
   { key:"premium", title:"Premium Personalization", subtitle:"Personalize your Bhumi Social experience", icon:"sparkles-outline", fields:[
     ["premium.profileBadge","Premium Profile Badge","Show an eligible premium profile badge",false],
     ["premium.profileEffects","Profile Effects","Enable supported profile effects",false],
@@ -170,10 +166,16 @@ const SECTIONS = [
     ["premium.customSounds","Custom App Sounds","Choose supported app sounds",true],
     ["premium.profileStudio","Profile Customization Studio","Open profile personalization tools",true],
   ]},
-  { key:"help", title:"Help & About", subtitle:"Support, reports and app information", icon:"help-circle-outline", fields:[
+  { key:"help", title:"Help & Support", subtitle:"Support, reports and assistance", icon:"help-circle-outline", fields:[
     ["account.reportProblem","Report a Problem","Send a problem report to the support team",false],
     ["account.helpCenter","Help Center","Find help with Bhumi Social AI",false],
     ["account.appUpdates","Check App Updates","Check whether a newer app version is available",false],
+  ]},
+  { key:"about", title:"About Bhumi Social AI", subtitle:"App information, version and legal details", icon:"information-circle-outline", fields:[
+    ["account.appVersionInfo","App Version Information","View the installed app version",false],
+    ["account.terms","Terms of Service","Review the terms for using Bhumi Social AI",false],
+    ["account.privacyPolicy","Privacy Policy","Review how account information is handled",false],
+    ["account.openSource","Open Source Licenses","View third-party software notices",false],
   ]},
 ];
 
@@ -272,12 +274,22 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               </View>
             ) : null}
             {section.fields.map(renderField)}
+            {section.key === "privacy" ? (
+              <View style={{ marginTop:4 }}>
+                {["blocked","restricted"].map((legacyKey) => (
+                  <TouchableOpacity key={legacyKey} onPress={() => { setActive(null); onLegacyOpen?.(legacyKey); }} style={{ backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:13,padding:14,marginBottom:9 }}>
+                    <Text style={{ color:TEXT,fontWeight:"800" }}>{legacyKey === "blocked" ? "Blocked Accounts" : "Restricted Accounts"}</Text>
+                    <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>Manage {legacyKey} people and interactions</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : null}
             {section.legacy ? (
               <TouchableOpacity onPress={() => { setActive(null); onLegacyOpen?.(section.legacy); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
                 <Text style={{ color:"#170F20",fontWeight:"900" }}>Open Existing {section.title}</Text>
               </TouchableOpacity>
             ) : null}
-            {section.key === "help" ? (
+            {section.key === "about" ? (
               <TouchableOpacity onPress={() => { setActive(null); onAbout?.(); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
                 <Text style={{ color:"#170F20",fontWeight:"900" }}>About & App Updates</Text>
               </TouchableOpacity>
