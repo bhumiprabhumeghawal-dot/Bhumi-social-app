@@ -156,14 +156,14 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
             <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 12 }}>
               {[
                 ["personal", "Personal"], ["creator", "Creator"],
-                ["business", "Business"], ["creator_business", "Creator + Business"]
+                ["business", "Business"]
               ].map(([value, label]) => (
-                <TouchableOpacity key={value} disabled={saving} onPress={() => changeAccountType(value === "creator_business" ? "creator" : value)} style={{ backgroundColor: accountType === value || (value === "creator_business" && accountType === "creator") ? GOLD : PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, marginRight: 7, marginBottom: 7 }}>
-                  <Text style={{ color: accountType === value || (value === "creator_business" && accountType === "creator") ? "#170F20" : TEXT, fontSize: 10, fontWeight: "900" }}>{label}</Text>
+                <TouchableOpacity key={value} disabled={saving} onPress={() => changeAccountType(value)} style={{ backgroundColor: accountType === value ? GOLD : PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, marginRight: 7, marginBottom: 7 }}>
+                  <Text style={{ color: accountType === value ? "#170F20" : TEXT, fontSize: 10, fontWeight: "900" }}>{label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
-            <Text style={{ color: MUTED, fontSize: 10, marginTop: 2 }}>Creator + Business combined access will be enabled after the server supports multiple account roles. Your current account type is saved securely on the server.</Text>
+            <Text style={{ color: MUTED, fontSize: 10, marginTop: 2 }}>Your account type is saved securely on the server. You can change it whenever needed.</Text>
           </View>
 
           {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical: 20 }} /> : null}
