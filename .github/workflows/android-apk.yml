@@ -1,4 +1,5 @@
 name: Android APK Build
+run-name: Bhumi Social AI Android APK
 
 on:
   workflow_dispatch:
