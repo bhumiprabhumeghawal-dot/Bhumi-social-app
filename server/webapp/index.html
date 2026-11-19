@@ -1,29 +1,11 @@
 <!doctype html>
-<html lang="hi">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#090611"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Bhumi Social">
-<meta name="description" content="Bhumi Social AI — connect, share and discover.">
-<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/webapp/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/webapp/icon.svg"><link rel="stylesheet" href="/webapp/styles.css">
-<title>Bhumi Social AI</title>
-</head>
-<body>
-<div class="app-shell">
-<header class="topbar"><a class="brand" href="/"><span class="brand-mark">B</span><span>BHUMI <small>SOCIAL AI</small></span></a><button id="installBtn" class="install-btn" hidden>Install</button></header>
-<main>
-<section id="authView" class="auth-card">
-<div class="logo-orb">B</div><p class="eyebrow">YOUR WORLD. YOUR PEOPLE.</p><h1>Welcome back</h1><p class="muted">Sign in to continue to Bhumi Social AI.</p>
-<form id="loginForm"><label>Username or email<input id="loginUser" autocomplete="username" required placeholder="Enter username or email"></label><label>Password<input id="loginPass" type="password" autocomplete="current-password" required placeholder="Enter password"></label><button class="primary" type="submit">Sign in <span>→</span></button><p id="authMessage" class="message" role="status"></p></form>
-</section>
-<section id="feedView" hidden>
-<div class="welcome-row"><div><p class="eyebrow">YOUR COMMUNITY</p><h1 id="welcomeTitle">Your feed</h1></div><button id="refreshBtn" class="round-btn" aria-label="Refresh feed">↻</button></div>
-<nav class="tabs"><button class="tab active" data-kind="posts">Posts</button><button class="tab" data-kind="reels">Reels</button><button class="tab" data-kind="stories">Stories</button></nav>
-<div id="feed" class="feed"><div class="loading">Loading your feed…</div></div>
-<button id="logoutBtn" class="logout">Sign out</button>
-</section>
-</main>
-<footer>BHUMI SOCIAL AI <span>✦</span> CONNECT • CREATE • SHARE</footer>
-</div>
-<div id="toast" class="toast" role="status"></div>
-<script src="/webapp/app.js" defer></script>
-</body></html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#090611"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Bhumi Social"><meta name="description" content="Bhumi Social AI — connect, share and discover."><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/webapp/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/webapp/icon.svg"><link rel="stylesheet" href="/webapp/styles.css"><title>Bhumi Social AI</title></head>
+<body><div class="app-shell"><header class="topbar"><a class="brand" href="/"><span class="brand-mark">B</span><span>BHUMI <small>SOCIAL AI</small></span></a><button id="installBtn" class="install-btn" hidden>Install</button></header>
+<main><section id="authView" class="auth-card"><div class="logo-orb">B</div><p class="eyebrow">YOUR WORLD. YOUR PEOPLE.</p><h1>Welcome back</h1><p class="muted">Sign in to continue to Bhumi Social AI.</p><form id="loginForm"><label>Username or email<input id="loginUser" autocomplete="username" required placeholder="Enter username or email"></label><label>Password<input id="loginPass" type="password" autocomplete="current-password" required placeholder="Enter password"></label><button class="primary" type="submit">Sign in <span>→</span></button><p id="authMessage" class="message" role="status"></p></form></section>
+<section id="appView" hidden><div class="welcome-row"><div><p class="eyebrow">YOUR COMMUNITY</p><h1 id="viewTitle">Home</h1></div><button id="refreshBtn" class="round-btn" aria-label="Refresh">↻</button></div>
+<nav class="tabs main-tabs"><button class="tab active" data-view="home">Home</button><button class="tab" data-view="messages">DM <span id="dmBadge" class="count" hidden></span></button><button class="tab" data-view="notifications">Activity <span id="noticeBadge" class="count" hidden></span></button><button class="tab" data-view="profile">Profile</button></nav>
+<section id="homeView" class="view-panel"><div class="composer"><div class="composer-title">Share a moment</div><input id="postCaption" placeholder="Write a caption…"><div class="composer-actions"><select id="postKind" aria-label="Post type"><option value="posts">Post</option><option value="reels">Reel</option><option value="stories">Story</option></select><label class="file-pick">＋ Add photo/video<input id="postFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"></label><button id="publishBtn" class="small-primary">Share</button></div><p id="uploadMessage" class="message"></p></div><nav class="tabs content-tabs"><button class="tab active" data-kind="posts">Posts</button><button class="tab" data-kind="reels">Reels</button><button class="tab" data-kind="stories">Stories</button></nav><div id="feed" class="feed"><div class="loading">Loading your feed…</div></div></section>
+<section id="messagesView" class="view-panel" hidden><div class="dm-layout"><aside class="inbox"><div class="section-head"><h2>Messages</h2><button id="newChatBtn" class="round-btn" aria-label="New chat">＋</button></div><input id="userSearch" class="search-input" placeholder="Search username to message"><div id="conversationList"><div class="loading">Loading inbox…</div></div></aside><section class="chat-panel"><div id="chatEmpty" class="empty chat-empty">Choose a conversation to start chatting.</div><div id="chatActive" hidden><div class="chat-head"><button id="backInbox" class="round-btn mobile-only">‹</button><div class="avatar" id="chatAvatar">B</div><div><strong id="chatName">Chat</strong><div class="date">Direct message</div></div></div><div id="chatMessages" class="chat-messages"></div><form id="chatForm" class="chat-compose"><label class="attach-btn" title="Attach photo/video/file">＋<input id="chatFile" type="file" accept="image/*,video/*,audio/*,.pdf,.txt,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.rtf"></label><input id="chatText" placeholder="Message…" autocomplete="off"><button class="send-btn" type="submit">Send</button></form><p id="chatMessage" class="message"></p></div></section></div></section>
+<section id="notificationsView" class="view-panel" hidden><div class="section-head"><h2>Activity</h2><button id="readAllBtn" class="text-btn">Mark all read</button></div><div id="notificationsList"><div class="loading">Loading activity…</div></div></section>
+<section id="profileView" class="view-panel" hidden><div id="profileCard" class="profile-card"><div class="loading">Loading profile…</div></div><div class="profile-tools"><label class="file-pick">Change profile photo<input id="avatarFile" type="file" accept="image/*"></label><button id="logoutBtn" class="logout">Sign out</button></div></section>
+</section></main><footer>BHUMI SOCIAL AI <span>✦</span> CONNECT • CREATE • SHARE</footer></div><div id="toast" class="toast" role="status"></div><script src="/webapp/app.js" defer></script></body></html>
