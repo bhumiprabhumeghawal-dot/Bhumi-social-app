@@ -4436,3 +4436,94 @@ def patch_settings_preferences():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)
+
+@app.get("/api/admin/analytics")
+def admin_analytics():
+    """Aggregate-only, read-only production analytics for the private admin dashboard."""
+    import secrets
+    import time
+
+    expected = os.environ.get("DASHBOARD_ADMIN_TOKEN", "").strip()
+    supplied = request.headers.get("X-Dashboard-Token", "")
+    if not expected or not supplied or not secrets.compare_digest(supplied, expected):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    from server.db_compat import postgres_enabled
+    if not postgres_enabled():
+        return jsonify({"error": "Production PostgreSQL is not configured"}), 503
+
+    started = time.perf_counter()
+    try:
+        with get_db() as db:
+            def count_table(table):
+                row = db.execute('SELECT COUNT(*) AS total FROM "' + table + '"').fetchone()
+                return int(row["total"] or 0)
+
+            totals = {
+                "users": count_table("users"),
+                "posts": 0,
+                "reels": 0,
+                "stories": 0,
+                "follows": count_table("follows"),
+                "post_likes": count_table("post_likes"),
+                "post_comments": count_table("post_comments"),
+                "reel_likes": count_table("reel_likes"),
+                "reel_comments": count_table("reel_comments"),
+                "messages": count_table("direct_messages"),
+                "notifications": count_table("people_notifications"),
+                "sessions": count_table("auth_sessions"),
+            }
+
+            for row in db.execute(
+                "SELECT kind, COUNT(*) AS total FROM content GROUP BY kind"
+            ).fetchall():
+                key = str(row["kind"] or "").lower()
+                if key in ("posts", "reels", "stories"):
+                    totals[key] = int(row["total"] or 0)
+
+            now = datetime.now(timezone.utc)
+            active_sessions = 0
+            for row in db.execute("SELECT expires_at FROM auth_sessions").fetchall():
+                try:
+                    expiry = datetime.fromisoformat(str(row["expires_at"]).replace("Z", "+00:00"))
+                    if expiry.tzinfo is None:
+                        expiry = expiry.replace(tzinfo=timezone.utc)
+                    if expiry > now:
+                        active_sessions += 1
+                except (TypeError, ValueError):
+                    continue
+
+            online_users = 0
+            for row in db.execute("SELECT last_seen_at FROM user_presence").fetchall():
+                try:
+                    seen = datetime.fromisoformat(str(row["last_seen_at"]).replace("Z", "+00:00"))
+                    if seen.tzinfo is None:
+                        seen = seen.replace(tzinfo=timezone.utc)
+                    if (now - seen).total_seconds() <= 300:
+                        online_users += 1
+                except (TypeError, ValueError):
+                    continue
+
+            size_row = db.execute(
+                "SELECT pg_database_size(current_database()) AS size_bytes"
+            ).fetchone()
+            database_size_bytes = int(size_row["size_bytes"] or 0)
+
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
+        response = jsonify({
+            "ok": True,
+            "source": "Neon PostgreSQL production",
+            "database": "connected",
+            "query_time_ms": elapsed_ms,
+            "database_size_bytes": database_size_bytes,
+            "online_users_5m": online_users,
+            "active_sessions": active_sessions,
+            "totals": totals,
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+        })
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+        return response
+    except Exception:
+        app.logger.exception("Admin analytics query failed")
+        return jsonify({"ok": False, "error": "Analytics query failed"}), 503
+
