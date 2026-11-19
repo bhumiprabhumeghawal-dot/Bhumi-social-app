@@ -10544,10 +10544,10 @@ export default function App() {
         onRequestClose={closeMessages}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1 }}
         >
-          <SafeAreaView style={{ flex: 1, backgroundColor: "#000000", paddingBottom: Platform.OS === "android" ? 8 : 0 }}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: "#000000", paddingBottom: Platform.OS === "android" ? 24 : 0 }}>
             <View
               style={{
                 flexDirection: "row",
