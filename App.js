@@ -2427,6 +2427,7 @@ export default function App() {
   const [authReady, setAuthReady] = React.useState(false);
   const [authSession, setAuthSession] = React.useState(null);
   const [authMode, setAuthMode] = React.useState("login");
+  const [authAccountType, setAuthAccountType] = React.useState("personal");
   const [authUsername, setAuthUsername] = React.useState("");
   const [authFullName, setAuthFullName] = React.useState("");
   const [authEmail, setAuthEmail] = React.useState("");
@@ -3986,9 +3987,9 @@ export default function App() {
 
   const switchAccountMode = async (mode) => {
     if (privacyBusy) return;
-    if (!["business", "private", "public"].includes(mode)) return;
+    if (!["business", "creator", "private", "public"].includes(mode)) return;
     const changes = {
-      accountType: mode === "business" ? "business" : "personal",
+      accountType: mode === "business" || mode === "creator" ? mode : "personal",
       isPrivate: mode === "private",
     };
     setPrivacyBusy(true);
@@ -4014,7 +4015,9 @@ export default function App() {
           "Account updated",
           mode === "private"
             ? "Your account is now private. Business tools are disabled."
-            : "Your account is now public. Business tools are disabled.",
+            : mode === "creator"
+              ? "Creator Account is active. Your public creator profile is ready."
+              : "Your account is now public. Business tools are disabled.",
         );
       }
     } catch (error) {
@@ -5110,6 +5113,12 @@ export default function App() {
               fullName,
             )
           : await loginAccount(username, authPassword);
+      if (authMode === "register" && authAccountType !== "personal") {
+        await savePrivacySettings(
+          { accountType: authAccountType, isPrivate: false },
+          result.username || username,
+        );
+      }
       setAuthSession({ token: result.token, username: result.username });
       setAuthPassword("");
       Alert.alert(
@@ -5595,6 +5604,32 @@ export default function App() {
           </Text>
           {authMode === "register" ? (
             <>
+              <Text style={{ color: "#F4EFFA", fontWeight: "700", marginBottom: 9 }}>
+                Choose account type
+              </Text>
+              <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
+                {[
+                  { key: "personal", title: "Personal", icon: "person-outline" },
+                  { key: "creator", title: "Creator", icon: "videocam-outline" },
+                  { key: "business", title: "Business", icon: "briefcase-outline" },
+                ].map((item) => {
+                  const active = authAccountType === item.key;
+                  return (
+                    <TouchableOpacity
+                      key={item.key}
+                      onPress={() => setAuthAccountType(item.key)}
+                      disabled={authBusy}
+                      style={{ flex: 1, minHeight: 76, paddingVertical: 12, paddingHorizontal: 5, borderRadius: 12, borderWidth: 1.5, borderColor: active ? "#D8B86A" : "#49345F", backgroundColor: active ? "rgba(216,184,106,0.14)" : "#171020", alignItems: "center", justifyContent: "center" }}
+                    >
+                      <Ionicons name={item.icon} size={21} color={active ? "#D8B86A" : "#B8AACB"} />
+                      <Text style={{ color: active ? "#D8B86A" : "#F4EFFA", fontSize: 12, fontWeight: "800", marginTop: 5 }}>{item.title}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={{ color: "#B8AACB", fontSize: 11, lineHeight: 16, marginBottom: 13 }}>
+                Creator accounts are for public creator profiles. Business accounts unlock Business Studio after signup.
+              </Text>
               <Text
                 style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
               >
@@ -9749,8 +9784,9 @@ export default function App() {
             </Text>
             {[
               { key: "business", title: "Business Account", subtitle: "Professional profile for your brand or business", active: privacySettings.accountType === "business" },
-              { key: "private", title: "Private Account", subtitle: "Only approved followers can see your posts", active: privacySettings.accountType !== "business" && privacySettings.isPrivate },
-              { key: "public", title: "Public Account", subtitle: "Anyone can see your public posts and profile", active: privacySettings.accountType !== "business" && !privacySettings.isPrivate },
+              { key: "creator", title: "Creator Account", subtitle: "Public profile for creators, reels and audience growth", active: privacySettings.accountType === "creator" },
+              { key: "private", title: "Private Account", subtitle: "Only approved followers can see your posts", active: privacySettings.accountType === "personal" && privacySettings.isPrivate },
+              { key: "public", title: "Public Account", subtitle: "Anyone can see your public posts and profile", active: privacySettings.accountType === "personal" && !privacySettings.isPrivate },
             ].map((item) => (
               <TouchableOpacity
                 key={item.key}
