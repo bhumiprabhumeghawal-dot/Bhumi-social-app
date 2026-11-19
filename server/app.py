@@ -4392,7 +4392,7 @@ def patch_settings_preferences():
     allowed_prefixes = (
         "location.", "privacy.", "security.", "notifications.",
         "messages.", "story.", "feed.", "appearance.", "advanced.",
-        "profile.", "account."
+        "profile.", "account.", "creator.", "protection.", "data.", "premium."
     )
     for key, value in changes.items():
         if not isinstance(key, str) or not key.startswith(allowed_prefixes):
