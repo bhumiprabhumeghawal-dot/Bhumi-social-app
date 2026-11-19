@@ -575,7 +575,10 @@ def file_too_large(error):
 
 @app.get("/")
 def index():
-    return send_from_directory(BASE_DIR / "webapp", "index.html")
+    response = send_from_directory(BASE_DIR / "webapp", "index.html")
+    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    return response
 
 
 @app.get("/manifest.webmanifest")
@@ -599,7 +602,9 @@ def web_service_worker():
 
 @app.get("/webapp/<path:filename>")
 def webapp_assets(filename):
-    return send_from_directory(BASE_DIR / "webapp", filename)
+    response = send_from_directory(BASE_DIR / "webapp", filename)
+    response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
+    return response
 
 
 # SOCIALAPP_PROFILE_API_V1
