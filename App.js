@@ -142,7 +142,7 @@ function formatHindiLastSeen(value) {
   if (!Number.isFinite(stamp)) return "आख़िरी बार उपलब्ध नहीं";
   const diff = Math.max(0, Date.now() - stamp);
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "अभी-अभी सक्रिय";
+  if (mins < 1) return "अभी देखा";
   if (mins < 60) return mins + " मिनट पहले देखा";
   const hours = Math.floor(mins / 60);
   if (hours < 24) return hours + " घंटे पहले देखा";
