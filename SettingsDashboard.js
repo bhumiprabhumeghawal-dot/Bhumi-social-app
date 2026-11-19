@@ -75,6 +75,7 @@ const SECTIONS = [
     ["security.checkup","Security Checkup","Review important account protection settings",false],
   ]},
   { key:"notifications", title:"Notification Settings", subtitle:"Choose alerts, sounds and quiet hours", icon:"notifications-outline", legacy:"notifications", fields:[
+    ["notifications.enabled","All Notifications","Turn all social activity notifications on or off",true],
     ["notifications.sound","Notification Sound","Play a sound for app notifications",true],
     ["notifications.royalTone","Royal Futuristic Tone","Use the Bhumi Social signature tone",true],
     ["notifications.quietHours","Quiet Hours","Silence non-critical notifications on a schedule",false],
