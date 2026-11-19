@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090611"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Bhumi Social">
+<meta name="description" content="Bhumi Social AI — connect, share and discover.">
+<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/webapp/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/webapp/icon.svg"><link rel="stylesheet" href="/webapp/styles.css">
+<title>Bhumi Social AI</title>
+</head>
+<body>
+<div class="app-shell">
+<header class="topbar"><a class="brand" href="/"><span class="brand-mark">B</span><span>BHUMI <small>SOCIAL AI</small></span></a><button id="installBtn" class="install-btn" hidden>Install</button></header>
+<main>
+<section id="authView" class="auth-card">
+<div class="logo-orb">B</div><p class="eyebrow">YOUR WORLD. YOUR PEOPLE.</p><h1>Welcome back</h1><p class="muted">Sign in to continue to Bhumi Social AI.</p>
+<form id="loginForm"><label>Username or email<input id="loginUser" autocomplete="username" required placeholder="Enter username or email"></label><label>Password<input id="loginPass" type="password" autocomplete="current-password" required placeholder="Enter password"></label><button class="primary" type="submit">Sign in <span>→</span></button><p id="authMessage" class="message" role="status"></p></form>
+</section>
+<section id="feedView" hidden>
+<div class="welcome-row"><div><p class="eyebrow">YOUR COMMUNITY</p><h1 id="welcomeTitle">Your feed</h1></div><button id="refreshBtn" class="round-btn" aria-label="Refresh feed">↻</button></div>
+<nav class="tabs"><button class="tab active" data-kind="posts">Posts</button><button class="tab" data-kind="reels">Reels</button><button class="tab" data-kind="stories">Stories</button></nav>
+<div id="feed" class="feed"><div class="loading">Loading your feed…</div></div>
+<button id="logoutBtn" class="logout">Sign out</button>
+</section>
+</main>
+<footer>BHUMI SOCIAL AI <span>✦</span> CONNECT • CREATE • SHARE</footer>
+</div>
+<div id="toast" class="toast" role="status"></div>
+<script src="/webapp/app.js" defer></script>
+</body></html>
