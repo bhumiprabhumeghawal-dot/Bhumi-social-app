@@ -3396,6 +3396,73 @@ def _chat_current_user():
     return username
 
 
+@app.post("/api/presence/heartbeat")
+def update_presence_heartbeat():
+    username = _chat_current_user()
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS user_presence (
+                username TEXT PRIMARY KEY,
+                last_seen_at TEXT NOT NULL
+            )
+        """)
+        existing = db.execute(
+            "SELECT username FROM user_presence WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchone()
+        if existing:
+            db.execute(
+                "UPDATE user_presence SET last_seen_at=? WHERE LOWER(username)=LOWER(?)",
+                (now, username),
+            )
+        else:
+            db.execute(
+                "INSERT INTO user_presence (username,last_seen_at) VALUES (?,?)",
+                (username, now),
+            )
+    return jsonify({"ok": True, "lastSeenAt": now})
+
+
+@app.get("/api/presence/<username>")
+def get_chat_presence(username):
+    viewer = _chat_current_user()
+    if not viewer:
+        return jsonify({"error": "Please log in first."}), 401
+    target = str(username or "").strip().lstrip("@")
+    if not target or target.lower() == viewer.lower():
+        return jsonify({"error": "Invalid user."}), 400
+    now = datetime.now(timezone.utc)
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (target,),
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+        target = user["username"]
+        privacy = db.execute(
+            "SELECT show_activity FROM user_settings WHERE LOWER(username)=LOWER(?)",
+            (target,),
+        ).fetchone()
+        if privacy and not bool(privacy["show_activity"]):
+            return jsonify({"isOnline": False, "lastSeenAt": None, "hidden": True})
+        row = db.execute(
+            "SELECT last_seen_at FROM user_presence WHERE LOWER(username)=LOWER(?)",
+            (target,),
+        ).fetchone()
+    last_seen = row["last_seen_at"] if row else None
+    try:
+        parsed = datetime.fromisoformat(last_seen) if last_seen else None
+        if parsed and parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        online = bool(parsed and (now - parsed).total_seconds() <= 90)
+    except (TypeError, ValueError):
+        online = False
+    return jsonify({"isOnline": online, "lastSeenAt": last_seen, "hidden": False})
+
 
 # SOCIALAPP_LIVEKIT_CALLS_V1
 def init_call_tables():
