@@ -63,6 +63,8 @@ const SECTIONS = [
     ["messages.allowUnknown","Allow Unknown Senders","Allow message requests from people you do not follow",true],
     ["messages.readReceipts","Read Receipts","When off, do not send read status when you open a chat",true],
     ["messages.typing","Typing Indicator","When off, hide your typing status from other people",true],
+    ["messages.allowVoiceCalls","Allow Voice Calls","Allow incoming audio calls",true],
+    ["messages.allowVideoCalls","Allow Video Calls","Allow incoming video calls",true],
   ]},
   { key:"story", title:"Story Settings", subtitle:"Manage story audience and replies", icon:"images-outline", fields:[
     ["story.closeFriends","Close Friends","Manage your Close Friends membership from each friend’s Chat Studio",true],
