@@ -2271,12 +2271,24 @@ export default function App() {
   React.useEffect(() => {
     let active = true;
 
-    const openSharedPost = async (url) => {
-      const match = String(url || "").match(/^bhumisocial:\/\/post\/(\d+)/i);
-      if (!match) return;
+    const openSharedUrl = async (url) => {
+      const value = String(url || "");
+      const postMatch = value.match(/^bhumisocial:\/\/post\/(\d+)/i);
+      const profileMatch = value.match(/^bhumisocial:\/\/profile\/([^/?#]+)/i);
 
+      if (profileMatch) {
+        try {
+          const username = decodeURIComponent(profileMatch[1]);
+          if (active && username) await openUserProfile(username);
+        } catch (error) {
+          if (active) NativeAlert.alert("Profile unavailable", error?.message || "Could not open this profile.");
+        }
+        return;
+      }
+
+      if (!postMatch) return;
       try {
-        const post = await loadPostById(match[1]);
+        const post = await loadPostById(postMatch[1]);
         if (!active || !post) return;
         setSelectedPost(post);
         setSelectedPostMediaIndex(0);
@@ -2291,10 +2303,10 @@ export default function App() {
     };
 
     Linking.getInitialURL()
-      .then(openSharedPost)
+      .then(openSharedUrl)
       .catch(() => {});
     const subscription = Linking.addEventListener("url", ({ url }) => {
-      openSharedPost(url);
+      openSharedUrl(url);
     });
 
     return () => {
@@ -12442,9 +12454,14 @@ export default function App() {
             }}>
               <TouchableOpacity onPress={() => {
                 setViewedProfileMenuOpen(false);
-                Share.share({ message: `@${viewedProfile.username} on Bhumi Social AI` });
+                const username = String(viewedProfile.username || "").replace(/^@/, "").trim();
+                const profileLink = `bhumisocial://profile/${encodeURIComponent(username)}`;
+                Share.share({
+                  title: `@${username} on Bhumi Social AI`,
+                  message: `View @${username}'s profile on Bhumi Social AI:\n${profileLink}\n\nGet Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download`,
+                });
               }} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
-                <Text style={{ color: "#F4EFFA", fontSize: 14 }}>Share this profile</Text>
+                <Text style={{ color: "#F4EFFA", fontSize: 14 }}>Share Profile</Text>
               </TouchableOpacity>
               <View style={{ height: 0.5, backgroundColor: "#21162F" }} />
               <TouchableOpacity disabled={viewedProfileRestrictBusy} onPress={() => {
