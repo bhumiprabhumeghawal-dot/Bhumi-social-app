@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Alert, Linking, Platform
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { loadSettingsPreferences, saveSettingsPreferences } from "./api";
+import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
 
 const GOLD = "#D8B86A";
 const BG = "#0B0712";
@@ -203,8 +203,19 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     let alive = true;
     if (visible) {
       setLoading(true);
-      loadSettingsPreferences().then((data) => {
-        if (alive) setPreferences(data || {});
+      Promise.all([
+        loadSettingsPreferences(),
+        loadNotificationPreference(),
+        loadNotificationDetails(),
+      ]).then(([data, notificationsEnabled, notificationDetails]) => {
+        if (!alive) return;
+        const merged = { ...(data || {}) };
+        merged["notifications.enabled"] = notificationsEnabled;
+        Object.entries(notificationDetails || {}).forEach(([name, enabled]) => {
+          const key = ({ likes:"notifications.likes", comments:"notifications.comments", follows:"notifications.follows", messages:"notifications.messages" })[name];
+          if (key) merged[key] = enabled;
+        });
+        setPreferences(merged);
       }).catch((error) => {
         if (alive) Alert.alert("Settings", error.message || "Could not load preferences.");
       }).finally(() => { if (alive) setLoading(false); });
@@ -219,8 +230,19 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     setPreferences((current) => ({ ...current, [key]: value }));
     setSavingKey(key);
     try {
-      const saved = await saveSettingsPreferences({ [key]: value });
-      setPreferences(saved);
+      if (key === "notifications.enabled") {
+        const saved = await saveNotificationPreference(value);
+        setPreferences((current) => ({ ...current, [key]: saved }));
+      } else {
+        const detailKey = ({ "notifications.likes":"likes", "notifications.comments":"comments", "notifications.follows":"follows", "notifications.messages":"messages" })[key];
+        if (detailKey) {
+          await saveNotificationDetails({ [detailKey]: value });
+          setPreferences((current) => ({ ...current, [key]: value }));
+        } else {
+          const saved = await saveSettingsPreferences({ [key]: value });
+          setPreferences(saved);
+        }
+      }
     } catch (error) {
       setPreferences((current) => ({ ...current, [key]: previous }));
       Alert.alert("Save failed", error.message || "Could not save this setting.");
