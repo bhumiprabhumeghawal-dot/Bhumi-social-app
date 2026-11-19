@@ -4743,9 +4743,15 @@ export default function App() {
           : "";
       for (const asset of assets) {
         let uploadAsset = asset;
-        const assetIsVideo =
+        let assetIsVideo =
           asset.type === "video" ||
           /\.(mp4|mov|webm)(\?|$)/i.test(asset.uri || "");
+
+        // Render a photo Status as a short video when music is selected.
+        if (kind === "stories" && !assetIsVideo && musicAsset?.uri) {
+          uploadAsset = await createVideoFromPhotos([asset], { secondsPerPhoto: 10 });
+          assetIsVideo = true;
+        }
 
         if (assetIsVideo && zoomEffectEnabled) {
           uploadAsset = await applyZoomEffect(uploadAsset.uri, {
@@ -6219,6 +6225,18 @@ export default function App() {
                           }}
                         />
                       ) : null}
+                      {!isVideo ? (
+                        <View style={{ position: "absolute", top: 72, right: 12, alignItems: "center", gap: 10 }}>
+                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 48, height: 48, borderRadius: 17, borderWidth: 1, borderColor: "#FFE7A3", backgroundColor: "rgba(20,12,32,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#D7AE55", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
+                            <Ionicons name="musical-notes" size={22} color="#F5D88A" />
+                          </TouchableOpacity>
+                          {musicAsset ? (
+                            <TouchableOpacity onPress={() => musicPlayerStatus.playing ? musicPlayer.pause() : musicPlayer.play()} style={{ width: 42, height: 42, borderRadius: 15, backgroundColor: "rgba(20,12,32,0.94)", borderWidth: 1, borderColor: "#D7AE55", alignItems: "center", justifyContent: "center" }}>
+                              <Ionicons name={musicPlayerStatus.playing ? "pause" : "play"} size={19} color="#F5D88A" />
+                            </TouchableOpacity>
+                          ) : null}
+                        </View>
+                      ) : null}
                       {isVideo ? (
                         <View style={{ position: "absolute", top: 72, left: 10, right: 10, gap: 7 }}>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
@@ -6238,8 +6256,8 @@ export default function App() {
                           <TouchableOpacity onPress={() => setZoomEffectEnabled((value) => !value)} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.72)" }}>
                             <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{zoomEffectEnabled ? "Zoom Effect: ON" : "Zoom Effect"}</Text>
                           </TouchableOpacity>
-                          <TouchableOpacity onPress={chooseMusicFile} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.72)" }}>
-                            <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{musicAsset ? "♫ Change Music" : "♫ Add Music"}</Text>
+                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 46, height: 46, borderRadius: 16, borderWidth: 1, borderColor: "#FFE7A3", backgroundColor: "rgba(20,12,32,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#D7AE55", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
+                            <Ionicons name="musical-notes" size={22} color="#F5D88A" />
                           </TouchableOpacity>
                           {musicAsset ? (
                             <TouchableOpacity onPress={() => musicPlayerStatus.playing ? musicPlayer.pause() : musicPlayer.play()} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.65)" }}>
@@ -6262,13 +6280,19 @@ export default function App() {
                           ) : null}
                         </View>
                       ) : (
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ position: "absolute", top: 74, left: 8, right: 8, maxHeight: 42 }} contentContainerStyle={{ gap: 6 }}>
-                          {POST_PHOTO_FILTERS.map((filter, index) => (
-                            <TouchableOpacity key={filter.name} onPress={() => handlePhotoEdit(`filter:${index}`)} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 16, backgroundColor: Number(asset.photoFilterIndex || 0) === index ? "#D7AE55" : "rgba(20,12,32,0.88)", borderWidth: 1, borderColor: Number(asset.photoFilterIndex || 0) === index ? "#FFE7A3" : "rgba(215,174,85,0.55)", shadowColor: "#D7AE55", shadowOpacity: 0.3, shadowRadius: 7, elevation: 4 }}>
-                              <Text style={{ color: Number(asset.photoFilterIndex || 0) === index ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}</Text>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
+                        <View style={{ position: "absolute", top: 72, left: 10, right: 10, gap: 8 }}>
+                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 3 }}>
+                            {POST_PHOTO_FILTERS.map((filter, index) => {
+                              const selected = Number(asset.photoFilterIndex || 0) === index;
+                              return (
+                                <TouchableOpacity key={filter.name} disabled={busy} onPress={() => handlePhotoEdit(`filter:${index}`)} style={{ width: 62, height: 62, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(215,174,85,0.24)" : "rgba(20,12,32,0.88)", borderWidth: 1, borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.55)", shadowColor: "#D7AE55", shadowOpacity: selected ? 0.5 : 0.18, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
+                                  <Ionicons name="color-filter-outline" size={21} color={selected ? "#FFE7A3" : "#D8B86A"} />
+                                  <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700", marginTop: 3 }}>{filter.name}</Text>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </ScrollView>
+                        </View>
                       )}
 
                       <TouchableOpacity
