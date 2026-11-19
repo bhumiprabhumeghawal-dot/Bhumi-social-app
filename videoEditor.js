@@ -288,7 +288,7 @@ export async function applyVideoEffects(videoUri, options = {}) {
   if (!result.success || result.returnCode !== 0) {
     const details = String(result.output || '').trim().slice(-900);
     throw new Error(
-      `वीडियो फ़िल्टर लागू नहीं हो पाया। कृपया दूसरा फ़िल्टर चुनें या वीडियो दोबारा चुनें।${details ? `\\n\\nतकनीकी विवरण: ${details}` : ''}`
+      `वीडियो फ़िल्टर लागू नहीं हो पाया। कृपया दूसरा फ़िल्टर चुनें या वीडियो दोबारा चुनें।${details ? `\n\nतकनीकी विवरण: ${details}` : ''}`
     );
   }
   const info = await FileSystem.getInfoAsync(outputPath);
