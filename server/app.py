@@ -3739,6 +3739,12 @@ def get_message_conversations():
                OR LOWER(dm.recipient_username)=LOWER(?)
             ORDER BY dm.created_at DESC, dm.id DESC
         """, (current, current, current, current, current)).fetchall()
+        connected_rows = db.execute("""
+            SELECT CASE WHEN LOWER(follower)=LOWER(?) THEN following ELSE follower END AS peer
+            FROM follows
+            WHERE LOWER(follower)=LOWER(?) OR LOWER(following)=LOWER(?)
+        """, (current, current, current)).fetchall()
+        connected_users = {str(item["peer"]).lower() for item in connected_rows}
 
     conversations = []
     seen = set()
@@ -3753,19 +3759,13 @@ def get_message_conversations():
         if key in seen:
             continue
         seen.add(key)
-        connection = db.execute("""
-            SELECT 1 FROM follows
-            WHERE (LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?))
-               OR (LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?))
-            LIMIT 1
-        """, (current, other, other, current)).fetchone()
-        inbox_folder = "primary" if connection else "requests"
+        inbox_folder = "primary" if key in connected_users else "requests"
         conversations.append({
             "username": other,
             "displayName": row["other_display_name"] or other,
             "avatarUrl": row["other_avatar_url"],
             "folder": inbox_folder,
-            "isRequest": not bool(connection),
+            "isRequest": key not in connected_users,
             "lastMessage": row["body"] or (
                 "📷 Photo" if row["image_url"] or row["attachment_type"] == "image"
                 else "🎬 Video" if row["attachment_type"] == "video"
