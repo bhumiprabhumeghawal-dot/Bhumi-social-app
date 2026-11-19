@@ -106,6 +106,8 @@ import {
   acceptFollowRequest,
   rejectFollowRequest,
   loadMessageConversations,
+  sendPresenceHeartbeat,
+  getChatPresence,
   loadSettingsPreferences,
   loadUserNotes,
   saveUserNote,
@@ -2595,6 +2597,28 @@ export default function App() {
   const [chatUnsendTarget, setChatUnsendTarget] = React.useState(null);
   const [chatPeerTyping, setChatPeerTyping] = React.useState(false);
   const [chatPresence, setChatPresence] = React.useState(null);
+
+  React.useEffect(() => {
+    if (!authSession?.username) return undefined;
+    const heartbeat = () => sendPresenceHeartbeat().catch(() => {});
+    heartbeat();
+    const timer = setInterval(heartbeat, 30000);
+    return () => clearInterval(timer);
+  }, [authSession?.username]);
+
+  React.useEffect(() => {
+    if (!selectedChatUser || !authSession?.username) {
+      setChatPresence(null);
+      return undefined;
+    }
+    let active = true;
+    const refresh = () => getChatPresence(selectedChatUser)
+      .then((presence) => { if (active) setChatPresence(presence); })
+      .catch(() => { if (active) setChatPresence(null); });
+    refresh();
+    const timer = setInterval(refresh, 15000);
+    return () => { active = false; clearInterval(timer); };
+  }, [selectedChatUser, authSession?.username]);
   const [chatBusy, setChatBusy] = React.useState(false);
   const [chatError, setChatError] = React.useState("");
   const [chatSearchQuery, setChatSearchQuery] = React.useState("");
@@ -10521,7 +10545,7 @@ export default function App() {
                     <View style={{ flexDirection: "row", alignItems: "center", marginTop: 3, gap: 5 }}>
                       <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: chatPresence?.isOnline ? "#25D366" : "#8B8B93" }} />
                       <Text numberOfLines={1} style={{ fontSize: 11, color: chatPresence?.isOnline ? "#25D366" : "#A7A9AE" }}>
-                        {chatPresence?.isOnline ? "ऑनलाइन" : chatPresence?.lastSeenAt ? ("ऑफ़लाइन · " + formatHindiLastSeen(chatPresence.lastSeenAt)) : "ऑफ़लाइन"}
+                        {chatPresence?.hidden ? "एक्टिविटी छुपाई गई" : chatPresence?.isOnline ? "ऑनलाइन" : chatPresence?.lastSeenAt ? ("ऑफ़लाइन · " + formatHindiLastSeen(chatPresence.lastSeenAt)) : "ऑफ़लाइन"}
                         {chatPreferences.favorite ? "  ★ Favourite" : ""}{chatPreferences.closeFriend ? " · Close Friend" : ""}
                       </Text>
                     </View>
@@ -11331,10 +11355,12 @@ export default function App() {
                           }}
                           style={{
                             maxWidth: "82%",
-                            backgroundColor: "transparent",
-                            borderRadius: 0,
-                            paddingHorizontal: 4,
-                            paddingVertical: 5,
+                            backgroundColor: mine ? chatThemeColors.mine : chatThemeColors.other,
+                            borderRadius: 16,
+                            paddingHorizontal: 12,
+                            paddingVertical: 9,
+                            borderWidth: 1,
+                            borderColor: chatThemeColors.accent + "55",
                             elevation: 0,
                           }}
                         >
