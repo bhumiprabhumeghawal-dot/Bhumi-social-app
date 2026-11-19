@@ -2,9 +2,6 @@ name: Android APK Build
 run-name: Bhumi Social AI Android APK
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
 
 permissions:
