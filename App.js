@@ -135,6 +135,20 @@ import {
   Linking,
 } from "react-native";
 
+function formatHindiLastSeen(value) {
+  const stamp = new Date(value).getTime();
+  if (!Number.isFinite(stamp)) return "आख़िरी बार उपलब्ध नहीं";
+  const diff = Math.max(0, Date.now() - stamp);
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "अभी-अभी सक्रिय";
+  if (mins < 60) return mins + " मिनट पहले देखा";
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return hours + " घंटे पहले देखा";
+  const days = Math.floor(hours / 24);
+  if (days < 7) return days + " दिन पहले देखा";
+  return new Date(stamp).toLocaleDateString("hi-IN", { day: "numeric", month: "short", year: "numeric" }) + " को देखा";
+}
+
 function isVersionNewer(latest, current) {
   const a = String(latest || "0")
     .split(".")
@@ -2520,6 +2534,56 @@ export default function App() {
     rose: { bg: "#1B0B16", mine: "#63304A", other: "#321A29", accent: "#F0A0C0" },
     emerald: { bg: "#071710", mine: "#1D513A", other: "#153324", accent: "#7AD6A4" },
     sunset: { bg: "#1C100A", mine: "#75402B", other: "#382319", accent: "#FFB078" },
+    sapphire: { bg: "#07122B", mine: "#173B78", other: "#10264D", accent: "#75A7FF" },
+    ruby: { bg: "#250914", mine: "#7D1F42", other: "#4A142B", accent: "#FF719D" },
+    amethyst: { bg: "#170D2C", mine: "#54358B", other: "#30204D", accent: "#C6A1FF" },
+    silver: { bg: "#171A22", mine: "#414958", other: "#292F3B", accent: "#D7E0EE" },
+    pearl: { bg: "#29252A", mine: "#665B61", other: "#413A40", accent: "#FFE4C7" },
+    lavender: { bg: "#1B1230", mine: "#59427D", other: "#34254D", accent: "#D7B8FF" },
+    cotton: { bg: "#24102C", mine: "#7D3D76", other: "#4B2850", accent: "#FFA9E7" },
+    coral: { bg: "#21100D", mine: "#874536", other: "#4D2A23", accent: "#FFAA91" },
+    mint: { bg: "#071E1A", mine: "#1E6655", other: "#164437", accent: "#8CE6C5" },
+    forest: { bg: "#07170E", mine: "#205234", other: "#153A25", accent: "#8BD69A" },
+    sakura: { bg: "#260F20", mine: "#77365F", other: "#4A2540", accent: "#FFB8DB" },
+    cherry: { bg: "#250A12", mine: "#8E1D3D", other: "#53152A", accent: "#FF7898" },
+    lavaglow: { bg: "#210B07", mine: "#8E321A", other: "#542113", accent: "#FF9B5D" },
+    arctic: { bg: "#081B29", mine: "#24536D", other: "#17394D", accent: "#8EE5FF" },
+    galaxy: { bg: "#100A28", mine: "#45317F", other: "#291D50", accent: "#B9A3FF" },
+    cosmic: { bg: "#180A2B", mine: "#6A2685", other: "#401C56", accent: "#E2A4FF" },
+    aurora: { bg: "#071C22", mine: "#17636A", other: "#12434C", accent: "#80F0DE" },
+    desert: { bg: "#21170D", mine: "#75502B", other: "#49351F", accent: "#EBC58B" },
+    saffron: { bg: "#251505", mine: "#8B5416", other: "#54350F", accent: "#FFD078" },
+    lotus: { bg: "#200F20", mine: "#75406D", other: "#482B46", accent: "#F5B8E8" },
+    diya: { bg: "#241004", mine: "#9B4D12", other: "#5A2D0B", accent: "#FFC46B" },
+    vrindavan: { bg: "#17102A", mine: "#563C85", other: "#342650", accent: "#D6B7FF" },
+    shiva: { bg: "#081B2D", mine: "#245C83", other: "#173B56", accent: "#91D8FF" },
+    ganesha: { bg: "#24140A", mine: "#8B4E1D", other: "#553315", accent: "#FFD18A" },
+    hanuman: { bg: "#260D06", mine: "#9A3218", other: "#5B2111", accent: "#FF9A62" },
+    krishna: { bg: "#071E24", mine: "#14616A", other: "#10444C", accent: "#83E9D8" },
+    ram: { bg: "#201405", mine: "#85601A", other: "#4F3A12", accent: "#FFDA85" },
+    islamic: { bg: "#08182A", mine: "#1B416B", other: "#122D4C", accent: "#A9D4FF" },
+    christian: { bg: "#17152A", mine: "#49477A", other: "#2F3057", accent: "#E5D7FF" },
+    buddha: { bg: "#10201C", mine: "#416B55", other: "#2A493A", accent: "#B8E6C5" },
+    jain: { bg: "#1E1A0D", mine: "#75652D", other: "#4A411F", accent: "#E7D99B" },
+    rainbow: { bg: "#1D1026", mine: "#754C8C", other: "#4A315B", accent: "#F4B8FF" },
+    neon: { bg: "#080F1E", mine: "#124C65", other: "#0D3046", accent: "#5CF0FF" },
+    cyber: { bg: "#16091D", mine: "#67245F", other: "#3E1940", accent: "#FF83D8" },
+    comic: { bg: "#21100B", mine: "#8A3C20", other: "#512819", accent: "#FFB47E" },
+    cartoon: { bg: "#1A1030", mine: "#6447A0", other: "#3B2B62", accent: "#FFE27A" },
+    anime: { bg: "#0B1830", mine: "#285B94", other: "#1B3C64", accent: "#A8D7FF" },
+    unicorn: { bg: "#21112D", mine: "#754B91", other: "#4C315F", accent: "#F8C6FF" },
+    teddy: { bg: "#25170F", mine: "#77523A", other: "#4B3829", accent: "#E7BE91" },
+    oceanwave: { bg: "#061C2A", mine: "#17617B", other: "#104255", accent: "#7EDCFF" },
+    monsoon: { bg: "#101A2B", mine: "#354C70", other: "#253650", accent: "#A9C8F5" },
+    autumn: { bg: "#211006", mine: "#81451C", other: "#4D2C16", accent: "#F5B16B" },
+    winter: { bg: "#101D2A", mine: "#45647C", other: "#2B4559", accent: "#C7E8FF" },
+    coffee: { bg: "#1B120D", mine: "#65432E", other: "#3E2C20", accent: "#D9B18A" },
+    marble: { bg: "#17171C", mine: "#55515A", other: "#34323A", accent: "#E5D9C9" },
+    velvet: { bg: "#100C14", mine: "#45304D", other: "#2B2032", accent: "#D6A7E8" },
+    floral: { bg: "#102016", mine: "#3E704B", other: "#284B33", accent: "#B3E6A8" },
+    candy: { bg: "#241029", mine: "#7A3D83", other: "#4B2B55", accent: "#FFA8EA" },
+    sports: { bg: "#101820", mine: "#34566D", other: "#223D50", accent: "#A5E1FF" },
+    minimal: { bg: "#12151A", mine: "#3A424D", other: "#252C35", accent: "#D1D8E0" },
   })[chatPreferences.theme] || { bg: "#100B19", mine: "#49345F", other: "#21162F", accent: "#D8B86A" };
   const [directMessages, setDirectMessages] = React.useState([]);
   const [newChatUsername, setNewChatUsername] = React.useState("");
@@ -2530,6 +2594,7 @@ export default function App() {
   const [chatReplyTo, setChatReplyTo] = React.useState(null);
   const [chatUnsendTarget, setChatUnsendTarget] = React.useState(null);
   const [chatPeerTyping, setChatPeerTyping] = React.useState(false);
+  const [chatPresence, setChatPresence] = React.useState(null);
   const [chatBusy, setChatBusy] = React.useState(false);
   const [chatError, setChatError] = React.useState("");
   const [chatSearchQuery, setChatSearchQuery] = React.useState("");
@@ -10453,11 +10518,13 @@ export default function App() {
                           selectedChatUser.toLowerCase(),
                       )?.displayName || selectedChatUser}
                     </Text>
-                    <Text
-                      style={{ fontSize: 12, color: "#A7A9AE", marginTop: 2 }}
-                    >
-                      @{selectedChatUser}{chatPreferences.favorite ? "  ★ Favourite" : ""}{chatPreferences.closeFriend ? "  · Close Friend" : ""}
-                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 3, gap: 5 }}>
+                      <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: chatPresence?.isOnline ? "#25D366" : "#8B8B93" }} />
+                      <Text numberOfLines={1} style={{ fontSize: 11, color: chatPresence?.isOnline ? "#25D366" : "#A7A9AE" }}>
+                        {chatPresence?.isOnline ? "ऑनलाइन" : chatPresence?.lastSeenAt ? ("ऑफ़लाइन · " + formatHindiLastSeen(chatPresence.lastSeenAt)) : "ऑफ़लाइन"}
+                        {chatPreferences.favorite ? "  ★ Favourite" : ""}{chatPreferences.closeFriend ? " · Close Friend" : ""}
+                      </Text>
+                    </View>
                   </View>
                   <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel="Chat personalization" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#21162F", borderWidth: 1, borderColor: chatThemeColors.accent, alignItems: "center", justifyContent: "center" }}>
                     <Ionicons name="color-palette-outline" size={21} color={chatThemeColors.accent} />
@@ -11249,6 +11316,13 @@ export default function App() {
                           marginVertical: 6,
                         }}
                       >
+                        {!mine ? (
+                          <View style={{ width: 27, height: 27, borderRadius: 14, marginRight: 7, marginBottom: 2, backgroundColor: chatThemeColors.other, borderWidth: 1, borderColor: chatThemeColors.accent, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                            {messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase())?.avatarUrl ? (
+                              <Image source={{ uri: String(messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl).startsWith("http") ? messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl : "https://bhumi-social-app-1.onrender.com" + messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl }} style={{ width: 27, height: 27, borderRadius: 14 }} />
+                            ) : <Text style={{ color: "#F4EFFA", fontSize: 11, fontWeight: "800" }}>{String(selectedChatUser || "?").slice(0,1).toUpperCase()}</Text>}
+                          </View>
+                        ) : null}
                         <TouchableOpacity
                           activeOpacity={0.9}
                           onLongPress={() => {
