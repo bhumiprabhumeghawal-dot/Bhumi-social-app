@@ -3466,6 +3466,10 @@ def create_call():
         if not target:
             return jsonify({"error": "User not found."}), 404
         callee = target["username"]
+        if call_type == "audio" and not _chat_preference(db, callee, "messages.allowVoiceCalls", True):
+            return jsonify({"error": "This user is not accepting voice calls."}), 403
+        if call_type == "video" and not _chat_preference(db, callee, "messages.allowVideoCalls", True):
+            return jsonify({"error": "This user is not accepting video calls."}), 403
 
         blocked = db.execute("""
             SELECT 1 FROM people_blocks
