@@ -993,6 +993,26 @@ async function coalesceChatRead(key, request) {
   return pending;
 }
 
+export async function sendPresenceHeartbeat() {
+  const response = await fetch(`${API_BASE_URL}/api/presence/heartbeat`, {
+    method: "POST",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({}),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Presence update failed.");
+  return data;
+}
+
+export async function getChatPresence(username) {
+  const response = await fetch(`${API_BASE_URL}/api/presence/${encodeURIComponent(username)}`, {
+    headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Presence unavailable.");
+  return data;
+}
+
 export async function loadMessageConversations() {
   return coalesceChatRead('conversations', async () => {
     const response = await fetch(`${API_BASE_URL}/api/messages/conversations`);
