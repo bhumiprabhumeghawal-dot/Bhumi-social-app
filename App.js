@@ -10620,7 +10620,7 @@ export default function App() {
                       </Text>
                     </View>
                   </View>
-                  <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel="Chat personalization" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#262626", borderWidth: 1, borderColor: chatThemeColors.accent, alignItems: "center", justifyContent: "center" }}>
+                  <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel="Chat personalization" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "transparent", borderWidth: 0, borderColor: "transparent", alignItems: "center", justifyContent: "center" }}>
                     <Ionicons name="color-palette-outline" size={21} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
@@ -10975,12 +10975,12 @@ export default function App() {
                           justifyContent: "center",
                           flexDirection: "row",
                           borderBottomWidth: active ? 2 : 0,
-                          borderBottomColor: active ? "#D8B86A" : "transparent",
+                          borderBottomColor: active ? "#3797F0" : "transparent",
                         }}
                       >
                         <Text
                           style={{
-                            color: active ? "#D8B86A" : "#B8AACB",
+                            color: active ? "#FFFFFF" : "#8E8E93",
                             fontSize: 14,
                             fontWeight: active ? "800" : "600",
                           }}
@@ -12027,8 +12027,8 @@ export default function App() {
                         flex: 1,
                         maxHeight: 110,
                         backgroundColor: "#262626",
-                        borderWidth: 1,
-                        borderColor: "#363636",
+                        borderWidth: 0,
+                        borderColor: "transparent",
                         borderRadius: 25,
                         paddingHorizontal: 18,
                         paddingVertical: 13,
@@ -12048,11 +12048,8 @@ export default function App() {
                         borderRadius: 24,
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor:
-                          chatBusy || isChatRecording || (!chatDraft.trim() && !chatMediaDraft)
-                            ? "#49345F"
-                            : "#6D28D9",
-                        elevation: 3,
+                        backgroundColor: "transparent",
+                        elevation: 0,
                       }}
                     >
                       <Ionicons name="send" size={22} color="#3797F0" />
@@ -12061,7 +12058,7 @@ export default function App() {
                 </View>
               </View>
             )}
-            <View style={styles.bottomNav}>
+            <View style={[styles.bottomNav, selectedChatUser && { display: "none" }]}>
               {[
                 { name: "Home", icon: "home-outline" },
                 { name: "Reels", icon: "play-circle-outline" },
