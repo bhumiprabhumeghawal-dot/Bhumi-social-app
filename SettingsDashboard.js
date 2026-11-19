@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert, Linking, Platform
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import CreatorBusinessHub from "./CreatorBusinessHub";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
 
 const GOLD = "#D8B86A";
@@ -22,7 +23,7 @@ const ACTION_KEYS = new Set([
   "story.hideFrom","story.highlights","feed.mutedAccounts","feed.favorites","feed.notInterested",
   "appearance.appIcon","appearance.display","appearance.chat",
   "advanced.permissions","advanced.reset","advanced.storage","advanced.clearCache",
-  "creator.monetization","creator.collaboration","creator.promotions","premium.profileStudio",
+  "creator.accountType","creator.businessAccount","creator.dashboard","creator.insights","creator.followerAnalytics","creator.contentAnalytics","creator.audience","creator.monetization","creator.collaboration","creator.promotions","premium.profileStudio",
   "account.reportProblem","account.helpCenter","account.appUpdates",
   "account.appVersionInfo","account.terms","account.privacyPolicy","account.openSource",
   "location.history"
@@ -197,6 +198,7 @@ const SECTIONS = [
 
 export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen }) {
   const [active, setActive] = React.useState(null);
+  const [hubVisible, setHubVisible] = React.useState(false);
   const [preferences, setPreferences] = React.useState({});
   const [loading, setLoading] = React.useState(false);
   const [savingKey, setSavingKey] = React.useState("");
@@ -251,6 +253,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   };
 
   const runSettingAction = (key) => {
+    if (key.startsWith("creator.")) {
+      setActive(null);
+      setHubVisible(true);
+      return;
+    }
     if (key === "profile.usernameChange" || key === "account.multipleAccounts" ||
         key === "account.verification" || key === "account.dataDownload" ||
         key === "account.deactivation" || key === "account.deletion") {
@@ -430,6 +437,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         </View>
       </Modal>
       {renderSection()}
+      <CreatorBusinessHub visible={hubVisible && visible} username={username} onClose={() => setHubVisible(false)} />
     </>
   );
 }
