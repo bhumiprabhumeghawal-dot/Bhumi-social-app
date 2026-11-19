@@ -9,7 +9,26 @@ function headers(json=false){return {...(json?{'Content-Type':'application/json'
 async function api(path,opts={}){const isForm=opts.body instanceof FormData;const res=await fetch(API+path,{...opts,headers:{...headers(Boolean(opts.body)&&!isForm),...(opts.headers||{})}});let d={};try{d=await res.json()}catch(_){}if(!res.ok)throw Error(d.error||'Request failed ('+res.status+')');return d}
 function showAuth(){authView.hidden=false;appView.hidden=true}
 function showApp(){authView.hidden=true;appView.hidden=false}
-function openInstallHelp(){ $('installHelpModal').hidden=false }
+function openInstallHelp(){
+ const ua=navigator.userAgent||'';
+ const ios=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ const android=/android/i.test(ua);
+ const inApp=/WhatsApp|FBAN|FBAV|Instagram|Line\//i.test(ua);
+ const steps=$('installSteps'),note=$('installNote');
+ $('installHelpTitle').textContent=ios?'Install on iPhone':android?'Install on Android':'Install Bhumi Social AI';
+ if(ios){
+  steps.innerHTML='<li>Open this link directly in <strong>Safari</strong> (not WhatsApp or another app browser).</li><li>Tap Safari’s <strong>Share</strong> button.</li><li>Scroll the actions list and tap <strong>Add to Home Screen</strong>.</li><li>Tap <strong>Add</strong>. The Bhumi Social AI icon will appear on your Home Screen.</li>';
+  note.textContent='If “Add to Home Screen” is missing even in Safari, check iPhone Screen Time restrictions or device-management restrictions. A website cannot force iOS to show this Apple-controlled option.';
+ }else if(android){
+  steps.innerHTML='<li>Open this link in <strong>Chrome</strong>.</li><li>Tap the <strong>⋮</strong> menu in the top-right corner.</li><li>Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li><li>Tap <strong>Install</strong> or <strong>Add</strong>.</li>';
+  note.textContent='If the install option is unavailable, update Chrome and open the website directly in Chrome rather than inside WhatsApp.';
+ }else{
+  steps.innerHTML='<li>Open the Bhumi Social AI link in your phone’s main browser.</li><li>Open the browser menu or Share menu.</li><li>Choose <strong>Install app</strong> or <strong>Add to Home Screen</strong>, if available.</li><li>Confirm the installation.</li>';
+  note.textContent='Install wording varies by phone and browser. On iPhone use Safari; on Android use Chrome.';
+ }
+ if(inApp) note.textContent='You appear to be inside another app. First use its menu to choose Open in Safari (iPhone) or Open in Chrome (Android), then follow the steps above. '+note.textContent;
+ $('installHelpModal').hidden=false;
+}
 function closeInstallHelp(){ $('installHelpModal').hidden=true }
 function setAuthMode(mode){
  const signup=mode==='signup';
@@ -76,8 +95,15 @@ let deferred=null;
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 const isInAppBrowser=/WhatsApp|FBAN|FBAV|Instagram/i.test(navigator.userAgent);
-$('installBtn').hidden=isStandalone||!isIOS;
-if(isIOS&&!isStandalone){$('installBtn').hidden=false;$('installBtn').textContent=isInAppBrowser?'Open in Safari to Install':'Install on iPhone';$('installBtn').setAttribute('aria-label','Show iPhone installation steps');$('installSignupBtn').hidden=false;$('installSignupBtn').textContent='Install Bhumi Social AI on iPhone';}
+const isMobile=/android|iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+$('installBtn').hidden=isStandalone||!isMobile;
+if(isMobile&&!isStandalone){
+ $('installBtn').hidden=false;
+ $('installBtn').textContent=isIOS?(isInAppBrowser?'Open in Safari to Install':'Install on iPhone'):'Install App';
+ $('installBtn').setAttribute('aria-label','Show Bhumi Social AI installation steps');
+ $('installSignupBtn').hidden=false;
+ $('installSignupBtn').textContent=isIOS?'Install Bhumi Social AI on iPhone':'Install Bhumi Social AI';
+}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('installBtn').hidden=false});
 $('installBtn').addEventListener('click',async()=>{if(isIOS||!deferred){openInstallHelp();return}deferred.prompt();await deferred.userChoice;deferred=null;$('installBtn').hidden=true});
 setAuthMode('login');
