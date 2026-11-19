@@ -1,0 +1,36 @@
+name: Publish Bhumi Social OTA Update
+run-name: Publish Bhumi Social AI OTA
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/publish-ota.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish-ota:
+    name: Publish production OTA
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish update to Expo production channel
+        run: npx eas-cli update --branch production --message "Bhumi Social AI production update" --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
