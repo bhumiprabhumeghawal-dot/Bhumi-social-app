@@ -9,6 +9,19 @@ function headers(json=false){return {...(json?{'Content-Type':'application/json'
 async function api(path,opts={}){const isForm=opts.body instanceof FormData;const res=await fetch(API+path,{...opts,headers:{...headers(Boolean(opts.body)&&!isForm),...(opts.headers||{})}});let d={};try{d=await res.json()}catch(_){}if(!res.ok)throw Error(d.error||'Request failed ('+res.status+')');return d}
 function showAuth(){authView.hidden=false;appView.hidden=true}
 function showApp(){authView.hidden=true;appView.hidden=false}
+function openInstallHelp(){ $('installHelpModal').hidden=false }
+function closeInstallHelp(){ $('installHelpModal').hidden=true }
+function setAuthMode(mode){
+ const signup=mode==='signup';
+ $('loginForm').hidden=signup;
+ $('signupForm').hidden=!signup;
+ $('authTitle').textContent=signup?'Create your account':'Welcome back';
+ $('authSubtitle').textContent=signup?'Join Bhumi Social AI — connect, create and share.':'Sign in to continue to Bhumi Social AI.';
+ $('authSwitchBtn').textContent=signup?'Already have an account? Sign in':'Create a new account';
+ $('iosInstallHelp').hidden=!signup;
+ $('installSignupBtn').hidden=!signup;
+ $('authMessage').textContent='';$('signupMessage').textContent='';
+}
 function switchView(view){currentView=view;document.querySelectorAll('.main-tabs .tab').forEach(b=>b.classList.toggle('active',b.dataset.view===view));['home','messages','notifications','profile'].forEach(v=>$(v+'View').hidden=v!==view);$('viewTitle').textContent={home:'Home',messages:'Messages',notifications:'Activity',profile:'Profile'}[view];if(view==='home')loadFeed();if(view==='messages')loadConversations();if(view==='notifications')loadNotifications();if(view==='profile')loadProfile()}
 function mediaMarkup(item){const m=url(item.mediaUrl||item.uri);if(!m)return '';const video=(item.mediaType||'').includes('video')||/\.(mp4|mov|webm)(\?|$)/i.test(m);return video?'<video class="media" src="'+esc(m)+'" controls playsinline preload="metadata"></video>':'<img class="media" src="'+esc(m)+'" alt="Post media" loading="lazy">'}
 async function loadFeed(){feed.innerHTML='<div class="loading">Loading…</div>';try{const d=await api('/api/'+currentKind);const items=Array.isArray(d.items)?d.items:[];feed.innerHTML=items.length?items.map(x=>'<article class="post"><div class="post-head"><div class="avatar">'+esc((x.username||'B').slice(0,1).toUpperCase())+'</div><div><div class="user">'+esc(x.username||'Bhumi member')+'</div><div class="date">'+esc(x.createdAt?new Date(x.createdAt).toLocaleString():'')+'</div></div></div>'+mediaMarkup(x)+(x.caption?'<div class="caption">'+esc(x.caption)+'</div>':'')+'<div class="post-actions">♥ '+esc(x.likesCount??x.likes??0)+' likes</div></article>').join(''):'<div class="empty">No '+esc(currentKind)+' to show yet.</div>'}catch(e){feed.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
@@ -17,6 +30,35 @@ async function openChat(user){activeChat=user;$('chatName').textContent=user;$('
 async function loadMessages(){const box=$('chatMessages');box.innerHTML='<div class="loading">Loading chat…</div>';try{const d=await api('/api/messages/'+encodeURIComponent(activeChat));box.innerHTML=(d.messages||[]).map(m=>{const mine=m.sender.toLowerCase()===username.toLowerCase(),att=url(m.attachmentUrl||m.imageUrl);let media='';if(att){if(m.attachmentType==='image')media='<a href="'+esc(att)+'" target="_blank"><img src="'+esc(att)+'" alt="Attachment"></a>';else if(m.attachmentType==='video')media='<video src="'+esc(att)+'" controls playsinline></video>';else if(m.attachmentType==='audio')media='<audio src="'+esc(att)+'" controls></audio>';else media='<a href="'+esc(att)+'" target="_blank">📎 '+esc(m.attachmentName||'Download file')+'</a>'}return '<div class="bubble '+(mine?'mine':'')+'">'+media+(m.text?'<div>'+esc(m.text)+'</div>':'')+'<time>'+esc(m.createdAt?new Date(m.createdAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'')+(mine?(m.readAt?' · Seen':m.deliveredAt?' · Delivered':''):'')+'</time></div>'}).join('')||'<div class="empty">Say hello 👋</div>';box.scrollTop=box.scrollHeight}catch(e){box.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
 async function loadNotifications(){const box=$('notificationsList');box.innerHTML='<div class="loading">Loading activity…</div>';try{const d=await api('/api/notifications'),items=d.notifications||[];$('noticeBadge').textContent=d.unreadCount||'';$('noticeBadge').hidden=!(d.unreadCount);box.innerHTML=items.length?items.map(n=>'<div class="notice '+(!n.isRead?'unread-notice':'')+'" data-notice="'+esc(n.id)+'"><div class="avatar">'+esc((n.actor||'B').slice(0,1).toUpperCase())+'</div><div><p><strong>'+esc(n.actor)+'</strong> '+esc(n.kind.replace(/_/g,' '))+'</p><small>'+esc(n.createdAt?new Date(n.createdAt).toLocaleString():'')+'</small></div></div>').join(''):'<div class="empty">You are all caught up.</div>';box.querySelectorAll('[data-notice]').forEach(el=>el.addEventListener('click',async()=>{try{await api('/api/notifications/'+encodeURIComponent(el.dataset.notice)+'/read',{method:'PATCH'});el.classList.remove('unread-notice');loadNotifications()}catch(e){toast(e.message)}}))}catch(e){box.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
 async function loadProfile(){const box=$('profileCard');box.innerHTML='<div class="loading">Loading profile…</div>';try{const d=await api('/api/profile/'+encodeURIComponent(username)),p=d.profile||{};box.innerHTML='<div class="profile-avatar">'+(p.avatarUrl?'<img src="'+esc(url(p.avatarUrl))+'">':esc((p.displayName||username).slice(0,1).toUpperCase()))+'</div><h2>'+esc(p.displayName||username)+'</h2><div class="date">@'+esc(p.username||username)+' · '+esc(p.accountType||'personal')+'</div><p class="profile-bio">'+esc(p.bio||'No bio yet.')+'</p><div class="profile-stats"><div><strong>'+esc(p.postsCount||0)+'</strong><span>Posts</span></div><div><strong>'+esc(p.followersCount||0)+'</strong><span>Followers</span></div><div><strong>'+esc(p.followingCount||0)+'</strong><span>Following</span></div></div>'}catch(e){box.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
+$('authSwitchBtn').addEventListener('click',()=>setAuthMode($('signupForm').hidden?'signup':'login'));
+$('iosInstallBtn').addEventListener('click',openInstallHelp);
+$('installSignupBtn').addEventListener('click',openInstallHelp);
+$('closeInstallHelp').addEventListener('click',closeInstallHelp);
+$('installDoneBtn').addEventListener('click',closeInstallHelp);
+$('installHelpModal').addEventListener('click',e=>{if(e.target===$('installHelpModal'))closeInstallHelp()});
+$('signupForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const b=e.currentTarget.querySelector('button[type="submit"]');
+ const message=$('signupMessage');
+ const password=$('signupPass').value;
+ if(password!==$('signupConfirm').value){message.textContent='Passwords do not match.';return}
+ b.disabled=true;message.textContent='Creating your account…';
+ try{
+  const d=await api('/api/auth/register',{method:'POST',body:JSON.stringify({
+   full_name:$('signupName').value.trim(),username:$('signupUser').value.trim(),
+   email:$('signupEmail').value.trim(),phone_number:$('signupPhone').value.trim(),password
+  })});
+  token=d.token;username=d.username;
+  localStorage.setItem('bhumi_web_token',token);localStorage.setItem('bhumi_web_user',username);
+  const accountType=$('signupType').value;
+  if(accountType!=='personal'){
+   await api('/api/profile/'+encodeURIComponent(username)+'/settings',{method:'PATCH',body:JSON.stringify({accountType,isPrivate:false})});
+  }
+  $('signupForm').reset();showApp();switchView('home');
+  toast('Welcome to Bhumi Social AI!');
+ }catch(err){message.textContent=err.message}
+ finally{b.disabled=false}
+});
 $('loginForm').addEventListener('submit',async e=>{e.preventDefault();const b=e.currentTarget.querySelector('button');b.disabled=true;$('authMessage').textContent='Signing in…';try{const d=await api('/api/auth/login',{method:'POST',body:JSON.stringify({username:$('loginUser').value.trim(),password:$('loginPass').value})});token=d.token;username=d.username;localStorage.setItem('bhumi_web_token',token);localStorage.setItem('bhumi_web_user',username);$('loginPass').value='';showApp();switchView('home')}catch(err){$('authMessage').textContent=err.message}finally{b.disabled=false}});
 document.querySelectorAll('.main-tabs .tab').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));
 document.querySelectorAll('.content-tabs .tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.content-tabs .tab').forEach(x=>x.classList.toggle('active',x===b));currentKind=b.dataset.kind;loadFeed()}));
@@ -30,6 +72,11 @@ $('readAllBtn').addEventListener('click',async()=>{try{await api('/api/notificat
 $('avatarFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;const fd=new FormData();fd.append('file',file);try{await api('/api/profile/'+encodeURIComponent(username)+'/avatar',{method:'POST',body:fd});toast('Profile photo updated');loadProfile()}catch(err){toast(err.message)}finally{e.target.value=''}});
 $('logoutBtn').addEventListener('click',async()=>{try{await api('/api/auth/logout',{method:'POST'})}catch(_){}token='';username='';localStorage.removeItem('bhumi_web_token');localStorage.removeItem('bhumi_web_user');showAuth();toast('Signed out')});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
-let deferred=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('installBtn').hidden=false});$('installBtn').addEventListener('click',async()=>{if(!deferred){toast('On iPhone: Share → Add to Home Screen');return}deferred.prompt();await deferred.userChoice;deferred=null;$('installBtn').hidden=true});
+let deferred=null;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+if(isIOS&&!isStandalone)$('installBtn').hidden=false;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('installBtn').hidden=false});
+$('installBtn').addEventListener('click',async()=>{if(isIOS||!deferred){openInstallHelp();return}deferred.prompt();await deferred.userChoice;deferred=null;$('installBtn').hidden=true});
 async function init(){if(!token){showAuth();return}try{const d=await api('/api/auth/me');username=d.username||username;localStorage.setItem('bhumi_web_user',username);showApp();switchView('home')}catch(_){token='';localStorage.removeItem('bhumi_web_token');showAuth()}}init();
 })();
