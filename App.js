@@ -10621,7 +10621,7 @@ export default function App() {
                     </View>
                   </View>
                   <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel="Chat personalization" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#21162F", borderWidth: 1, borderColor: chatThemeColors.accent, alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="color-palette-outline" size={21} color={chatThemeColors.accent} />
+                    <Ionicons name="color-palette-outline" size={21} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -10770,18 +10770,6 @@ export default function App() {
                       color="#D8B86A"
                     />
                   </TouchableOpacity>
-                </View>
-                <View style={{ flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 10 }}>
-                  {[
-                    { key: "All", label: "All Chats", icon: "chatbubbles-outline" },
-                    { key: "Favourite", label: "Favourites", icon: "star" },
-                    { key: "Close", label: "Close Friends", icon: "heart" },
-                  ].map((item) => (
-                    <TouchableOpacity key={item.key} onPress={() => setChatFriendFilter(item.key)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 18, backgroundColor: chatFriendFilter === item.key ? "#49345F" : "#21162F", borderWidth: 1, borderColor: chatFriendFilter === item.key ? "#D8B86A" : "#49345F" }}>
-                      <Ionicons name={item.icon} size={14} color={chatFriendFilter === item.key ? "#D8B86A" : "#B8AACB"} />
-                      <Text style={{ color: chatFriendFilter === item.key ? "#F4EFFA" : "#B8AACB", fontSize: 11, fontWeight: "800" }}>{item.label}</Text>
-                    </TouchableOpacity>
-                  ))}
                 </View>
                 <ScrollView
                   horizontal
@@ -12076,9 +12064,9 @@ export default function App() {
             <View style={styles.bottomNav}>
               {[
                 { name: "Home", icon: "home-outline" },
-                { name: "Search", icon: "search-outline" },
-                { name: "Chat", icon: "paper-plane-outline" },
                 { name: "Reels", icon: "play-circle-outline" },
+                { name: "Chat", icon: "paper-plane-outline" },
+                { name: "Search", icon: "search-outline" },
                 { name: "Profile", icon: "person-circle-outline" },
               ].map((tab) => (
                 <TouchableOpacity
@@ -12094,7 +12082,7 @@ export default function App() {
                   <Ionicons
                     name={tab.icon}
                     size={25}
-                    color={activeTab === tab.name ? "#D8B86A" : "#8E8E93"}
+                    color={activeTab === tab.name ? "#3797F0" : "#8E8E93"}
                   />
                   <Text
                     style={[
