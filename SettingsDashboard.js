@@ -13,6 +13,21 @@ const BORDER = "#49345F";
 const TEXT = "#F4EFFA";
 const MUTED = "#B8AACB";
 
+const ACTION_KEYS = new Set([
+  "profile.usernameChange","account.profileQr","account.multipleAccounts","account.verification",
+  "account.dataDownload","account.deactivation","account.deletion",
+  "security.twoFactor","security.loginHistory","security.activeDevices","security.appLock",
+  "security.fingerprint","security.faceUnlock","security.pin","security.checkup",
+  "privacy.profileVisitors","privacy.hiddenWords",
+  "story.hideFrom","story.highlights","feed.mutedAccounts","feed.favorites","feed.notInterested",
+  "appearance.appIcon","appearance.display","appearance.chat",
+  "advanced.permissions","advanced.reset","advanced.storage","advanced.clearCache",
+  "creator.monetization","creator.collaboration","creator.promotions","premium.profileStudio",
+  "account.reportProblem","account.helpCenter","account.appUpdates",
+  "account.appVersionInfo","account.terms","account.privacyPolicy","account.openSource",
+  "location.history"
+]);
+
 const SECTIONS = [
   { key:"account", title:"Account Settings", subtitle:"Personal details and account controls", icon:"person-circle-outline", fields:[
     ["profile.usernameChange","Change Username","Update your public username",false],
@@ -212,9 +227,48 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     } finally { setSavingKey(""); }
   };
 
+  const runSettingAction = (key) => {
+    if (key === "profile.usernameChange" || key === "account.multipleAccounts" ||
+        key === "account.verification" || key === "account.dataDownload" ||
+        key === "account.deactivation" || key === "account.deletion") {
+      setActive(null);
+      onLegacyOpen?.("account");
+      return;
+    }
+    if (key.startsWith("security.")) {
+      setActive(null);
+      onLegacyOpen?.("security");
+      return;
+    }
+    if (key === "account.appUpdates" || key === "account.appVersionInfo" ||
+        key === "account.terms" || key === "account.privacyPolicy" ||
+        key === "account.openSource" || key === "account.helpCenter") {
+      setActive(null);
+      onAbout?.();
+      return;
+    }
+    if (key === "advanced.permissions" || key === "location.history") {
+      Linking.openSettings();
+      return;
+    }
+    const labels = {
+      "account.profileQr":"Profile QR generation is not connected yet.",
+      "account.reportProblem":"The in-app support submission form is not connected yet.",
+      "advanced.clearCache":"Cache clearing needs the app storage service to be connected.",
+      "advanced.reset":"Preference reset needs a confirmation and reset endpoint.",
+      "advanced.storage":"Detailed storage reporting is not connected yet.",
+      "creator.monetization":"Creator monetization is not enabled on the server yet.",
+      "creator.collaboration":"Brand collaboration tools are not connected yet.",
+      "creator.promotions":"Promotion tools are not connected yet.",
+      "premium.profileStudio":"Profile Studio is not connected yet."
+    };
+    Alert.alert("Not available yet", labels[key] || "This action is not connected yet. It has not been enabled.");
+  };
+
   const renderField = (field) => {
     const [key, title, subtitle, defaultValue] = field;
     const value = preferences[key] ?? defaultValue;
+    const isAction = ACTION_KEYS.has(key);
     return (
       <View key={key} style={{ backgroundColor:PANEL, borderWidth:1, borderColor:BORDER, borderRadius:15, padding:14, marginBottom:10 }}>
         <View style={{ flexDirection:"row", alignItems:"center" }}>
@@ -223,7 +277,13 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             <Text style={{ color:MUTED, fontSize:11, marginTop:4, lineHeight:16 }}>{subtitle}</Text>
             {savingKey === key ? <Text style={{ color:GOLD, fontSize:10, marginTop:5 }}>Saving…</Text> : null}
           </View>
-          <Switch value={!!value} onValueChange={(next) => saveValue(key,next)} disabled={!!savingKey} trackColor={{ false:"#51465E", true:"#7651B5" }} thumbColor={value ? GOLD : "#E8E2EF"} />
+          {isAction ? (
+            <TouchableOpacity onPress={() => runSettingAction(key)} style={{ backgroundColor:"#30213F",borderColor:BORDER,borderWidth:1,borderRadius:10,paddingHorizontal:13,paddingVertical:9 }}>
+              <Text style={{ color:GOLD,fontSize:11,fontWeight:"900" }}>Open</Text>
+            </TouchableOpacity>
+          ) : (
+            <Switch value={!!value} onValueChange={(next) => saveValue(key,next)} disabled={!!savingKey} trackColor={{ false:"#51465E",true:"#7651B5" }} thumbColor={value ? GOLD : "#E8E2EF"} />
+          )}
         </View>
       </View>
     );
@@ -264,7 +324,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {section.key === "messages" ? (
               <View style={{ backgroundColor:"#21162F",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>CHAT PRIVACY CONTROLS</Text>
-                <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Blocked and Restricted Accounts are managed in their own Settings sections. Your existing conversations remain available when you turn off first-time message requests; new unknown senders are refused. Read receipts and typing indicators are enforced by the chat server.</Text>
+                <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Blocked and Restricted Accounts are managed from the Privacy Settings section. Your existing conversations remain available when you turn off first-time message requests; new unknown senders are refused. Read receipts and typing indicators are enforced by the chat server.</Text>
               </View>
             ) : null}
             {section.key === "messages" ? (
