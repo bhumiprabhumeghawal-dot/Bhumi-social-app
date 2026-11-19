@@ -10358,10 +10358,10 @@ export default function App() {
                 flexDirection: "row",
                 alignItems: "center",
                 paddingHorizontal: 18,
-                paddingTop: 12,
+                paddingTop: 20,
                 paddingBottom: 16,
                 backgroundColor: selectedChatUser ? chatThemeColors.bg : "#100B19",
-                minHeight: 76,
+                minHeight: 84,
               }}
             >
               {selectedChatUser ? (
@@ -10838,14 +10838,6 @@ export default function App() {
                         >
                           {tab}
                         </Text>
-                        {tab === "Requests" ? (
-                          <Ionicons
-                            name="chevron-forward"
-                            size={15}
-                            color="#B8AACB"
-                            style={{ marginLeft: 2 }}
-                          />
-                        ) : null}
                       </TouchableOpacity>
                     );
                   })}
