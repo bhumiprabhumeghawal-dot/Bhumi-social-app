@@ -68,7 +68,7 @@ async function renderPostPhotoFilter(asset, filterIndex, brightness = 0) {
   if (!result.success || result.returnCode !== 0) {
     const details = String(result.output || '').trim().slice(-700);
     throw new Error(
-      `फोटो फ़िल्टर लागू नहीं हो पाया। Original चुनकर दोबारा कोशिश करें।${details ? `\\n\\nतकनीकी विवरण: ${details}` : ''}`
+      `फोटो फ़िल्टर लागू नहीं हो पाया। Original चुनकर दोबारा कोशिश करें।${details ? `\n\nतकनीकी विवरण: ${details}` : ''}`
     );
   }
 
