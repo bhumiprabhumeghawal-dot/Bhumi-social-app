@@ -239,7 +239,7 @@ export const VIDEO_FILTERS = [
   { name: 'Cinema', value: 'eq=contrast=1.12:saturation=0.92:brightness=-0.02,colorbalance=rs=0.04:bs=-0.04' },
   { name: 'Warm', value: 'colorbalance=rs=0.10:gs=0.025:bs=-0.08,eq=saturation=1.08' },
   { name: 'Cool', value: 'colorbalance=rs=-0.06:gs=0.015:bs=0.10,eq=saturation=1.04' },
-  { name: 'Vintage', value: 'curves=vintage,eq=saturation=0.82:contrast=0.94' },
+  { name: 'Vintage', value: 'colorbalance=rs=0.06:gs=0.025:bs=-0.035,eq=saturation=0.82:contrast=0.94:brightness=0.015' },
   { name: 'B&W', value: 'hue=s=0,eq=contrast=1.12' },
   { name: 'Dream', value: 'gblur=sigma=0.35,eq=brightness=0.035:saturation=0.9' },
   { name: 'Golden', value: 'colorbalance=rs=0.12:gs=0.04:bs=-0.10,eq=contrast=1.06:saturation=1.16' },
@@ -266,6 +266,9 @@ export async function applyVideoEffects(videoUri, options = {}) {
   const media = await getMediaInformation(inputPath);
   const streams = media?.streams || [];
   const hasAudio = streams.some(stream => stream.codec_type === 'audio');
+  if (voice && !hasAudio) {
+    throw new Error('इस वीडियो में मूल आवाज़ नहीं है। Voice Effect लगाने के लिए आवाज़ वाला वीडियो चुनें।');
+  }
   const videoEncoder = await pickEncoder(['h264_mediacodec', 'libopenh264', 'libx264']);
   if (!videoEncoder) throw new Error('No supported MP4 video encoder was found.');
 
@@ -283,7 +286,10 @@ export async function applyVideoEffects(videoUri, options = {}) {
 
   const result = await execute(args);
   if (!result.success || result.returnCode !== 0) {
-    throw new Error(`Video editing failed: ${result.output || 'FFmpeg error'}`);
+    const details = String(result.output || '').trim().slice(-900);
+    throw new Error(
+      `वीडियो फ़िल्टर लागू नहीं हो पाया। कृपया दूसरा फ़िल्टर चुनें या वीडियो दोबारा चुनें।${details ? `\\n\\nतकनीकी विवरण: ${details}` : ''}`
+    );
   }
   const info = await FileSystem.getInfoAsync(outputPath);
   if (!info.exists || !info.size) throw new Error('Edited video file was not created.');
