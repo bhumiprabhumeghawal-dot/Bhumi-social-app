@@ -25,12 +25,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Publish update to Expo production channel
-        run: npx eas-cli update --branch production --message "Bhumi Social AI production update" --non-interactive
+        run: npx eas-cli@latest update --branch production --platform all --message "Bhumi Social AI production update" --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
