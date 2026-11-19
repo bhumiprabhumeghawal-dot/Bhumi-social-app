@@ -6239,22 +6239,30 @@ export default function App() {
                       ) : null}
                       {isVideo ? (
                         <View style={{ position: "absolute", top: 72, left: 10, right: 10, gap: 7 }}>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-                            {VIDEO_FILTERS.map((filter, index) => (
-                              <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#D7AE55" : "rgba(20,12,32,0.88)", borderWidth: 1, borderColor: videoFilterIndex === index ? "#FFE7A3" : "rgba(215,174,85,0.55)", shadowColor: "#D7AE55", shadowOpacity: videoFilterIndex === index ? 0.55 : 0.18, shadowRadius: videoFilterIndex === index ? 10 : 4, elevation: videoFilterIndex === index ? 7 : 2 }}>
-                                <Text style={{ color: videoFilterIndex === index ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}</Text>
-                              </TouchableOpacity>
-                            ))}
+                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 3 }}>
+                            {VIDEO_FILTERS.map((filter, index) => {
+                              const selected = videoFilterIndex === index;
+                              return (
+                                <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ width: 60, height: 62, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(215,174,85,0.25)" : "rgba(20,12,32,0.92)", borderWidth: 1, borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.5)", shadowColor: "#D7AE55", shadowOpacity: selected ? 0.5 : 0.16, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
+                                  <Ionicons name="color-filter-outline" size={20} color={selected ? "#FFE7A3" : "#D8B86A"} />
+                                  <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700", marginTop: 3 }}>{filter.name}</Text>
+                                </TouchableOpacity>
+                              );
+                            })}
                           </ScrollView>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-                            {VOICE_EFFECTS.map((effect) => (
-                              <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 16, backgroundColor: voiceEffect === effect.name ? "#D7AE55" : "rgba(20,12,32,0.88)", borderWidth: 1, borderColor: voiceEffect === effect.name ? "#FFE7A3" : "rgba(215,174,85,0.55)", shadowColor: "#D7AE55", shadowOpacity: voiceEffect === effect.name ? 0.55 : 0.18, shadowRadius: voiceEffect === effect.name ? 10 : 4, elevation: voiceEffect === effect.name ? 7 : 2 }}>
-                                <Text style={{ color: voiceEffect === effect.name ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{effect.name} Voice</Text>
-                              </TouchableOpacity>
-                            ))}
+                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
+                            {VOICE_EFFECTS.map((effect) => {
+                              const selected = voiceEffect === effect.name;
+                              return (
+                                <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ minWidth: 62, height: 54, paddingHorizontal: 7, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(215,174,85,0.25)" : "rgba(20,12,32,0.92)", borderWidth: 1, borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.5)" }}>
+                                  <Ionicons name="mic-outline" size={19} color={selected ? "#FFE7A3" : "#D8B86A"} />
+                                  <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700", marginTop: 2 }}>{effect.name}</Text>
+                                </TouchableOpacity>
+                              );
+                            })}
                           </ScrollView>
-                          <TouchableOpacity onPress={() => setZoomEffectEnabled((value) => !value)} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.72)" }}>
-                            <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{zoomEffectEnabled ? "Zoom Effect: ON" : "Zoom Effect"}</Text>
+                          <TouchableOpacity onPress={() => setZoomEffectEnabled((value) => !value)} style={{ width: 44, height: 44, borderRadius: 15, borderWidth: 1, borderColor: zoomEffectEnabled ? "#FFE7A3" : "#D7AE55", backgroundColor: "rgba(20,12,32,0.92)", alignItems: "center", justifyContent: "center" }}>
+                            <Ionicons name="scan-outline" size={21} color="#F5D88A" />
                           </TouchableOpacity>
                           <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 46, height: 46, borderRadius: 16, borderWidth: 1, borderColor: "#FFE7A3", backgroundColor: "rgba(20,12,32,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#D7AE55", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
                             <Ionicons name="musical-notes" size={22} color="#F5D88A" />
