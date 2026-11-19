@@ -6226,7 +6226,7 @@ export default function App() {
                         />
                       ) : null}
                       {!isVideo ? (
-                        <View style={{ position: "absolute", top: 72, right: 12, alignItems: "center", gap: 10 }}>
+                        <View style={{ position: "absolute", top: 14, right: 14, alignItems: "center", gap: 10 }}>
                           <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 48, height: 48, borderRadius: 17, borderWidth: 1, borderColor: "#FFE7A3", backgroundColor: "rgba(20,12,32,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#D7AE55", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
                             <Ionicons name="musical-notes" size={22} color="#F5D88A" />
                           </TouchableOpacity>
