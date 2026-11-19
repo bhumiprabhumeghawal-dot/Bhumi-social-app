@@ -73,7 +73,12 @@ $('avatarFile').addEventListener('change',async e=>{const file=e.target.files[0]
 $('logoutBtn').addEventListener('click',async()=>{try{await api('/api/auth/logout',{method:'POST'})}catch(_){}token='';username='';localStorage.removeItem('bhumi_web_token');localStorage.removeItem('bhumi_web_user');showAuth();toast('Signed out')});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 let deferred=null;
-const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isInAppBrowser=/WhatsApp|FBAN|FBAV|Instagram|Line\\//i.test(navigator.userAgent);
+if(isIOS){$('installBtn').hidden=false;$('installBtn').textContent='Install on iPhone';$('installBtn').setAttribute('aria-label','Show iPhone installation steps');}
+if(isIOS&&!isStandalone){$('installSignupBtn').hidden=false;$('installSignupBtn').textContent='Install Bhumi Social AI on iPhone';}
+if(isInAppBrowser&&isIOS){$('installBtn').textContent='Open in Safari to Install';}
+
 const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 $('installBtn').hidden=isStandalone;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('installBtn').hidden=false});
