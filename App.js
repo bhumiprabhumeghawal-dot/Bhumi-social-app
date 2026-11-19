@@ -6,6 +6,7 @@ import ChatPersonalization from "./ChatPersonalization";
 import * as SecureStore from "expo-secure-store";
 import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
+import * as Updates from "expo-updates";
 import React from "react";
 import { useEvent, useEventListener } from "expo";
 import * as ImagePicker from "expo-image-picker";
@@ -2209,26 +2210,16 @@ export default function App() {
     let checking = false;
 
     const checkForAppUpdate = async () => {
-      if (checking) return;
+      if (checking || !Updates.isEnabled) return;
       checking = true;
       try {
-        const response = await fetch(
-          "https://bhumi-social-app-1.onrender.com/api/app-version",
-          { headers: { Accept: "application/json" } },
-        );
-        if (!response.ok) throw new Error("Version check failed");
-        const info = await response.json();
-        if (!active) return;
-
-        if (isVersionNewer(info.version, appConfig.expo?.version || "1.0.0")) {
-          setUpdateInfo(info);
+        const result = await Updates.checkForUpdateAsync();
+        if (active && result.isAvailable) {
+          setUpdateInfo({ message: "A new Bhumi Social AI update is ready. Update safely inside the app." });
           setUpdatePromptVisible(true);
-        } else {
-          setUpdateInfo(null);
-          setUpdatePromptVisible(false);
         }
       } catch (error) {
-        // Keep the app usable when the version service is unavailable.
+        console.warn("In-app update check failed:", error?.message || error);
       } finally {
         checking = false;
       }
@@ -2236,7 +2227,6 @@ export default function App() {
 
     checkForAppUpdate();
     const interval = setInterval(checkForAppUpdate, 6 * 60 * 60 * 1000);
-
     return () => {
       active = false;
       clearInterval(interval);
@@ -2244,45 +2234,21 @@ export default function App() {
   }, []);
 
   const downloadAndInstallUpdate = async () => {
-    const apkUrl =
-      updateInfo?.apk_url ||
-      "https://github.com/bhumiprabhumeghawal-dot/Bhumi-social-app/releases/latest/download/SocialApp.apk";
     if (updateDownloading) return;
-    if (Platform.OS !== "android") {
-      Linking.openURL(apkUrl).catch(() =>
-        NativeAlert.alert("Update", "Unable to open the download link."),
-      );
-      return;
-    }
     setUpdateDownloading(true);
     try {
-      if (!FileSystem.documentDirectory)
-        throw new Error("App storage is unavailable.");
-      const apkUri = FileSystem.documentDirectory + "BhumiSocialAI-update.apk";
-      const download = await FileSystem.downloadAsync(apkUrl, apkUri);
-      if (download.status !== 200)
-        throw new Error("APK download failed. Please try again.");
-      const info = await FileSystem.getInfoAsync(download.uri);
-      if (!info.exists || !info.size || info.size < 10000000) {
-        await FileSystem.deleteAsync(download.uri, { idempotent: true }).catch(
-          () => {},
-        );
-        throw new Error(
-          "Downloaded file is incomplete. Please try again later.",
-        );
+      const result = await Updates.fetchUpdateAsync();
+      if (result.isNew) {
+        setUpdatePromptVisible(false);
+        await Updates.reloadAsync();
+      } else {
+        setUpdatePromptVisible(false);
+        NativeAlert.alert("Bhumi Social AI", "आपका ऐप पहले से अपडेट है।");
       }
-      const contentUri = await FileSystem.getContentUriAsync(download.uri);
-      setUpdatePromptVisible(false);
-      await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
-        data: contentUri,
-        type: "application/vnd.android.package-archive",
-        flags: 1,
-      });
     } catch (error) {
       NativeAlert.alert(
-        "Update download",
-        error?.message ||
-          "Could not download or open the installer. Please try again.",
+        "Update",
+        "अभी अपडेट डाउनलोड नहीं हो पाया। इंटरनेट कनेक्शन जाँचकर दोबारा कोशिश करें।",
       );
     } finally {
       setUpdateDownloading(false);
@@ -10098,7 +10064,7 @@ export default function App() {
               }}
             >
               {updateInfo?.message ||
-                "A new version of Bhumi Social AI is available."}
+                "A new in-app update for Bhumi Social AI is available."}
             </Text>
             <TouchableOpacity
               onPress={downloadAndInstallUpdate}
@@ -10116,8 +10082,8 @@ export default function App() {
                 style={{ color: "#1A1028", fontWeight: "800", fontSize: 16 }}
               >
                 {updateDownloading
-                  ? "Downloading APK..."
-                  : "Download & Install Update"}
+                  ? "Updating app..."
+                  : "Update Now"}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
