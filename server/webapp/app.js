@@ -75,8 +75,9 @@ if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(
 let deferred=null;
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
 const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-if(isIOS&&!isStandalone)$('installBtn').hidden=false;
+$('installBtn').hidden=isStandalone;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('installBtn').hidden=false});
 $('installBtn').addEventListener('click',async()=>{if(isIOS||!deferred){openInstallHelp();return}deferred.prompt();await deferred.userChoice;deferred=null;$('installBtn').hidden=true});
+setAuthMode('login');
 async function init(){if(!token){showAuth();return}try{const d=await api('/api/auth/me');username=d.username||username;localStorage.setItem('bhumi_web_user',username);showApp();switchView('home')}catch(_){token='';localStorage.removeItem('bhumi_web_token');showAuth()}}init();
 })();
