@@ -575,11 +575,31 @@ def file_too_large(error):
 
 @app.get("/")
 def index():
-    return jsonify({
-        "service": "SocialApp Server",
-        "health": "/api/health",
-        "endpoints": ["/api/posts", "/api/stories", "/api/reels"],
-    })
+    return send_from_directory(BASE_DIR / "webapp", "index.html")
+
+
+@app.get("/manifest.webmanifest")
+def web_manifest():
+    return send_from_directory(
+        BASE_DIR / "webapp", "manifest.webmanifest",
+        mimetype="application/manifest+json"
+    )
+
+
+@app.get("/sw.js")
+def web_service_worker():
+    response = send_from_directory(
+        BASE_DIR / "webapp", "sw.js",
+        mimetype="application/javascript"
+    )
+    response.headers["Service-Worker-Allowed"] = "/"
+    response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
+@app.get("/webapp/<path:filename>")
+def webapp_assets(filename):
+    return send_from_directory(BASE_DIR / "webapp", filename)
 
 
 # SOCIALAPP_PROFILE_API_V1
