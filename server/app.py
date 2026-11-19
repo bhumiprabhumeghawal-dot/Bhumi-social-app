@@ -2025,8 +2025,8 @@ def update_user_settings(username):
         return jsonify({"error": "Provide valid settings"}), 400
     for key, value in data.items():
         if key == "accountType":
-            if value not in ("personal", "business"):
-                return jsonify({"error": "Account type must be personal or business."}), 400
+            if value not in ("personal", "creator", "business"):
+                return jsonify({"error": "Account type must be personal, creator or business."}), 400
         elif not isinstance(value, bool):
             return jsonify({"error": "Setting values must be true or false"}), 400
 
