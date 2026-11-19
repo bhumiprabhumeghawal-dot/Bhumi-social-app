@@ -66,12 +66,15 @@ async function renderPostPhotoFilter(asset, filterIndex, brightness = 0) {
   ]);
 
   if (!result.success || result.returnCode !== 0) {
-    throw new Error(`Photo filter failed: ${result.output || 'FFmpeg error'}`);
+    const details = String(result.output || '').trim().slice(-700);
+    throw new Error(
+      `फोटो फ़िल्टर लागू नहीं हो पाया। Original चुनकर दोबारा कोशिश करें।${details ? `\n\nतकनीकी विवरण: ${details}` : ''}`
+    );
   }
 
   const info = await FileSystem.getInfoAsync(outputPath);
   if (!info.exists || !info.size) {
-    throw new Error('Filtered photo file was not created.');
+    throw new Error('फ़िल्टर की गई फोटो फ़ाइल नहीं बनी। Original फ़िल्टर चुनकर दोबारा कोशिश करें।');
   }
 
   return {

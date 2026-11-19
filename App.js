@@ -2149,6 +2149,19 @@ function ChatAudioAttachment({ uri, token, mine, name }) {
   );
 }
 
+const VIDEO_FILTER_PREVIEW_STYLES = [
+  null,
+  { backgroundColor: "#E7A85B", opacity: 0.10 },
+  { backgroundColor: "#344C78", opacity: 0.12 },
+  { backgroundColor: "#D97838", opacity: 0.14 },
+  { backgroundColor: "#3D80B2", opacity: 0.12 },
+  { backgroundColor: "#B58A5A", opacity: 0.13 },
+  { backgroundColor: "#777777", opacity: 0.24 },
+  { backgroundColor: "#E7D7F0", opacity: 0.11 },
+  { backgroundColor: "#E8B94F", opacity: 0.15 },
+  { backgroundColor: "#E8DCCB", opacity: 0.16 },
+];
+
 export default function App() {
   // BHUMI_CRASH_DISPLAY
   React.useEffect(() => {
@@ -6129,8 +6142,7 @@ export default function App() {
         <SafeAreaView
           style={{
             flex: 1,
-            backgroundColor:
-              mediaDraft?.kind === "stories" ? "#000000" : "#FFFFFF",
+            backgroundColor: "#08050D",
           }}
         >
           <View
@@ -6194,6 +6206,19 @@ export default function App() {
                         />
                       )}
 
+                      {isVideo && VIDEO_FILTER_PREVIEW_STYLES[videoFilterIndex] ? (
+                        <View
+                          pointerEvents="none"
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            ...VIDEO_FILTER_PREVIEW_STYLES[videoFilterIndex],
+                          }}
+                        />
+                      ) : null}
                       {isVideo ? (
                         <View style={{ position: "absolute", top: 72, left: 10, right: 10, gap: 7 }}>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
@@ -6480,6 +6505,19 @@ export default function App() {
                         resizeMode="contain"
                       />
                     )}
+                    {isVideo && VIDEO_FILTER_PREVIEW_STYLES[videoFilterIndex] ? (
+                      <View
+                        pointerEvents="none"
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          ...VIDEO_FILTER_PREVIEW_STYLES[videoFilterIndex],
+                        }}
+                      />
+                    ) : null}
                     <View
                       style={{
                         position: "absolute",
