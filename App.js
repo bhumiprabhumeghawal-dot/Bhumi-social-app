@@ -11875,12 +11875,12 @@ export default function App() {
                       flexDirection: "row",
                       alignItems: "center",
                       paddingHorizontal: 12,
-                      paddingVertical: 7,
+                      paddingVertical: 9,
                       marginBottom: Platform.OS === "android" ? 6 : 0,
-                      borderTopWidth: 1,
+                      borderTopWidth: StyleSheet.hairlineWidth,
                       borderTopColor: "#262626",
                       backgroundColor: "#000000",
-                      gap: 11,
+                      gap: 9,
                       elevation: 7,
                     }}
                   >
@@ -11933,15 +11933,17 @@ export default function App() {
                       maxLength={5000}
                       style={{
                         flex: 1,
+                        minHeight: 44,
                         maxHeight: 110,
                         backgroundColor: "#262626",
-                        borderWidth: 0,
-                        borderColor: "transparent",
-                        borderRadius: 25,
-                        paddingHorizontal: 18,
-                        paddingVertical: 13,
+                        borderWidth: 1,
+                        borderColor: "#303030",
+                        borderRadius: 24,
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
                         color: "#FFFFFF",
                         fontSize: 15,
+                        textAlignVertical: "center",
                       }}
                     />
                     <TouchableOpacity
@@ -11951,16 +11953,16 @@ export default function App() {
                       }
                       accessibilityLabel="Send message"
                       style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 24,
+                        width: 42,
+                        height: 42,
+                        borderRadius: 21,
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor: "transparent",
-                        elevation: 0,
+                        backgroundColor: "#0095F6",
+                        elevation: 1,
                       }}
                     >
-                      <Ionicons name="send" size={22} color="#3797F0" />
+                      <Ionicons name="send" size={19} color="#FFFFFF" />
                     </TouchableOpacity>
                   </View>
                 </View>
