@@ -1978,7 +1978,7 @@ function CustomAlertHost() {
         title: String(title || "Bhumi Social AI"),
         message: message == null ? "" : String(message),
         buttons:
-          Array.isArray(buttons) && buttons.length ? buttons : [{ text: "OK" }],
+          Array.isArray(buttons) && buttons.length ? buttons : [{ text: "Close" }],
         options: options || {},
       });
     };
@@ -2035,12 +2035,12 @@ function CustomAlertHost() {
         <View
           style={{
             width: "100%",
-            maxWidth: 390,
+            maxWidth: 360,
             backgroundColor: "#121212",
-            borderRadius: 24,
+            borderRadius: 20,
             borderWidth: 1,
             borderColor: "#262626",
-            padding: 22,
+            padding: 18,
             alignItems: "center",
             elevation: 18,
             shadowColor: "#000000",
@@ -2051,21 +2051,21 @@ function CustomAlertHost() {
         >
           <View
             style={{
-              width: 62,
-              height: 62,
-              borderRadius: 31,
+              width: 52,
+              height: 52,
+              borderRadius: 26,
               backgroundColor: accent + "18",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: 14,
+              marginBottom: 12,
             }}
           >
-            <Ionicons name={icon} size={35} color={accent} />
+            <Ionicons name={icon} size={29} color={accent} />
           </View>
           <Text
             style={{
               color: "#FFFFFF",
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: "800",
               textAlign: "center",
               marginBottom: 8,
@@ -2077,8 +2077,8 @@ function CustomAlertHost() {
             <Text
               style={{
                 color: "#A8A8A8",
-                fontSize: 15,
-                lineHeight: 22,
+                fontSize: 14,
+                lineHeight: 20,
                 textAlign: "center",
                 marginBottom: 20,
               }}
@@ -2111,7 +2111,7 @@ function CustomAlertHost() {
                   }}
                   style={{
                     flex: alertData.buttons.length > 1 ? 1 : undefined,
-                    minHeight: 48,
+                    minHeight: 44,
                     borderWidth: cancel ? 1 : 0,
                     borderColor: "#363636",
                     paddingHorizontal: 12,
@@ -2133,7 +2133,7 @@ function CustomAlertHost() {
                       textAlign: "center",
                     }}
                   >
-                    {button.text || "OK"}
+                    {button.text || "Close"}
                   </Text>
                 </TouchableOpacity>
               );
@@ -2141,7 +2141,7 @@ function CustomAlertHost() {
           </View>
           <Text
             style={{
-              marginTop: 15,
+              marginTop: 12,
               color: "#8E8E93",
               fontSize: 11,
               fontWeight: "600",
