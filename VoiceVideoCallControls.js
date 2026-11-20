@@ -72,7 +72,7 @@ function CallVideoStage({ callType, remoteName }) {
   );
 }
 
-export default function VoiceVideoCallControls({ username }) {
+export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true }) {
   const [call, setCall] = useState(null);
   const [incoming, setIncoming] = useState(false);
   const [connection, setConnection] = useState(null);
@@ -128,7 +128,7 @@ export default function VoiceVideoCallControls({ username }) {
   };
 
   const startCall = async (type) => {
-    if (!username || busy || callRef.current) return;
+    if (!enableOutgoing || !username || busy || callRef.current) return;
     setBusy(true);
     setCallMessage("");
     try {
@@ -153,14 +153,14 @@ export default function VoiceVideoCallControls({ username }) {
   };
 
   useEffect(() => {
-    if (call || !username) return undefined;
+    if (call || !enableIncoming || !currentUsername) return undefined;
     let active = true;
     const checkIncoming = async () => {
       if (callRef.current) return;
       try {
         const pending = await loadPendingCalls();
         if (!active || callRef.current || !pending.length) return;
-        const next = pending.find((item) => String(item.caller || "").toLowerCase() === String(username).toLowerCase()) || pending[0];
+        const next = pending[0];
         callRef.current = next;
         setCall(next);
         setIncoming(true);
@@ -172,7 +172,7 @@ export default function VoiceVideoCallControls({ username }) {
     checkIncoming();
     const timer = setInterval(checkIncoming, 3000);
     return () => { active = false; clearInterval(timer); };
-  }, [call, username]);
+  }, [call, currentUsername, enableIncoming]);
 
   useEffect(() => {
     if (!call || incoming || connection || tokenAttemptedRef.current) return undefined;
@@ -283,7 +283,7 @@ export default function VoiceVideoCallControls({ username }) {
               options={{ adaptiveStream: true, dynacast: true }}
               style={{ flex: 1 }}
             >
-              <CallVideoStage callType={call?.type} remoteName={username} />
+              <CallVideoStage callType={call?.type} remoteName={incoming ? call?.caller : username} />
             </LiveKitRoom>
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 28 }}>
