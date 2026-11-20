@@ -13,12 +13,10 @@ function openInstallHelp(){
  const ua=navigator.userAgent||'';
  const ios=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  const android=/android/i.test(ua);
- const inApp=/WhatsApp|FBAN|FBAV|Instagram|Line\//i.test(ua);
- const steps=$('installSteps'),note=$('installNote');
+ const inApp=/WhatsApp|FBAN|FBAV|Instagram|Line\\//i.test(ua);\n const safari=/Safari/i.test(ua)&&!/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua);\n const steps=$('installSteps'),note=$('installNote');
  $('installHelpTitle').textContent=ios?'Install on iPhone':android?'Install on Android':'Install Bhumi Social AI';
  if(ios){
-  steps.innerHTML='<li>Open this link directly in <strong>Safari</strong> (not WhatsApp or another app browser).</li><li>Tap Safari’s <strong>Share</strong> button.</li><li>Scroll the actions list and tap <strong>Add to Home Screen</strong>.</li><li>Tap <strong>Add</strong>. The Bhumi Social AI icon will appear on your Home Screen.</li>';
-  note.textContent='If “Add to Home Screen” is missing even in Safari, check iPhone Screen Time restrictions or device-management restrictions. A website cannot force iOS to show this Apple-controlled option.';
+  steps.innerHTML=(safari?'<li>Open this website directly in <strong>Safari</strong>.</li>':'<li>Open the browser Share menu and choose <strong>Open in Safari</strong>. iPhone installation is supported through Safari.</li>')+'<li>In Safari, tap the <strong>Share</strong> icon (square with an upward arrow).</li><li>Scroll down the Share sheet. If needed, tap <strong>Edit Actions</strong> or <strong>More</strong>, then choose <strong>Add to Home Screen</strong>.</li><li>Keep <strong>Open as Web App</strong> enabled if shown, then tap <strong>Add</strong>.</li>';\n  note.textContent='The icon will appear on your Home Screen. If Add to Home Screen is missing, make sure you are in Safari and check Screen Time or device-management restrictions. iOS controls this menu; a website cannot force it to appear.';
  }else if(android){
   steps.innerHTML='<li>Open this link in <strong>Chrome</strong>.</li><li>Tap the <strong>⋮</strong> menu in the top-right corner.</li><li>Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li><li>Tap <strong>Install</strong> or <strong>Add</strong>.</li>';
   note.textContent='If the install option is unavailable, update Chrome and open the website directly in Chrome rather than inside WhatsApp.';
