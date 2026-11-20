@@ -73,28 +73,28 @@ function CallVideoStage({ callType, remoteName }) {
 
   if (callType !== "video") {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#090710" }}>
-        <View style={{ width: 126, height: 126, borderRadius: 63, backgroundColor: "#21182B", borderWidth: 1, borderColor: "#6E5A3C", alignItems: "center", justifyContent: "center" }}>
-          <Ionicons name="person" size={58} color="#E5C77D" />
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#000000" }}>
+        <View style={{ width: 126, height: 126, borderRadius: 63, backgroundColor: "#262626", borderWidth: 1, borderColor: "#3A3A3A", alignItems: "center", justifyContent: "center" }}>
+          <Ionicons name="person" size={58} color="#FFFFFF" />
         </View>
         <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "800", marginTop: 20 }}>{remoteName}</Text>
-        <View style={{ marginTop: 10, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: "#1C1723" }}>
-          <Text style={{ color: "#CFC3D7", fontSize: 12 }}>वॉइस कॉल कनेक्ट है</Text>
+        <View style={{ marginTop: 10, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: "#1F1F1F" }}>
+          <Text style={{ color: "#D1D1D1", fontSize: 12 }}>वॉइस कॉल कनेक्ट है</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#050407", borderRadius: 22, overflow: "hidden" }}>
+    <View style={{ flex: 1, backgroundColor: "#000000", borderRadius: 22, overflow: "hidden" }}>
       {remoteTracks.length ? (
         remoteTracks.map((track, index) => (
           <VideoTrack key={track.publication?.trackSid || index} trackRef={track} style={{ flex: 1 }} />
         ))
       ) : (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#15101C" }}>
-          <View style={{ width: 104, height: 104, borderRadius: 52, backgroundColor: "#241B30", borderWidth: 1, borderColor: "#80683D", alignItems: "center", justifyContent: "center" }}>
-            <Ionicons name="videocam" size={42} color="#E2C477" />
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#121212" }}>
+          <View style={{ width: 104, height: 104, borderRadius: 52, backgroundColor: "#262626", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center" }}>
+            <Ionicons name="videocam" size={42} color="#FFFFFF" />
           </View>
           <ActivityIndicator color="#0095F6" size="large" style={{ marginTop: 22 }} />
           <Text style={{ color: "#FFFFFF", marginTop: 12, fontSize: 13 }}>वीडियो कनेक्ट हो रहा है…</Text>
@@ -109,7 +109,7 @@ function CallVideoStage({ callType, remoteName }) {
           <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{remoteName || "Video call"}</Text>
         </View>
       </View>
-      <View style={{ position: "absolute", right: 14, top: 58, width: 112, height: 158, overflow: "hidden", borderRadius: 18, borderWidth: 1.5, borderColor: "#E5C77D", backgroundColor: "#21182B", elevation: 8 }}>
+      <View style={{ position: "absolute", right: 14, top: 58, width: 112, height: 158, overflow: "hidden", borderRadius: 18, borderWidth: 1.5, borderColor: "#FFFFFF", backgroundColor: "#262626", elevation: 8 }}>
         {localCameraTrackRef ? (
           <VideoTrack
             trackRef={localCameraTrackRef}
@@ -118,9 +118,9 @@ function CallVideoStage({ callType, remoteName }) {
           />
         ) : (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <Ionicons name="person" size={30} color="#E5C77D" />
-            <ActivityIndicator color="#E5C77D" size="small" style={{ marginTop: 8 }} />
-            <Text style={{ color: "#F4E8C9", fontSize: 9, marginTop: 5 }}>आपका वीडियो</Text>
+            <Ionicons name="person" size={30} color="#FFFFFF" />
+            <ActivityIndicator color="#FFFFFF" size="small" style={{ marginTop: 8 }} />
+            <Text style={{ color: "#E5E5E5", fontSize: 9, marginTop: 5 }}>आपका वीडियो</Text>
           </View>
         )}
         <View style={{ position: "absolute", left: 6, bottom: 6, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.62)" }}>
@@ -302,39 +302,39 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           accessibilityLabel="Voice call"
           disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("audio")}
-          style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#80683D", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
+          style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
-          <Ionicons name="call-outline" size={20} color="#E2C477" />
-          <Text style={{ color: "#E9D7A7", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>VOICE</Text>
+          <Ionicons name="call-outline" size={20} color="#FFFFFF" />
+          <Text style={{ color: "#E5E5E5", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>VOICE</Text>
         </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Video call"
           disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("video")}
-          style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#80683D", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
+          style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
-          <Ionicons name="videocam-outline" size={21} color="#E2C477" />
-          <Text style={{ color: "#E9D7A7", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>VIDEO</Text>
+          <Ionicons name="videocam-outline" size={21} color="#FFFFFF" />
+          <Text style={{ color: "#E5E5E5", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>VIDEO</Text>
         </TouchableOpacity>
       </View> : null}
 
       {showButtons && callMessage && !showCallModal ? (
-        <View style={{ position: "absolute", top: 54, right: 0, zIndex: 50, backgroundColor: "#241B30", padding: 10, borderRadius: 10, maxWidth: 240 }}>
+        <View style={{ position: "absolute", top: 54, right: 0, zIndex: 50, backgroundColor: "#262626", padding: 10, borderRadius: 10, maxWidth: 240 }}>
           <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{callMessage}</Text>
         </View>
       ) : null}
 
       <Modal visible={showCallModal} animationType="fade" statusBarTranslucent onRequestClose={endCall}>
-        <View style={{ flex: 1, backgroundColor: "#090710", paddingTop: 54, paddingBottom: 30 }}>
-          <View style={{ position: "absolute", top: -110, alignSelf: "center", width: 330, height: 330, borderRadius: 165, backgroundColor: "#21152D", opacity: 0.72 }} />
+        <View style={{ flex: 1, backgroundColor: "#000000", paddingTop: 54, paddingBottom: 30 }}>
+          <View style={{ position: "absolute", top: -110, alignSelf: "center", width: 330, height: 330, borderRadius: 165, backgroundColor: "#1B1B1B", opacity: 0.72 }} />
           <View style={{ paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#0095F6" }} />
-              <Text style={{ color: "#0095F6", fontSize: 10, fontWeight: "800", letterSpacing: 2 }}>BHUMI • PRIVATE CALL</Text>
+              <Text style={{ color: "#0095F6", fontSize: 10, fontWeight: "800", letterSpacing: 1.4 }}>BHUMI SOCIAL • CALL</Text>
             </View>
-            <TouchableOpacity onPress={endCall} accessibilityLabel="Close call" style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#211B2A", borderWidth: 1, borderColor: "#40334B", alignItems: "center", justifyContent: "center" }}>
-              <Ionicons name="chevron-down" size={22} color="#EDE6F2" />
+            <TouchableOpacity onPress={endCall} accessibilityLabel="Close call" style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#262626", borderWidth: 1, borderColor: "#363636", alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="chevron-down" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
@@ -354,15 +354,15 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
             </LiveKitRoom>
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 28 }}>
-              <View style={{ width: 154, height: 154, borderRadius: 77, borderWidth: 1, borderColor: "#80683D", alignItems: "center", justifyContent: "center", backgroundColor: "#17111F", shadowColor: "#0095F6", shadowOpacity: 0.22, shadowRadius: 24, elevation: 10 }}>
-                <View style={{ width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: "#4D3C59", backgroundColor: "#251B30", alignItems: "center", justifyContent: "center" }}>
-                  <Ionicons name={incoming ? "call" : call?.type === "video" ? "videocam" : "call"} size={48} color="#E2C477" />
+              <View style={{ width: 154, height: 154, borderRadius: 77, borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", backgroundColor: "#171717", shadowColor: "#0095F6", shadowOpacity: 0.22, shadowRadius: 24, elevation: 10 }}>
+                <View style={{ width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: "#4A4A4A", backgroundColor: "#262626", alignItems: "center", justifyContent: "center" }}>
+                  <Ionicons name={incoming ? "call" : call?.type === "video" ? "videocam" : "call"} size={48} color="#FFFFFF" />
                 </View>
               </View>
-              <Text style={{ color: "#F8F4FA", fontSize: 25, fontWeight: "800", marginTop: 28, letterSpacing: 0.2 }}>{incoming ? call?.caller : username}</Text>
-              <Text style={{ color: "#B9AFC4", fontSize: 12, marginTop: 7, letterSpacing: 1.5 }}>{call?.type === "video" ? "VIDEO CALL" : "VOICE CALL"}</Text>
-              <View style={{ marginTop: 20, paddingHorizontal: 17, paddingVertical: 9, borderRadius: 22, backgroundColor: "#1C1723", borderWidth: 1, borderColor: "#44364F" }}>
-                <Text style={{ color: "#D9CBAE", fontSize: 12, textAlign: "center" }}>{callMessage || (incoming ? "आपको कॉल आ रही है" : "रिंग हो रही है…")}</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 25, fontWeight: "800", marginTop: 28, letterSpacing: 0.2 }}>{incoming ? call?.caller : username}</Text>
+              <Text style={{ color: "#BDBDBD", fontSize: 12, marginTop: 7, letterSpacing: 1.5 }}>{call?.type === "video" ? "VIDEO CALL" : "VOICE CALL"}</Text>
+              <View style={{ marginTop: 20, paddingHorizontal: 17, paddingVertical: 9, borderRadius: 22, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#363636" }}>
+                <Text style={{ color: "#D1D1D1", fontSize: 12, textAlign: "center" }}>{callMessage || (incoming ? "आपको कॉल आ रही है" : "रिंग हो रही है…")}</Text>
               </View>
               {busy ? <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 22 }} /> : null}
               {incoming ? (
@@ -392,19 +392,19 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           )}
 
           {connection?.token ? (
-            <View style={{ marginTop: 16, marginHorizontal: 22, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12, borderRadius: 28, backgroundColor: "#17121E", borderWidth: 1, borderColor: "#352A40", flexDirection: "row", justifyContent: "space-around", alignItems: "center" }}>
+            <View style={{ marginTop: 16, marginHorizontal: 22, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12, borderRadius: 28, backgroundColor: "#17121E", borderWidth: 1, borderColor: "#363636", flexDirection: "row", justifyContent: "space-around", alignItems: "center" }}>
               <TouchableOpacity onPress={() => setMicEnabled((value) => !value)} accessibilityLabel={micEnabled ? "Mute microphone" : "Unmute microphone"} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
-                <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: micEnabled ? "#30283A" : "#B83D50", borderWidth: 1, borderColor: "#51435D", alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: micEnabled ? "#333333" : "#B83D50", borderWidth: 1, borderColor: "#555555", alignItems: "center", justifyContent: "center" }}>
                   <Ionicons name={micEnabled ? "mic" : "mic-off"} size={22} color="#FFFFFF" />
                 </View>
-                <Text style={{ color: "#D9D1E0", fontSize: 10, fontWeight: "600" }}>{micEnabled ? "Mute" : "Unmute"}</Text>
+                <Text style={{ color: "#E5E5E5", fontSize: 10, fontWeight: "600" }}>{micEnabled ? "Mute" : "Unmute"}</Text>
               </TouchableOpacity>
               {call?.type === "video" ? (
                 <TouchableOpacity onPress={() => setCameraEnabled((value) => !value)} accessibilityLabel={cameraEnabled ? "Turn camera off" : "Turn camera on"} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
-                  <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: cameraEnabled ? "#30283A" : "#B83D50", borderWidth: 1, borderColor: "#51435D", alignItems: "center", justifyContent: "center" }}>
+                  <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: cameraEnabled ? "#333333" : "#B83D50", borderWidth: 1, borderColor: "#555555", alignItems: "center", justifyContent: "center" }}>
                     <Ionicons name={cameraEnabled ? "videocam" : "videocam-off"} size={22} color="#FFFFFF" />
                   </View>
-                  <Text style={{ color: "#D9D1E0", fontSize: 10, fontWeight: "600" }}>{cameraEnabled ? "Camera" : "Camera off"}</Text>
+                  <Text style={{ color: "#E5E5E5", fontSize: 10, fontWeight: "600" }}>{cameraEnabled ? "Camera" : "Camera off"}</Text>
                 </TouchableOpacity>
               ) : null}
               <TouchableOpacity onPress={endCall} accessibilityLabel="End call" style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
