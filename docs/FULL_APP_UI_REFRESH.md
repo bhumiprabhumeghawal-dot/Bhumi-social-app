@@ -110,3 +110,8 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 ### Settings runtime fix
 - Added the missing React Native `StyleSheet` import used by settings preference row separators. Without it, rendering a settings section could throw a runtime reference error.
 - This source-level fix has not yet been confirmed by an app build or device test.
+
+
+### Settings theme label consistency
+- Updated the appearance preference label from the legacy “Royal Purple + Gold” wording to “Bhumi Blue Theme”, matching the current default chat/app visual direction.
+- Kept the existing preference key and stored setting value unchanged to avoid breaking saved preferences.
