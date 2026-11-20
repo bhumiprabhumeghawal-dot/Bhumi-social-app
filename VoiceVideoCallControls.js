@@ -145,6 +145,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const callRef = useRef(null);
   const tokenAttemptedRef = useRef(false);
   const connectionRef = useRef(null);
+  const audioSessionActiveRef = useRef(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -171,9 +172,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     tokenAttemptedRef.current = false;
     setMicEnabled(true);
     setCameraEnabled(true);
-    AudioSession.stopAudioSession().catch((error) => {
-      console.warn("LiveKit audio session stop failed:", error?.message || error);
-    });
+    if (audioSessionActiveRef.current) {
+      audioSessionActiveRef.current = false;
+      AudioSession.stopAudioSession().catch((error) => {
+        console.warn("LiveKit audio session stop failed:", error?.message || error);
+      });
+    }
   };
 
   const connectCall = async (callInfo) => {
@@ -187,7 +191,9 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       // LiveKit's React Native SDK requires its audio session to be started
       // before joining so microphone and speaker routing are initialized.
       await AudioSession.startAudioSession();
+      audioSessionActiveRef.current = true;
       if (!mountedRef.current) {
+        audioSessionActiveRef.current = false;
         await AudioSession.stopAudioSession();
         return;
       }
