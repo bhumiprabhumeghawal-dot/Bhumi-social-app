@@ -105,3 +105,8 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 - Neutralized the remaining purple-tinted call control panel surface.
 - Preserved alternate user-selectable chat themes and all call controls/handlers.
 - No build or device verification was run.
+
+
+### Settings runtime fix
+- Added the missing React Native `StyleSheet` import used by settings preference row separators. Without it, rendering a settings section could throw a runtime reference error.
+- This source-level fix has not yet been confirmed by an app build or device test.
