@@ -258,6 +258,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       onLegacyOpen?.("account");
       return;
     }
+    if (key.startsWith("privacy.") || key === "story.hideFrom") {
+      setActive(null);
+      onLegacyOpen?.("privacy");
+      return;
+    }
     if (key.startsWith("security.")) {
       setActive(null);
       onLegacyOpen?.("security");
