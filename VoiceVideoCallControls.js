@@ -13,6 +13,7 @@ import {
   LiveKitRoom,
   VideoTrack,
   useTracks,
+  useLocalParticipant,
   registerGlobals,
 } from "@livekit/react-native";
 import { Track } from "livekit-client";
@@ -32,6 +33,19 @@ if (!liveKitGlobalsRegistered) {
   } catch (error) {
     console.warn("LiveKit WebRTC initialization failed:", error?.message || error);
   }
+}
+
+function LocalCameraBootstrap({ enabled }) {
+  const { localParticipant, isCameraEnabled } = useLocalParticipant();
+
+  useEffect(() => {
+    if (!enabled || isCameraEnabled) return;
+    localParticipant.setCameraEnabled(true).catch((error) => {
+      console.warn("LiveKit local camera start failed:", error?.message || error);
+    });
+  }, [enabled, isCameraEnabled, localParticipant]);
+
+  return null;
 }
 
 function CallVideoStage({ callType, remoteName }) {
@@ -291,6 +305,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               options={{ adaptiveStream: true, dynacast: true }}
               style={{ flex: 1, marginTop: 18 }}
             >
+              {call?.type === "video" ? <LocalCameraBootstrap enabled={cameraEnabled} /> : null}
               <CallVideoStage callType={call?.type} remoteName={incoming ? call?.caller : username} />
             </LiveKitRoom>
           ) : (
