@@ -1857,7 +1857,7 @@ function PostDetailActions({ post, authSession }) {
                       style={{
                         paddingVertical: 10,
                         borderBottomWidth: 1,
-                        borderBottomColor: "#29344B",
+                        borderBottomColor: "#262626",
                       }}
                     >
                       <Text style={{ color: "#FFFFFF", lineHeight: 21 }}>
@@ -1870,7 +1870,7 @@ function PostDetailActions({ post, authSession }) {
                       {item.isPending ? (
                         <Text
                           style={{
-                            color: "#F6C66A",
+                            color: "#0095F6",
                             fontSize: 11,
                             marginTop: 4,
                           }}
@@ -6217,12 +6217,12 @@ export default function App() {
                       ) : null}
                       {!isVideo ? (
                         <View style={{ position: "absolute", top: 14, right: 14, alignItems: "center", gap: 10 }}>
-                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 48, height: 48, borderRadius: 17, borderWidth: 1, borderColor: "#FFE7A3", backgroundColor: "rgba(20,12,32,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#D7AE55", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
-                            <Ionicons name="musical-notes" size={22} color="#F5D88A" />
+                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 48, height: 48, borderRadius: 17, borderWidth: 1, borderColor: "#7CC4FF", backgroundColor: "rgba(18,18,18,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#0095F6", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
+                            <Ionicons name="musical-notes" size={22} color="#FFFFFF" />
                           </TouchableOpacity>
                           {musicAsset ? (
-                            <TouchableOpacity onPress={() => musicPlayerStatus.playing ? musicPlayer.pause() : musicPlayer.play()} style={{ width: 42, height: 42, borderRadius: 15, backgroundColor: "rgba(20,12,32,0.94)", borderWidth: 1, borderColor: "#D7AE55", alignItems: "center", justifyContent: "center" }}>
-                              <Ionicons name={musicPlayerStatus.playing ? "pause" : "play"} size={19} color="#F5D88A" />
+                            <TouchableOpacity onPress={() => musicPlayerStatus.playing ? musicPlayer.pause() : musicPlayer.play()} style={{ width: 42, height: 42, borderRadius: 15, backgroundColor: "rgba(18,18,18,0.94)", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center" }}>
+                              <Ionicons name={musicPlayerStatus.playing ? "pause" : "play"} size={19} color="#FFFFFF" />
                             </TouchableOpacity>
                           ) : null}
                         </View>
@@ -6233,8 +6233,8 @@ export default function App() {
                             {VIDEO_FILTERS.map((filter, index) => {
                               const selected = videoFilterIndex === index;
                               return (
-                                <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ width: 60, height: 62, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(215,174,85,0.25)" : "rgba(20,12,32,0.92)", borderWidth: 1, borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.5)", shadowColor: "#D7AE55", shadowOpacity: selected ? 0.5 : 0.16, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
-                                  <Ionicons name="color-filter-outline" size={20} color={selected ? "#FFE7A3" : "#0095F6"} />
+                                <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ width: 60, height: 62, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(0,149,246,0.22)" : "rgba(18,18,18,0.92)", borderWidth: 1, borderColor: selected ? "#7CC4FF" : "rgba(0,149,246,0.48)", shadowColor: "#0095F6", shadowOpacity: selected ? 0.5 : 0.16, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
+                                  <Ionicons name="color-filter-outline" size={20} color={selected ? "#7CC4FF" : "#0095F6"} />
                                   <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700", marginTop: 3 }}>{filter.name}</Text>
                                 </TouchableOpacity>
                               );
@@ -6244,18 +6244,18 @@ export default function App() {
                             {VOICE_EFFECTS.map((effect) => {
                               const selected = voiceEffect === effect.name;
                               return (
-                                <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ minWidth: 62, height: 54, paddingHorizontal: 7, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(215,174,85,0.25)" : "rgba(20,12,32,0.92)", borderWidth: 1, borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.5)" }}>
-                                  <Ionicons name="mic-outline" size={19} color={selected ? "#FFE7A3" : "#0095F6"} />
+                                <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ minWidth: 62, height: 54, paddingHorizontal: 7, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(0,149,246,0.22)" : "rgba(18,18,18,0.92)", borderWidth: 1, borderColor: selected ? "#7CC4FF" : "rgba(0,149,246,0.48)" }}>
+                                  <Ionicons name="mic-outline" size={19} color={selected ? "#7CC4FF" : "#0095F6"} />
                                   <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700", marginTop: 2 }}>{effect.name}</Text>
                                 </TouchableOpacity>
                               );
                             })}
                           </ScrollView>
-                          <TouchableOpacity onPress={() => setZoomEffectEnabled((value) => !value)} style={{ width: 44, height: 44, borderRadius: 15, borderWidth: 1, borderColor: zoomEffectEnabled ? "#FFE7A3" : "#D7AE55", backgroundColor: "rgba(20,12,32,0.92)", alignItems: "center", justifyContent: "center" }}>
-                            <Ionicons name="scan-outline" size={21} color="#F5D88A" />
+                          <TouchableOpacity onPress={() => setZoomEffectEnabled((value) => !value)} style={{ width: 44, height: 44, borderRadius: 15, borderWidth: 1, borderColor: zoomEffectEnabled ? "#7CC4FF" : "#0095F6", backgroundColor: "rgba(18,18,18,0.92)", alignItems: "center", justifyContent: "center" }}>
+                            <Ionicons name="scan-outline" size={21} color="#FFFFFF" />
                           </TouchableOpacity>
-                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 46, height: 46, borderRadius: 16, borderWidth: 1, borderColor: "#FFE7A3", backgroundColor: "rgba(20,12,32,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#D7AE55", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
-                            <Ionicons name="musical-notes" size={22} color="#F5D88A" />
+                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 46, height: 46, borderRadius: 16, borderWidth: 1, borderColor: "#7CC4FF", backgroundColor: "rgba(18,18,18,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#0095F6", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
+                            <Ionicons name="musical-notes" size={22} color="#FFFFFF" />
                           </TouchableOpacity>
                           {musicAsset ? (
                             <TouchableOpacity onPress={() => musicPlayerStatus.playing ? musicPlayer.pause() : musicPlayer.play()} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.65)" }}>
@@ -6283,8 +6283,8 @@ export default function App() {
                             {POST_PHOTO_FILTERS.map((filter, index) => {
                               const selected = Number(asset.photoFilterIndex || 0) === index;
                               return (
-                                <TouchableOpacity key={filter.name} disabled={busy} onPress={() => handlePhotoEdit(`filter:${index}`)} style={{ width: 62, height: 62, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(215,174,85,0.24)" : "rgba(20,12,32,0.88)", borderWidth: 1, borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.55)", shadowColor: "#D7AE55", shadowOpacity: selected ? 0.5 : 0.18, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
-                                  <Ionicons name="color-filter-outline" size={21} color={selected ? "#FFE7A3" : "#0095F6"} />
+                                <TouchableOpacity key={filter.name} disabled={busy} onPress={() => handlePhotoEdit(`filter:${index}`)} style={{ width: 62, height: 62, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(0,149,246,0.22)" : "rgba(18,18,18,0.88)", borderWidth: 1, borderColor: selected ? "#7CC4FF" : "rgba(0,149,246,0.48)", shadowColor: "#0095F6", shadowOpacity: selected ? 0.5 : 0.18, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
+                                  <Ionicons name="color-filter-outline" size={21} color={selected ? "#7CC4FF" : "#0095F6"} />
                                   <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700", marginTop: 3 }}>{filter.name}</Text>
                                 </TouchableOpacity>
                               );
@@ -6303,10 +6303,10 @@ export default function App() {
                           width: 42,
                           height: 42,
                           borderRadius: 21,
-                          backgroundColor: "rgba(20,12,32,0.92)",
+                          backgroundColor: "rgba(18,18,18,0.92)",
                           borderWidth: 1,
-                          borderColor: "#D7AE55",
-                          shadowColor: "#D7AE55",
+                          borderColor: "#0095F6",
+                          shadowColor: "#0095F6",
                           shadowOpacity: 0.5,
                           shadowRadius: 12,
                           elevation: 8,
@@ -6357,10 +6357,10 @@ export default function App() {
                                 width: 50,
                                 height: 50,
                                 borderRadius: 25,
-                                backgroundColor: "rgba(20,12,32,0.94)",
+                                backgroundColor: "rgba(18,18,18,0.94)",
                                 borderWidth: 1,
-                                borderColor: "#D7AE55",
-                                shadowColor: "#D7AE55",
+                                borderColor: "#0095F6",
+                                shadowColor: "#0095F6",
                                 shadowOpacity: 0.5,
                                 shadowRadius: 10,
                                 elevation: 7,
@@ -6371,7 +6371,7 @@ export default function App() {
                               <Ionicons
                                 name={tool.icon}
                                 size={23}
-                                color="#F5D88A"
+                                color="#FFFFFF"
                               />
                             </TouchableOpacity>
                           ))}
@@ -6473,10 +6473,10 @@ export default function App() {
                             height: 50,
                             marginLeft: 8,
                             borderRadius: 25,
-                            backgroundColor: "#D7AE55",
+                            backgroundColor: "#0095F6",
                             borderWidth: 1,
-                            borderColor: "#FFE7A3",
-                            shadowColor: "#D7AE55",
+                            borderColor: "#7CC4FF",
+                            shadowColor: "#0095F6",
                             shadowOpacity: 0.65,
                             shadowRadius: 12,
                             elevation: 9,
@@ -6484,7 +6484,7 @@ export default function App() {
                             justifyContent: "center",
                           }}
                         >
-                          <Ionicons name="sparkles" size={25} color="#24172D" />
+                          <Ionicons name="sparkles" size={25} color="#FFFFFF" />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -6670,10 +6670,10 @@ export default function App() {
                                 paddingVertical: 10,
                                 borderRadius: 16,
                                 alignItems: "center",
-                                backgroundColor: selected ? "#D7AE55" : "#170F22",
+                                backgroundColor: selected ? "#0095F6" : "#121212",
                                 borderWidth: 1,
-                                borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.48)",
-                                shadowColor: "#D7AE55",
+                                borderColor: selected ? "#7CC4FF" : "rgba(0,149,246,0.48)",
+                                shadowColor: "#0095F6",
                                 shadowOpacity: selected ? 0.55 : 0.12,
                                 shadowRadius: selected ? 9 : 3,
                                 elevation: selected ? 6 : 1,
@@ -6681,7 +6681,7 @@ export default function App() {
                               }}
                             >
                               <Text style={{
-                                color: selected ? "#24172D" : "#F5EBD2",
+                                color: selected ? "#FFFFFF" : "#E5E5E5",
                                 fontSize: 12,
                                 fontWeight: selected ? "700" : "500",
                               }}>
@@ -8134,7 +8134,7 @@ export default function App() {
                   {!!(profile.businessProfile.area || profile.businessProfile.city || profile.businessProfile.state) && (
                     <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
                       <Ionicons name="location" size={15} color="#0095F6" />
-                      <Text style={{ color: "#D8CDE7", fontSize: 12, marginLeft: 6 }}>
+                      <Text style={{ color: "#D1D1D1", fontSize: 12, marginLeft: 6 }}>
                         {[profile.businessProfile.area, profile.businessProfile.city, profile.businessProfile.state, profile.businessProfile.pincode].filter(Boolean).join(", ")}
                       </Text>
                     </View>
@@ -8143,8 +8143,8 @@ export default function App() {
                   {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Service radius: {profile.businessProfile.serviceRadiusKm} km</Text>}
                   {!!profile.businessProfile.address && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Address: {profile.businessProfile.address}</Text>}
                   {!!profile.businessProfile.openingHours && <Text style={{ color: "#A8A8A8", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
-                  {!!profile.businessProfile.phone && <Text style={{ color: "#D8CDE7", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
-                  {!!profile.businessProfile.whatsapp && <Text style={{ color: "#D8CDE7", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
+                  {!!profile.businessProfile.phone && <Text style={{ color: "#D1D1D1", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
+                  {!!profile.businessProfile.whatsapp && <Text style={{ color: "#D1D1D1", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9 }}>
                     {!!profile.businessProfile.phone && (
                       <TouchableOpacity onPress={() => Linking.openURL("tel:" + profile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
@@ -9268,7 +9268,7 @@ export default function App() {
                             width: "100%",
                             alignItems: "center",
                             justifyContent: "center",
-                            backgroundColor: "#151D2E",
+                            backgroundColor: "#121212",
                           }}
                         >
                           <Text style={{ fontSize: 64 }}>
@@ -9282,7 +9282,7 @@ export default function App() {
                 <Text
                   style={{
                     color: "#FFFFFF",
-                    backgroundColor: "#29344B",
+                    backgroundColor: "#262626",
                     paddingHorizontal: 13,
                     paddingVertical: 6,
                     borderRadius: 14,
@@ -9310,7 +9310,7 @@ export default function App() {
                   width: "100%",
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: "#151D2E",
+                  backgroundColor: "#121212",
                 }}
               >
                 <Text style={{ fontSize: 64 }}>
@@ -9325,10 +9325,10 @@ export default function App() {
               marginHorizontal: 16,
               marginTop: 8,
               padding: 16,
-              backgroundColor: "#151D2E",
+              backgroundColor: "#121212",
               borderRadius: 18,
               borderWidth: 1,
-              borderColor: "#29344B",
+              borderColor: "#262626",
             }}
           >
             {!!selectedPost?.caption ? (
@@ -9893,7 +9893,7 @@ export default function App() {
                 ["openingHours", "Business Hours", "e.g. Mon-Sat 10 AM-8 PM"],
               ].map(([key, label, placeholder]) => (
                 <View key={key} style={{ marginBottom: 11 }}>
-                  <Text style={{ color: "#D8CDE7", fontSize: 12, fontWeight: "700", marginBottom: 5 }}>{label}</Text>
+                  <Text style={{ color: "#D1D1D1", fontSize: 12, fontWeight: "700", marginBottom: 5 }}>{label}</Text>
                   <TextInput
                     value={String(businessProfile[key] ?? "")}
                     onChangeText={(value) => setBusinessProfile((current) => ({ ...current, [key]: key === "serviceRadiusKm" ? value.replace(/[^0-9]/g, "") : value }))}
@@ -9987,7 +9987,7 @@ export default function App() {
                 ["q", "Business name / keyword", "Search brands and services"],
               ].map(([key, label, placeholder]) => (
                 <View key={key} style={{ marginBottom: 9 }}>
-                  <Text style={{ color: "#D8CDE7", fontSize: 12, marginBottom: 4 }}>{label}</Text>
+                  <Text style={{ color: "#D1D1D1", fontSize: 12, marginBottom: 4 }}>{label}</Text>
                   <TextInput value={businessDirectoryFilters[key]} onChangeText={(value) => setBusinessDirectoryFilters((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#8E8E93" style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 11, padding: 11 }} />
                 </View>
               ))}
@@ -10139,10 +10139,10 @@ export default function App() {
             <TouchableOpacity onPress={() => { setAboutAppOpen(false); Linking.openURL("https://bhumi-social-app-1.onrender.com/api/app-version"); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#0095F6", alignItems: "center", justifyContent: "center", marginBottom: 11 }}>
               <Text style={{ color: "#121212", fontSize: 15, fontWeight: "800" }}>Check Updates</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setAboutAppOpen(false); Linking.openURL("https://bhumi-social-app-1.onrender.com/download"); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#59436F", alignItems: "center", justifyContent: "center", marginBottom: 11 }}>
+            <TouchableOpacity onPress={() => { setAboutAppOpen(false); Linking.openURL("https://bhumi-social-app-1.onrender.com/download"); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", alignItems: "center", justifyContent: "center", marginBottom: 11 }}>
               <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}>Download App</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setAboutAppOpen(false); Share.share({ message: "Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download" }); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#59436F", alignItems: "center", justifyContent: "center" }}>
+            <TouchableOpacity onPress={() => { setAboutAppOpen(false); Share.share({ message: "Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download" }); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", alignItems: "center", justifyContent: "center" }}>
               <Text style={{ color: "#0095F6", fontSize: 15, fontWeight: "700" }}>Share App</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setAboutAppOpen(false)} style={{ alignItems: "center", justifyContent: "center", paddingVertical: 16, marginTop: 5 }}>
@@ -10207,7 +10207,7 @@ export default function App() {
                 editable={!accountSettingsBusy}
                 style={{
                   borderWidth: 1,
-                  borderColor: "#3A2A4B",
+                  borderColor: "#262626",
                   borderRadius: 14,
                   padding: 13,
                   marginBottom: 14,
@@ -10227,7 +10227,7 @@ export default function App() {
                 editable={!accountSettingsBusy}
                 style={{
                   borderWidth: 1,
-                  borderColor: "#3A2A4B",
+                  borderColor: "#262626",
                   borderRadius: 14,
                   padding: 13,
                   marginBottom: 18,
@@ -10338,7 +10338,7 @@ export default function App() {
                   editable={!passwordBusy}
                   style={{
                     borderWidth: 1,
-                    borderColor: "#3A2A4B",
+                    borderColor: "#262626",
                     borderRadius: 12,
                     padding: 12,
                     marginBottom: 12,
@@ -10383,7 +10383,7 @@ export default function App() {
                 style={{
                   padding: 12,
                   borderWidth: 1,
-                  borderColor: "#3A2A4B",
+                  borderColor: "#262626",
                   borderRadius: 12,
                   marginBottom: 14,
                 }}
