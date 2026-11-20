@@ -136,3 +136,9 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 ### Settings interaction polish
 - Replaced native Android alert popups for Settings load/save and unavailable actions with a branded in-app notice panel that matches the dark Bhumi Blue design.
 - Settings notices clear when the Settings hub closes; existing preference persistence and action handlers remain intact.
+
+
+### Video-call camera initialization correction
+- Removed the extra local camera bootstrap that was calling setCameraEnabled(true) while LiveKitRoom already receives video={...} and manages local camera publication.
+- The room's native camera lifecycle is now the single source of truth; local self-preview continues to use the local camera publication/track reference.
+- Must still verify with two real devices because a source-level change cannot confirm camera hardware, permissions or network behavior.
