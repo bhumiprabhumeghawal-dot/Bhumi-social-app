@@ -5,3 +5,4 @@ python-dotenv==1.1.1
 
 psycopg[binary]>=3.2.10,<4
 livekit-api>=1.0.0,<2
+boto3>=1.35,<2
