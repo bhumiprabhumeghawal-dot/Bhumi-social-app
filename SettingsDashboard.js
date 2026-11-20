@@ -102,8 +102,6 @@ const SECTIONS = [
     ["messages.allowVideoCalls","Allow Video Calls","Allow incoming video calls",true],
     ["messages.disappearing","Disappearing Messages","Enable disappearing message preference",false],
     ["messages.mediaDownload","Media Auto Download","Automatically download chat media",true],
-    ["messages.voiceCalls","Incoming Voice Calls","Allow voice call invitations",true],
-    ["messages.videoCalls","Incoming Video Calls","Allow video call invitations",true],
   ]},
   { key:"story", title:"Story Settings", subtitle:"Manage story audience and replies", icon:"images-outline", fields:[
     ["story.closeFriends","Close Friends","Manage your Close Friends membership from each friend’s Chat Studio",true],
@@ -148,12 +146,6 @@ const SECTIONS = [
     ["advanced.clearCache","Clear Cache","Clear temporary cached files",false],
     ["advanced.downloads","Download Preferences","Choose media download preferences",true],
     ["advanced.wifiOnly","Wi-Fi Only Downloads","Restrict automatic downloads to Wi-Fi",false],
-["data.saver","Data Saver","Reduce mobile data usage",false],
-    ["data.storage","Storage Usage","Review app storage usage",true],
-    ["data.autoDownload","Media Auto Download","Automatically download supported media",true],
-    ["data.wifiOnly","Wi-Fi Only Downloads","Download media only on Wi-Fi",false],
-    ["data.background","Background Data","Allow background network activity",true],
-    ["data.highQuality","High Quality Uploads","Prefer high quality uploads",true],
   ]},
   { key:"creator", title:"Creator & Professional", subtitle:"Tools for creators and business profiles", icon:"analytics-outline", fields:[
     ["creator.accountType","Creator Account","Enable creator account preference",false],
@@ -290,7 +282,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       "creator.monetization":"Creator monetization is not enabled on the server yet.",
       "creator.collaboration":"Brand collaboration tools are not connected yet.",
       "creator.promotions":"Promotion tools are not connected yet.",
-      "premium.profileStudio":"Profile Studio is not connected yet."
+      "premium.profileStudio":"Profile Studio is not connected yet.",
+      "appearance.chat":"Chat themes and friend-specific personalization are available from the palette button inside each conversation."
     };
     setNotice({ title: "Not available yet", message: labels[key] || "This action is not connected yet. It has not been enabled." });
   };
