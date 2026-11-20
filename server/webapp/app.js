@@ -94,7 +94,7 @@ if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(
 let deferred=null;
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-const isInAppBrowser=/WhatsApp|FBAN|FBAV|Instagram/i.test(navigator.userAgent);
+const isInAppBrowser=/WhatsApp|FBAN|FBAV|Instagram|CriOS|FxiOS|EdgiOS|OPiOS/i.test(navigator.userAgent);
 const isMobile=/android|iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 $('installBtn').hidden=isStandalone||!isMobile;
 if(isMobile&&!isStandalone){
