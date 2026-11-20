@@ -127,17 +127,21 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     }
   };
 
+  const ensureCallPermissions = async (type) => {
+    const microphone = await requestRecordingPermissionsAsync();
+    if (!microphone?.granted) throw new Error("कॉल के लिए माइक्रोफोन की अनुमति दें।");
+    if (type === "video") {
+      const camera = cameraPermission?.granted ? cameraPermission : await requestCameraPermission();
+      if (!camera?.granted) throw new Error("वीडियो कॉल के लिए कैमरा की अनुमति दें।");
+    }
+  };
+
   const startCall = async (type) => {
     if (!enableOutgoing || !username || busy || callRef.current) return;
     setBusy(true);
     setCallMessage("");
     try {
-      const microphone = await requestRecordingPermissionsAsync();
-      if (!microphone?.granted) throw new Error("कॉल के लिए माइक्रोफोन की अनुमति दें।");
-      if (type === "video") {
-        const camera = cameraPermission?.granted ? cameraPermission : await requestCameraPermission();
-        if (!camera?.granted) throw new Error("वीडियो कॉल के लिए कैमरा की अनुमति दें।");
-      }
+      await ensureCallPermissions(type);
       tokenAttemptedRef.current = false;
       const created = await createVoiceVideoCall(username, type);
       if (!mountedRef.current) return;
@@ -201,6 +205,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     if (!call || busy) return;
     setBusy(true);
     try {
+      await ensureCallPermissions(call.type);
       const accepted = await respondToCall(call.id, "accept");
       const next = accepted || call;
       tokenAttemptedRef.current = true;
