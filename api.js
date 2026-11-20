@@ -144,7 +144,8 @@ globalThis.fetch = async (input, init = {}) => {
   const url = typeof input === 'string' ? input : input.url;
   const urlText = String(url);
   const isUpload = /upload|media/i.test(urlText);
-  const timeoutMs = isUpload ? 120000 : (String(init.method || 'GET').toUpperCase() === 'GET' ? 15000 : 30000);
+  // Render free instances may need extra time to wake from idle; keep the UI responsive via local cache while allowing the first request to finish.
+  const timeoutMs = isUpload ? 120000 : (String(init.method || 'GET').toUpperCase() === 'GET' ? 60000 : 45000);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
