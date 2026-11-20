@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Modal, View, Text, ScrollView, TouchableOpacity, Switch,
-  ActivityIndicator, Alert, Linking, Platform
+  ActivityIndicator, Alert, Linking, Platform, StyleSheet
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
