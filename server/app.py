@@ -9,8 +9,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from dotenv import load_dotenv
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, redirect, request, send_from_directory
 from werkzeug.utils import secure_filename
+
+from server.media_storage import delete_remote_media, is_remote_media_filename, presigned_media_url, upload_media_file
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / '.env')
@@ -20,11 +22,11 @@ UPLOAD_DIR = BASE_DIR / "uploads"
 DB_PATH = DATA_DIR / "socialapp.db"
 
 UPLOAD_LIMITS = {
-    "posts": 1024 * 1024 * 1024,
-    "stories": 500 * 1024 * 1024,
-    "reels": 500 * 1024 * 1024,
+    "posts": 50 * 1024 * 1024,
+    "stories": 25 * 1024 * 1024,
+    "reels": 50 * 1024 * 1024,
 }
-MAX_UPLOAD_BYTES = 1024 * 1024 * 1024
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 
 ALLOWED_EXTENSIONS = {
     "posts": {"jpg", "jpeg", "png", "webp", "gif", "mp4", "mov", "webm"},
@@ -417,7 +419,10 @@ def create_content(kind):
         media_type = (
             "video" if extension in {"mp4", "mov", "webm"} else "image"
         )
-        media_url = f"/uploads/{kind}/{stored_name}"
+        remote_media_url = upload_media_file(str(destination), kind, stored_name)
+        if remote_media_url:
+            destination.unlink(missing_ok=True)
+        media_url = remote_media_url or f"/uploads/{kind}/{stored_name}"
 
         with get_db() as db:
             cursor = db.execute(
@@ -565,6 +570,9 @@ def uploaded_file(kind, filename):
             if row is None:
                 return jsonify({"error": "Media not found"}), 404
 
+    remote_url = presigned_media_url(kind, filename)
+    if remote_url:
+        return redirect(remote_url, code=302)
     return send_from_directory(UPLOAD_DIR / kind, filename)
 
 
@@ -3302,6 +3310,10 @@ def upload_chat_attachment():
             return jsonify({"error": f"{attachment_type.title()} files must not exceed {limit_mb} MB."}), 413
 
         mime_type = (media.mimetype or "application/octet-stream").lower()
+        remote_media_url = upload_media_file(str(destination), "chat", stored_name)
+        if remote_media_url:
+            destination.unlink(missing_ok=True)
+        media_url = remote_media_url or f"/uploads/chat/{stored_name}"
         with get_db() as db:
             db.execute("""
                 INSERT INTO chat_media (
