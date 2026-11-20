@@ -85,4 +85,4 @@ jobs:
           overwrite_files: true
           make_latest: true
 
-# Trigger a fresh Android APK build.
+# Rebuild after latest Instagram-style UI polish.
