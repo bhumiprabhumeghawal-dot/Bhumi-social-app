@@ -49,9 +49,9 @@ function LocalCameraBootstrap({ enabled }) {
 }
 
 function CallVideoStage({ callType, remoteName }) {
-  // Include local publications as well as subscribed remote tracks. The hook's
-  // default subscription filter can omit the caller's own camera preview.
-  const tracks = useTracks([Track.Source.Camera], { onlySubscribed: false });
+  // The React Native LiveKit hook returns local and remote camera references.
+  // Keep its documented one-argument form so the local self-preview is included.
+  const tracks = useTracks([Track.Source.Camera]);
   const { localParticipant } = useLocalParticipant();
   const remoteTracks = tracks.filter(
     (item) => item.participant && !item.participant.isLocal &&
