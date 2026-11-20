@@ -187,3 +187,7 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 
 ### Startup presentation
 - Replaced the plain “Loading…” text with a compact branded Bhumi splash state while the secure local session is restored; server requests do not gate this screen or cached feed rendering.
+
+
+### Call connecting-state feedback
+- Voice and video call screens now show a connecting indicator until LiveKit confirms the room is connected; the video stage only displays the LIVE status after that event.
