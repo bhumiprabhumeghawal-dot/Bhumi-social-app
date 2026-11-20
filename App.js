@@ -531,7 +531,7 @@ function PinchZoomImage({
           width: "100%",
           aspectRatio: undefined,
           overflow: "visible",
-          backgroundColor: "#080B14",
+          backgroundColor: "#000000",
         },
       ]}
     >
@@ -540,7 +540,7 @@ function PinchZoomImage({
           width: "100%",
           height: imageHeight,
           overflow: "hidden",
-          backgroundColor: "#080B14",
+          backgroundColor: "#000000",
         }}
       >
         <GestureDetector
@@ -571,7 +571,7 @@ function PinchZoomImage({
           alignItems: "center",
           justifyContent: "center",
           paddingVertical: 5,
-          backgroundColor: "#080B14",
+          backgroundColor: "#000000",
         }}
       >
         <TouchableOpacity
@@ -1429,11 +1429,11 @@ function PostCard({
           >
             <View
               style={{
-                backgroundColor: "#101114",
+                backgroundColor: "#121212",
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
                 borderTopWidth: 1,
-                borderColor: "#292B30",
+                borderColor: "#262626",
                 paddingHorizontal: 18,
                 paddingTop: 10,
                 paddingBottom: 18,
@@ -1446,7 +1446,7 @@ function PostCard({
                   width: 38,
                   height: 4,
                   borderRadius: 3,
-                  backgroundColor: "#55585F",
+                  backgroundColor: "#363636",
                   marginBottom: 16,
                 }}
               />
@@ -1475,7 +1475,7 @@ function PostCard({
                     width: 32,
                     height: 32,
                     borderRadius: 16,
-                    backgroundColor: "#24262B",
+                    backgroundColor: "#1C1C1E",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -1561,9 +1561,9 @@ function PostCard({
                   style={{
                     flex: 1,
                     borderWidth: 1,
-                    borderColor: "#34363D",
+                    borderColor: "#262626",
                     borderRadius: 22,
-                    backgroundColor: "#1B1D22",
+                    backgroundColor: "#121212",
                     paddingHorizontal: 15,
                     paddingVertical: 10,
                     color: "#FFFFFF",
@@ -1579,13 +1579,13 @@ function PostCard({
                     marginLeft: 8,
                     paddingHorizontal: 13,
                     borderRadius: 20,
-                    backgroundColor: commentDraft.trim() && !interactionBusy ? "#0095F6" : "#24262B",
+                    backgroundColor: commentDraft.trim() && !interactionBusy ? "#0095F6" : "#1C1C1E",
                     alignItems: "center",
                     justifyContent: "center",
                     opacity: interactionBusy ? 0.55 : 1,
                   }}
                 >
-                  <Text style={{ color: commentDraft.trim() && !interactionBusy ? "#FFFFFF" : "#777B84", fontWeight: "800", fontSize: 12 }}>
+                  <Text style={{ color: commentDraft.trim() && !interactionBusy ? "#FFFFFF" : "#8E8E93", fontWeight: "800", fontSize: 12 }}>
                     Post
                   </Text>
                 </TouchableOpacity>
@@ -1793,11 +1793,11 @@ function PostDetailActions({ post, authSession }) {
           >
             <View
               style={{
-                backgroundColor: "#101114",
+                backgroundColor: "#121212",
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
                 borderTopWidth: 1,
-                borderColor: "#292B30",
+                borderColor: "#262626",
                 paddingHorizontal: 18,
                 paddingTop: 10,
                 paddingBottom: 18,
@@ -1810,7 +1810,7 @@ function PostDetailActions({ post, authSession }) {
                   width: 38,
                   height: 4,
                   borderRadius: 3,
-                  backgroundColor: "#55585F",
+                  backgroundColor: "#363636",
                   marginBottom: 16,
                 }}
               />
@@ -1837,7 +1837,7 @@ function PostDetailActions({ post, authSession }) {
                     width: 32,
                     height: 32,
                     borderRadius: 16,
-                    backgroundColor: "#24262B",
+                    backgroundColor: "#1C1C1E",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -1847,7 +1847,7 @@ function PostDetailActions({ post, authSession }) {
               </View>
               <ScrollView style={{ maxHeight: 360 }}>
                 {comments.length === 0 ? (
-                  <Text style={{ color: "#AAB6CC", paddingVertical: 14 }}>
+                  <Text style={{ color: "#A8A8A8", paddingVertical: 14 }}>
                     No comments yet. Be the first to comment.
                   </Text>
                 ) : (
@@ -1918,15 +1918,15 @@ function PostDetailActions({ post, authSession }) {
                   value={draft}
                   onChangeText={setDraft}
                   placeholder="Write a comment..."
-                  placeholderTextColor="#8793AA"
+                  placeholderTextColor="#8E8E93"
                   maxLength={2000}
                   editable={!busy}
                   style={{
                     flex: 1,
                     color: "#FFFFFF",
-                    backgroundColor: "#1B1D22",
+                    backgroundColor: "#121212",
                     borderWidth: 1,
-                    borderColor: "#34363D",
+                    borderColor: "#262626",
                     borderRadius: 22,
                     paddingHorizontal: 15,
                     paddingVertical: 11,
@@ -1942,13 +1942,13 @@ function PostDetailActions({ post, authSession }) {
                     marginLeft: 2,
                     paddingHorizontal: 13,
                     borderRadius: 20,
-                    backgroundColor: draft.trim() && !busy ? "#0095F6" : "#24262B",
+                    backgroundColor: draft.trim() && !busy ? "#0095F6" : "#1C1C1E",
                     alignItems: "center",
                     justifyContent: "center",
                     opacity: busy ? 0.55 : 1,
                   }}
                 >
-                  <Text style={{ color: draft.trim() && !busy ? "#FFFFFF" : "#777B84", fontWeight: "800", fontSize: 12 }}>
+                  <Text style={{ color: draft.trim() && !busy ? "#FFFFFF" : "#8E8E93", fontWeight: "800", fontSize: 12 }}>
                     Post
                   </Text>
                 </TouchableOpacity>
@@ -2113,7 +2113,7 @@ function CustomAlertHost() {
                     flex: alertData.buttons.length > 1 ? 1 : undefined,
                     minHeight: 48,
                     borderWidth: cancel ? 1 : 0,
-                    borderColor: "#3A3D45",
+                    borderColor: "#363636",
                     paddingHorizontal: 12,
                     borderRadius: 14,
                     alignItems: "center",
@@ -2122,7 +2122,7 @@ function CustomAlertHost() {
                       ? destructive
                         ? "#F06B83"
                         : accent
-                      : "#24262B",
+                      : "#1C1C1E",
                   }}
                 >
                   <Text
@@ -5367,7 +5367,7 @@ export default function App() {
 
   if (authReady && welcomeChecked && !authSession && !welcomeSeen) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#101827" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
         <StatusBar style="light" hidden={false} translucent={false} />
         <View
           style={{
@@ -5413,7 +5413,7 @@ export default function App() {
             </Text>
             <Text
               style={{
-                color: "#AFC7E8",
+                color: "#A8A8A8",
                 fontSize: 13,
                 fontWeight: "700",
                 letterSpacing: 3,
@@ -5432,12 +5432,12 @@ export default function App() {
                 width: 190,
                 height: 190,
                 borderRadius: 95,
-                backgroundColor: "#1D3554",
+                backgroundColor: "#121212",
                 alignItems: "center",
                 justifyContent: "center",
                 marginBottom: 28,
                 borderWidth: 1,
-                borderColor: "#355578",
+                borderColor: "#363636",
               }}
             >
               <View
@@ -5445,7 +5445,7 @@ export default function App() {
                   width: 142,
                   height: 142,
                   borderRadius: 71,
-                  backgroundColor: "#284A70",
+                  backgroundColor: "#1C1C1E",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -5459,11 +5459,11 @@ export default function App() {
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: "#4DA8FF",
+                    backgroundColor: "#0095F6",
                     alignItems: "center",
                     justifyContent: "center",
                     borderWidth: 3,
-                    borderColor: "#284A70",
+                    borderColor: "#1C1C1E",
                   }}
                 >
                   <Ionicons
@@ -5487,7 +5487,7 @@ export default function App() {
             </Text>
             <Text
               style={{
-                color: "#C2CDDD",
+                color: "#D1D1D1",
                 fontSize: 15,
                 lineHeight: 23,
                 textAlign: "center",
@@ -5504,14 +5504,14 @@ export default function App() {
               onPress={() => finishWelcome("register")}
               activeOpacity={0.85}
               style={{
-                backgroundColor: "#4DA8FF",
+                backgroundColor: "#0095F6",
                 borderRadius: 16,
                 paddingVertical: 17,
                 alignItems: "center",
               }}
             >
               <Text
-                style={{ color: "#101827", fontSize: 16, fontWeight: "800" }}
+                style={{ color: "#000000", fontSize: 16, fontWeight: "800" }}
               >
                 Get Started
               </Text>
@@ -9157,7 +9157,7 @@ export default function App() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "#080B14",
+            backgroundColor: "#000000",
             paddingTop: 42,
             paddingBottom: 18,
           }}
@@ -9336,13 +9336,13 @@ export default function App() {
                 {selectedPost.caption}
               </Text>
             ) : (
-              <Text style={{ color: "#8793AA", fontSize: 13 }}>
+              <Text style={{ color: "#8E8E93", fontSize: 13 }}>
                 No caption added
               </Text>
             )}
             <Text
               style={{
-                color: "#8FA4CB",
+                color: "#A8A8A8",
                 fontSize: 11,
                 fontWeight: "700",
                 marginTop: 12,
