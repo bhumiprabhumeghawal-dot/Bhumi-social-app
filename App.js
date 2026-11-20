@@ -2036,10 +2036,10 @@ function CustomAlertHost() {
           style={{
             width: "100%",
             maxWidth: 390,
-            backgroundColor: "#15171B",
+            backgroundColor: "#121212",
             borderRadius: 24,
             borderWidth: 1,
-            borderColor: "#30333A",
+            borderColor: "#262626",
             padding: 22,
             alignItems: "center",
             elevation: 18,
@@ -2076,7 +2076,7 @@ function CustomAlertHost() {
           {!!alertData.message && (
             <Text
               style={{
-                color: "#C4C7CE",
+                color: "#A8A8A8",
                 fontSize: 15,
                 lineHeight: 22,
                 textAlign: "center",
@@ -2129,7 +2129,7 @@ function CustomAlertHost() {
                     style={{
                       fontSize: 15,
                       fontWeight: "700",
-                      color: primary ? "#FFFFFF" : "#E5E7EB",
+                      color: primary ? "#FFFFFF" : "#E5E5E5",
                       textAlign: "center",
                     }}
                   >
@@ -2142,7 +2142,7 @@ function CustomAlertHost() {
           <Text
             style={{
               marginTop: 15,
-              color: "#8E929B",
+              color: "#8E8E93",
               fontSize: 11,
               fontWeight: "600",
               letterSpacing: 0.5,
@@ -2256,7 +2256,7 @@ export default function App() {
         if (!report || !active) return;
         await SecureStore.deleteItemAsync("bhumi_last_crash_report");
         if (active) {
-          NativeAlert.alert("पिछली बार ऐप क्यों बंद हुआ", report);
+          Alert.alert("पिछली बार ऐप क्यों बंद हुआ", report);
         }
       })
       .catch((error) => console.error("Crash report read failed:", error));
@@ -2327,10 +2327,10 @@ export default function App() {
         await Updates.reloadAsync();
       } else {
         setUpdatePromptVisible(false);
-        NativeAlert.alert("Bhumi Social AI", "आपका ऐप पहले से अपडेट है।");
+        Alert.alert("Bhumi Social AI", "आपका ऐप पहले से अपडेट है।");
       }
     } catch (error) {
-      NativeAlert.alert(
+      Alert.alert(
         "Update",
         "अभी अपडेट डाउनलोड नहीं हो पाया। इंटरनेट कनेक्शन जाँचकर दोबारा कोशिश करें।",
       );
@@ -2365,7 +2365,7 @@ export default function App() {
           const username = decodeURIComponent(profileMatch[1]);
           if (active && username) await openUserProfile(username);
         } catch (error) {
-          if (active) NativeAlert.alert("Profile unavailable", error?.message || "Could not open this profile.");
+          if (active) Alert.alert("Profile unavailable", error?.message || "Could not open this profile.");
         }
         return;
       }
@@ -2378,7 +2378,7 @@ export default function App() {
         setSelectedPostMediaIndex(0);
       } catch (error) {
         if (active) {
-          NativeAlert.alert(
+          Alert.alert(
             "Post unavailable",
             error?.message || "Could not open this shared post.",
           );
@@ -9067,7 +9067,7 @@ export default function App() {
                 </Text>
                 {!!selectedStory?.createdAt && (
                   <Text
-                    style={{ color: "#E5E7EB", fontSize: 11, marginTop: 2 }}
+                    style={{ color: "#E5E5E5", fontSize: 11, marginTop: 2 }}
                   >
                     {formatPostTime(selectedStory.createdAt)}
                   </Text>
@@ -11550,7 +11550,7 @@ export default function App() {
               }
             );
           } catch (error) {
-            NativeAlert.alert(
+            Alert.alert(
               "Attachment",
               error?.message || "Document खुल नहीं सका।"
             );
