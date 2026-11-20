@@ -11,6 +11,7 @@ let authTokenMemory = null;
 let authUsernameMemory = null;
 let authSessionLoaded = false;
 let authSessionLoadPromise = null;
+let authSessionRevision = 0;
 
 async function getCachedAuthToken() {
   const session = await getAuthSession();
@@ -18,6 +19,7 @@ async function getCachedAuthToken() {
 }
 
 export async function saveAuthSession(token, username) {
+  authSessionRevision += 1;
   authTokenMemory = token || null;
   authUsernameMemory = username || null;
   authSessionLoaded = true;
@@ -28,6 +30,7 @@ export async function saveAuthSession(token, username) {
 }
 
 export async function clearAuthSession() {
+  authSessionRevision += 1;
   authTokenMemory = null;
   authUsernameMemory = null;
   authSessionLoaded = true;
@@ -44,10 +47,16 @@ export async function getAuthSession() {
       : null;
   }
   if (!authSessionLoadPromise) {
+    const revision = authSessionRevision;
     authSessionLoadPromise = Promise.all([
       SecureStore.getItemAsync(AUTH_TOKEN_KEY),
       SecureStore.getItemAsync(AUTH_USERNAME_KEY),
     ]).then(([token, username]) => {
+      if (revision !== authSessionRevision) {
+        return authTokenMemory && authUsernameMemory
+          ? { token: authTokenMemory, username: authUsernameMemory }
+          : null;
+      }
       authTokenMemory = token || null;
       authUsernameMemory = username || null;
       authSessionLoaded = true;
