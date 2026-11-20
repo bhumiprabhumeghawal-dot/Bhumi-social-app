@@ -293,7 +293,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     const value = preferences[key] ?? defaultValue;
     const isAction = ACTION_KEYS.has(key);
     return (
-      <View key={key} style={{ backgroundColor:BG, borderBottomWidth:1, borderBottomColor:BORDER, paddingHorizontal:0, paddingVertical:15, marginBottom:0 }}>
+      <View key={key} style={{ backgroundColor:BG, borderBottomWidth:StyleSheet.hairlineWidth, borderBottomColor:BORDER, paddingHorizontal:2, paddingVertical:16, marginBottom:0 }}>
         <View style={{ flexDirection:"row", alignItems:"center" }}>
           <View style={{ flex:1, paddingRight:12 }}>
             <Text style={{ color:TEXT, fontSize:14, fontWeight:"800" }}>{title}</Text>
@@ -301,7 +301,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {savingKey === key ? <Text style={{ color:GOLD, fontSize:10, marginTop:5 }}>Saving…</Text> : null}
           </View>
           {isAction ? (
-            <TouchableOpacity onPress={() => runSettingAction(key)} style={{ backgroundColor:"#262626",borderColor:BORDER,borderWidth:1,borderRadius:10,paddingHorizontal:13,paddingVertical:9 }}>
+            <TouchableOpacity onPress={() => runSettingAction(key)} style={{ backgroundColor:"#1C1C1E",borderColor:"#303030",borderWidth:1,borderRadius:18,paddingHorizontal:15,paddingVertical:9 }}>
               <Text style={{ color:GOLD,fontSize:11,fontWeight:"900" }}>Open</Text>
             </TouchableOpacity>
           ) : (
@@ -319,13 +319,13 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     return (
       <Modal visible={!!active && visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setActive(null)}>
         <View style={{ flex:1, backgroundColor:BG, paddingTop:16, paddingBottom: Platform.OS === "android" ? 36 : 0 }}>
-          <View style={{ flexDirection:"row", alignItems:"center", paddingHorizontal:18, paddingBottom:16, borderBottomWidth:1, borderBottomColor:BORDER }}>
+          <View style={{ flexDirection:"row", alignItems:"center", paddingHorizontal:18, paddingTop:5, paddingBottom:16, borderBottomWidth:1, borderBottomColor:BORDER, backgroundColor:BG }}>
             <TouchableOpacity onPress={() => setActive(null)} style={{ width:42,height:42,borderRadius:13,backgroundColor:PANEL,alignItems:"center",justifyContent:"center",marginRight:12 }}>
               <Ionicons name="arrow-back" size={22} color={GOLD}/>
             </TouchableOpacity>
             <View style={{ flex:1 }}>
-              <Text style={{ color:TEXT,fontSize:19,fontWeight:"900" }}>{section.title}</Text>
-              <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{section.subtitle}</Text>
+              <Text style={{ color:TEXT,fontSize:19,fontWeight:"900", letterSpacing:-0.35 }}>{section.title}</Text>
+              <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{section.subtitle}</Text>
             </View>
           </View>
           <ScrollView contentContainerStyle={{ padding:18,paddingBottom: Platform.OS === "android" ? 64 : 40 }} keyboardShouldPersistTaps="handled">
@@ -399,7 +399,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.72)",justifyContent:"flex-end",paddingBottom: Platform.OS === "android" ? 38 : 0 }}>
           <View style={{ backgroundColor:BG,borderTopLeftRadius:22,borderTopRightRadius:22,borderWidth:1,borderColor:BORDER,paddingTop:18,paddingHorizontal:17,paddingBottom: Platform.OS === "android" ? 22 : 25,maxHeight:"94%" }}>
             <View style={{ alignSelf:"center",width:42,height:5,borderRadius:5,backgroundColor:"#0095F6",marginBottom:17 }}/>
-            <View style={{ backgroundColor:"#121212",borderWidth:1,borderColor:BORDER,borderRadius:20,padding:18,marginBottom:15 }}>
+            <View style={{ backgroundColor:"#121212",borderWidth:1,borderColor:BORDER,borderRadius:16,padding:18,marginBottom:15 }}>
               <Text style={{ color:GOLD,fontSize:11,fontWeight:"900",letterSpacing:2 }}>BHUMI SOCIAL AI</Text>
               <Text style={{ color:TEXT,fontSize:25,fontWeight:"900",marginTop:6 }}>Settings</Text>
               <Text style={{ color:MUTED,fontSize:12,marginTop:4 }}>Your account, privacy and app controls</Text>
