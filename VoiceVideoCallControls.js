@@ -36,7 +36,7 @@ if (!liveKitGlobalsRegistered) {
   }
 }
 
-function CallVideoStage({ callType, remoteName }) {
+function CallVideoStage({ callType, remoteName, isConnected }) {
   // The React Native LiveKit hook returns local and remote camera references.
   // Keep its documented one-argument form so the local self-preview is included.
   const tracks = useTracks([Track.Source.Camera]);
@@ -69,7 +69,7 @@ function CallVideoStage({ callType, remoteName }) {
         </View>
         <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "800", marginTop: 20 }}>{remoteName}</Text>
         <View style={{ marginTop: 10, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: "#1F1F1F" }}>
-          <Text style={{ color: "#D1D1D1", fontSize: 12 }}>वॉइस कॉल कनेक्ट है</Text>
+          <Text style={{ color: "#D1D1D1", fontSize: 12 }}>{isConnected ? "वॉइस कॉल कनेक्ट है" : "वॉइस कॉल कनेक्ट हो रही है…"}</Text>
         </View>
       </View>
     );
@@ -127,6 +127,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const [callMessage, setCallMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [connectionFailed, setConnectionFailed] = useState(false);
+  const [roomConnected, setRoomConnected] = useState(false);
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -157,6 +158,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     setCallMessage("");
     setBusy(false);
     setConnectionFailed(false);
+    setRoomConnected(false);
     callRef.current = null;
     connectionRef.current = null;
     tokenAttemptedRef.current = false;
@@ -175,6 +177,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     disconnectHandlingRef.current = false;
     setBusy(true);
     setConnectionFailed(false);
+    setRoomConnected(false);
     setCallMessage("कॉल कनेक्ट हो रही है…");
     try {
       const result = await getCallConnectionToken(callInfo.id);
@@ -377,7 +380,10 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               audio={micEnabled}
               video={call?.type === "video" && cameraEnabled}
               onConnected={() => {
-                if (mountedRef.current) setCallMessage("कॉल कनेक्ट हो गई।");
+                if (mountedRef.current) {
+                  setRoomConnected(true);
+                  setCallMessage("कॉल कनेक्ट हो गई।");
+                }
               }}
               onError={(error) => {
                 if (mountedRef.current) {
@@ -400,6 +406,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                 }
                 setConnection(null);
                 connectionRef.current = null;
+                setRoomConnected(false);
                 setConnectionFailed(true);
                 setCallMessage("कॉल का नेटवर्क कनेक्शन टूट गया। फिर से कनेक्ट करें।");
                 if (audioSessionActiveRef.current) {
@@ -410,7 +417,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               options={{ adaptiveStream: true, dynacast: true }}
               style={{ flex: 1, marginTop: 18 }}
             >
-              <CallVideoStage callType={call?.type} remoteName={incoming ? call?.caller : username} />
+              <CallVideoStage callType={call?.type} remoteName={incoming ? call?.caller : username} isConnected={roomConnected} />
             </LiveKitRoom>
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 28 }}>
