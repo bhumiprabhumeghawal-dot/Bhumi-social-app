@@ -8,29 +8,17 @@ const AUTH_USERNAME_KEY = 'socialapp_auth_username';
 // Keep the bearer token in memory after the first secure read. SecureStore I/O
 // on every API request adds avoidable latency, especially during parallel loads.
 let authTokenMemory = null;
-let authTokenLoaded = false;
-let authTokenLoadPromise = null;
 let authUsernameMemory = null;
 let authSessionLoaded = false;
 let authSessionLoadPromise = null;
 
 async function getCachedAuthToken() {
-  if (authTokenLoaded) return authTokenMemory;
-  if (!authTokenLoadPromise) {
-    authTokenLoadPromise = SecureStore.getItemAsync(AUTH_TOKEN_KEY)
-      .then((token) => {
-        authTokenMemory = token || null;
-        authTokenLoaded = true;
-        return authTokenMemory;
-      })
-      .finally(() => { authTokenLoadPromise = null; });
-  }
-  return authTokenLoadPromise;
+  const session = await getAuthSession();
+  return session?.token || null;
 }
 
 export async function saveAuthSession(token, username) {
   authTokenMemory = token || null;
-  authTokenLoaded = true;
   authUsernameMemory = username || null;
   authSessionLoaded = true;
   await Promise.all([
@@ -41,7 +29,6 @@ export async function saveAuthSession(token, username) {
 
 export async function clearAuthSession() {
   authTokenMemory = null;
-  authTokenLoaded = true;
   authUsernameMemory = null;
   authSessionLoaded = true;
   await Promise.all([
@@ -62,7 +49,6 @@ export async function getAuthSession() {
       SecureStore.getItemAsync(AUTH_USERNAME_KEY),
     ]).then(([token, username]) => {
       authTokenMemory = token || null;
-      authTokenLoaded = true;
       authUsernameMemory = username || null;
       authSessionLoaded = true;
       return token && username ? { token, username } : null;
