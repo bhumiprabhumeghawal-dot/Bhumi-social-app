@@ -125,3 +125,9 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 - LiveKit React Native audio session is started before joining a room and stopped on call teardown.
 - LiveKit join success/errors are surfaced, and a failed join has an in-call reconnect action.
 - Device-level call quality, microphone routing, camera preview and server cold-start timing still require a real-device test; these code changes are not a substitute for that verification.
+
+
+### Media editor and settings consistency pass
+- Removed the remaining legacy gold/purple controls from the post photo/video editor and aligned active controls with Bhumi Blue.
+- Standardized remaining business-profile, account and pending-state text/borders to the neutral dark palette.
+- Privacy-related Settings actions now open the existing Privacy controls rather than a generic “not available” notice.
