@@ -4845,102 +4845,32 @@ export default function App() {
   };
 
   const renderAppHeader = () => (
-    <View
-      style={[
-        styles.header,
-        { justifyContent: "flex-start", gap: 10, position: "relative" },
-      ]}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <TouchableOpacity
-          onPress={() => setHeaderCreateMenuOpen((value) => !value)}
-          accessibilityLabel="Create menu"
-          style={{ padding: 3 }}
-        >
-          <Ionicons name="add-circle-outline" size={28} color="#0095F6" />
+    <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative" }]}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flex: 1 }}>
+        <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 32, height: 32 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
+        <Text style={styles.brand} numberOfLines={1}>Bhumi Social AI</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 17 }}>
+        <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel="Create menu" style={{ padding: 3 }}>
+          <Ionicons name="add-circle-outline" size={27} color="#FFFFFF" />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={openNotifications}
-          accessibilityLabel="Notifications"
-          style={{ position: "relative", padding: 3 }}
-        >
-          <Ionicons name="heart-outline" size={27} color="#0095F6" />
+        <TouchableOpacity onPress={openNotifications} accessibilityLabel="Notifications" style={{ position: "relative", padding: 3 }}>
+          <Ionicons name="heart-outline" size={26} color="#FFFFFF" />
           {unreadNotificationCount > 0 ? (
-            <View
-              style={{
-                position: "absolute",
-                right: -5,
-                top: -5,
-                minWidth: 17,
-                height: 17,
-                borderRadius: 9,
-                backgroundColor: "#E1306C",
-                alignItems: "center",
-                justifyContent: "center",
-                paddingHorizontal: 3,
-              }}
-            >
-              <Text
-                style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}
-              >
-                {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
-              </Text>
+            <View style={{ position: "absolute", right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#E1306C", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}>
+              <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text>
             </View>
           ) : null}
         </TouchableOpacity>
+        <TouchableOpacity onPress={openMessages} accessibilityLabel="Messages" style={{ padding: 3 }}>
+          <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
-      <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
-        <Image
-          source={require("./assets/bhumi-social-ai-logo.jpg")}
-          style={{ width: 34, height: 34 }}
-          resizeMode="contain"
-          accessibilityLabel="Bhumi Social AI logo"
-        />
-        <Text style={styles.brand} numberOfLines={1}>
-          Bhumi Social AI
-        </Text>
-      </View>
-      <TouchableOpacity
-        onPress={openMessages}
-        accessibilityLabel="Messages"
-        style={{ padding: 3 }}
-      >
-        <Ionicons name="paper-plane-outline" size={26} color="#0095F6" />
-      </TouchableOpacity>
       {headerCreateMenuOpen ? (
-        <Modal
-          visible={headerCreateMenuOpen}
-          transparent
-          animationType="fade"
-          statusBarTranslucent={false}
-          onRequestClose={() => setHeaderCreateMenuOpen(false)}
-        >
+        <Modal visible={headerCreateMenuOpen} transparent animationType="fade" statusBarTranslucent={false} onRequestClose={() => setHeaderCreateMenuOpen(false)}>
           <View style={{ flex: 1 }}>
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={() => setHeaderCreateMenuOpen(false)}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-            />
-            <View
-              style={{
-                position: "absolute",
-                top: 72,
-                left: 8,
-                zIndex: 1000,
-                elevation: 20,
-                minWidth: 215,
-                backgroundColor: "#202027",
-                borderRadius: 14,
-                paddingVertical: 6,
-                paddingHorizontal: 8,
-              }}
-            >
+            <TouchableOpacity activeOpacity={1} onPress={() => setHeaderCreateMenuOpen(false)} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+            <View style={{ position: "absolute", top: 72, right: 12, zIndex: 1000, elevation: 20, minWidth: 215, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 14, paddingVertical: 6, paddingHorizontal: 8 }}>
               {[
                 ["live-camera", "Go Live", "radio-outline"],
                 ["reel-camera", "Record Reel", "videocam-outline"],
@@ -4951,27 +4881,9 @@ export default function App() {
                 ["story-gallery", "Story from Gallery", "images"],
                 ["post-gallery", "Post from Gallery", "image-outline"],
               ].map(([action, label, iconName]) => (
-                <TouchableOpacity
-                  key={action}
-                  onPress={() => runHeaderCreateAction(action)}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingVertical: 11,
-                    paddingHorizontal: 9,
-                  }}
-                >
+                <TouchableOpacity key={action} onPress={() => runHeaderCreateAction(action)} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 11, paddingHorizontal: 9 }}>
                   <Ionicons name={iconName} size={19} color="#FFFFFF" />
-                  <Text
-                    style={{
-                      color: "#FFFFFF",
-                      fontSize: 14,
-                      marginLeft: 12,
-                      fontWeight: "600",
-                    }}
-                  >
-                    {label}
-                  </Text>
+                  <Text style={{ color: "#FFFFFF", fontSize: 14, marginLeft: 12, fontWeight: "600" }}>{label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -4989,36 +4901,14 @@ export default function App() {
     if (name === "Create") {
       setHeaderCreateMenuOpen(true);
       return;
-      Alert.alert("Create", "Choose what you want to create", [
-        { text: "Go Live", onPress: openLiveCamera },
-        {
-          text: "Photo Post",
-          onPress: () => openCaptureCamera("posts", "picture"),
-        },
-        {
-          text: "Video Post",
-          onPress: () => openCaptureCamera("posts", "video"),
-        },
-        {
-          text: "Story from Camera",
-          onPress: () => openCaptureCamera("stories", "picture"),
-        },
-        { text: "Story from Gallery", onPress: createStory },
-        { text: "Record Reel", onPress: openReelCamera },
-        { text: "Reel from Gallery", onPress: createReel },
-        { text: "Reel from Photos", onPress: createReelFromPhotos },
-        { text: "Post from Gallery", onPress: pickImage },
-        { text: "Cancel", style: "cancel" },
+    }
+    setActiveTab(name);
+    if (name === "Home") refreshContent();
+    if (name === "Reels" && reels.length === 0) {
+      Alert.alert("Reels", "No reels yet.", [
+        { text: "रील अपलोड करें", onPress: createReel },
+        { text: "ठीक है", style: "cancel" },
       ]);
-    } else {
-      setActiveTab(name);
-      if (name === "Home") refreshContent();
-      if (name === "Reels" && reels.length === 0) {
-        Alert.alert("Reels", "No reels yet.", [
-          { text: "रील अपलोड करें", onPress: createReel },
-          { text: "ठीक है", style: "cancel" },
-        ]);
-      }
     }
   };
 
