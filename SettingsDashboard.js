@@ -293,7 +293,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     const value = preferences[key] ?? defaultValue;
     const isAction = ACTION_KEYS.has(key);
     return (
-      <View key={key} style={{ backgroundColor:PANEL, borderWidth:1, borderColor:BORDER, borderRadius:15, padding:14, marginBottom:10 }}>
+      <View key={key} style={{ backgroundColor:BG, borderBottomWidth:1, borderBottomColor:BORDER, paddingHorizontal:0, paddingVertical:15, marginBottom:0 }}>
         <View style={{ flexDirection:"row", alignItems:"center" }}>
           <View style={{ flex:1, paddingRight:12 }}>
             <Text style={{ color:TEXT, fontSize:14, fontWeight:"800" }}>{title}</Text>
@@ -407,8 +407,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical:18 }}/> : null}
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 48 : 12 }}>
               {SECTIONS.map((section) => (
-                <TouchableOpacity key={section.key} onPress={() => setActive(section.key)} activeOpacity={0.82} style={{ flexDirection:"row",alignItems:"center",backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:15,padding:13,marginBottom:9 }}>
-                  <View style={{ width:43,height:43,borderRadius:13,backgroundColor:"#262626",alignItems:"center",justifyContent:"center",marginRight:12 }}>
+                <TouchableOpacity key={section.key} onPress={() => setActive(section.key)} activeOpacity={0.82} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderBottomWidth:1,borderBottomColor:BORDER,borderRadius:0,paddingHorizontal:2,paddingVertical:12,marginBottom:0 }}>
+                  <View style={{ width:42,height:42,borderRadius:21,backgroundColor:"#1C1C1E",alignItems:"center",justifyContent:"center",marginRight:12 }}>
                     <Ionicons name={section.icon} size={22} color={GOLD}/>
                   </View>
                   <View style={{ flex:1 }}>
