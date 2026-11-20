@@ -28,7 +28,7 @@ jobs:
           node-version: "22"
           cache: npm
       - name: Install existing app dependencies
-        run: npm ci
+        run: npm install --package-lock=false
       - name: Test LiveKit package compatibility without changing app manifests
         run: |
           npm install --no-save --package-lock=false \
