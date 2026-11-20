@@ -191,3 +191,7 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 
 ### Call connecting-state feedback
 - Voice and video call screens now show a connecting indicator until LiveKit confirms the room is connected; the video stage only displays the LIVE status after that event.
+
+
+### Location settings action correction
+- Location Sharing History now shows its in-app availability note instead of unexpectedly opening Android system permissions; only the actual App Permissions Manager opens system settings.
