@@ -7635,7 +7635,7 @@ export default function App() {
                         width: 48,
                         height: 48,
                         borderRadius: 24,
-                        backgroundColor: "#DDE7F5",
+                        backgroundColor: "#262626",
                         alignItems: "center",
                         justifyContent: "center",
                       }}
@@ -7844,7 +7844,7 @@ export default function App() {
                           width: 108,
                           height: 108,
                           borderRadius: 54,
-                          backgroundColor: "#E8EEFA",
+                          backgroundColor: "#262626",
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -7952,9 +7952,9 @@ export default function App() {
                   style={{
                     marginBottom: 18,
                     padding: 12,
-                    borderWidth: 1,
+                    borderBottomWidth: 1,
                     borderColor: "#262626",
-                    borderRadius: 14,
+                    borderRadius: 0,
                   }}
                 >
                   <Text
@@ -8031,7 +8031,7 @@ export default function App() {
               )}
 
               {profile.accountType === "business" && profile.businessProfile && (
-                <View style={{ backgroundColor: "#100B19", borderWidth: 1, borderColor: "#80602E", borderRadius: 18, padding: 15, marginBottom: 18 }}>
+                <View style={{ backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 14, padding: 15, marginBottom: 18 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 9 }}>
                     <Ionicons name="business" size={20} color="#0095F6" />
                     <Text style={{ color: "#0095F6", fontWeight: "900", fontSize: 16, marginLeft: 8 }}>
@@ -8087,7 +8087,7 @@ export default function App() {
                     <View style={{ borderTopWidth: 1, borderTopColor: "#262626", marginTop: 11, paddingTop: 10 }}>
                       <Text style={{ color: "#0095F6", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
                       {profile.businessCatalog.slice(0, 5).map((item) => (
-                        <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#352443" }}>
+                        <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#262626" }}>
                           <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{item.title} {item.price ? "· " + item.price : ""}</Text>
                           {!!item.description && <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}>{item.description}</Text>}
                         </View>
