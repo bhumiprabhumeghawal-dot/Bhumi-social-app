@@ -179,3 +179,7 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 
 ### Session verification timeout safety
 - Restored-session verification now uses the same timeout-aware API wrapper as the rest of the app, so a sleeping Render service cannot leave the verification request pending indefinitely; the login UI remains available while the check finishes.
+
+
+### Compact dialog refinement
+- Reduced the shared custom alert card and icon sizing for a tighter mobile layout; default dialog actions now read “Close”.
