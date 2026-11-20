@@ -238,24 +238,26 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
 
   return (
     <>
-      {showButtons ? <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+      {showButtons ? <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Voice call"
           disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("audio")}
-          style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#3B2B4B", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
+          style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#80683D", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
-          <Ionicons name="call-outline" size={21} color="#D8B86A" />
+          <Ionicons name="call-outline" size={20} color="#E2C477" />
+          <Text style={{ color: "#E9D7A7", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>VOICE</Text>
         </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Video call"
           disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("video")}
-          style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#3B2B4B", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
+          style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#80683D", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
-          <Ionicons name="videocam-outline" size={22} color="#D8B86A" />
+          <Ionicons name="videocam-outline" size={21} color="#E2C477" />
+          <Text style={{ color: "#E9D7A7", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>VIDEO</Text>
         </TouchableOpacity>
       </View> : null}
 
@@ -305,26 +307,28 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               </View>
               {busy ? <ActivityIndicator color="#D8B86A" size="small" style={{ marginTop: 22 }} /> : null}
               {incoming ? (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 34, marginTop: 48 }}>
-                  <View style={{ alignItems: "center", gap: 9 }}>
-                    <TouchableOpacity onPress={declineCall} style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: "#B83D50", alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: "#34202C" }}>
-                      <Ionicons name="call" size={27} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
-                    </TouchableOpacity>
-                    <Text style={{ color: "#C9BFCF", fontSize: 11 }}>अस्वीकार</Text>
-                  </View>
-                  <View style={{ alignItems: "center", gap: 9 }}>
-                    <TouchableOpacity onPress={answerCall} disabled={busy} style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: "#159A65", alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: "#203A32", opacity: busy ? 0.6 : 1 }}>
-                      <Ionicons name="call" size={27} color="#FFFFFF" />
-                    </TouchableOpacity>
-                    <Text style={{ color: "#C9BFCF", fontSize: 11 }}>जवाब दें</Text>
-                  </View>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18, marginTop: 48, width: "100%" }}>
+                  <TouchableOpacity onPress={declineCall} activeOpacity={0.85} style={{ width: 132, minHeight: 92, borderRadius: 22, backgroundColor: "#28131D", borderWidth: 1, borderColor: "#9A4054", alignItems: "center", justifyContent: "center", paddingVertical: 13 }}>
+                    <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#B83D50", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="call" size={22} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
+                    </View>
+                    <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 8 }}>कॉल कैंसल</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={answerCall} disabled={busy} activeOpacity={0.85} style={{ width: 132, minHeight: 92, borderRadius: 22, backgroundColor: "#10271F", borderWidth: 1, borderColor: "#3D9A70", alignItems: "center", justifyContent: "center", paddingVertical: 13, opacity: busy ? 0.6 : 1 }}>
+                    <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#159A65", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="call" size={22} color="#FFFFFF" />
+                    </View>
+                    <Text style={{ color: "#D9F5E7", fontSize: 12, fontWeight: "800", marginTop: 8 }}>कॉल रिसीव</Text>
+                  </TouchableOpacity>
                 </View>
               ) : (
-                <TouchableOpacity onPress={endCall} style={{ marginTop: 50, width: 70, height: 70, borderRadius: 35, backgroundColor: "#B83D50", borderWidth: 4, borderColor: "#34202C", alignItems: "center", justifyContent: "center" }}>
-                  <Ionicons name="call" size={28} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
+                <TouchableOpacity onPress={endCall} activeOpacity={0.85} style={{ marginTop: 48, width: 156, minHeight: 88, borderRadius: 22, backgroundColor: "#28131D", borderWidth: 1, borderColor: "#9A4054", alignItems: "center", justifyContent: "center", paddingVertical: 12 }}>
+                  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#B83D50", alignItems: "center", justifyContent: "center" }}>
+                    <Ionicons name="call" size={22} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
+                  </View>
+                  <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 7 }}>कॉल कैंसल करें</Text>
                 </TouchableOpacity>
               )}
-              {!incoming ? <Text style={{ color: "#8E8299", fontSize: 11, marginTop: 13 }}>कॉल समाप्त करें</Text> : null}
             </View>
           )}
 
