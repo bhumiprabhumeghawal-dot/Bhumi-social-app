@@ -60,13 +60,15 @@ jobs:
           CI: "1"
 
       - name: Build release APK
+        timeout-minutes: 40
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleRelease
+          ./gradlew --no-daemon --stacktrace --console=plain --max-workers=2 assembleRelease
 
       - name: Prepare stable APK filename
         run: cp android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/SocialApp.apk
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
