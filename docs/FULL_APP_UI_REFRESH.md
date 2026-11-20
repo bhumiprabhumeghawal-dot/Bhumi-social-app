@@ -161,3 +161,8 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 
 ### LiveKit track-reference safety
 - The call renderer now filters React Native LiveKit placeholder entries with the SDK's isTrackReference helper before passing tracks to VideoTrack, while retaining the local publication fallback for self-preview.
+
+
+### Call failure recovery and backend wake-up tolerance
+- LiveKit connection errors now return the call view to its reconnect state instead of leaving a failed room mounted.
+- Non-upload API requests allow up to 75 seconds for Render's documented free-instance wake-up window; cached sections continue rendering while the request is pending.
