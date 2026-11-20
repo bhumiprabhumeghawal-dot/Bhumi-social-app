@@ -130,10 +130,10 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: "#000000", paddingTop: 18, paddingBottom: Platform.OS === "android" ? 28 : 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 18, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: "#262626" }}>
+        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 18, paddingTop: 4, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: "#262626", backgroundColor: "#000000" }}>
           <View style={{ flex: 1 }}>
             <Text style={{ color: GOLD, fontSize: 10, fontWeight: "900", letterSpacing: 2 }}>BHUMI CHAT STUDIO</Text>
-            <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginTop: 4 }}>Personalize Chat</Text>
+            <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", letterSpacing: -0.4, marginTop: 4 }}>Personalize Chat</Text>
             <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 3 }}>@{username}</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
@@ -150,7 +150,7 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
             {THEMES.map((item) => (
               <TouchableOpacity key={item.key} onPress={() => setTheme(item.key)} activeOpacity={0.85}
-                style={{ width: "48%", minHeight: 86, borderRadius: 15, padding: 12, backgroundColor: item.bg, borderWidth: theme === item.key ? 2 : 1, borderColor: theme === item.key ? GOLD : "#262626" }}>
+                style={{ width: "48%", minHeight: 90, borderRadius: 13, padding: 12, backgroundColor: item.bg, borderWidth: theme === item.key ? 2 : 1, borderColor: theme === item.key ? GOLD : "#303030" }}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                   <Ionicons name={item.icon} size={20} color={item.accent} />
                   {theme === item.key ? <Ionicons name="checkmark-circle" size={18} color={GOLD} /> : null}
@@ -164,7 +164,7 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
             ))}
           </View>
 
-          <View style={{ backgroundColor: selected.bg, borderWidth: 1, borderColor: selected.accent, borderRadius: 17, padding: 13, marginBottom: 20 }}>
+          <View style={{ backgroundColor: selected.bg, borderWidth: 1, borderColor: selected.accent, borderRadius: 15, padding: 14, marginBottom: 20 }}>
             <Text style={{ color: selected.accent, fontSize: 10, fontWeight: "900", marginBottom: 9 }}>LIVE THEME PREVIEW</Text>
             <View style={{ alignSelf: "flex-start", backgroundColor: selected.other, borderRadius: 13, padding: 10, marginBottom: 7 }}>
               <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Hey! कैसी हो? ✨</Text>
