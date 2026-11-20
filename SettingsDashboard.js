@@ -130,7 +130,7 @@ const SECTIONS = [
   ]},
   { key:"appearance", title:"Appearance Settings", subtitle:"Make the app feel like yours", icon:"color-palette-outline", fields:[
     ["appearance.theme","App Theme","Choose your preferred appearance",true],
-    ["appearance.royalTheme","Royal Purple + Gold","Use the Bhumi premium theme",true],
+    ["appearance.royalTheme","Bhumi Blue Theme","Use the Bhumi blue premium theme",true],
     ["appearance.language","App Language","Choose your display language",true],
     ["appearance.largeText","Larger Text","Increase text size across the app",false],
     ["appearance.animations","App Animations","Enable interface animations",true],
