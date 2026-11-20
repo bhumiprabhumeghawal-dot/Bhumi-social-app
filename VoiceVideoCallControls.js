@@ -389,8 +389,15 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               }}
               onError={(error) => {
                 if (mountedRef.current) {
+                  setConnection(null);
+                  connectionRef.current = null;
+                  setRoomConnected(false);
                   setConnectionFailed(true);
-                  setCallMessage(error?.message || "कॉल कनेक्शन में समस्या आई।");
+                  setCallMessage(error?.message || "कॉल कनेक्शन में समस्या आई। फिर से कोशिश करें।");
+                  if (audioSessionActiveRef.current) {
+                    audioSessionActiveRef.current = false;
+                    AudioSession.stopAudioSession().catch(() => {});
+                  }
                 }
               }}
               onDisconnected={async () => {
