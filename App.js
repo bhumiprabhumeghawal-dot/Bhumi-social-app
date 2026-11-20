@@ -10634,6 +10634,12 @@ export default function App() {
                       </Text>
                     </View>
                   </View>
+                  <View accessibilityLabel="Voice call" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#3B2B4B", alignItems: "center", justifyContent: "center", marginRight: 5 }}>
+                    <Ionicons name="call-outline" size={21} color="#D8B86A" />
+                  </View>
+                  <View accessibilityLabel="Video call" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#3B2B4B", alignItems: "center", justifyContent: "center", marginRight: 5 }}>
+                    <Ionicons name="videocam-outline" size={22} color="#D8B86A" />
+                  </View>
                   <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel="Chat personalization" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "transparent", borderWidth: 0, borderColor: "transparent", alignItems: "center", justifyContent: "center" }}>
                     <Ionicons name="color-palette-outline" size={21} color="#FFFFFF" />
                   </TouchableOpacity>
