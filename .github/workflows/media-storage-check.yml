@@ -1,0 +1,29 @@
+name: Media Storage Compatibility Check
+
+on:
+  pull_request:
+    paths:
+      - "server/**"
+      - "tests/test_media_storage.py"
+      - "requirements.txt"
+      - ".github/workflows/media-storage-check.yml"
+  push:
+    branches: [master]
+    paths:
+      - "server/**"
+      - "tests/test_media_storage.py"
+      - "requirements.txt"
+      - ".github/workflows/media-storage-check.yml"
+
+jobs:
+  python-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile backend modules
+        run: python -m compileall -q server
+      - name: Run media storage tests
+        run: python -m unittest discover -s tests -p "test_media_storage.py"
