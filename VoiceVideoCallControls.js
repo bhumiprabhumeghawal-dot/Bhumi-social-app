@@ -50,8 +50,26 @@ function LocalCameraBootstrap({ enabled }) {
 
 function CallVideoStage({ callType, remoteName }) {
   const tracks = useTracks([Track.Source.Camera]);
-  const remoteTracks = tracks.filter((item) => item.participant && !item.participant.isLocal);
-  const localTracks = tracks.filter((item) => item.participant && item.participant.isLocal);
+  const { localParticipant } = useLocalParticipant();
+  const remoteTracks = tracks.filter(
+    (item) => item.participant && !item.participant.isLocal &&
+      item.participant.sid !== localParticipant?.sid
+  );
+  const localTracks = tracks.filter(
+    (item) => item.participant &&
+      (item.participant.isLocal || item.participant.sid === localParticipant?.sid)
+  );
+  // Prefer the local participant's actual camera publication. Some RN LiveKit
+  // versions expose local publications through the participant before the
+  // useTracks list has refreshed.
+  const localCameraPublication = localParticipant?.getTrackPublication?.(Track.Source.Camera);
+  const localCameraTrackRef = localCameraPublication?.track
+    ? {
+        participant: localParticipant,
+        source: Track.Source.Camera,
+        publication: localCameraPublication,
+      }
+    : localTracks[0];
 
   if (callType !== "video") {
     return (
@@ -92,8 +110,12 @@ function CallVideoStage({ callType, remoteName }) {
         </View>
       </View>
       <View style={{ position: "absolute", right: 14, top: 58, width: 112, height: 158, overflow: "hidden", borderRadius: 18, borderWidth: 1.5, borderColor: "#E5C77D", backgroundColor: "#21182B", elevation: 8 }}>
-        {localTracks.length ? (
-          <VideoTrack trackRef={localTracks[0]} style={{ flex: 1 }} />
+        {localCameraTrackRef ? (
+          <VideoTrack
+            trackRef={localCameraTrackRef}
+            style={{ flex: 1, width: "100%", height: "100%" }}
+            mirror
+          />
         ) : (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
             <Ionicons name="person" size={30} color="#E5C77D" />
