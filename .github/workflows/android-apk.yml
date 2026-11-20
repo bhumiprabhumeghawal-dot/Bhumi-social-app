@@ -54,6 +54,29 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Add reliable Maven Central mirror for Android build
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const path = require("path");
+          const root = path.join(process.cwd(), "node_modules/@react-native/gradle-plugin");
+          if (!fs.existsSync(path.join(root, "settings.gradle.kts"))) {
+            throw new Error("React Native Gradle plugin settings file was not found");
+          }
+          const mirror = 'maven { url = uri("https://maven-central.storage-download.googleapis.com/maven2/") }';
+          const settingsPath = path.join(root, "settings.gradle.kts");
+          let settings = fs.readFileSync(settingsPath, "utf8");
+          settings = settings.replace(/repositories\\s*\\{/, match => match + "\\n    " + mirror);
+          fs.writeFileSync(settingsPath, settings);
+          for (const dir of ["react-native-gradle-plugin", "settings-plugin", "shared", "shared-testutil"]) {
+            const file = path.join(root, dir, "build.gradle.kts");
+            let source = fs.readFileSync(file, "utf8");
+            source = source.replace(/repositories\\s*\\{/, match => match + "\\n  " + mirror);
+            fs.writeFileSync(file, source);
+          }
+          console.log("Added Google-hosted Maven Central mirror to React Native Gradle plugin repositories.");
+          NODE
+
       - name: Generate Android project
         run: npx expo prebuild --platform android --non-interactive
         env:
