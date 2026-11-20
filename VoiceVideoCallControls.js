@@ -246,15 +246,15 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Video call"
-          disabled={!username || busy || !!call}
+          disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("video")}
-          style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#3B2B4B", alignItems: "center", justifyContent: "center", opacity: !username || busy || call ? 0.55 : 1 }}
+          style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#3B2B4B", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
           <Ionicons name="videocam-outline" size={22} color="#D8B86A" />
         </TouchableOpacity>
-      </View>
+      </View> : null}
 
-      {callMessage && !showCallModal ? (
+      {showButtons && callMessage && !showCallModal ? (
         <View style={{ position: "absolute", top: 54, right: 0, zIndex: 50, backgroundColor: "#241B30", padding: 10, borderRadius: 10, maxWidth: 240 }}>
           <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{callMessage}</Text>
         </View>
