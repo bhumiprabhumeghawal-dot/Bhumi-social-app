@@ -1184,7 +1184,7 @@ function PostCard({
             left: 0,
             right: 0,
             zIndex: 10,
-            backgroundColor: "#100B19",
+            backgroundColor: "#000000",
           },
         ]}
       >
@@ -1358,7 +1358,7 @@ function PostCard({
           left: 0,
           right: 0,
           zIndex: 30,
-          backgroundColor: "#100B19",
+          backgroundColor: "#000000",
           paddingBottom: 10,
           paddingTop: 6,
         }}
@@ -2606,7 +2606,7 @@ export default function App() {
     return scoreB - scoreA;
   });
   const chatThemeColors = ({
-    royal: { bg: "#100B19", mine: "#262626", other: "#1C1C1E", accent: "#0095F6" },
+    royal: { bg: "#000000", mine: "#262626", other: "#1C1C1E", accent: "#0095F6" },
     midnight: { bg: "#080B12", mine: "#253044", other: "#151B27", accent: "#8FA8D8" },
     ocean: { bg: "#071521", mine: "#12415A", other: "#102A3A", accent: "#61C5E8" },
     rose: { bg: "#1B0B16", mine: "#63304A", other: "#321A29", accent: "#F0A0C0" },
@@ -2662,7 +2662,7 @@ export default function App() {
     candy: { bg: "#241029", mine: "#7A3D83", other: "#4B2B55", accent: "#FFA8EA" },
     sports: { bg: "#101820", mine: "#34566D", other: "#223D50", accent: "#A5E1FF" },
     minimal: { bg: "#12151A", mine: "#3A424D", other: "#252C35", accent: "#D1D8E0" },
-  })[chatPreferences.theme] || { bg: "#100B19", mine: "#262626", other: "#1C1C1E", accent: "#0095F6" };
+  })[chatPreferences.theme] || { bg: "#000000", mine: "#262626", other: "#1C1C1E", accent: "#0095F6" };
   const [directMessages, setDirectMessages] = React.useState([]);
   const [newChatUsername, setNewChatUsername] = React.useState("");
   const [chatDraft, setChatDraft] = React.useState("");
@@ -6091,7 +6091,7 @@ export default function App() {
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: "#100B19",
+                    backgroundColor: "#000000",
                   }}
                 />
               </TouchableOpacity>
@@ -7034,7 +7034,7 @@ export default function App() {
                       paddingBottom: 22,
                       borderTopWidth: 1,
                       borderTopColor: "#262626",
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                       display: mediaDraft?.kind === "stories" ? "none" : "flex",
                     }}
                   >
@@ -7725,7 +7725,7 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#34415A",
+                          color: "#FFFFFF",
                           fontSize: 20,
                           fontWeight: "700",
                         }}
@@ -8120,7 +8120,7 @@ export default function App() {
                     <Text style={{ color: "#0095F6", fontWeight: "900", fontSize: 16, marginLeft: 8 }}>
                       {profile.businessProfile.businessName || "Business"}
                     </Text>
-                    <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#80602E", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
+                    <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#363636", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
                       <Text style={{ color: "#0095F6", fontSize: 9, fontWeight: "800" }}>BUSINESS</Text>
                     </View>
                   </View>
@@ -8322,7 +8322,7 @@ export default function App() {
                   borderWidth: 1,
                   borderColor: "#262626",
                   borderRadius: 17,
-                  backgroundColor: "#100B19",
+                  backgroundColor: "#000000",
                 }}
               >
                 <View
@@ -8456,7 +8456,7 @@ export default function App() {
               {privacySettings.accountType === "business" && (
               <TouchableOpacity
                 onPress={() => { setBusinessDirectoryResults([]); setBusinessDirectoryOpen(true); }}
-                style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#80602E", backgroundColor: "#121212", flexDirection: "row", alignItems: "center" }}
+                style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#363636", backgroundColor: "#121212", flexDirection: "row", alignItems: "center" }}
               >
                 <Ionicons name="storefront" size={23} color="#0095F6" />
                 <View style={{ marginLeft: 11, flex: 1 }}>
@@ -8475,7 +8475,7 @@ export default function App() {
                     paddingHorizontal: 15,
                     paddingVertical: 15,
                     marginBottom: 12,
-                    backgroundColor: "#100B19",
+                    backgroundColor: "#000000",
                   }}
                 >
                   <View
@@ -8521,7 +8521,7 @@ export default function App() {
                     borderRadius: 14,
                     padding: 14,
                     marginBottom: 11,
-                    backgroundColor: "#100B19",
+                    backgroundColor: "#000000",
                   }}
                 >
                   <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
@@ -8543,7 +8543,7 @@ export default function App() {
                       borderRadius: 14,
                       padding: 14,
                       marginBottom: 12,
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                     }}
                   >
                     {[
@@ -8612,7 +8612,7 @@ export default function App() {
                       borderColor: "#262626",
                       borderRadius: 15,
                       marginBottom: 10,
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                       elevation: 1,
                     }}
                   >
@@ -8820,7 +8820,7 @@ export default function App() {
                     alignItems: "center",
                     paddingVertical: 28,
                     paddingHorizontal: 18,
-                    backgroundColor: "#100B19",
+                    backgroundColor: "#000000",
                     borderRadius: 16,
                     borderWidth: 1,
                     borderColor: "#262626",
@@ -9011,7 +9011,7 @@ export default function App() {
                             : "0%",
                       height: "100%",
                       borderRadius: 3,
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                     }}
                   />
                 </View>
@@ -9435,12 +9435,12 @@ export default function App() {
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                       borderRadius: 14,
                       padding: 12,
                       marginBottom: 9,
                       borderWidth: 1,
-                      borderColor: "#352443",
+                      borderColor: "#262626",
                     }}
                   >
                     {item.avatarUrl ? (
@@ -9546,7 +9546,7 @@ export default function App() {
         >
           <View
             style={{
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingHorizontal: 20,
@@ -9599,12 +9599,12 @@ export default function App() {
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                       borderRadius: 14,
                       padding: 12,
                       marginBottom: 9,
                       borderWidth: 1,
-                      borderColor: "#352443",
+                      borderColor: "#262626",
                     }}
                   >
                     {item.avatarUrl ? (
@@ -9713,7 +9713,7 @@ export default function App() {
         >
           <View
             style={{
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             borderRadius: 24,
@@ -9752,7 +9752,7 @@ export default function App() {
                   borderRadius: 14,
                   borderWidth: 1.5,
                   borderColor: item.active ? "#0095F6" : "#262626",
-                  backgroundColor: item.active ? "rgba(216,184,106,0.13)" : "#100B19",
+                  backgroundColor: item.active ? "rgba(216,184,106,0.13)" : "#000000",
                 }}
               >
                 <View style={{ flex: 1, paddingRight: 12 }}>
@@ -9850,7 +9850,7 @@ export default function App() {
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1, backgroundColor: "rgba(5,2,12,0.88)", justifyContent: "flex-end" }}
         >
-          <View style={{ maxHeight: "92%", backgroundColor: "#100B19", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#80602E", padding: 18 }}>
+          <View style={{ maxHeight: "92%", backgroundColor: "#000000", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#363636", padding: 18 }}>
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
                 <Ionicons name="business" size={24} color="#0095F6" />
@@ -9893,7 +9893,7 @@ export default function App() {
                     value={String(businessProfile[key] ?? "")}
                     onChangeText={(value) => setBusinessProfile((current) => ({ ...current, [key]: key === "serviceRadiusKm" ? value.replace(/[^0-9]/g, "") : value }))}
                     placeholder={placeholder}
-                    placeholderTextColor="#776987"
+                    placeholderTextColor="#8E8E93"
                     multiline={key === "description" || key === "address" || key === "serviceAreas"}
                     keyboardType={key === "phone" || key === "whatsapp" || key === "pincode" || key === "serviceRadiusKm" ? "phone-pad" : "default"}
                     style={{ color: "#FFFFFF", borderWidth: 1, borderColor: "#262626", borderRadius: 12, backgroundColor: "#121212", paddingHorizontal: 12, paddingVertical: 11, minHeight: key === "description" || key === "serviceAreas" ? 76 : 44, textAlignVertical: "top" }}
@@ -9905,7 +9905,7 @@ export default function App() {
                 <Text style={{ color: "#0095F6", fontSize: 16, fontWeight: "900", marginBottom: 9 }}>Product & Service Catalogue</Text>
                 <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
                   {["product", "service"].map((type) => (
-                    <TouchableOpacity key={type} onPress={() => setCatalogDraft((old) => ({ ...old, itemType: type }))} style={{ paddingHorizontal: 13, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: catalogDraft.itemType === type ? "#0095F6" : "#262626", backgroundColor: catalogDraft.itemType === type ? "#382A1A" : "#121212" }}>
+                    <TouchableOpacity key={type} onPress={() => setCatalogDraft((old) => ({ ...old, itemType: type }))} style={{ paddingHorizontal: 13, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: catalogDraft.itemType === type ? "#0095F6" : "#262626", backgroundColor: catalogDraft.itemType === type ? "#1C1C1E" : "#121212" }}>
                       <Text style={{ color: catalogDraft.itemType === type ? "#0095F6" : "#A8A8A8", fontWeight: "800" }}>{type === "product" ? "Product" : "Service"}</Text>
                     </TouchableOpacity>
                   ))}
@@ -9918,14 +9918,14 @@ export default function App() {
                 ].map(([key, label, placeholder]) => (
                   <View key={key} style={{ marginBottom: 7 }}>
                     <Text style={{ color: "#A8A8A8", fontSize: 11, marginBottom: 3 }}>{label}</Text>
-                    <TextInput value={catalogDraft[key]} onChangeText={(value) => setCatalogDraft((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#776987" multiline={key === "description"} style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, minHeight: key === "description" ? 60 : 40 }} />
+                    <TextInput value={catalogDraft[key]} onChangeText={(value) => setCatalogDraft((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#8E8E93" multiline={key === "description"} style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, minHeight: key === "description" ? 60 : 40 }} />
                   </View>
                 ))}
                 <TouchableOpacity onPress={addBusinessCatalogItem} style={{ backgroundColor: "#0095F6", borderRadius: 10, padding: 11, alignItems: "center" }}>
                   <Text style={{ color: "#121212", fontWeight: "900" }}>Add to Catalogue</Text>
                 </TouchableOpacity>
                 {businessCatalog.map((item) => (
-                  <View key={item.id} style={{ flexDirection: "row", alignItems: "center", padding: 10, borderBottomWidth: 1, borderBottomColor: "#352443" }}>
+                  <View key={item.id} style={{ flexDirection: "row", alignItems: "center", padding: 10, borderBottomWidth: 1, borderBottomColor: "#262626" }}>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{item.title}</Text>
                       <Text style={{ color: "#A8A8A8", fontSize: 11 }}>{item.item_type} · {item.price || "Price on request"}</Text>
@@ -9936,13 +9936,13 @@ export default function App() {
               </View>
               <View style={{ borderTopWidth: 1, borderTopColor: "#262626", paddingTop: 15, marginBottom: 15 }}>
                 <Text style={{ color: "#0095F6", fontSize: 16, fontWeight: "900", marginBottom: 8 }}>Customer Quick Replies</Text>
-                <TextInput value={quickReplyDraft.shortcut} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, shortcut: value }))} placeholder="Shortcut e.g. welcome" placeholderTextColor="#776987" style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, marginBottom: 7 }} />
-                <TextInput value={quickReplyDraft.message} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, message: value }))} placeholder="Saved reply message..." placeholderTextColor="#776987" multiline style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, minHeight: 62, marginBottom: 7 }} />
-                <TouchableOpacity onPress={addBusinessQuickReply} style={{ backgroundColor: "#382A1A", borderWidth: 1, borderColor: "#80602E", borderRadius: 10, padding: 11, alignItems: "center" }}>
+                <TextInput value={quickReplyDraft.shortcut} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, shortcut: value }))} placeholder="Shortcut e.g. welcome" placeholderTextColor="#8E8E93" style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, marginBottom: 7 }} />
+                <TextInput value={quickReplyDraft.message} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, message: value }))} placeholder="Saved reply message..." placeholderTextColor="#8E8E93" multiline style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, minHeight: 62, marginBottom: 7 }} />
+                <TouchableOpacity onPress={addBusinessQuickReply} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", borderRadius: 10, padding: 11, alignItems: "center" }}>
                   <Text style={{ color: "#0095F6", fontWeight: "900" }}>Save Quick Reply</Text>
                 </TouchableOpacity>
                 {businessQuickReplies.map((reply) => (
-                  <View key={reply.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "#352443" }}>
+                  <View key={reply.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "#262626" }}>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: "#0095F6", fontWeight: "800" }}>/{reply.shortcut}</Text>
                       <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 11 }}>{reply.message}</Text>
@@ -9951,7 +9951,7 @@ export default function App() {
                   </View>
                 ))}
               </View>
-              <View style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#80602E", borderRadius: 14, padding: 12, marginTop: 2, marginBottom: 14 }}>
+              <View style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", borderRadius: 14, padding: 12, marginTop: 2, marginBottom: 14 }}>
                 <Text style={{ color: "#0095F6", fontWeight: "800" }}>Area-wise Business Discovery</Text>
                 <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}>Customers can discover your business by city, locality, category and service areas.</Text>
               </View>
@@ -9971,7 +9971,7 @@ export default function App() {
 
       <Modal visible={businessDirectoryOpen && privacySettings.accountType === "business"} transparent animationType="slide" onRequestClose={() => setBusinessDirectoryOpen(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "rgba(5,2,12,0.88)", justifyContent: "flex-end" }}>
-          <View style={{ maxHeight: "90%", backgroundColor: "#100B19", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: "#80602E", padding: 17 }}>
+          <View style={{ maxHeight: "90%", backgroundColor: "#000000", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: "#363636", padding: 17 }}>
             <ScrollView keyboardShouldPersistTaps="handled">
               <Text style={{ color: "#0095F6", fontSize: 20, fontWeight: "900", marginBottom: 5 }}>Local Business Directory</Text>
               <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 13 }}>Search by city, area or business category</Text>
@@ -9983,7 +9983,7 @@ export default function App() {
               ].map(([key, label, placeholder]) => (
                 <View key={key} style={{ marginBottom: 9 }}>
                   <Text style={{ color: "#D8CDE7", fontSize: 12, marginBottom: 4 }}>{label}</Text>
-                  <TextInput value={businessDirectoryFilters[key]} onChangeText={(value) => setBusinessDirectoryFilters((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#776987" style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 11, padding: 11 }} />
+                  <TextInput value={businessDirectoryFilters[key]} onChangeText={(value) => setBusinessDirectoryFilters((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#8E8E93" style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 11, padding: 11 }} />
                 </View>
               ))}
               <TouchableOpacity onPress={searchBusinessDirectory} disabled={businessDirectoryBusy} style={{ backgroundColor: "#0095F6", padding: 13, borderRadius: 12, alignItems: "center", marginVertical: 8 }}>
@@ -10024,7 +10024,7 @@ export default function App() {
         >
           <View
             style={{
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderRadius: 24,
               padding: 22,
               alignItems: "center",
@@ -10123,7 +10123,7 @@ export default function App() {
         onRequestClose={() => setAboutAppOpen(false)}
       >
         <View style={{ flex: 1, backgroundColor: "rgba(5, 2, 12, 0.82)", justifyContent: "flex-end", paddingBottom: Platform.OS === "android" ? 38 : 0 }}>
-          <View style={{ backgroundColor: "#100B19", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#262626", paddingHorizontal: 22, paddingTop: 26, paddingBottom: 30 }}>
+          <View style={{ backgroundColor: "#000000", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#262626", paddingHorizontal: 22, paddingTop: 26, paddingBottom: 30 }}>
             <View style={{ alignItems: "center", marginBottom: 20 }}>
               <View style={{ width: 62, height: 62, borderRadius: 20, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", marginBottom: 13 }}>
                 <Ionicons name="information-circle-outline" size={34} color="#0095F6" />
@@ -10169,7 +10169,7 @@ export default function App() {
           >
             <View
               style={{
-                backgroundColor: "#100B19",
+                backgroundColor: "#000000",
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
                 padding: 22,
@@ -10290,7 +10290,7 @@ export default function App() {
           >
             <View
               style={{
-                backgroundColor: "#100B19",
+                backgroundColor: "#000000",
                 borderRadius: 22,
                 padding: 20,
               }}
@@ -12108,7 +12108,7 @@ export default function App() {
           >
             <View
               style={{
-                backgroundColor: "#100B19",
+                backgroundColor: "#000000",
                 borderRadius: 20,
                 padding: 20,
               }}
@@ -12212,7 +12212,7 @@ export default function App() {
             activeOpacity={1}
             onPress={() => {}}
             style={{
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderRadius: 20,
               padding: 22,
             }}
@@ -12254,7 +12254,7 @@ export default function App() {
           setViewedProfileOpen(false);
         }}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#100B19" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
           <View style={{
             height: 52, flexDirection: "row", alignItems: "center",
             paddingHorizontal: 14, borderBottomWidth: 0.5, borderBottomColor: "#E8E8E8"
@@ -12426,7 +12426,7 @@ export default function App() {
           {viewedProfileMenuOpen && viewedProfile && (
             <View style={{
               position: "absolute", top: 52, right: 12, width: 235,
-              backgroundColor: "#100B19", borderRadius: 14, paddingVertical: 5,
+              backgroundColor: "#000000", borderRadius: 14, paddingVertical: 5,
               elevation: 8, shadowColor: "#000000", shadowOpacity: 0.14,
               shadowRadius: 12, shadowOffset: { width: 0, height: 5 }
             }}>
@@ -12461,10 +12461,10 @@ export default function App() {
         presentationStyle="fullScreen"
         onRequestClose={() => setProfileConnectionsOpen(false)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#100B19" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
           <View style={{
             minHeight: 54, flexDirection: "row", alignItems: "center",
-            paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#352443"
+            paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#262626"
           }}>
             <TouchableOpacity onPress={() => setProfileConnectionsOpen(false)} style={{ padding: 8, marginRight: 8 }}>
               <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
@@ -12546,7 +12546,7 @@ export default function App() {
           <View
             style={{
               height: "78%",
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingTop: 20,
@@ -12560,7 +12560,7 @@ export default function App() {
                 paddingHorizontal: 18,
                 paddingBottom: 14,
                 borderBottomWidth: 1,
-                borderBottomColor: "#352443",
+                borderBottomColor: "#262626",
               }}
             >
               <Text
@@ -12616,7 +12616,7 @@ export default function App() {
                         alignItems: "center",
                         paddingHorizontal: 18,
                         paddingVertical: 16,
-                        backgroundColor: item.isRead ? "#100B19" : "#1C1C1E",
+                        backgroundColor: item.isRead ? "#000000" : "#1C1C1E",
                         borderBottomWidth: 1,
                         borderBottomColor: "#262626",
                       }}
@@ -12718,7 +12718,7 @@ export default function App() {
           <View
             style={{
               height: "76%",
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingTop: 20,
@@ -12887,7 +12887,7 @@ export default function App() {
               alignItems: "center",
               justifyContent: "space-between",
               borderBottomWidth: 1,
-              borderBottomColor: "#352443",
+              borderBottomColor: "#262626",
             }}
           >
             <View
@@ -13064,7 +13064,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#352443",
+    borderBottomColor: "#262626",
     backgroundColor: "#000000",
   },
   brand: {
@@ -13095,7 +13095,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 2,
-    borderColor: "#8B5CF6",
+    borderColor: "#0095F6",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -13110,8 +13110,8 @@ const styles = StyleSheet.create({
   },
   plus: { fontSize: 30, color: "#FFFFFF" },
   avatarLetter: { fontSize: 22, fontWeight: "700", color: "#343434" },
-  storyName: { marginTop: 5, fontSize: 11, color: "#E9DDF5" },
-  feedDivider: { height: 1, backgroundColor: "#352443" },
+  storyName: { marginTop: 5, fontSize: 11, color: "#E5E5E5" },
+  feedDivider: { height: 1, backgroundColor: "#262626" },
   post: {
     marginHorizontal: 0,
     marginBottom: 10,
@@ -13135,7 +13135,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  smallAvatarText: { fontSize: 16, fontWeight: "700", color: "#34415A" },
+  smallAvatarText: { fontSize: 16, fontWeight: "700", color: "#FFFFFF" },
   postUserInfo: { flex: 1, marginLeft: 10 },
   username: { fontSize: 14, fontWeight: "700", color: "#FFFFFF" },
   location: { marginTop: 2, fontSize: 11, color: "#A8A8A8" },
@@ -13159,7 +13159,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     gap: 20,
   },
-  actionIcon: { fontSize: 28, color: "#202020" },
+  actionIcon: { fontSize: 28, color: "#FFFFFF" },
   liked: { color: "#E1306C" },
   actionSpacer: { flex: 1 },
   likes: {
@@ -13173,7 +13173,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 13,
     marginTop: 5,
     fontSize: 13,
-    color: "#E9DDF5",
+    color: "#E5E5E5",
     lineHeight: 19,
   },
   comments: {
