@@ -36,19 +36,6 @@ if (!liveKitGlobalsRegistered) {
   }
 }
 
-function LocalCameraBootstrap({ enabled }) {
-  const { localParticipant, isCameraEnabled } = useLocalParticipant();
-
-  useEffect(() => {
-    if (!enabled || isCameraEnabled) return;
-    localParticipant.setCameraEnabled(true).catch((error) => {
-      console.warn("LiveKit local camera start failed:", error?.message || error);
-    });
-  }, [enabled, isCameraEnabled, localParticipant]);
-
-  return null;
-}
-
 function CallVideoStage({ callType, remoteName }) {
   // The React Native LiveKit hook returns local and remote camera references.
   // Keep its documented one-argument form so the local self-preview is included.
@@ -399,7 +386,6 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               options={{ adaptiveStream: true, dynacast: true }}
               style={{ flex: 1, marginTop: 18 }}
             >
-              {call?.type === "video" ? <LocalCameraBootstrap enabled={cameraEnabled} /> : null}
               <CallVideoStage callType={call?.type} remoteName={incoming ? call?.caller : username} />
             </LiveKitRoom>
           ) : (
