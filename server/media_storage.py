@@ -49,6 +49,9 @@ def configured_providers() -> list[dict[str, str]]:
             "access_key": str(item["access_key"]).strip(),
             "secret_key": str(item["secret_key"]).strip(),
             "region": str(item.get("region") or "us-east-1").strip(),
+            "addressing_style": str(
+                item.get("addressing_style") or ("path" if provider_id == "blomp" else "auto")
+            ).strip().lower(),
         })
         seen.add(provider_id)
     return providers
@@ -68,7 +71,11 @@ def _client(provider_id: str):
         aws_access_key_id=provider["access_key"],
         aws_secret_access_key=provider["secret_key"],
         region_name=provider["region"],
-        config=Config(signature_version="s3v4", retries={"max_attempts": 2}),
+        config=Config(
+            signature_version="s3v4",
+            retries={"max_attempts": 2},
+            s3={"addressing_style": provider["addressing_style"]},
+        ),
     )
 
 
