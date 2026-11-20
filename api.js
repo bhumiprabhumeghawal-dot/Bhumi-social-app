@@ -111,7 +111,7 @@ export async function verifyAuthSession() {
     return { valid: false, reason: 'missing_token' };
   }
 
-  const response = await originalFetch(`${API_BASE_URL}/api/auth/me`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
     method: 'GET',
     headers: { Authorization: `Bearer ${session.token}` },
   });
