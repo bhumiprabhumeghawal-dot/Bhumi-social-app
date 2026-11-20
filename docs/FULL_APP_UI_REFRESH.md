@@ -131,3 +131,8 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 - Removed the remaining legacy gold/purple controls from the post photo/video editor and aligned active controls with Bhumi Blue.
 - Standardized remaining business-profile, account and pending-state text/borders to the neutral dark palette.
 - Privacy-related Settings actions now open the existing Privacy controls rather than a generic “not available” notice.
+
+
+### Settings interaction polish
+- Replaced native Android alert popups for Settings load/save and unavailable actions with a branded in-app notice panel that matches the dark Bhumi Blue design.
+- Settings notices clear when the Settings hub closes; existing preference persistence and action handlers remain intact.
