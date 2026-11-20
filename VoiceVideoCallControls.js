@@ -139,6 +139,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const [connection, setConnection] = useState(null);
   const [callMessage, setCallMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [connectionFailed, setConnectionFailed] = useState(false);
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -167,6 +168,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     setConnection(null);
     setCallMessage("");
     setBusy(false);
+    setConnectionFailed(false);
     callRef.current = null;
     connectionRef.current = null;
     tokenAttemptedRef.current = false;
@@ -182,6 +184,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
 
   const connectCall = async (callInfo) => {
     setBusy(true);
+    setConnectionFailed(false);
     setCallMessage("कॉल कनेक्ट हो रही है…");
     try {
       const result = await getCallConnectionToken(callInfo.id);
@@ -198,9 +201,13 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
         return;
       }
       setConnection(result);
+      setConnectionFailed(false);
       setCallMessage("कॉल रूम से जुड़ रहे हैं…");
     } catch (error) {
-      if (mountedRef.current) setCallMessage(error?.message || "कॉल कनेक्ट नहीं हो पाई।");
+      if (mountedRef.current) {
+        setConnectionFailed(true);
+        setCallMessage(error?.message || "कॉल कनेक्ट नहीं हो पाई।");
+      }
     } finally {
       if (mountedRef.current) setBusy(false);
     }
@@ -421,12 +428,24 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                   </TouchableOpacity>
                 </View>
               ) : (
-                <TouchableOpacity onPress={endCall} activeOpacity={0.85} style={{ marginTop: 48, width: 156, minHeight: 88, borderRadius: 22, backgroundColor: "#28131D", borderWidth: 1, borderColor: "#9A4054", alignItems: "center", justifyContent: "center", paddingVertical: 12 }}>
-                  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#B83D50", alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="call" size={22} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
-                  </View>
-                  <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 7 }}>कॉल कैंसल करें</Text>
-                </TouchableOpacity>
+                <>
+                  {connectionFailed ? (
+                    <TouchableOpacity
+                      onPress={() => { tokenAttemptedRef.current = true; void connectCall(call); }}
+                      disabled={busy}
+                      activeOpacity={0.85}
+                      style={{ marginTop: 30, minWidth: 170, minHeight: 54, borderRadius: 18, backgroundColor: "#102A3C", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", paddingHorizontal: 18, opacity: busy ? 0.6 : 1 }}
+                    >
+                      <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "800" }}>{busy ? "फिर से जुड़ रहे हैं…" : "फिर से कनेक्ट करें"}</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  <TouchableOpacity onPress={endCall} activeOpacity={0.85} style={{ marginTop: connectionFailed ? 18 : 48, width: 156, minHeight: 88, borderRadius: 22, backgroundColor: "#28131D", borderWidth: 1, borderColor: "#9A4054", alignItems: "center", justifyContent: "center", paddingVertical: 12 }}>
+                    <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#B83D50", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="call" size={22} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
+                    </View>
+                    <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 7 }}>कॉल कैंसल करें</Text>
+                  </TouchableOpacity>
+                </>
               )}
             </View>
           )}
