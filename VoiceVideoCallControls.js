@@ -7,6 +7,8 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useCameraPermissions } from "expo-camera";
+import { requestRecordingPermissionsAsync } from "expo-audio";
 import {
   LiveKitRoom,
   VideoTrack,
@@ -78,7 +80,9 @@ export default function VoiceVideoCallControls({ username }) {
   const [busy, setBusy] = useState(false);
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const callRef = useRef(null);
+  const tokenAttemptedRef = useRef(false);
   const connectionRef = useRef(null);
   const mountedRef = useRef(true);
 
@@ -103,6 +107,7 @@ export default function VoiceVideoCallControls({ username }) {
     setBusy(false);
     callRef.current = null;
     connectionRef.current = null;
+    tokenAttemptedRef.current = false;
     setMicEnabled(true);
     setCameraEnabled(true);
   };
@@ -127,6 +132,13 @@ export default function VoiceVideoCallControls({ username }) {
     setBusy(true);
     setCallMessage("");
     try {
+      const microphone = await requestRecordingPermissionsAsync();
+      if (!microphone?.granted) throw new Error("कॉल के लिए माइक्रोफोन की अनुमति दें।");
+      if (type === "video") {
+        const camera = cameraPermission?.granted ? cameraPermission : await requestCameraPermission();
+        if (!camera?.granted) throw new Error("वीडियो कॉल के लिए कैमरा की अनुमति दें।");
+      }
+      tokenAttemptedRef.current = false;
       const created = await createVoiceVideoCall(username, type);
       if (!mountedRef.current) return;
       callRef.current = created;
@@ -163,13 +175,14 @@ export default function VoiceVideoCallControls({ username }) {
   }, [call, username]);
 
   useEffect(() => {
-    if (!call || incoming || connection) return undefined;
+    if (!call || incoming || connection || tokenAttemptedRef.current) return undefined;
     let active = true;
     const checkStatus = async () => {
       try {
         const latest = await getVoiceVideoCallStatus(call.id);
         if (!active || !latest) return;
-        if (latest.status === "accepted") {
+        if (latest.status === "accepted" && !tokenAttemptedRef.current) {
+          tokenAttemptedRef.current = true;
           await connectCall(latest);
         } else if (["rejected", "missed", "ended"].includes(latest.status)) {
           setCallMessage(latest.status === "rejected" ? "कॉल अस्वीकार कर दी गई।" : latest.status === "missed" ? "कॉल का जवाब नहीं मिला।" : "कॉल समाप्त हो गई।");
@@ -190,6 +203,7 @@ export default function VoiceVideoCallControls({ username }) {
     try {
       const accepted = await respondToCall(call.id, "accept");
       const next = accepted || call;
+      tokenAttemptedRef.current = true;
       callRef.current = next;
       setCall(next);
       setIncoming(false);
