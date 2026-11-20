@@ -8,7 +8,7 @@ import { loadSettingsPreferences, saveSettingsPreferences } from "./api";
 
 const GOLD = "#0095F6";
 const THEMES = [
-  { key: "royal", name: "Royal Gold", icon: "diamond", bg: "#100B19", mine: "#262626", other: "#1C1C1E", accent: "#0095F6" },
+  { key: "royal", name: "Bhumi Blue", icon: "diamond", bg: "#000000", mine: "#262626", other: "#1C1C1E", accent: "#0095F6" },
   { key: "midnight", name: "Midnight Black", icon: "moon", bg: "#080B12", mine: "#253044", other: "#151B27", accent: "#8FA8D8" },
   { key: "ocean", name: "Ocean Blue", icon: "water", bg: "#071521", mine: "#12415A", other: "#102A3A", accent: "#61C5E8" },
   { key: "rose", name: "Royal Rose", icon: "heart", bg: "#1B0B16", mine: "#63304A", other: "#321A29", accent: "#F0A0C0" },
