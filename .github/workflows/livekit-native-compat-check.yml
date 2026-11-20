@@ -47,7 +47,7 @@ jobs:
             plugins.push('@livekit/react-native-expo-plugin');
           }
           config.expo.plugins = plugins;
-          fs.writeFileSync(file, JSON.stringify(config, null, 2) + '\\n');
+          fs.writeFileSync(file, JSON.stringify(config, null, 2) + '\n');
           NODE
       - name: Generate native projects and validate Expo config
         run: |
