@@ -58,3 +58,18 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 4. Verify all navigation destinations and interactive controls.
 5. Regression-check auth persistence, post/story/reel creation, feed/reel gestures, messaging, incoming/outgoing calls and local self-preview, profile/follow flows, notifications, and settings.
 6. Run the repository's configured lint/type/test checks and Android build only when requested/authorized; report exact pass/fail results.
+
+
+## Implementation log
+
+### First UI pass committed on `instagram-style-full-ui`
+- Replaced the previous purple/gold-heavy app palette with a consistent dark, neutral social-app palette and blue interaction accent across the main app, Settings Dashboard, chat personalization, and calling controls.
+- Reworked the primary navigation to Home, Reels, Create, Search, Profile; Create now opens the existing in-app create menu rather than the native chooser.
+- Reworked the Home header to keep Bhumi branding on the left and Create, Activity, and Direct Messages actions on the right.
+- Preserved existing API calls, session logic, media flows, DM data handling, and calling components.
+
+### Still required before calling this complete
+- Review and refresh every remaining modal, profile sub-screen, story/reel composer, post/comment flow, auth screen, notification view, and call-state layout.
+- Verify every settings destination and identify controls that currently show a not-connected message.
+- Run static checks and device regression tests for navigation, auth, feed/reel gestures, chat, and camera/self-preview calling.
+- No APK build has been run and no changes have been merged into `master`.
