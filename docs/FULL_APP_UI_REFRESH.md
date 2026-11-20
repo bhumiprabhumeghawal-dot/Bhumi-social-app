@@ -152,3 +152,8 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 ### Call reconnect and status handling
 - A final LiveKit disconnect now checks the server call status before closing the call UI; if the call is still accepted, the user can reconnect instead of losing the call screen.
 - The call stage now distinguishes an established room connection from the connecting state.
+
+
+### Branded alert consistency
+- Routed app-level update, crash-recovery and profile error dialogs through the existing Bhumi custom alert host instead of native Android alert popups.
+- Standardized the alert card, borders and secondary text with the neutral dark palette; destructive and error states keep their distinct warning color.
