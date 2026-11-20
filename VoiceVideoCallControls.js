@@ -233,13 +233,13 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
 
   return (
     <>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+      {showButtons ? <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Voice call"
-          disabled={!username || busy || !!call}
+          disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("audio")}
-          style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#3B2B4B", alignItems: "center", justifyContent: "center", opacity: !username || busy || call ? 0.55 : 1 }}
+          style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#19131F", borderWidth: 1, borderColor: "#3B2B4B", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
           <Ionicons name="call-outline" size={21} color="#D8B86A" />
         </TouchableOpacity>
