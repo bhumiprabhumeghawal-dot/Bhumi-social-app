@@ -134,6 +134,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const tokenAttemptedRef = useRef(false);
   const connectionRef = useRef(null);
   const audioSessionActiveRef = useRef(false);
+  const disconnectHandlingRef = useRef(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -159,6 +160,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     callRef.current = null;
     connectionRef.current = null;
     tokenAttemptedRef.current = false;
+    disconnectHandlingRef.current = false;
     setMicEnabled(true);
     setCameraEnabled(true);
     if (audioSessionActiveRef.current) {
@@ -170,6 +172,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   };
 
   const connectCall = async (callInfo) => {
+    disconnectHandlingRef.current = false;
     setBusy(true);
     setConnectionFailed(false);
     setCallMessage("कॉल कनेक्ट हो रही है…");
@@ -382,7 +385,28 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                   setCallMessage(error?.message || "कॉल कनेक्शन में समस्या आई।");
                 }
               }}
-              onDisconnected={() => { if (mountedRef.current) resetCall(); }}
+              onDisconnected={async () => {
+                const activeCall = callRef.current;
+                if (!mountedRef.current || !activeCall || disconnectHandlingRef.current) return;
+                disconnectHandlingRef.current = true;
+                let latest = null;
+                try {
+                  latest = await getVoiceVideoCallStatus(activeCall.id);
+                } catch (_) {}
+                if (!mountedRef.current) return;
+                if (latest && ["ended", "rejected", "missed"].includes(latest.status)) {
+                  resetCall();
+                  return;
+                }
+                setConnection(null);
+                connectionRef.current = null;
+                setConnectionFailed(true);
+                setCallMessage("कॉल का नेटवर्क कनेक्शन टूट गया। फिर से कनेक्ट करें।");
+                if (audioSessionActiveRef.current) {
+                  audioSessionActiveRef.current = false;
+                  AudioSession.stopAudioSession().catch(() => {});
+                }
+              }}
               options={{ adaptiveStream: true, dynacast: true }}
               style={{ flex: 1, marginTop: 18 }}
             >
