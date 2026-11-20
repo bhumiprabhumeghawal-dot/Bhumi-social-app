@@ -157,3 +157,7 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 ### Branded alert consistency
 - Routed app-level update, crash-recovery and profile error dialogs through the existing Bhumi custom alert host instead of native Android alert popups.
 - Standardized the alert card, borders and secondary text with the neutral dark palette; destructive and error states keep their distinct warning color.
+
+
+### LiveKit track-reference safety
+- The call renderer now filters React Native LiveKit placeholder entries with the SDK's isTrackReference helper before passing tracks to VideoTrack, while retaining the local publication fallback for self-preview.
