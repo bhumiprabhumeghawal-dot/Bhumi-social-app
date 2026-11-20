@@ -8942,7 +8942,7 @@ export default function App() {
             <Ionicons
               name={tab.icon}
               size={25}
-              color={activeTab === tab.name ? "#262626" : "#8E8E93"}
+              color={activeTab === tab.name ? "#0095F6" : "#8E8E93"}
             />
             <Text
               style={[
