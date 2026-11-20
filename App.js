@@ -1375,14 +1375,14 @@ function PostCard({
             <Ionicons name="chatbubble-outline" size={24} color="#D8B86A" />
           </TouchableOpacity>
           <TouchableOpacity onPress={sharePost}>
-            <Ionicons name="paper-plane-outline" size={25} color="#262626" />
+            <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
           </TouchableOpacity>
           <View style={styles.actionSpacer} />
           <TouchableOpacity onPress={() => setSaved(!saved)}>
             <Ionicons
               name={saved ? "bookmark" : "bookmark-outline"}
               size={25}
-              color="#262626"
+              color="#D8B86A"
             />
           </TouchableOpacity>
         </View>
