@@ -9704,7 +9704,7 @@ export default function App() {
                   justifyContent: "space-between",
                   paddingVertical: 12,
                   borderBottomWidth: 1,
-                  borderBottomColor: "#352443",
+                  borderBottomColor: "#262626",
                 }}
               >
                 <View style={{ flex: 1, paddingRight: 12 }}>
@@ -12989,7 +12989,7 @@ const styles = StyleSheet.create({
   },
   brand: {
     flex: 1,
-    textAlign: "center",
+    textAlign: "left",
     fontSize: 18,
     fontWeight: "800",
     color: "#FFFFFF",
