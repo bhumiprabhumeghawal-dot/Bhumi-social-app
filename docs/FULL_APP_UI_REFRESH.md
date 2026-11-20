@@ -115,3 +115,13 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 ### Settings theme label consistency
 - Updated the appearance preference label from the legacy “Royal Purple + Gold” wording to “Bhumi Blue Theme”, matching the current default chat/app visual direction.
 - Kept the existing preference key and stored setting value unchanged to avoid breaking saved preferences.
+
+
+### Startup, API and calling responsiveness pass
+- Auth session reads now reuse an in-memory session after the first secure read, avoiding repeated SecureStore reads for each authenticated request.
+- Home, Stories and Reels now paint their cached data and fresh responses independently; a slow Stories/Reels request no longer delays fresh Home posts.
+- API request timeouts allow Render free-instance cold starts to complete while cached content is already available to render.
+- Incoming-call and accepted-call status checks now use sequential retry timers instead of overlapping intervals, reducing signaling wait and duplicate requests.
+- LiveKit React Native audio session is started before joining a room and stopped on call teardown.
+- LiveKit join success/errors are surfaced, and a failed join has an in-call reconnect action.
+- Device-level call quality, microphone routing, camera preview and server cold-start timing still require a real-device test; these code changes are not a substitute for that verification.
