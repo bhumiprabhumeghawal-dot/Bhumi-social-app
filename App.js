@@ -10724,7 +10724,7 @@ export default function App() {
 
             {!selectedChatUser ? (
               <View
-                style={{ flex: 1, backgroundColor: "#000000", paddingTop: 12 }}
+                style={{ flex: 1, backgroundColor: "#000000", paddingTop: 8 }}
               >
                 {chatError ? (
                   <Text
@@ -10743,7 +10743,7 @@ export default function App() {
                     alignItems: "center",
                     paddingHorizontal: 16,
                     marginHorizontal: 16,
-                    marginBottom: 14,
+                    marginBottom: 8,
                     height: 44,
                     borderRadius: 24,
                     backgroundColor: "#262626",
@@ -10794,8 +10794,8 @@ export default function App() {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{
                     paddingHorizontal: 18,
-                    paddingTop: 4,
-                    paddingBottom: 18,
+                    paddingTop: 2,
+                    paddingBottom: 8,
                     gap: 16,
                   }}
                 >
@@ -10973,7 +10973,7 @@ export default function App() {
                   style={{
                     flexDirection: "row",
                     paddingHorizontal: 18,
-                    marginBottom: 10,
+                    marginBottom: 4,
                     borderBottomWidth: 1,
                     borderBottomColor: "#49345F",
                   }}
