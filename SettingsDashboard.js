@@ -269,8 +269,15 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       onAbout?.();
       return;
     }
-    if (key === "advanced.permissions" || key === "location.history") {
+    if (key === "advanced.permissions") {
       Linking.openSettings();
+      return;
+    }
+    if (key === "location.history") {
+      setNotice({
+        title: "Location Sharing History",
+        message: "Location sharing is currently off by default. History will appear here after secure location-sharing controls are enabled.",
+      });
       return;
     }
     const labels = {
