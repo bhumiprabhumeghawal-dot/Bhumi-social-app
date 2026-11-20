@@ -88,5 +88,6 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 
 
 ### Video-call self-preview follow-up
-- Updated the LiveKit camera-track query to include local, not-yet-subscribed publications as well as remote subscribed tracks. This addresses a likely cause of the local self-preview tile remaining empty while the remote video is visible.
-- The change is source-committed only. It has not been compiled or verified on a physical device; camera permission, device camera availability, and LiveKit runtime behavior still need an actual video-call test.
+- Kept the React Native LiveKit camera-track hook in its documented one-argument form, which returns local and remote camera references; avoided passing the web-components-only subscription options object.
+- Retained the local participant publication fallback for the self-preview tile. This is a source-level correction, not proof that the camera renders on-device.
+- The change has not been compiled or verified on a physical device; camera permission, device camera availability, and LiveKit runtime behavior still need an actual video-call test.
