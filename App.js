@@ -5455,24 +5455,17 @@ export default function App() {
     return (
       <SafeAreaView style={styles.screen}>
         <StatusBar style="dark" hidden={false} translucent={false} />
-        <View
-          style={{ flex: 1, justifyContent: "center", paddingHorizontal: 28 }}
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingVertical: 30 }}
         >
-          <Text
-            style={{
-              fontSize: 30,
-              fontWeight: "800",
-              color: "#FFFFFF",
-              marginBottom: 8,
-            }}
-          >
-            Bhumi Social AI
-          </Text>
-          <Text style={{ color: "#A8A8A8", marginBottom: 26 }}>
-            {authMode === "register"
-              ? "Create your account"
-              : "Sign in to your account"}
-          </Text>
+          <View style={{ alignItems: "center", marginBottom: 28 }}>
+            <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 76, height: 76, marginBottom: 14 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
+            <Text style={{ fontSize: 27, fontWeight: "800", color: "#FFFFFF", letterSpacing: -0.6 }}>Bhumi Social AI</Text>
+            <Text style={{ color: "#A8A8A8", marginTop: 7, fontSize: 13 }}>
+              {authMode === "register" ? "Create your account and connect" : "Welcome back. Sign in to continue."}
+            </Text>
+          </View>
           {authMode === "register" ? (
             <>
               <Text style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 9 }}>
@@ -5515,7 +5508,8 @@ export default function App() {
                 style={{
                   borderWidth: 1,
                   borderColor: "#262626",
-                  borderRadius: 8,
+                  borderRadius: 10,
+                  backgroundColor: "#121212",
                   padding: 13,
                   marginBottom: 12,
                   color: "#FFFFFF",
@@ -5630,7 +5624,8 @@ export default function App() {
             style={{
               borderWidth: 1,
               borderColor: "#262626",
-              borderRadius: 8,
+              borderRadius: 10,
+              backgroundColor: "#121212",
               padding: 13,
               marginBottom: 16,
               color: "#FFFFFF",
@@ -5666,7 +5661,7 @@ export default function App() {
             disabled={authBusy}
             style={{
               backgroundColor: "#0095F6",
-              borderRadius: 8,
+              borderRadius: 10,
               padding: 14,
               alignItems: "center",
             }}
@@ -5705,7 +5700,7 @@ export default function App() {
                 : "Already have an account? Log in"}
             </Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -9297,15 +9292,15 @@ export default function App() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(5, 2, 12, 0.78)",
+            backgroundColor: "rgba(0, 0, 0, 0.78)",
             justifyContent: "flex-end",
             paddingBottom: Platform.OS === "android" ? 38 : 0,
           }}
         >
           <View
             style={{
-              backgroundColor: "#100B19",
-              borderTopLeftRadius: 24,
+              backgroundColor: "#000000",
+              borderTopLeftRadius: 20,
               borderTopRightRadius: 24,
               paddingHorizontal: 20,
               paddingTop: 18,
@@ -12424,7 +12419,7 @@ export default function App() {
                       openUserProfile(username);
                     }}
                     activeOpacity={0.75}
-                    style={{ minHeight: 68, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#352443", gap: 12 }}
+                    style={{ minHeight: 68, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#262626", gap: 12 }}
                   >
                     <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
                       <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>{username.slice(0, 1).toUpperCase()}</Text>
@@ -12546,7 +12541,7 @@ export default function App() {
                           width: 42,
                           height: 42,
                           borderRadius: 21,
-                          backgroundColor: "#2A1C3A",
+                          backgroundColor: "#262626",
                           alignItems: "center",
                           justifyContent: "center",
                           marginRight: 12,
