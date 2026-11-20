@@ -8028,7 +8028,7 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#171C2F",
+                          color: "#F4EFFA",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
@@ -8045,7 +8045,7 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#171C2F",
+                          color: "#F4EFFA",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
@@ -8118,7 +8118,7 @@ export default function App() {
                           <Ionicons
                             name="add-circle"
                             size={18}
-                            color="#262626"
+                            color="#D8B86A"
                           />
                           <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>
                             Add Status
@@ -8263,6 +8263,8 @@ export default function App() {
                       disabled={profileBusy}
                       style={{
                         backgroundColor: "#6D28D9",
+                        borderWidth: 1,
+                        borderColor: "#D8B86A",
                         paddingVertical: 13,
                         paddingHorizontal: 24,
                         borderRadius: 13,
@@ -8299,7 +8301,7 @@ export default function App() {
                     onPress={() => setProfileEditing(true)}
                     style={{
                       borderWidth: 1,
-                      borderColor: "#2563EB",
+                      borderColor: "#D8B86A",
                       borderRadius: 14,
                       backgroundColor: "#6D28D9",
                       paddingVertical: 13,
@@ -8432,7 +8434,7 @@ export default function App() {
                           borderRadius: 10,
                         }}
                       >
-                        <Text style={{ color: "#555D70", fontWeight: "700" }}>
+                        <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>
                           Reject
                         </Text>
                       </TouchableOpacity>
@@ -8686,7 +8688,7 @@ export default function App() {
                     gap: 10,
                   }}
                 >
-                  <Ionicons name="bookmark" size={21} color="#262626" />
+                  <Ionicons name="bookmark" size={21} color="#D8B86A" />
                   <View>
                     <Text
                       style={{
@@ -8704,7 +8706,7 @@ export default function App() {
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#262626" />
+                <Ionicons name="chevron-forward" size={20} color="#D8B86A" />
               </TouchableOpacity>
               <View
                 style={{
@@ -8720,7 +8722,7 @@ export default function App() {
                 >
                   Your Posts
                 </Text>
-                <Ionicons name="grid-outline" size={21} color="#262626" />
+                <Ionicons name="grid-outline" size={21} color="#D8B86A" />
               </View>
               {groupPostItems(
                 feedPosts.filter((p) => (p.user || "you") === "you"),
