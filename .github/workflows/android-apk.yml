@@ -66,12 +66,12 @@ jobs:
           const mirror = 'maven { url = uri("https://maven-central.storage-download.googleapis.com/maven2/") }';
           const settingsPath = path.join(root, "settings.gradle.kts");
           let settings = fs.readFileSync(settingsPath, "utf8");
-          settings = settings.replace(/repositories\s*\{/, match => match + "\n    " + mirror);
+          settings = settings.replace(/repositories\s*\{/, match => match + "\n    " + mirror + "\n    ");
           fs.writeFileSync(settingsPath, settings);
           for (const dir of ["react-native-gradle-plugin", "settings-plugin", "shared", "shared-testutil"]) {
             const file = path.join(root, dir, "build.gradle.kts");
             let source = fs.readFileSync(file, "utf8");
-            source = source.replace(/repositories\s*\{/, match => match + "\n  " + mirror);
+            source = source.replace(/repositories\s*\{/, match => match + "\n  " + mirror + "\n  ");
             fs.writeFileSync(file, source);
           }
           console.log("Added Google-hosted Maven Central mirror to React Native Gradle plugin repositories.");
