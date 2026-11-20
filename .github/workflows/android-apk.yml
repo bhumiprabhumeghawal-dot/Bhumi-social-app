@@ -88,3 +88,4 @@ jobs:
           make_latest: true
 
 # Rebuild after latest Instagram-style UI polish.
+# Retry trigger: refresh the APK build after the previous runner stalled.
