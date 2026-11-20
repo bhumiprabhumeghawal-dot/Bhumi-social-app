@@ -14,3 +14,4 @@
 .install-close{position:absolute;right:12px;top:10px;border:0;background:transparent;color:#f4effa;font-size:28px}
 .small-orb{width:48px;height:48px;font-size:22px;margin:0}
 .install-btn{border:1px solid #9a753d;border-radius:11px;background:#21172a;color:#f3d58e;padding:9px 13px;font-weight:800}
+\n/* iPhone Safari: prevent automatic input zoom and respect safe-area touch targets. */\n@media (max-width: 640px){input,select,textarea,button{font-size:16px}button,.install-btn,.install-guide-btn{min-height:44px}.app-shell{min-height:100svh;min-height:100dvh}.auth-card{margin-top:24px;padding:26px 18px}.install-modal{padding:max(18px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom))}}\n
