@@ -8817,11 +8817,11 @@ export default function App() {
 
       <View style={styles.bottomNav}>
         {[
-          { name: "Home", icon: "home" },
-          { name: "Reels", icon: "play-outline" },
-          { name: "Create", icon: "add-circle-outline" },
-          { name: "Search", icon: "search-outline" },
-          { name: "Profile", icon: "person-outline" },
+          { name: "Home", icon: "home-outline", activeIcon: "home" },
+          { name: "Reels", icon: "play-outline", activeIcon: "play" },
+          { name: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
+          { name: "Search", icon: "search-outline", activeIcon: "search" },
+          { name: "Profile", icon: "person-outline", activeIcon: "person" },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.name}
@@ -8830,7 +8830,7 @@ export default function App() {
             accessibilityLabel={tab.name}
           >
             <Ionicons
-              name={tab.icon}
+              name={activeTab === tab.name ? tab.activeIcon : tab.icon}
               size={25}
               color={activeTab === tab.name ? "#0095F6" : "#8E8E93"}
             />
@@ -11973,11 +11973,11 @@ export default function App() {
             )}
             <View style={[styles.bottomNav, selectedChatUser && { display: "none" }]}>
               {[
-                { name: "Home", icon: "home" },
-                { name: "Reels", icon: "play-outline" },
-                { name: "Create", icon: "add-circle-outline" },
-                { name: "Search", icon: "search-outline" },
-                { name: "Profile", icon: "person-outline" },
+                { name: "Home", icon: "home-outline", activeIcon: "home" },
+                { name: "Reels", icon: "play-outline", activeIcon: "play" },
+                { name: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
+                { name: "Search", icon: "search-outline", activeIcon: "search" },
+                { name: "Profile", icon: "person-outline", activeIcon: "person" },
               ].map((tab) => (
                 <TouchableOpacity
                   key={tab.name}
@@ -11989,7 +11989,7 @@ export default function App() {
                   accessibilityLabel={tab.name}
                 >
                   <Ionicons
-                    name={tab.icon}
+                    name={activeTab === tab.name ? tab.activeIcon : tab.icon}
                     size={25}
                     color={activeTab === tab.name ? "#3797F0" : "#8E8E93"}
                   />
