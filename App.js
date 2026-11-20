@@ -10524,16 +10524,17 @@ export default function App() {
         onRequestClose={closeMessages}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={0}
           style={{ flex: 1 }}
         >
-          <SafeAreaView style={{ flex: 1, backgroundColor: "#000000", paddingBottom: Platform.OS === "android" ? 24 : 0 }}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: "#000000", paddingBottom: Platform.OS === "android" ? 6 : 0 }}>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
                 paddingHorizontal: 16,
-                paddingTop: 8,
+                paddingTop: 16,
                 paddingBottom: 10,
                 backgroundColor: "#000000",
                 minHeight: 58,
@@ -11985,7 +11986,8 @@ export default function App() {
                       flexDirection: "row",
                       alignItems: "center",
                       paddingHorizontal: 12,
-                      paddingVertical: 9,
+                      paddingVertical: 7,
+                      marginBottom: Platform.OS === "android" ? 6 : 0,
                       borderTopWidth: 1,
                       borderTopColor: "#49345F",
                       backgroundColor: "#000000",
