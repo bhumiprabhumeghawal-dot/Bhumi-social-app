@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Modal, View, Text, ScrollView, TouchableOpacity, Switch,
-  ActivityIndicator, Alert, Linking, Platform, StyleSheet
+  ActivityIndicator, Linking, Platform, StyleSheet
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
@@ -200,6 +200,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const [preferences, setPreferences] = React.useState({});
   const [loading, setLoading] = React.useState(false);
   const [savingKey, setSavingKey] = React.useState("");
+  const [notice, setNotice] = React.useState(null);
   React.useEffect(() => {
     let alive = true;
     if (visible) {
@@ -218,10 +219,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         });
         setPreferences(merged);
       }).catch((error) => {
-        if (alive) Alert.alert("Settings", error.message || "Could not load preferences.");
+        if (alive) setNotice({ title: "Settings", message: error.message || "Could not load preferences." });
       }).finally(() => { if (alive) setLoading(false); });
     } else {
       setActive(null);
+      setNotice(null);
     }
     return () => { alive = false; };
   }, [visible, username]);
@@ -246,7 +248,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       }
     } catch (error) {
       setPreferences((current) => ({ ...current, [key]: previous }));
-      Alert.alert("Save failed", error.message || "Could not save this setting.");
+      setNotice({ title: "Save failed", message: error.message || "Could not save this setting." });
     } finally { setSavingKey(""); }
   };
 
@@ -290,7 +292,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       "creator.promotions":"Promotion tools are not connected yet.",
       "premium.profileStudio":"Profile Studio is not connected yet."
     };
-    Alert.alert("Not available yet", labels[key] || "This action is not connected yet. It has not been enabled.");
+    setNotice({ title: "Not available yet", message: labels[key] || "This action is not connected yet. It has not been enabled." });
   };
 
   const renderField = (field) => {
@@ -435,6 +437,25 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         </View>
       </Modal>
       {renderSection()}
+      <Modal
+        visible={!!notice && visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNotice(null)}
+      >
+        <View style={{ flex:1, backgroundColor:"rgba(0,0,0,0.76)", justifyContent:"center", paddingHorizontal:28 }}>
+          <View style={{ backgroundColor:"#121212", borderWidth:1, borderColor:"#363636", borderRadius:20, padding:20 }}>
+            <View style={{ width:42, height:42, borderRadius:21, backgroundColor:"#1C1C1E", alignItems:"center", justifyContent:"center", marginBottom:13 }}>
+              <Ionicons name="information-circle-outline" size={23} color={GOLD}/>
+            </View>
+            <Text style={{ color:TEXT, fontSize:17, fontWeight:"900" }}>{notice?.title || "Bhumi Social AI"}</Text>
+            <Text style={{ color:MUTED, fontSize:13, lineHeight:19, marginTop:8 }}>{notice?.message || ""}</Text>
+            <TouchableOpacity onPress={() => setNotice(null)} style={{ marginTop:18, backgroundColor:GOLD, borderRadius:13, paddingVertical:12, alignItems:"center" }}>
+              <Text style={{ color:"#FFFFFF", fontSize:13, fontWeight:"900" }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
