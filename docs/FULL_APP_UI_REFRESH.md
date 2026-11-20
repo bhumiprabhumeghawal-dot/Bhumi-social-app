@@ -170,3 +170,8 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 
 ### Immediate disconnect recovery
 - The call UI now switches to its reconnect state immediately when LiveKit disconnects, then checks the call's server status in the background to distinguish a network drop from a call that was ended by the other participant.
+
+
+### Settings duplication cleanup
+- Removed duplicate Data & Storage rows and duplicate incoming voice/video call switches so each preference appears once in Settings.
+- The Chat Appearance action now explains how to open the existing per-conversation palette and personalization studio.
