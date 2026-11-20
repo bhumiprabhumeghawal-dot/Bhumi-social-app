@@ -404,15 +404,6 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                 const activeCall = callRef.current;
                 if (!mountedRef.current || !activeCall || disconnectHandlingRef.current) return;
                 disconnectHandlingRef.current = true;
-                let latest = null;
-                try {
-                  latest = await getVoiceVideoCallStatus(activeCall.id);
-                } catch (_) {}
-                if (!mountedRef.current) return;
-                if (latest && ["ended", "rejected", "missed"].includes(latest.status)) {
-                  resetCall();
-                  return;
-                }
                 setConnection(null);
                 connectionRef.current = null;
                 setRoomConnected(false);
@@ -422,6 +413,18 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                   audioSessionActiveRef.current = false;
                   AudioSession.stopAudioSession().catch(() => {});
                 }
+                try {
+                  const latest = await getVoiceVideoCallStatus(activeCall.id);
+                  if (
+                    mountedRef.current &&
+                    disconnectHandlingRef.current &&
+                    callRef.current?.id === activeCall.id &&
+                    latest &&
+                    ["ended", "rejected", "missed"].includes(latest.status)
+                  ) {
+                    resetCall();
+                  }
+                } catch (_) {}
               }}
               options={{ adaptiveStream: true, dynacast: true }}
               style={{ flex: 1, marginTop: 18 }}
