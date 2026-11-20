@@ -1338,3 +1338,9 @@ export async function getCallConnectionToken(callId) {
   });
 }
 
+export async function getVoiceVideoCallStatus(callId) {
+  const id = String(callId || '').trim();
+  if (!id) throw new Error('कॉल आईडी नहीं मिली।');
+  const data = await callApi(`/api/calls/${encodeURIComponent(id)}`);
+  return data.call || null;
+}
