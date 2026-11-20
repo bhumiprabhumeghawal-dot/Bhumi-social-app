@@ -390,7 +390,10 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                 if (mountedRef.current) setCallMessage("कॉल कनेक्ट हो गई।");
               }}
               onError={(error) => {
-                if (mountedRef.current) setCallMessage(error?.message || "कॉल कनेक्शन में समस्या आई।");
+                if (mountedRef.current) {
+                  setConnectionFailed(true);
+                  setCallMessage(error?.message || "कॉल कनेक्शन में समस्या आई।");
+                }
               }}
               onDisconnected={() => { if (mountedRef.current) resetCall(); }}
               options={{ adaptiveStream: true, dynacast: true }}
