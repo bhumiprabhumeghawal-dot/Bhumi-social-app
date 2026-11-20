@@ -85,3 +85,8 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 ### Verification status
 - GitHub branch comparison confirms the UI changes are committed and ahead of master.
 - No app build, device test, or APK has been run in this pass. These UI changes must still pass compile and device regression checks before merging.
+
+
+### Video-call self-preview follow-up
+- Updated the LiveKit camera-track query to include local, not-yet-subscribed publications as well as remote subscribed tracks. This addresses a likely cause of the local self-preview tile remaining empty while the remote video is visible.
+- The change is source-committed only. It has not been compiled or verified on a physical device; camera permission, device camera availability, and LiveKit runtime behavior still need an actual video-call test.
