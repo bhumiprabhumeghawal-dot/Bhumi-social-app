@@ -147,3 +147,8 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 ### Welcome, comments and detail surfaces
 - Aligned the welcome/onboarding screen, both comments sheets, zoom controls and post-detail backdrop with the same black/neutral surfaces and Bhumi Blue accent.
 - Kept the content, gestures, navigation and existing post/comment handlers unchanged.
+
+
+### Call reconnect and status handling
+- A final LiveKit disconnect now checks the server call status before closing the call UI; if the call is still accepted, the user can reconnect instead of losing the call screen.
+- The call stage now distinguishes an established room connection from the connecting state.
