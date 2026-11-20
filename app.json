@@ -2,7 +2,7 @@
   "expo": {
     "name": "Bhumi Social AI",
     "slug": "SocialApp",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/bhumi-social-ai-logo.jpg",
     "userInterfaceStyle": "dark",
@@ -19,7 +19,7 @@
         "foregroundImage": "./assets/bhumi-social-ai-logo.jpg"
       },
       "package": "com.bhumi_socialmediaai.SocialApp",
-      "versionCode": 6,
+      "versionCode": 7,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
@@ -44,7 +44,8 @@
         }
       ],
       "expo-font",
-      "expo-status-bar"
+      "expo-status-bar",
+      "@livekit/react-native-expo-plugin"
     ],
     "extra": {
       "eas": {
