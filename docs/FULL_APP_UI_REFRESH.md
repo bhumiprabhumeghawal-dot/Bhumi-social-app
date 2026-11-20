@@ -73,3 +73,15 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 - Verify every settings destination and identify controls that currently show a not-connected message.
 - Run static checks and device regression tests for navigation, auth, feed/reel gestures, chat, and camera/self-preview calling.
 - No APK build has been run and no changes have been merged into `master`.
+
+
+### Second UI pass committed
+- Rebuilt the login/register entry layout around the Bhumi logo and a centered welcome header.
+- Made the auth form keyboard-aware and scrollable; restyled input fields and account-type selectors to match the dark social UI.
+- Restyled the notifications sheet with a black surface, neutral separators, unread-row contrast, and consistent icon containers.
+- Polished profile cards, profile edit fields, and business-profile panels to match the shared visual language.
+- Preserved the existing login/register handlers, notification actions, profile save handlers, and server-backed data paths.
+
+### Verification status
+- GitHub branch comparison confirms the UI changes are committed and ahead of master.
+- No app build, device test, or APK has been run in this pass. These UI changes must still pass compile and device regression checks before merging.
