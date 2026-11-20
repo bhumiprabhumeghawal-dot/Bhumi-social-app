@@ -183,3 +183,7 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 
 ### Compact dialog refinement
 - Reduced the shared custom alert card and icon sizing for a tighter mobile layout; default dialog actions now read “Close”.
+
+
+### Startup presentation
+- Replaced the plain “Loading…” text with a compact branded Bhumi splash state while the secure local session is restored; server requests do not gate this screen or cached feed rendering.
