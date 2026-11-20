@@ -14,6 +14,7 @@ import {
   LiveKitRoom,
   VideoTrack,
   useTracks,
+  isTrackReference,
   useLocalParticipant,
   registerGlobals,
 } from "@livekit/react-native";
@@ -40,12 +41,13 @@ function CallVideoStage({ callType, remoteName, isConnected }) {
   // The React Native LiveKit hook returns local and remote camera references.
   // Keep its documented one-argument form so the local self-preview is included.
   const tracks = useTracks([Track.Source.Camera]);
+  const trackReferences = tracks.filter(isTrackReference);
   const { localParticipant } = useLocalParticipant();
-  const remoteTracks = tracks.filter(
+  const remoteTracks = trackReferences.filter(
     (item) => item.participant && !item.participant.isLocal &&
       item.participant.sid !== localParticipant?.sid
   );
-  const localTracks = tracks.filter(
+  const localTracks = trackReferences.filter(
     (item) => item.participant &&
       (item.participant.isLocal || item.participant.sid === localParticipant?.sid)
   );
