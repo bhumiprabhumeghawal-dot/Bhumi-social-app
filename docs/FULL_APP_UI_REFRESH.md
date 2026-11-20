@@ -175,3 +175,7 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 ### Settings duplication cleanup
 - Removed duplicate Data & Storage rows and duplicate incoming voice/video call switches so each preference appears once in Settings.
 - The Chat Appearance action now explains how to open the existing per-conversation palette and personalization studio.
+
+
+### Session verification timeout safety
+- Restored-session verification now uses the same timeout-aware API wrapper as the rest of the app, so a sleeping Render service cannot leave the verification request pending indefinitely; the login UI remains available while the check finishes.
