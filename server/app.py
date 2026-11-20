@@ -514,7 +514,10 @@ def delete_content(kind, content_id):
     if media_url.startswith(prefix):
         filename = media_url[len(prefix):]
         if filename and "/" not in filename and "\\" not in filename:
-            (UPLOAD_DIR / kind / filename).unlink(missing_ok=True)
+            if is_remote_media_filename(filename):
+                delete_remote_media(kind, filename)
+            else:
+                (UPLOAD_DIR / kind / filename).unlink(missing_ok=True)
 
     return jsonify({"ok": True, "id": content_id, "kind": kind})
 
