@@ -4864,7 +4864,7 @@ export default function App() {
           accessibilityLabel="Notifications"
           style={{ position: "relative", padding: 3 }}
         >
-          <Ionicons name="heart-outline" size={27} color="#171717" />
+          <Ionicons name="heart-outline" size={27} color="#D8B86A" />
           {unreadNotificationCount > 0 ? (
             <View
               style={{
@@ -4905,7 +4905,7 @@ export default function App() {
         accessibilityLabel="Messages"
         style={{ padding: 3 }}
       >
-        <Ionicons name="paper-plane-outline" size={26} color="#171717" />
+        <Ionicons name="paper-plane-outline" size={26} color="#D8B86A" />
       </TouchableOpacity>
       {headerCreateMenuOpen ? (
         <Modal
