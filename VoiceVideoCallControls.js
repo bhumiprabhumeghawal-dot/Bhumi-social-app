@@ -49,7 +49,9 @@ function LocalCameraBootstrap({ enabled }) {
 }
 
 function CallVideoStage({ callType, remoteName }) {
-  const tracks = useTracks([Track.Source.Camera]);
+  // Include local publications as well as subscribed remote tracks. The hook's
+  // default subscription filter can omit the caller's own camera preview.
+  const tracks = useTracks([Track.Source.Camera], { onlySubscribed: false });
   const { localParticipant } = useLocalParticipant();
   const remoteTracks = tracks.filter(
     (item) => item.participant && !item.participant.isLocal &&
