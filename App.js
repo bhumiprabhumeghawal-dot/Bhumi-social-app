@@ -365,7 +365,7 @@ function ZoomableImage({ uri, style, onZoomChange, showControls = true }) {
               style={{
                 width: `${((zoomLevel - 1) / 4) * 100}%`,
                 height: 4,
-                backgroundColor: "#6D28D9",
+                backgroundColor: "#0095F6",
                 borderRadius: 2,
               }}
             />
@@ -531,7 +531,7 @@ function PinchZoomImage({
           width: "100%",
           aspectRatio: undefined,
           overflow: "visible",
-          backgroundColor: "#080B14",
+          backgroundColor: "#000000",
         },
       ]}
     >
@@ -540,7 +540,7 @@ function PinchZoomImage({
           width: "100%",
           height: imageHeight,
           overflow: "hidden",
-          backgroundColor: "#080B14",
+          backgroundColor: "#000000",
         }}
       >
         <GestureDetector
@@ -571,7 +571,7 @@ function PinchZoomImage({
           alignItems: "center",
           justifyContent: "center",
           paddingVertical: 5,
-          backgroundColor: "#080B14",
+          backgroundColor: "#000000",
         }}
       >
         <TouchableOpacity
@@ -1184,7 +1184,7 @@ function PostCard({
             left: 0,
             right: 0,
             zIndex: 10,
-            backgroundColor: "#100B19",
+            backgroundColor: "#000000",
           },
         ]}
       >
@@ -1202,19 +1202,19 @@ function PostCard({
         </TouchableOpacity>
         <View style={styles.postUserInfo}>
           <TouchableOpacity onPress={() => onOpenProfile(post.user)} activeOpacity={0.75}>
-            <Text style={[styles.username, { color: "#F4EFFA" }]}>
+            <Text style={[styles.username, { color: "#FFFFFF" }]}>
               {post.user || "you"}
             </Text>
           </TouchableOpacity>
           {!!post.location && (
-            <Text style={[styles.location, { color: "#F4EFFA" }]}>
+            <Text style={[styles.location, { color: "#FFFFFF" }]}>
               {post.location}
             </Text>
           )}
         </View>
         {String(post.user || "").replace(/^@/, "").toLowerCase() === String(authSession?.username || "").toLowerCase() && !post.isStarterPost && !post.isStarterReel ? (
           <TouchableOpacity onPress={() => onDelete(post, "posts")} accessibilityLabel="Delete your post" style={{ padding: 9 }}>
-            <Ionicons name="trash-outline" size={20} color="#D8B86A" />
+            <Ionicons name="trash-outline" size={20} color="#0095F6" />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity>
@@ -1232,7 +1232,7 @@ function PostCard({
           right: 0,
           height: mediaHeight,
           overflow: "hidden",
-          backgroundColor: "#08050D",
+          backgroundColor: "#000000",
         }}
       >
         {post.mediaItems?.length > 1 ? (
@@ -1337,7 +1337,7 @@ function PostCard({
             style={{
               textAlign: "center",
               paddingVertical: 5,
-              color: "#B8AACB",
+              color: "#A8A8A8",
               fontSize: 12,
             }}
           >
@@ -1358,7 +1358,7 @@ function PostCard({
           left: 0,
           right: 0,
           zIndex: 30,
-          backgroundColor: "#100B19",
+          backgroundColor: "#000000",
           paddingBottom: 10,
           paddingTop: 6,
         }}
@@ -1372,7 +1372,7 @@ function PostCard({
             />
           </TouchableOpacity>
           <TouchableOpacity onPress={openComments}>
-            <Ionicons name="chatbubble-outline" size={24} color="#D8B86A" />
+            <Ionicons name="chatbubble-outline" size={24} color="#0095F6" />
           </TouchableOpacity>
           <TouchableOpacity onPress={sharePost}>
             <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
@@ -1382,29 +1382,29 @@ function PostCard({
             <Ionicons
               name={saved ? "bookmark" : "bookmark-outline"}
               size={25}
-              color="#D8B86A"
+              color="#0095F6"
             />
           </TouchableOpacity>
         </View>
 
-        <Text style={[styles.likes, { color: "#F4EFFA" }]}>
+        <Text style={[styles.likes, { color: "#FFFFFF" }]}>
           {likeCount.toLocaleString()} likes
         </Text>
         {!!post.caption && (
-          <Text style={[styles.caption, { color: "#F4EFFA" }]}>
-            <Text style={[styles.username, { color: "#F4EFFA" }]}>
+          <Text style={[styles.caption, { color: "#FFFFFF" }]}>
+            <Text style={[styles.username, { color: "#FFFFFF" }]}>
               {post.user || "you"}{" "}
             </Text>
             {post.caption}
           </Text>
         )}
         <TouchableOpacity onPress={openComments}>
-          <Text style={[styles.comments, { color: "#F4EFFA" }]}>
+          <Text style={[styles.comments, { color: "#FFFFFF" }]}>
             View all comments
           </Text>
         </TouchableOpacity>
         {!!post.createdAt && (
-          <Text style={[styles.time, { color: "#F4EFFA" }]}>
+          <Text style={[styles.time, { color: "#FFFFFF" }]}>
             {formatPostTime(post.createdAt)}
           </Text>
         )}
@@ -1429,34 +1429,64 @@ function PostCard({
           >
             <View
               style={{
-                backgroundColor: "#100B19",
-                borderTopLeftRadius: 18,
-                borderTopRightRadius: 18,
-                padding: 18,
-                maxHeight: "75%",
+                backgroundColor: "#121212",
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                borderTopWidth: 1,
+                borderColor: "#262626",
+                paddingHorizontal: 18,
+                paddingTop: 10,
+                paddingBottom: 18,
+                maxHeight: "78%",
               }}
             >
+              <View
+                style={{
+                  alignSelf: "center",
+                  width: 38,
+                  height: 4,
+                  borderRadius: 3,
+                  backgroundColor: "#363636",
+                  marginBottom: 16,
+                }}
+              />
               <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  marginBottom: 12,
+                  marginBottom: 14,
                 }}
               >
-                <Text
-                  style={{ fontSize: 18, fontWeight: "600", color: "#F4EFFA" }}
+                <View>
+                  <Text
+                    style={{ fontSize: 18, fontWeight: "800", color: "#FFFFFF" }}
+                  >
+                    Comments
+                  </Text>
+                  <Text style={{ color: "#8E8E93", fontSize: 11, marginTop: 3 }}>
+                    Join the conversation
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setCommentsOpen(false)}
+                  accessibilityLabel="Close comments"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: "#1C1C1E",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  Comments
-                </Text>
-                <TouchableOpacity onPress={() => setCommentsOpen(false)}>
-                  <Text style={{ fontSize: 22, color: "#F4EFFA" }}>×</Text>
+                  <Text style={{ fontSize: 21, color: "#FFFFFF", lineHeight: 24 }}>×</Text>
                 </TouchableOpacity>
               </View>
 
               <ScrollView style={{ flexGrow: 0, maxHeight: 360 }}>
                 {comments.length === 0 ? (
-                  <Text style={{ color: "#B8AACB", paddingVertical: 12 }}>
+                  <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
                     No comments yet.
                   </Text>
                 ) : (
@@ -1465,7 +1495,7 @@ function PostCard({
                       key={String(comment.id)}
                       style={{ paddingVertical: 8 }}
                     >
-                      <Text style={{ color: "#F4EFFA" }}>
+                      <Text style={{ color: "#FFFFFF" }}>
                         <Text
                           onPress={() => onOpenProfile(comment.username)}
                           style={{ fontWeight: "600" }}
@@ -1501,7 +1531,7 @@ function PostCard({
                         >
                           <Text
                             style={{
-                              color: "#D8B86A",
+                              color: "#0095F6",
                               fontSize: 12,
                               fontWeight: "800",
                             }}
@@ -1531,19 +1561,31 @@ function PostCard({
                   style={{
                     flex: 1,
                     borderWidth: 1,
-                    borderColor: "#49345F",
-                    borderRadius: 20,
-                    paddingHorizontal: 14,
-                    paddingVertical: 9,
-                    color: "#F4EFFA",
+                    borderColor: "#262626",
+                    borderRadius: 22,
+                    backgroundColor: "#121212",
+                    paddingHorizontal: 15,
+                    paddingVertical: 10,
+                    color: "#FFFFFF",
+                    fontSize: 13,
                   }}
                 />
                 <TouchableOpacity
                   onPress={submitComment}
                   disabled={interactionBusy || !commentDraft.trim()}
-                  style={{ padding: 10 }}
+                  style={{
+                    minWidth: 54,
+                    height: 40,
+                    marginLeft: 8,
+                    paddingHorizontal: 13,
+                    borderRadius: 20,
+                    backgroundColor: commentDraft.trim() && !interactionBusy ? "#0095F6" : "#1C1C1E",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: interactionBusy ? 0.55 : 1,
+                  }}
                 >
-                  <Text style={{ color: "#D8B86A", fontWeight: "600" }}>
+                  <Text style={{ color: commentDraft.trim() && !interactionBusy ? "#FFFFFF" : "#8E8E93", fontWeight: "800", fontSize: 12 }}>
                     Post
                   </Text>
                 </TouchableOpacity>
@@ -1751,13 +1793,27 @@ function PostDetailActions({ post, authSession }) {
           >
             <View
               style={{
-                backgroundColor: "#151D2E",
+                backgroundColor: "#121212",
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
-                padding: 18,
-                maxHeight: "75%",
+                borderTopWidth: 1,
+                borderColor: "#262626",
+                paddingHorizontal: 18,
+                paddingTop: 10,
+                paddingBottom: 18,
+                maxHeight: "78%",
               }}
             >
+              <View
+                style={{
+                  alignSelf: "center",
+                  width: 38,
+                  height: 4,
+                  borderRadius: 3,
+                  backgroundColor: "#363636",
+                  marginBottom: 16,
+                }}
+              />
               <View
                 style={{
                   flexDirection: "row",
@@ -1766,18 +1822,32 @@ function PostDetailActions({ post, authSession }) {
                   marginBottom: 14,
                 }}
               >
-                <Text
-                  style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}
+                <View>
+                  <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>
+                    Comments
+                  </Text>
+                  <Text style={{ color: "#8E8E93", fontSize: 11, marginTop: 3 }}>
+                    Join the conversation
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setCommentsOpen(false)}
+                  accessibilityLabel="Close comments"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: "#1C1C1E",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  Comments
-                </Text>
-                <TouchableOpacity onPress={() => setCommentsOpen(false)}>
-                  <Ionicons name="close" size={26} color="#FFFFFF" />
+                  <Ionicons name="close" size={19} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
               <ScrollView style={{ maxHeight: 360 }}>
                 {comments.length === 0 ? (
-                  <Text style={{ color: "#AAB6CC", paddingVertical: 14 }}>
+                  <Text style={{ color: "#A8A8A8", paddingVertical: 14 }}>
                     No comments yet. Be the first to comment.
                   </Text>
                 ) : (
@@ -1787,7 +1857,7 @@ function PostDetailActions({ post, authSession }) {
                       style={{
                         paddingVertical: 10,
                         borderBottomWidth: 1,
-                        borderBottomColor: "#29344B",
+                        borderBottomColor: "#262626",
                       }}
                     >
                       <Text style={{ color: "#FFFFFF", lineHeight: 21 }}>
@@ -1800,7 +1870,7 @@ function PostDetailActions({ post, authSession }) {
                       {item.isPending ? (
                         <Text
                           style={{
-                            color: "#F6C66A",
+                            color: "#0095F6",
                             fontSize: 11,
                             marginTop: 4,
                           }}
@@ -1848,24 +1918,37 @@ function PostDetailActions({ post, authSession }) {
                   value={draft}
                   onChangeText={setDraft}
                   placeholder="Write a comment..."
-                  placeholderTextColor="#8793AA"
+                  placeholderTextColor="#8E8E93"
                   maxLength={2000}
                   editable={!busy}
                   style={{
                     flex: 1,
                     color: "#FFFFFF",
-                    backgroundColor: "#202B40",
+                    backgroundColor: "#121212",
+                    borderWidth: 1,
+                    borderColor: "#262626",
                     borderRadius: 22,
                     paddingHorizontal: 15,
                     paddingVertical: 11,
+                    fontSize: 13,
                   }}
                 />
                 <TouchableOpacity
                   onPress={submitComment}
                   disabled={busy || !draft.trim()}
-                  style={{ padding: 10 }}
+                  style={{
+                    minWidth: 54,
+                    height: 40,
+                    marginLeft: 2,
+                    paddingHorizontal: 13,
+                    borderRadius: 20,
+                    backgroundColor: draft.trim() && !busy ? "#0095F6" : "#1C1C1E",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: busy ? 0.55 : 1,
+                  }}
                 >
-                  <Text style={{ color: "#60A5FA", fontWeight: "800" }}>
+                  <Text style={{ color: draft.trim() && !busy ? "#FFFFFF" : "#8E8E93", fontWeight: "800", fontSize: 12 }}>
                     Post
                   </Text>
                 </TouchableOpacity>
@@ -1895,7 +1978,7 @@ function CustomAlertHost() {
         title: String(title || "Bhumi Social AI"),
         message: message == null ? "" : String(message),
         buttons:
-          Array.isArray(buttons) && buttons.length ? buttons : [{ text: "OK" }],
+          Array.isArray(buttons) && buttons.length ? buttons : [{ text: "Close" }],
         options: options || {},
       });
     };
@@ -1917,10 +2000,10 @@ function CustomAlertHost() {
   const accent = error
     ? "#F06B83"
     : success
-      ? "#D8B86A"
+      ? "#0095F6"
       : danger
         ? "#F06B83"
-        : "#B78CFF";
+        : "#0095F6";
   const icon = error
     ? "alert-circle"
     : success
@@ -1943,7 +2026,7 @@ function CustomAlertHost() {
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(4,3,12,0.84)",
+          backgroundColor: "rgba(0,0,0,0.82)",
           justifyContent: "center",
           alignItems: "center",
           padding: 24,
@@ -1952,15 +2035,15 @@ function CustomAlertHost() {
         <View
           style={{
             width: "100%",
-            maxWidth: 390,
-            backgroundColor: "#120D1D",
-            borderRadius: 24,
+            maxWidth: 360,
+            backgroundColor: "#121212",
+            borderRadius: 20,
             borderWidth: 1,
-            borderColor: "#604785",
-            padding: 22,
+            borderColor: "#262626",
+            padding: 18,
             alignItems: "center",
             elevation: 18,
-            shadowColor: "#9B5CFF",
+            shadowColor: "#000000",
             shadowOpacity: 0.28,
             shadowRadius: 22,
             shadowOffset: { width: 0, height: 8 },
@@ -1968,21 +2051,21 @@ function CustomAlertHost() {
         >
           <View
             style={{
-              width: 62,
-              height: 62,
-              borderRadius: 31,
+              width: 52,
+              height: 52,
+              borderRadius: 26,
               backgroundColor: accent + "18",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: 14,
+              marginBottom: 12,
             }}
           >
-            <Ionicons name={icon} size={35} color={accent} />
+            <Ionicons name={icon} size={29} color={accent} />
           </View>
           <Text
             style={{
-              color: "#FFF9EE",
-              fontSize: 20,
+              color: "#FFFFFF",
+              fontSize: 18,
               fontWeight: "800",
               textAlign: "center",
               marginBottom: 8,
@@ -1993,9 +2076,9 @@ function CustomAlertHost() {
           {!!alertData.message && (
             <Text
               style={{
-                color: "#C9BEDB",
-                fontSize: 15,
-                lineHeight: 22,
+                color: "#A8A8A8",
+                fontSize: 14,
+                lineHeight: 20,
                 textAlign: "center",
                 marginBottom: 20,
               }}
@@ -2028,9 +2111,9 @@ function CustomAlertHost() {
                   }}
                   style={{
                     flex: alertData.buttons.length > 1 ? 1 : undefined,
-                    minHeight: 48,
+                    minHeight: 44,
                     borderWidth: cancel ? 1 : 0,
-                    borderColor: "#604785",
+                    borderColor: "#363636",
                     paddingHorizontal: 12,
                     borderRadius: 14,
                     alignItems: "center",
@@ -2039,18 +2122,18 @@ function CustomAlertHost() {
                       ? destructive
                         ? "#F06B83"
                         : accent
-                      : "#281B3B",
+                      : "#1C1C1E",
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 15,
                       fontWeight: "700",
-                      color: primary ? "#120D1D" : "#E8DDF8",
+                      color: primary ? "#FFFFFF" : "#E5E5E5",
                       textAlign: "center",
                     }}
                   >
-                    {button.text || "OK"}
+                    {button.text || "Close"}
                   </Text>
                 </TouchableOpacity>
               );
@@ -2058,8 +2141,8 @@ function CustomAlertHost() {
           </View>
           <Text
             style={{
-              marginTop: 15,
-              color: "#A995C4",
+              marginTop: 12,
+              color: "#8E8E93",
               fontSize: 11,
               fontWeight: "600",
               letterSpacing: 0.5,
@@ -2085,7 +2168,7 @@ function ChatVideoAttachment({ uri, token, mine }) {
       height: 190,
       borderRadius: 14,
       overflow: "hidden",
-      backgroundColor: "#08050D",
+      backgroundColor: "#000000",
       marginBottom: 6,
     }}>
       <VideoView
@@ -2173,7 +2256,7 @@ export default function App() {
         if (!report || !active) return;
         await SecureStore.deleteItemAsync("bhumi_last_crash_report");
         if (active) {
-          NativeAlert.alert("पिछली बार ऐप क्यों बंद हुआ", report);
+          Alert.alert("पिछली बार ऐप क्यों बंद हुआ", report);
         }
       })
       .catch((error) => console.error("Crash report read failed:", error));
@@ -2244,10 +2327,10 @@ export default function App() {
         await Updates.reloadAsync();
       } else {
         setUpdatePromptVisible(false);
-        NativeAlert.alert("Bhumi Social AI", "आपका ऐप पहले से अपडेट है।");
+        Alert.alert("Bhumi Social AI", "आपका ऐप पहले से अपडेट है।");
       }
     } catch (error) {
-      NativeAlert.alert(
+      Alert.alert(
         "Update",
         "अभी अपडेट डाउनलोड नहीं हो पाया। इंटरनेट कनेक्शन जाँचकर दोबारा कोशिश करें।",
       );
@@ -2282,7 +2365,7 @@ export default function App() {
           const username = decodeURIComponent(profileMatch[1]);
           if (active && username) await openUserProfile(username);
         } catch (error) {
-          if (active) NativeAlert.alert("Profile unavailable", error?.message || "Could not open this profile.");
+          if (active) Alert.alert("Profile unavailable", error?.message || "Could not open this profile.");
         }
         return;
       }
@@ -2295,7 +2378,7 @@ export default function App() {
         setSelectedPostMediaIndex(0);
       } catch (error) {
         if (active) {
-          NativeAlert.alert(
+          Alert.alert(
             "Post unavailable",
             error?.message || "Could not open this shared post.",
           );
@@ -2523,7 +2606,7 @@ export default function App() {
     return scoreB - scoreA;
   });
   const chatThemeColors = ({
-    royal: { bg: "#100B19", mine: "#49345F", other: "#21162F", accent: "#D8B86A" },
+    royal: { bg: "#000000", mine: "#262626", other: "#1C1C1E", accent: "#0095F6" },
     midnight: { bg: "#080B12", mine: "#253044", other: "#151B27", accent: "#8FA8D8" },
     ocean: { bg: "#071521", mine: "#12415A", other: "#102A3A", accent: "#61C5E8" },
     rose: { bg: "#1B0B16", mine: "#63304A", other: "#321A29", accent: "#F0A0C0" },
@@ -2579,7 +2662,7 @@ export default function App() {
     candy: { bg: "#241029", mine: "#7A3D83", other: "#4B2B55", accent: "#FFA8EA" },
     sports: { bg: "#101820", mine: "#34566D", other: "#223D50", accent: "#A5E1FF" },
     minimal: { bg: "#12151A", mine: "#3A424D", other: "#252C35", accent: "#D1D8E0" },
-  })[chatPreferences.theme] || { bg: "#100B19", mine: "#49345F", other: "#21162F", accent: "#D8B86A" };
+  })[chatPreferences.theme] || { bg: "#000000", mine: "#262626", other: "#1C1C1E", accent: "#0095F6" };
   const [directMessages, setDirectMessages] = React.useState([]);
   const [newChatUsername, setNewChatUsername] = React.useState("");
   const [chatDraft, setChatDraft] = React.useState("");
@@ -4263,19 +4346,19 @@ export default function App() {
   };
 
   const refreshContent = React.useCallback(async (forceRefresh = false) => {
-    let freshLoaded = false;
+    const freshLoaded = { posts: false, stories: false, reels: false };
 
+    // Paint each cached section independently; a slow Stories/Reels request
+    // must not hold the Home feed back on a cold server start.
     const cachePromise = Promise.all([
       getCachedContent("posts"),
       getCachedContent("stories"),
       getCachedContent("reels"),
     ]).then(([cachedPosts, cachedStories, cachedReels]) => {
-      if (freshLoaded) return;
-
-      if (Array.isArray(cachedPosts) && cachedPosts.length) {
+      if (!freshLoaded.posts && Array.isArray(cachedPosts) && cachedPosts.length) {
         setFeedPosts(cachedPosts);
       }
-      if (Array.isArray(cachedStories)) {
+      if (!freshLoaded.stories && Array.isArray(cachedStories)) {
         setServerStories(
           cachedStories.map((item, i) => ({
             ...item,
@@ -4284,33 +4367,38 @@ export default function App() {
           })),
         );
       }
-      if (Array.isArray(cachedReels)) setReels(cachedReels);
+      if (!freshLoaded.reels && Array.isArray(cachedReels)) setReels(cachedReels);
     });
 
-    try {
-      const [p, s, r] = await Promise.all([
-        loadContent("posts", { force: forceRefresh }),
-        loadContent("stories", { force: forceRefresh }),
-        loadContent("reels", { force: forceRefresh }),
-      ]);
+    const requests = await Promise.allSettled([
+      loadContent("posts", { force: forceRefresh }).then((items) => {
+        freshLoaded.posts = true;
+        setFeedPosts(items.length ? items : posts);
+      }),
+      loadContent("stories", { force: forceRefresh }).then((items) => {
+        freshLoaded.stories = true;
+        setServerStories(
+          items.map((item, i) => ({
+            ...item,
+            name: item.user || `story${i + 1}`,
+            color: "#DDE7F5",
+          })),
+        );
+      }),
+      loadContent("reels", { force: forceRefresh }).then((items) => {
+        freshLoaded.reels = true;
+        setReels(items);
+      }),
+    ]);
 
-      freshLoaded = true;
-      await cachePromise;
-
-      setServerOnline(true);
-      setFeedPosts(p.length ? p : posts);
-      setServerStories(
-        s.map((item, i) => ({
-          ...item,
-          name: item.user || `story${i + 1}`,
-          color: "#DDE7F5",
-        })),
+    await cachePromise;
+    const successfulRequests = requests.filter((item) => item.status === "fulfilled").length;
+    setServerOnline(successfulRequests > 0);
+    if (successfulRequests === 0) {
+      console.error(
+        "Server content load failed:",
+        requests.map((item) => item.status === "rejected" ? item.reason?.message : null).filter(Boolean),
       );
-      setReels(r);
-    } catch (e) {
-      await cachePromise;
-      setServerOnline(false);
-      console.error("Server load failed:", e);
     }
   }, []);
 
@@ -4700,13 +4788,13 @@ export default function App() {
   };
 
   const mentionSuggestionList = mentionSuggestions.length > 0 ? (
-    <View style={{ marginTop: 6, padding: 7, borderRadius: 12, backgroundColor: "#171020", borderWidth: 1, borderColor: "#D8B86A" }}>
+    <View style={{ marginTop: 6, padding: 7, borderRadius: 12, backgroundColor: "#121212", borderWidth: 1, borderColor: "#0095F6" }}>
       {mentionSuggestions.map((user) => (
         <TouchableOpacity key={user.username} onPress={() => insertMention(user)} style={{ paddingVertical: 9, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}>
-          <Ionicons name="person-circle-outline" size={22} color="#D8B86A" />
+          <Ionicons name="person-circle-outline" size={22} color="#0095F6" />
           <View style={{ marginLeft: 9 }}>
-            <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>@{user.username}</Text>
-            {!!user.displayName && user.displayName !== user.username ? <Text style={{ color: "#B8AACB", fontSize: 11 }}>{user.displayName}</Text> : null}
+            <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>@{user.username}</Text>
+            {!!user.displayName && user.displayName !== user.username ? <Text style={{ color: "#A8A8A8", fontSize: 11 }}>{user.displayName}</Text> : null}
           </View>
         </TouchableOpacity>
       ))}
@@ -4845,102 +4933,32 @@ export default function App() {
   };
 
   const renderAppHeader = () => (
-    <View
-      style={[
-        styles.header,
-        { justifyContent: "flex-start", gap: 10, position: "relative" },
-      ]}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <TouchableOpacity
-          onPress={() => setHeaderCreateMenuOpen((value) => !value)}
-          accessibilityLabel="Create menu"
-          style={{ padding: 3 }}
-        >
-          <Ionicons name="add-circle-outline" size={28} color="#D8B86A" />
+    <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative" }]}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flex: 1 }}>
+        <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 32, height: 32 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
+        <Text style={styles.brand} numberOfLines={1}>Bhumi Social AI</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 17 }}>
+        <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel="Create menu" style={{ padding: 3 }}>
+          <Ionicons name="add-circle-outline" size={27} color="#FFFFFF" />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={openNotifications}
-          accessibilityLabel="Notifications"
-          style={{ position: "relative", padding: 3 }}
-        >
-          <Ionicons name="heart-outline" size={27} color="#D8B86A" />
+        <TouchableOpacity onPress={openNotifications} accessibilityLabel="Notifications" style={{ position: "relative", padding: 3 }}>
+          <Ionicons name="heart-outline" size={26} color="#FFFFFF" />
           {unreadNotificationCount > 0 ? (
-            <View
-              style={{
-                position: "absolute",
-                right: -5,
-                top: -5,
-                minWidth: 17,
-                height: 17,
-                borderRadius: 9,
-                backgroundColor: "#E1306C",
-                alignItems: "center",
-                justifyContent: "center",
-                paddingHorizontal: 3,
-              }}
-            >
-              <Text
-                style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}
-              >
-                {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
-              </Text>
+            <View style={{ position: "absolute", right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#E1306C", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}>
+              <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text>
             </View>
           ) : null}
         </TouchableOpacity>
+        <TouchableOpacity onPress={openMessages} accessibilityLabel="Messages" style={{ padding: 3 }}>
+          <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
-      <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
-        <Image
-          source={require("./assets/bhumi-social-ai-logo.jpg")}
-          style={{ width: 34, height: 34 }}
-          resizeMode="contain"
-          accessibilityLabel="Bhumi Social AI logo"
-        />
-        <Text style={styles.brand} numberOfLines={1}>
-          Bhumi Social AI
-        </Text>
-      </View>
-      <TouchableOpacity
-        onPress={openMessages}
-        accessibilityLabel="Messages"
-        style={{ padding: 3 }}
-      >
-        <Ionicons name="paper-plane-outline" size={26} color="#D8B86A" />
-      </TouchableOpacity>
       {headerCreateMenuOpen ? (
-        <Modal
-          visible={headerCreateMenuOpen}
-          transparent
-          animationType="fade"
-          statusBarTranslucent={false}
-          onRequestClose={() => setHeaderCreateMenuOpen(false)}
-        >
+        <Modal visible={headerCreateMenuOpen} transparent animationType="fade" statusBarTranslucent={false} onRequestClose={() => setHeaderCreateMenuOpen(false)}>
           <View style={{ flex: 1 }}>
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={() => setHeaderCreateMenuOpen(false)}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-            />
-            <View
-              style={{
-                position: "absolute",
-                top: 72,
-                left: 8,
-                zIndex: 1000,
-                elevation: 20,
-                minWidth: 215,
-                backgroundColor: "#202027",
-                borderRadius: 14,
-                paddingVertical: 6,
-                paddingHorizontal: 8,
-              }}
-            >
+            <TouchableOpacity activeOpacity={1} onPress={() => setHeaderCreateMenuOpen(false)} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+            <View style={{ position: "absolute", top: 72, right: 12, zIndex: 1000, elevation: 20, minWidth: 215, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 14, paddingVertical: 6, paddingHorizontal: 8 }}>
               {[
                 ["live-camera", "Go Live", "radio-outline"],
                 ["reel-camera", "Record Reel", "videocam-outline"],
@@ -4951,27 +4969,9 @@ export default function App() {
                 ["story-gallery", "Story from Gallery", "images"],
                 ["post-gallery", "Post from Gallery", "image-outline"],
               ].map(([action, label, iconName]) => (
-                <TouchableOpacity
-                  key={action}
-                  onPress={() => runHeaderCreateAction(action)}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingVertical: 11,
-                    paddingHorizontal: 9,
-                  }}
-                >
+                <TouchableOpacity key={action} onPress={() => runHeaderCreateAction(action)} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 11, paddingHorizontal: 9 }}>
                   <Ionicons name={iconName} size={19} color="#FFFFFF" />
-                  <Text
-                    style={{
-                      color: "#FFFFFF",
-                      fontSize: 14,
-                      marginLeft: 12,
-                      fontWeight: "600",
-                    }}
-                  >
-                    {label}
-                  </Text>
+                  <Text style={{ color: "#FFFFFF", fontSize: 14, marginLeft: 12, fontWeight: "600" }}>{label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -4987,36 +4987,16 @@ export default function App() {
       return;
     }
     if (name === "Create") {
-      Alert.alert("Create", "Choose what you want to create", [
-        { text: "Go Live", onPress: openLiveCamera },
-        {
-          text: "Photo Post",
-          onPress: () => openCaptureCamera("posts", "picture"),
-        },
-        {
-          text: "Video Post",
-          onPress: () => openCaptureCamera("posts", "video"),
-        },
-        {
-          text: "Story from Camera",
-          onPress: () => openCaptureCamera("stories", "picture"),
-        },
-        { text: "Story from Gallery", onPress: createStory },
-        { text: "Record Reel", onPress: openReelCamera },
-        { text: "Reel from Gallery", onPress: createReel },
-        { text: "Reel from Photos", onPress: createReelFromPhotos },
-        { text: "Post from Gallery", onPress: pickImage },
-        { text: "Cancel", style: "cancel" },
+      setHeaderCreateMenuOpen(true);
+      return;
+    }
+    setActiveTab(name);
+    if (name === "Home") refreshContent();
+    if (name === "Reels" && reels.length === 0) {
+      Alert.alert("Reels", "No reels yet.", [
+        { text: "रील अपलोड करें", onPress: createReel },
+        { text: "ठीक है", style: "cancel" },
       ]);
-    } else {
-      setActiveTab(name);
-      if (name === "Home") refreshContent();
-      if (name === "Reels" && reels.length === 0) {
-        Alert.alert("Reels", "No reels yet.", [
-          { text: "रील अपलोड करें", onPress: createReel },
-          { text: "ठीक है", style: "cancel" },
-        ]);
-      }
     }
   };
 
@@ -5116,12 +5096,15 @@ export default function App() {
 
   if (!authReady) {
     return (
-      <SafeAreaView style={styles.screen}>
-        <StatusBar style="dark" hidden={false} translucent={false} />
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <Text style={{ color: "#B8AACB" }}>Loading...</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
+        <StatusBar style="light" hidden={false} translucent={false} />
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
+          <View style={{ width: 92, height: 92, borderRadius: 28, backgroundColor: "#121212", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", padding: 6 }}>
+            <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 78, height: 78, borderRadius: 22 }} resizeMode="contain" />
+          </View>
+          <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "900", marginTop: 18 }}>Bhumi Social AI</Text>
+          <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 22 }} />
+          <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 10 }}>आपकी ऐप तैयार हो रही है…</Text>
         </View>
       </SafeAreaView>
     );
@@ -5131,11 +5114,11 @@ export default function App() {
   if (authReady && !authSession && authMode === "forgot") {
     const fieldStyle = {
       borderWidth: 1,
-      borderColor: "#49345F",
+      borderColor: "#262626",
       borderRadius: 8,
       padding: 13,
       marginBottom: 12,
-      color: "#F4EFFA",
+      color: "#FFFFFF",
     };
 
     const forgotAction = async (action) => {
@@ -5212,13 +5195,13 @@ export default function App() {
             style={{
               fontSize: 30,
               fontWeight: "800",
-              color: "#F4EFFA",
+              color: "#FFFFFF",
               marginBottom: 8,
             }}
           >
             Bhumi Social AI
           </Text>
-          <Text style={{ color: "#B8AACB", marginBottom: 22 }}>
+          <Text style={{ color: "#A8A8A8", marginBottom: 22 }}>
             Forgot password
           </Text>
 
@@ -5226,7 +5209,7 @@ export default function App() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: "#6D28D9",
+                backgroundColor: "#0095F6",
                 borderRadius: 8,
                 padding: 12,
                 alignItems: "center",
@@ -5238,13 +5221,13 @@ export default function App() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: "#21162F",
+                backgroundColor: "#1C1C1E",
                 borderRadius: 8,
                 padding: 12,
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: "#B8AACB", fontWeight: "600" }}>
+              <Text style={{ color: "#A8A8A8", fontWeight: "600" }}>
                 Mobile (SMS unavailable)
               </Text>
             </View>
@@ -5253,7 +5236,7 @@ export default function App() {
           {forgotStep === "email" && (
             <>
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 Registered email
               </Text>
@@ -5270,7 +5253,7 @@ export default function App() {
                 onPress={() => forgotAction("request")}
                 disabled={authBusy}
                 style={{
-                  backgroundColor: "#6D28D9",
+                  backgroundColor: "#0095F6",
                   borderRadius: 8,
                   padding: 14,
                   alignItems: "center",
@@ -5286,7 +5269,7 @@ export default function App() {
           {forgotStep === "otp" && (
             <>
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 Email verification code
               </Text>
@@ -5302,7 +5285,7 @@ export default function App() {
                 onPress={() => forgotAction("verify")}
                 disabled={authBusy}
                 style={{
-                  backgroundColor: "#6D28D9",
+                  backgroundColor: "#0095F6",
                   borderRadius: 8,
                   padding: 14,
                   alignItems: "center",
@@ -5318,7 +5301,7 @@ export default function App() {
                 disabled={authBusy}
                 style={{ padding: 12, alignItems: "center" }}
               >
-                <Text style={{ color: "#D8B86A" }}>Resend code</Text>
+                <Text style={{ color: "#0095F6" }}>Resend code</Text>
               </TouchableOpacity>
             </>
           )}
@@ -5326,7 +5309,7 @@ export default function App() {
           {forgotStep === "reset" && (
             <>
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 New password (4 to 24 characters)
               </Text>
@@ -5340,7 +5323,7 @@ export default function App() {
                 style={fieldStyle}
               />
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 Confirm new password
               </Text>
@@ -5357,7 +5340,7 @@ export default function App() {
                 onPress={() => forgotAction("reset")}
                 disabled={authBusy}
                 style={{
-                  backgroundColor: "#6D28D9",
+                  backgroundColor: "#0095F6",
                   borderRadius: 8,
                   padding: 14,
                   alignItems: "center",
@@ -5378,7 +5361,7 @@ export default function App() {
             disabled={authBusy}
             style={{ padding: 16, alignItems: "center" }}
           >
-            <Text style={{ color: "#D8B86A" }}>Back to login</Text>
+            <Text style={{ color: "#0095F6" }}>Back to login</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -5387,7 +5370,7 @@ export default function App() {
 
   if (authReady && welcomeChecked && !authSession && !welcomeSeen) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#101827" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
         <StatusBar style="light" hidden={false} translucent={false} />
         <View
           style={{
@@ -5405,9 +5388,9 @@ export default function App() {
                 width: 112,
                 height: 112,
                 borderRadius: 34,
-                backgroundColor: "#21162F",
+                backgroundColor: "#1C1C1E",
                 borderWidth: 1,
-                borderColor: "#D8B86A",
+                borderColor: "#0095F6",
                 alignItems: "center",
                 justifyContent: "center",
                 padding: 8,
@@ -5433,7 +5416,7 @@ export default function App() {
             </Text>
             <Text
               style={{
-                color: "#AFC7E8",
+                color: "#A8A8A8",
                 fontSize: 13,
                 fontWeight: "700",
                 letterSpacing: 3,
@@ -5452,12 +5435,12 @@ export default function App() {
                 width: 190,
                 height: 190,
                 borderRadius: 95,
-                backgroundColor: "#1D3554",
+                backgroundColor: "#121212",
                 alignItems: "center",
                 justifyContent: "center",
                 marginBottom: 28,
                 borderWidth: 1,
-                borderColor: "#355578",
+                borderColor: "#363636",
               }}
             >
               <View
@@ -5465,7 +5448,7 @@ export default function App() {
                   width: 142,
                   height: 142,
                   borderRadius: 71,
-                  backgroundColor: "#284A70",
+                  backgroundColor: "#1C1C1E",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -5479,11 +5462,11 @@ export default function App() {
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: "#4DA8FF",
+                    backgroundColor: "#0095F6",
                     alignItems: "center",
                     justifyContent: "center",
                     borderWidth: 3,
-                    borderColor: "#284A70",
+                    borderColor: "#1C1C1E",
                   }}
                 >
                   <Ionicons
@@ -5507,7 +5490,7 @@ export default function App() {
             </Text>
             <Text
               style={{
-                color: "#C2CDDD",
+                color: "#D1D1D1",
                 fontSize: 15,
                 lineHeight: 23,
                 textAlign: "center",
@@ -5524,14 +5507,14 @@ export default function App() {
               onPress={() => finishWelcome("register")}
               activeOpacity={0.85}
               style={{
-                backgroundColor: "#4DA8FF",
+                backgroundColor: "#0095F6",
                 borderRadius: 16,
                 paddingVertical: 17,
                 alignItems: "center",
               }}
             >
               <Text
-                style={{ color: "#101827", fontSize: 16, fontWeight: "800" }}
+                style={{ color: "#000000", fontSize: 16, fontWeight: "800" }}
               >
                 Get Started
               </Text>
@@ -5563,27 +5546,20 @@ export default function App() {
     return (
       <SafeAreaView style={styles.screen}>
         <StatusBar style="dark" hidden={false} translucent={false} />
-        <View
-          style={{ flex: 1, justifyContent: "center", paddingHorizontal: 28 }}
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingVertical: 30 }}
         >
-          <Text
-            style={{
-              fontSize: 30,
-              fontWeight: "800",
-              color: "#F4EFFA",
-              marginBottom: 8,
-            }}
-          >
-            Bhumi Social AI
-          </Text>
-          <Text style={{ color: "#B8AACB", marginBottom: 26 }}>
-            {authMode === "register"
-              ? "Create your account"
-              : "Sign in to your account"}
-          </Text>
+          <View style={{ alignItems: "center", marginBottom: 28 }}>
+            <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 76, height: 76, marginBottom: 14 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
+            <Text style={{ fontSize: 27, fontWeight: "800", color: "#FFFFFF", letterSpacing: -0.6 }}>Bhumi Social AI</Text>
+            <Text style={{ color: "#A8A8A8", marginTop: 7, fontSize: 13 }}>
+              {authMode === "register" ? "Create your account and connect" : "Welcome back. Sign in to continue."}
+            </Text>
+          </View>
           {authMode === "register" ? (
             <>
-              <Text style={{ color: "#F4EFFA", fontWeight: "700", marginBottom: 9 }}>
+              <Text style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 9 }}>
                 Choose account type
               </Text>
               <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
@@ -5598,19 +5574,19 @@ export default function App() {
                       key={item.key}
                       onPress={() => setAuthAccountType(item.key)}
                       disabled={authBusy}
-                      style={{ flex: 1, minHeight: 76, paddingVertical: 12, paddingHorizontal: 5, borderRadius: 12, borderWidth: 1.5, borderColor: active ? "#D8B86A" : "#49345F", backgroundColor: active ? "rgba(216,184,106,0.14)" : "#171020", alignItems: "center", justifyContent: "center" }}
+                      style={{ flex: 1, minHeight: 76, paddingVertical: 12, paddingHorizontal: 5, borderRadius: 12, borderWidth: 1.5, borderColor: active ? "#0095F6" : "#262626", backgroundColor: active ? "rgba(216,184,106,0.14)" : "#121212", alignItems: "center", justifyContent: "center" }}
                     >
-                      <Ionicons name={item.icon} size={21} color={active ? "#D8B86A" : "#B8AACB"} />
-                      <Text style={{ color: active ? "#D8B86A" : "#F4EFFA", fontSize: 12, fontWeight: "800", marginTop: 5 }}>{item.title}</Text>
+                      <Ionicons name={item.icon} size={21} color={active ? "#0095F6" : "#A8A8A8"} />
+                      <Text style={{ color: active ? "#0095F6" : "#FFFFFF", fontSize: 12, fontWeight: "800", marginTop: 5 }}>{item.title}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
-              <Text style={{ color: "#B8AACB", fontSize: 11, lineHeight: 16, marginBottom: 13 }}>
+              <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 13 }}>
                 Creator accounts are for public creator profiles. Business accounts unlock Business Studio after signup.
               </Text>
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 Full Name
               </Text>
@@ -5622,15 +5598,16 @@ export default function App() {
                 editable={!authBusy}
                 style={{
                   borderWidth: 1,
-                  borderColor: "#49345F",
-                  borderRadius: 8,
+                  borderColor: "#262626",
+                  borderRadius: 10,
+                  backgroundColor: "#121212",
                   padding: 13,
                   marginBottom: 12,
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                 }}
               />
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 Username
               </Text>
@@ -5643,15 +5620,15 @@ export default function App() {
                 editable={!authBusy}
                 style={{
                   borderWidth: 1,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   borderRadius: 8,
                   padding: 13,
                   marginBottom: 12,
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                 }}
               />
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 Email address
               </Text>
@@ -5665,18 +5642,18 @@ export default function App() {
                 editable={!authBusy}
                 style={{
                   borderWidth: 1,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   borderRadius: 8,
                   padding: 13,
                   marginBottom: 12,
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                 }}
               />
             </>
           ) : (
             <>
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 Email or username
               </Text>
@@ -5689,11 +5666,11 @@ export default function App() {
                 editable={!authBusy}
                 style={{
                   borderWidth: 1,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   borderRadius: 8,
                   padding: 13,
                   marginBottom: 12,
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                 }}
               />
             </>
@@ -5701,7 +5678,7 @@ export default function App() {
           {authMode === "register" && (
             <>
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 Mobile number
               </Text>
@@ -5713,17 +5690,17 @@ export default function App() {
                 editable={!authBusy}
                 style={{
                   borderWidth: 1,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   borderRadius: 8,
                   padding: 13,
                   marginBottom: 12,
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                 }}
               />
             </>
           )}
           <Text
-            style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+            style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
           >
             Password (4 to 24 characters)
           </Text>
@@ -5737,17 +5714,18 @@ export default function App() {
             onSubmitEditing={submitAuth}
             style={{
               borderWidth: 1,
-              borderColor: "#49345F",
-              borderRadius: 8,
+              borderColor: "#262626",
+              borderRadius: 10,
+              backgroundColor: "#121212",
               padding: 13,
               marginBottom: 16,
-              color: "#F4EFFA",
+              color: "#FFFFFF",
             }}
           />
           {authMode === "register" && (
             <>
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "600", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 Confirm password
               </Text>
@@ -5760,11 +5738,11 @@ export default function App() {
                 editable={!authBusy}
                 style={{
                   borderWidth: 1,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   borderRadius: 8,
                   padding: 13,
                   marginBottom: 16,
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                 }}
               />
             </>
@@ -5773,8 +5751,8 @@ export default function App() {
             onPress={submitAuth}
             disabled={authBusy}
             style={{
-              backgroundColor: "#6D28D9",
-              borderRadius: 8,
+              backgroundColor: "#0095F6",
+              borderRadius: 10,
               padding: 14,
               alignItems: "center",
             }}
@@ -5804,16 +5782,16 @@ export default function App() {
                 disabled={authBusy}
                 style={{ padding: 8, alignItems: "center" }}
               >
-                <Text style={{ color: "#D8B86A" }}>Forgot password?</Text>
+                <Text style={{ color: "#0095F6" }}>Forgot password?</Text>
               </TouchableOpacity>
             )}
-            <Text style={{ color: "#D8B86A" }}>
+            <Text style={{ color: "#0095F6" }}>
               {authMode === "login"
                 ? "Create a new account"
                 : "Already have an account? Log in"}
             </Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -5830,7 +5808,7 @@ export default function App() {
         presentationStyle="fullScreen"
         onRequestClose={() => setLiveCameraOpen(false)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#08050D" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 18, paddingVertical: 14 }}>
             <TouchableOpacity onPress={() => setLiveCameraOpen(false)}>
               <Ionicons name="close" size={28} color="#FFFFFF" />
@@ -5982,7 +5960,7 @@ export default function App() {
             </Text>
           </TouchableOpacity>
           <View
-            style={{ flex: 1, backgroundColor: "#08050D", overflow: "hidden" }}
+            style={{ flex: 1, backgroundColor: "#000000", overflow: "hidden" }}
           >
             {recordedPhoto ? (
               <Image
@@ -6086,7 +6064,7 @@ export default function App() {
                 <TouchableOpacity
                   onPress={recordedPhoto ? useRecordedPhoto : useRecordedVideo}
                   style={{
-                    backgroundColor: "#6D28D9",
+                    backgroundColor: "#0095F6",
                     borderRadius: 24,
                     paddingHorizontal: 26,
                     paddingVertical: 13,
@@ -6111,7 +6089,7 @@ export default function App() {
                   height: 72,
                   borderRadius: 36,
                   borderWidth: 5,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -6121,7 +6099,7 @@ export default function App() {
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: "#100B19",
+                    backgroundColor: "#000000",
                   }}
                 />
               </TouchableOpacity>
@@ -6135,7 +6113,7 @@ export default function App() {
                   height: 72,
                   borderRadius: 36,
                   borderWidth: 5,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -6163,7 +6141,7 @@ export default function App() {
         <SafeAreaView
           style={{
             flex: 1,
-            backgroundColor: "#08050D",
+            backgroundColor: "#000000",
           }}
         >
           <View
@@ -6174,7 +6152,7 @@ export default function App() {
               paddingHorizontal: 14,
               paddingVertical: 10,
               borderBottomWidth: 1,
-              borderBottomColor: "#49345F",
+              borderBottomColor: "#262626",
               display: mediaDraft?.kind === "stories" ? "none" : "flex",
             }}
           >
@@ -6182,9 +6160,9 @@ export default function App() {
               onPress={cancelDraftMedia}
               style={{ paddingVertical: 8, paddingRight: 12 }}
             >
-              <Text style={{ color: "#D8B86A", fontSize: 16 }}>Cancel</Text>
+              <Text style={{ color: "#0095F6", fontSize: 16 }}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ color: "#F4EFFA", fontSize: 17, fontWeight: "700" }}>
+            <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "700" }}>
               {mediaDraft?.kind === "stories"
                 ? "Edit Story"
                 : mediaDraft?.kind === "reels"
@@ -6205,13 +6183,13 @@ export default function App() {
 
               if (mediaDraft.kind === "stories") {
                 return (
-                  <View style={{ flex: 1, backgroundColor: "#08050D" }}>
+                  <View style={{ flex: 1, backgroundColor: "#000000" }}>
                     <View
                       style={{
                         flex: 1,
                         position: "relative",
                         overflow: "hidden",
-                        backgroundColor: "#08050D",
+                        backgroundColor: "#000000",
                       }}
                     >
                       {isVideo ? (
@@ -6242,12 +6220,12 @@ export default function App() {
                       ) : null}
                       {!isVideo ? (
                         <View style={{ position: "absolute", top: 14, right: 14, alignItems: "center", gap: 10 }}>
-                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 48, height: 48, borderRadius: 17, borderWidth: 1, borderColor: "#FFE7A3", backgroundColor: "rgba(20,12,32,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#D7AE55", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
-                            <Ionicons name="musical-notes" size={22} color="#F5D88A" />
+                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 48, height: 48, borderRadius: 17, borderWidth: 1, borderColor: "#7CC4FF", backgroundColor: "rgba(18,18,18,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#0095F6", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
+                            <Ionicons name="musical-notes" size={22} color="#FFFFFF" />
                           </TouchableOpacity>
                           {musicAsset ? (
-                            <TouchableOpacity onPress={() => musicPlayerStatus.playing ? musicPlayer.pause() : musicPlayer.play()} style={{ width: 42, height: 42, borderRadius: 15, backgroundColor: "rgba(20,12,32,0.94)", borderWidth: 1, borderColor: "#D7AE55", alignItems: "center", justifyContent: "center" }}>
-                              <Ionicons name={musicPlayerStatus.playing ? "pause" : "play"} size={19} color="#F5D88A" />
+                            <TouchableOpacity onPress={() => musicPlayerStatus.playing ? musicPlayer.pause() : musicPlayer.play()} style={{ width: 42, height: 42, borderRadius: 15, backgroundColor: "rgba(18,18,18,0.94)", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center" }}>
+                              <Ionicons name={musicPlayerStatus.playing ? "pause" : "play"} size={19} color="#FFFFFF" />
                             </TouchableOpacity>
                           ) : null}
                         </View>
@@ -6258,8 +6236,8 @@ export default function App() {
                             {VIDEO_FILTERS.map((filter, index) => {
                               const selected = videoFilterIndex === index;
                               return (
-                                <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ width: 60, height: 62, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(215,174,85,0.25)" : "rgba(20,12,32,0.92)", borderWidth: 1, borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.5)", shadowColor: "#D7AE55", shadowOpacity: selected ? 0.5 : 0.16, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
-                                  <Ionicons name="color-filter-outline" size={20} color={selected ? "#FFE7A3" : "#D8B86A"} />
+                                <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ width: 60, height: 62, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(0,149,246,0.22)" : "rgba(18,18,18,0.92)", borderWidth: 1, borderColor: selected ? "#7CC4FF" : "rgba(0,149,246,0.48)", shadowColor: "#0095F6", shadowOpacity: selected ? 0.5 : 0.16, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
+                                  <Ionicons name="color-filter-outline" size={20} color={selected ? "#7CC4FF" : "#0095F6"} />
                                   <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700", marginTop: 3 }}>{filter.name}</Text>
                                 </TouchableOpacity>
                               );
@@ -6269,18 +6247,18 @@ export default function App() {
                             {VOICE_EFFECTS.map((effect) => {
                               const selected = voiceEffect === effect.name;
                               return (
-                                <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ minWidth: 62, height: 54, paddingHorizontal: 7, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(215,174,85,0.25)" : "rgba(20,12,32,0.92)", borderWidth: 1, borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.5)" }}>
-                                  <Ionicons name="mic-outline" size={19} color={selected ? "#FFE7A3" : "#D8B86A"} />
+                                <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ minWidth: 62, height: 54, paddingHorizontal: 7, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(0,149,246,0.22)" : "rgba(18,18,18,0.92)", borderWidth: 1, borderColor: selected ? "#7CC4FF" : "rgba(0,149,246,0.48)" }}>
+                                  <Ionicons name="mic-outline" size={19} color={selected ? "#7CC4FF" : "#0095F6"} />
                                   <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700", marginTop: 2 }}>{effect.name}</Text>
                                 </TouchableOpacity>
                               );
                             })}
                           </ScrollView>
-                          <TouchableOpacity onPress={() => setZoomEffectEnabled((value) => !value)} style={{ width: 44, height: 44, borderRadius: 15, borderWidth: 1, borderColor: zoomEffectEnabled ? "#FFE7A3" : "#D7AE55", backgroundColor: "rgba(20,12,32,0.92)", alignItems: "center", justifyContent: "center" }}>
-                            <Ionicons name="scan-outline" size={21} color="#F5D88A" />
+                          <TouchableOpacity onPress={() => setZoomEffectEnabled((value) => !value)} style={{ width: 44, height: 44, borderRadius: 15, borderWidth: 1, borderColor: zoomEffectEnabled ? "#7CC4FF" : "#0095F6", backgroundColor: "rgba(18,18,18,0.92)", alignItems: "center", justifyContent: "center" }}>
+                            <Ionicons name="scan-outline" size={21} color="#FFFFFF" />
                           </TouchableOpacity>
-                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 46, height: 46, borderRadius: 16, borderWidth: 1, borderColor: "#FFE7A3", backgroundColor: "rgba(20,12,32,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#D7AE55", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
-                            <Ionicons name="musical-notes" size={22} color="#F5D88A" />
+                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 46, height: 46, borderRadius: 16, borderWidth: 1, borderColor: "#7CC4FF", backgroundColor: "rgba(18,18,18,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#0095F6", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
+                            <Ionicons name="musical-notes" size={22} color="#FFFFFF" />
                           </TouchableOpacity>
                           {musicAsset ? (
                             <TouchableOpacity onPress={() => musicPlayerStatus.playing ? musicPlayer.pause() : musicPlayer.play()} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.65)" }}>
@@ -6308,8 +6286,8 @@ export default function App() {
                             {POST_PHOTO_FILTERS.map((filter, index) => {
                               const selected = Number(asset.photoFilterIndex || 0) === index;
                               return (
-                                <TouchableOpacity key={filter.name} disabled={busy} onPress={() => handlePhotoEdit(`filter:${index}`)} style={{ width: 62, height: 62, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(215,174,85,0.24)" : "rgba(20,12,32,0.88)", borderWidth: 1, borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.55)", shadowColor: "#D7AE55", shadowOpacity: selected ? 0.5 : 0.18, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
-                                  <Ionicons name="color-filter-outline" size={21} color={selected ? "#FFE7A3" : "#D8B86A"} />
+                                <TouchableOpacity key={filter.name} disabled={busy} onPress={() => handlePhotoEdit(`filter:${index}`)} style={{ width: 62, height: 62, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(0,149,246,0.22)" : "rgba(18,18,18,0.88)", borderWidth: 1, borderColor: selected ? "#7CC4FF" : "rgba(0,149,246,0.48)", shadowColor: "#0095F6", shadowOpacity: selected ? 0.5 : 0.18, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
+                                  <Ionicons name="color-filter-outline" size={21} color={selected ? "#7CC4FF" : "#0095F6"} />
                                   <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700", marginTop: 3 }}>{filter.name}</Text>
                                 </TouchableOpacity>
                               );
@@ -6328,10 +6306,10 @@ export default function App() {
                           width: 42,
                           height: 42,
                           borderRadius: 21,
-                          backgroundColor: "rgba(20,12,32,0.92)",
+                          backgroundColor: "rgba(18,18,18,0.92)",
                           borderWidth: 1,
-                          borderColor: "#D7AE55",
-                          shadowColor: "#D7AE55",
+                          borderColor: "#0095F6",
+                          shadowColor: "#0095F6",
                           shadowOpacity: 0.5,
                           shadowRadius: 12,
                           elevation: 8,
@@ -6382,10 +6360,10 @@ export default function App() {
                                 width: 50,
                                 height: 50,
                                 borderRadius: 25,
-                                backgroundColor: "rgba(20,12,32,0.94)",
+                                backgroundColor: "rgba(18,18,18,0.94)",
                                 borderWidth: 1,
-                                borderColor: "#D7AE55",
-                                shadowColor: "#D7AE55",
+                                borderColor: "#0095F6",
+                                shadowColor: "#0095F6",
                                 shadowOpacity: 0.5,
                                 shadowRadius: 10,
                                 elevation: 7,
@@ -6396,7 +6374,7 @@ export default function App() {
                               <Ionicons
                                 name={tool.icon}
                                 size={23}
-                                color="#F5D88A"
+                                color="#FFFFFF"
                               />
                             </TouchableOpacity>
                           ))}
@@ -6450,14 +6428,14 @@ export default function App() {
                             marginRight: 8,
                             height: 48,
                             borderRadius: 25,
-                            backgroundColor: "#D8B86A",
+                            backgroundColor: "#0095F6",
                             alignItems: "center",
                             justifyContent: "center",
                           }}
                         >
                           <Text
                             style={{
-                              color: "#1A1028",
+                              color: "#121212",
                               fontSize: 14,
                               fontWeight: "700",
                             }}
@@ -6498,10 +6476,10 @@ export default function App() {
                             height: 50,
                             marginLeft: 8,
                             borderRadius: 25,
-                            backgroundColor: "#D7AE55",
+                            backgroundColor: "#0095F6",
                             borderWidth: 1,
-                            borderColor: "#FFE7A3",
-                            shadowColor: "#D7AE55",
+                            borderColor: "#7CC4FF",
+                            shadowColor: "#0095F6",
                             shadowOpacity: 0.65,
                             shadowRadius: 12,
                             elevation: 9,
@@ -6509,7 +6487,7 @@ export default function App() {
                             justifyContent: "center",
                           }}
                         >
-                          <Ionicons name="sparkles" size={25} color="#24172D" />
+                          <Ionicons name="sparkles" size={25} color="#FFFFFF" />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -6650,15 +6628,15 @@ export default function App() {
                         <View style={{ width: "100%", marginTop: 6, gap: 7 }}>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
                             {VIDEO_FILTERS.map((filter, index) => (
-                              <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#D8B86A" : "rgba(0,0,0,0.78)" }}>
-                                <Text style={{ color: videoFilterIndex === index ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}</Text>
+                              <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#0095F6" : "rgba(0,0,0,0.78)" }}>
+                                <Text style={{ color: videoFilterIndex === index ? "#121212" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}</Text>
                               </TouchableOpacity>
                             ))}
                           </ScrollView>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
                             {VOICE_EFFECTS.map((effect) => (
-                              <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: voiceEffect === effect.name ? "#D8B86A" : "rgba(0,0,0,0.78)" }}>
-                                <Text style={{ color: voiceEffect === effect.name ? "#1A1028" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{effect.name} Voice</Text>
+                              <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: voiceEffect === effect.name ? "#0095F6" : "rgba(0,0,0,0.78)" }}>
+                                <Text style={{ color: voiceEffect === effect.name ? "#121212" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{effect.name} Voice</Text>
                               </TouchableOpacity>
                             ))}
                           </ScrollView>
@@ -6669,7 +6647,7 @@ export default function App() {
                   {!isVideo && (
                     <View style={{ paddingTop: 12, paddingBottom: 8 }}>
                       <Text style={{
-                        color: "#F4EFFA",
+                        color: "#FFFFFF",
                         fontSize: 13,
                         fontWeight: "700",
                         paddingHorizontal: 12,
@@ -6695,10 +6673,10 @@ export default function App() {
                                 paddingVertical: 10,
                                 borderRadius: 16,
                                 alignItems: "center",
-                                backgroundColor: selected ? "#D7AE55" : "#170F22",
+                                backgroundColor: selected ? "#0095F6" : "#121212",
                                 borderWidth: 1,
-                                borderColor: selected ? "#FFE7A3" : "rgba(215,174,85,0.48)",
-                                shadowColor: "#D7AE55",
+                                borderColor: selected ? "#7CC4FF" : "rgba(0,149,246,0.48)",
+                                shadowColor: "#0095F6",
                                 shadowOpacity: selected ? 0.55 : 0.12,
                                 shadowRadius: selected ? 9 : 3,
                                 elevation: selected ? 6 : 1,
@@ -6706,7 +6684,7 @@ export default function App() {
                               }}
                             >
                               <Text style={{
-                                color: selected ? "#24172D" : "#F5EBD2",
+                                color: selected ? "#FFFFFF" : "#E5E5E5",
                                 fontSize: 12,
                                 fontWeight: selected ? "700" : "500",
                               }}>
@@ -6739,11 +6717,11 @@ export default function App() {
                         }}
                         style={{ padding: 10 }}
                       >
-                        <Text style={{ color: "#D8B86A", fontSize: 16 }}>
+                        <Text style={{ color: "#0095F6", fontSize: 16 }}>
                           Previous
                         </Text>
                       </TouchableOpacity>
-                      <Text style={{ color: "#B8AACB" }}>
+                      <Text style={{ color: "#A8A8A8" }}>
                         {mediaDraftIndex + 1} / {assets.length}
                       </Text>
                       <TouchableOpacity
@@ -6760,7 +6738,7 @@ export default function App() {
                         }}
                         style={{ padding: 10 }}
                       >
-                        <Text style={{ color: "#D8B86A", fontSize: 16 }}>
+                        <Text style={{ color: "#0095F6", fontSize: 16 }}>
                           Next
                         </Text>
                       </TouchableOpacity>
@@ -6777,11 +6755,11 @@ export default function App() {
                       minHeight: 48,
                       maxHeight: 110,
                       borderWidth: 1,
-                      borderColor: "#49345F",
+                      borderColor: "#262626",
                       borderRadius: 10,
                       padding: 12,
                       marginTop: 8,
-                      color: "#F4EFFA",
+                      color: "#FFFFFF",
                     }}
                   />
                   {mentionSuggestionList}
@@ -6793,11 +6771,11 @@ export default function App() {
                         style={{
                           padding: 11,
                           borderWidth: 1,
-                          borderColor: "#49345F",
+                          borderColor: "#262626",
                           borderRadius: 8,
                         }}
                       >
-                        <Text style={{ color: "#D8B86A", fontWeight: "600" }}>
+                        <Text style={{ color: "#0095F6", fontWeight: "600" }}>
                           {musicAsset
                             ? `Music: ${musicAsset.name || "Selected"} · Change Music`
                             : "♫ Choose Music File"}
@@ -6816,11 +6794,11 @@ export default function App() {
                             marginTop: 8,
                             padding: 10,
                             borderWidth: 1,
-                            borderColor: "#49345F",
+                            borderColor: "#262626",
                             borderRadius: 8,
                           }}
                         >
-                          <Text style={{ color: "#D8B86A", fontWeight: "600" }}>
+                          <Text style={{ color: "#0095F6", fontWeight: "600" }}>
                             {musicPlayerStatus.playing
                               ? "Ⅱ Pause Music Preview"
                               : "▶ Preview Music"}
@@ -6829,7 +6807,7 @@ export default function App() {
                       )}
                       {musicAsset && (
                         <View style={{ paddingTop: 8 }}>
-                          <Text style={{ color: "#F4EFFA" }}>
+                          <Text style={{ color: "#FFFFFF" }}>
                             Music volume: {Math.round(musicVolume * 100)}%
                           </Text>
                           <View
@@ -6847,11 +6825,11 @@ export default function App() {
                               style={{
                                 padding: 10,
                                 borderWidth: 1,
-                                borderColor: "#49345F",
+                                borderColor: "#262626",
                                 borderRadius: 8,
                               }}
                             >
-                              <Text style={{ color: "#D8B86A" }}>−</Text>
+                              <Text style={{ color: "#0095F6" }}>−</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() =>
@@ -6863,11 +6841,11 @@ export default function App() {
                                 padding: 10,
                                 marginLeft: 8,
                                 borderWidth: 1,
-                                borderColor: "#49345F",
+                                borderColor: "#262626",
                                 borderRadius: 8,
                               }}
                             >
-                              <Text style={{ color: "#D8B86A" }}>＋</Text>
+                              <Text style={{ color: "#0095F6" }}>＋</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() => {
@@ -6882,7 +6860,7 @@ export default function App() {
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <Text style={{ color: "#F4EFFA", paddingTop: 6 }}>
+                          <Text style={{ color: "#FFFFFF", paddingTop: 6 }}>
                             Music start: {musicStart}s
                           </Text>
                           <View
@@ -6898,11 +6876,11 @@ export default function App() {
                               style={{
                                 padding: 10,
                                 borderWidth: 1,
-                                borderColor: "#49345F",
+                                borderColor: "#262626",
                                 borderRadius: 8,
                               }}
                             >
-                              <Text style={{ color: "#D8B86A" }}>−5s</Text>
+                              <Text style={{ color: "#0095F6" }}>−5s</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() => setMusicStart((v) => v + 5)}
@@ -6910,11 +6888,11 @@ export default function App() {
                                 padding: 10,
                                 marginLeft: 8,
                                 borderWidth: 1,
-                                borderColor: "#49345F",
+                                borderColor: "#262626",
                                 borderRadius: 8,
                               }}
                             >
-                              <Text style={{ color: "#D8B86A" }}>＋5s</Text>
+                              <Text style={{ color: "#0095F6" }}>＋5s</Text>
                             </TouchableOpacity>
                           </View>
                           <TouchableOpacity
@@ -6922,7 +6900,7 @@ export default function App() {
                             style={{ paddingVertical: 9 }}
                           >
                             <Text
-                              style={{ color: "#D8B86A", fontWeight: "600" }}
+                              style={{ color: "#0095F6", fontWeight: "600" }}
                             >
                               Original video audio:{" "}
                               {keepOriginalAudio ? "ON" : "OFF"}
@@ -6959,7 +6937,7 @@ export default function App() {
                       </TouchableOpacity>
                       {zoomEffectEnabled && (
                         <View style={{ paddingTop: 8 }}>
-                          <Text style={{ color: "#F4EFFA" }}>
+                          <Text style={{ color: "#FFFFFF" }}>
                             Zoom level: {zoomEffectLevel.toFixed(1)}x
                           </Text>
                           <View
@@ -6978,11 +6956,11 @@ export default function App() {
                               style={{
                                 padding: 10,
                                 borderWidth: 1,
-                                borderColor: "#49345F",
+                                borderColor: "#262626",
                                 borderRadius: 8,
                               }}
                             >
-                              <Text style={{ color: "#D8B86A" }}>−</Text>
+                              <Text style={{ color: "#0095F6" }}>−</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() =>
@@ -6994,14 +6972,14 @@ export default function App() {
                                 padding: 10,
                                 marginLeft: 8,
                                 borderWidth: 1,
-                                borderColor: "#49345F",
+                                borderColor: "#262626",
                                 borderRadius: 8,
                               }}
                             >
-                              <Text style={{ color: "#D8B86A" }}>＋</Text>
+                              <Text style={{ color: "#0095F6" }}>＋</Text>
                             </TouchableOpacity>
                           </View>
-                          <Text style={{ color: "#F4EFFA", paddingTop: 8 }}>
+                          <Text style={{ color: "#FFFFFF", paddingTop: 8 }}>
                             Effect duration: {zoomEffectDuration}s
                           </Text>
                           <View
@@ -7018,11 +6996,11 @@ export default function App() {
                               style={{
                                 padding: 10,
                                 borderWidth: 1,
-                                borderColor: "#49345F",
+                                borderColor: "#262626",
                                 borderRadius: 8,
                               }}
                             >
-                              <Text style={{ color: "#D8B86A" }}>−</Text>
+                              <Text style={{ color: "#0095F6" }}>−</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() =>
@@ -7034,16 +7012,16 @@ export default function App() {
                                 padding: 10,
                                 marginLeft: 8,
                                 borderWidth: 1,
-                                borderColor: "#49345F",
+                                borderColor: "#262626",
                                 borderRadius: 8,
                               }}
                             >
-                              <Text style={{ color: "#D8B86A" }}>＋</Text>
+                              <Text style={{ color: "#0095F6" }}>＋</Text>
                             </TouchableOpacity>
                           </View>
                           <Text
                             style={{
-                              color: "#B8AACB",
+                              color: "#A8A8A8",
                               fontSize: 12,
                               paddingTop: 6,
                             }}
@@ -7063,8 +7041,8 @@ export default function App() {
                       paddingTop: 10,
                       paddingBottom: 22,
                       borderTopWidth: 1,
-                      borderTopColor: "#49345F",
-                      backgroundColor: "#100B19",
+                      borderTopColor: "#262626",
+                      backgroundColor: "#000000",
                       display: mediaDraft?.kind === "stories" ? "none" : "flex",
                     }}
                   >
@@ -7076,9 +7054,9 @@ export default function App() {
                         alignItems: "center",
                         justifyContent: "center",
                         paddingVertical: 14,
-                        backgroundColor: "#6D28D9",
+                        backgroundColor: "#0095F6",
                         borderWidth: 1,
-                        borderColor: "#D8B86A",
+                        borderColor: "#0095F6",
                         borderRadius: 10,
                         opacity: busy ? 0.6 : 1,
                       }}
@@ -7106,12 +7084,12 @@ export default function App() {
         </Text>
       )}
       {activeTab !== "Reels" && busy && (
-        <Text style={{ padding: 5, color: "#D8B86A" }}>Uploading media…</Text>
+        <Text style={{ padding: 5, color: "#0095F6" }}>Uploading media…</Text>
       )}
 
       {activeTab === "Reels" ? (
         <View
-          style={{ flex: 1, backgroundColor: "#08050D" }}
+          style={{ flex: 1, backgroundColor: "#000000" }}
           onLayout={(event) => {
             const height = event.nativeEvent.layout.height;
             if (height > 0 && height !== reelViewportHeight)
@@ -7186,7 +7164,7 @@ export default function App() {
                     style={{
                       width: "100%",
                       height: rowHeight,
-                      backgroundColor: "#08050D",
+                      backgroundColor: "#000000",
                       overflow: "hidden",
                     }}
                   >
@@ -7224,7 +7202,7 @@ export default function App() {
                       >
                         {username.toLowerCase() === String(authSession?.username || "").toLowerCase() && hasServerId ? (
                           <TouchableOpacity onPress={() => requestDeleteContent("reels", r)} accessibilityLabel="Delete your reel" style={{ width: 42, height: 42, borderRadius: 22, backgroundColor: "rgba(0,0,0,0.48)", alignItems: "center", justifyContent: "center", marginRight: 8 }}>
-                            <Ionicons name="trash-outline" size={20} color="#D8B86A" />
+                            <Ionicons name="trash-outline" size={20} color="#0095F6" />
                           </TouchableOpacity>
                         ) : null}
                         <TouchableOpacity
@@ -7294,7 +7272,7 @@ export default function App() {
                                 marginTop: 10,
                                 alignSelf: "flex-start",
                                 borderWidth: 1,
-                                borderColor: "#49345F",
+                                borderColor: "#262626",
                                 borderRadius: 8,
                                 paddingHorizontal: 14,
                                 paddingVertical: 7,
@@ -7441,7 +7419,7 @@ export default function App() {
             >
               <Text style={{ color: "#FFFFFF" }}>No reels yet.</Text>
               <TouchableOpacity onPress={createReel} style={{ padding: 14 }}>
-                <Text style={{ color: "#D8B86A", fontWeight: "700" }}>
+                <Text style={{ color: "#0095F6", fontWeight: "700" }}>
                   Upload Reel
                 </Text>
               </TouchableOpacity>
@@ -7489,9 +7467,9 @@ export default function App() {
                               width: 23,
                               height: 23,
                               borderRadius: 12,
-                              backgroundColor: "#21162F",
+                              backgroundColor: "#1C1C1E",
                               borderWidth: 2,
-                              borderColor: "#49345F",
+                              borderColor: "#262626",
                               alignItems: "center",
                               justifyContent: "center",
                             }}
@@ -7629,7 +7607,7 @@ export default function App() {
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ color: "#B8AACB" }}>No posts yet.</Text>
+                  <Text style={{ color: "#A8A8A8" }}>No posts yet.</Text>
                 </View>
               }
             />
@@ -7643,7 +7621,7 @@ export default function App() {
         >
           <Text
             style={{
-              color: "#F4EFFA",
+              color: "#FFFFFF",
               fontSize: 26,
               fontWeight: "800",
               marginBottom: 16,
@@ -7655,7 +7633,7 @@ export default function App() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: "#21162F",
+              backgroundColor: "#1C1C1E",
               borderRadius: 12,
               paddingHorizontal: 14,
               marginBottom: 18,
@@ -7668,7 +7646,7 @@ export default function App() {
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholder="Search people by name or username"
-              placeholderTextColor="#A997B8"
+              placeholderTextColor="#A8A8A8"
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="search"
@@ -7676,7 +7654,7 @@ export default function App() {
                 flex: 1,
                 paddingVertical: 14,
                 paddingHorizontal: 10,
-                color: "#F4EFFA",
+                color: "#FFFFFF",
                 fontSize: 15,
               }}
             />
@@ -7690,11 +7668,11 @@ export default function App() {
             )}
           </View>
           {searchQuery.trim().length < 2 ? (
-            <Text style={{ color: "#B8AACB", paddingVertical: 12 }}>
+            <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
               Enter at least 2 characters to search for people.
             </Text>
           ) : searchLoading ? (
-            <Text style={{ color: "#B8AACB", paddingVertical: 12 }}>
+            <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
               Searching...
             </Text>
           ) : searchError ? (
@@ -7702,7 +7680,7 @@ export default function App() {
               {searchError}
             </Text>
           ) : searchResults.length === 0 ? (
-            <Text style={{ color: "#B8AACB", paddingVertical: 12 }}>
+            <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
               No users found.
             </Text>
           ) : (
@@ -7714,7 +7692,7 @@ export default function App() {
                   alignItems: "center",
                   paddingVertical: 13,
                   borderBottomWidth: 1,
-                  borderBottomColor: "#49345F",
+                  borderBottomColor: "#262626",
                 }}
               >
                 <TouchableOpacity
@@ -7748,14 +7726,14 @@ export default function App() {
                         width: 48,
                         height: 48,
                         borderRadius: 24,
-                        backgroundColor: "#DDE7F5",
+                        backgroundColor: "#262626",
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
                       <Text
                         style={{
-                          color: "#34415A",
+                          color: "#FFFFFF",
                           fontSize: 20,
                           fontWeight: "700",
                         }}
@@ -7769,7 +7747,7 @@ export default function App() {
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text
                       style={{
-                        color: "#F4EFFA",
+                        color: "#FFFFFF",
                         fontWeight: "700",
                         fontSize: 15,
                       }}
@@ -7777,7 +7755,7 @@ export default function App() {
                       {item.displayName || item.username}
                     </Text>
                     <Text
-                      style={{ color: "#B8AACB", fontSize: 13, marginTop: 3 }}
+                      style={{ color: "#A8A8A8", fontSize: 13, marginTop: 3 }}
                     >
                       @{item.username}
                     </Text>
@@ -7894,7 +7872,7 @@ export default function App() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
         >
           {!profile ? (
-            <Text style={{ color: "#B8AACB", textAlign: "center", padding: 24 }}>
+            <Text style={{ color: "#A8A8A8", textAlign: "center", padding: 24 }}>
               Loading profile…
             </Text>
           ) : (
@@ -7922,7 +7900,7 @@ export default function App() {
                       height: 96,
                       borderRadius: 48,
                       borderWidth: 3,
-                      borderColor: "#D8B86A",
+                      borderColor: "#0095F6",
                       padding: 2,
                       alignItems: "center",
                       justifyContent: "center",
@@ -7957,14 +7935,14 @@ export default function App() {
                           width: 108,
                           height: 108,
                           borderRadius: 54,
-                          backgroundColor: "#E8EEFA",
+                          backgroundColor: "#262626",
                           alignItems: "center",
                           justifyContent: "center",
                         }}
                       >
                         <Text
                           style={{
-                            color: "#F4EFFA",
+                            color: "#FFFFFF",
                             fontSize: 32,
                             fontWeight: "700",
                           }}
@@ -7976,7 +7954,7 @@ export default function App() {
                   </View>
                   <Text
                     style={{
-                      color: "#F4EFFA",
+                      color: "#FFFFFF",
                       fontSize: 12,
                       textAlign: "center",
                       marginTop: 5,
@@ -7989,7 +7967,7 @@ export default function App() {
                 <View style={{ flex: 1, marginLeft: 16 }}>
                   <Text
                     style={{
-                      color: "#F4EFFA",
+                      color: "#FFFFFF",
                       fontSize: 21,
                       fontWeight: "800",
                     }}
@@ -7997,7 +7975,7 @@ export default function App() {
                     {profile.displayName || "you"}
                   </Text>
                   <Text
-                    style={{ color: "#B8AACB", marginTop: 5, fontSize: 13 }}
+                    style={{ color: "#A8A8A8", marginTop: 5, fontSize: 13 }}
                   >
                     @{profile.username || "you"}
                   </Text>
@@ -8011,14 +7989,14 @@ export default function App() {
                     <View style={{ alignItems: "center" }}>
                       <Text
                         style={{
-                          color: "#F4EFFA",
+                          color: "#FFFFFF",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
                       >
                         {profile.postsCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#B8AACB", fontSize: 11 }}>
+                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
                         Posts
                       </Text>
                     </View>
@@ -8028,14 +8006,14 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#F4EFFA",
+                          color: "#FFFFFF",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
                       >
                         {profile.followersCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#B8AACB", fontSize: 11 }}>
+                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
                         Followers
                       </Text>
                     </TouchableOpacity>
@@ -8045,14 +8023,14 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#F4EFFA",
+                          color: "#FFFFFF",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
                       >
                         {profile.followingCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#B8AACB", fontSize: 11 }}>
+                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
                         Following
                       </Text>
                     </TouchableOpacity>
@@ -8065,14 +8043,14 @@ export default function App() {
                   style={{
                     marginBottom: 18,
                     padding: 12,
-                    borderWidth: 1,
-                    borderColor: "#49345F",
-                    borderRadius: 14,
+                    borderBottomWidth: 1,
+                    borderColor: "#262626",
+                    borderRadius: 0,
                   }}
                 >
                   <Text
                     style={{
-                      color: "#F4EFFA",
+                      color: "#FFFFFF",
                       fontSize: 15,
                       fontWeight: "800",
                       marginBottom: 10,
@@ -8109,7 +8087,7 @@ export default function App() {
                             paddingVertical: 10,
                             paddingHorizontal: 14,
                             borderRadius: 20,
-                            backgroundColor: "#21162F",
+                            backgroundColor: "#1C1C1E",
                             flexDirection: "row",
                             alignItems: "center",
                             gap: 5,
@@ -8118,9 +8096,9 @@ export default function App() {
                           <Ionicons
                             name="add-circle"
                             size={18}
-                            color="#D8B86A"
+                            color="#0095F6"
                           />
-                          <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>
+                          <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
                             Add Status
                           </Text>
                         </TouchableOpacity>
@@ -8133,7 +8111,7 @@ export default function App() {
               {!!profile.bio && (
                 <Text
                   style={{
-                    color: "#F4EFFA",
+                    color: "#FFFFFF",
                     marginBottom: 20,
                     lineHeight: 23,
                     fontSize: 14,
@@ -8144,65 +8122,65 @@ export default function App() {
               )}
 
               {profile.accountType === "business" && profile.businessProfile && (
-                <View style={{ backgroundColor: "#100B19", borderWidth: 1, borderColor: "#80602E", borderRadius: 18, padding: 15, marginBottom: 18 }}>
+                <View style={{ backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 14, padding: 15, marginBottom: 18 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 9 }}>
-                    <Ionicons name="business" size={20} color="#D8B86A" />
-                    <Text style={{ color: "#D8B86A", fontWeight: "900", fontSize: 16, marginLeft: 8 }}>
+                    <Ionicons name="business" size={20} color="#0095F6" />
+                    <Text style={{ color: "#0095F6", fontWeight: "900", fontSize: 16, marginLeft: 8 }}>
                       {profile.businessProfile.businessName || "Business"}
                     </Text>
-                    <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#80602E", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
-                      <Text style={{ color: "#D8B86A", fontSize: 9, fontWeight: "800" }}>BUSINESS</Text>
+                    <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#363636", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
+                      <Text style={{ color: "#0095F6", fontSize: 9, fontWeight: "800" }}>BUSINESS</Text>
                     </View>
                   </View>
-                  {!!profile.businessProfile.category && <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 6 }}>{profile.businessProfile.category}</Text>}
-                  {!!profile.businessProfile.description && <Text style={{ color: "#F4EFFA", fontSize: 13, lineHeight: 19, marginBottom: 8 }}>{profile.businessProfile.description}</Text>}
+                  {!!profile.businessProfile.category && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 6 }}>{profile.businessProfile.category}</Text>}
+                  {!!profile.businessProfile.description && <Text style={{ color: "#FFFFFF", fontSize: 13, lineHeight: 19, marginBottom: 8 }}>{profile.businessProfile.description}</Text>}
                   {!!(profile.businessProfile.area || profile.businessProfile.city || profile.businessProfile.state) && (
                     <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                      <Ionicons name="location" size={15} color="#D8B86A" />
-                      <Text style={{ color: "#D8CDE7", fontSize: 12, marginLeft: 6 }}>
+                      <Ionicons name="location" size={15} color="#0095F6" />
+                      <Text style={{ color: "#D1D1D1", fontSize: 12, marginLeft: 6 }}>
                         {[profile.businessProfile.area, profile.businessProfile.city, profile.businessProfile.state, profile.businessProfile.pincode].filter(Boolean).join(", ")}
                       </Text>
                     </View>
                   )}
-                  {!!profile.businessProfile.serviceAreas && <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 5 }}>Serving: {profile.businessProfile.serviceAreas}</Text>}
-                  {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 5 }}>Service radius: {profile.businessProfile.serviceRadiusKm} km</Text>}
-                  {!!profile.businessProfile.address && <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 5 }}>Address: {profile.businessProfile.address}</Text>}
-                  {!!profile.businessProfile.openingHours && <Text style={{ color: "#B8AACB", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
-                  {!!profile.businessProfile.phone && <Text style={{ color: "#D8CDE7", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
-                  {!!profile.businessProfile.whatsapp && <Text style={{ color: "#D8CDE7", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
+                  {!!profile.businessProfile.serviceAreas && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Serving: {profile.businessProfile.serviceAreas}</Text>}
+                  {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Service radius: {profile.businessProfile.serviceRadiusKm} km</Text>}
+                  {!!profile.businessProfile.address && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Address: {profile.businessProfile.address}</Text>}
+                  {!!profile.businessProfile.openingHours && <Text style={{ color: "#A8A8A8", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
+                  {!!profile.businessProfile.phone && <Text style={{ color: "#D1D1D1", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
+                  {!!profile.businessProfile.whatsapp && <Text style={{ color: "#D1D1D1", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9 }}>
                     {!!profile.businessProfile.phone && (
-                      <TouchableOpacity onPress={() => Linking.openURL("tel:" + profile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="call" size={14} color="#D8B86A" />
-                        <Text style={{ color: "#F4EFFA", fontSize: 11, marginLeft: 5 }}>Call</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL("tel:" + profile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="call" size={14} color="#0095F6" />
+                        <Text style={{ color: "#FFFFFF", fontSize: 11, marginLeft: 5 }}>Call</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.whatsapp && (
-                      <TouchableOpacity onPress={() => Linking.openURL("https://wa.me/" + profile.businessProfile.whatsapp.replace(/[^0-9]/g, ""))} style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="logo-whatsapp" size={14} color="#D8B86A" />
-                        <Text style={{ color: "#F4EFFA", fontSize: 11, marginLeft: 5 }}>WhatsApp</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL("https://wa.me/" + profile.businessProfile.whatsapp.replace(/[^0-9]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="logo-whatsapp" size={14} color="#0095F6" />
+                        <Text style={{ color: "#FFFFFF", fontSize: 11, marginLeft: 5 }}>WhatsApp</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.email && (
-                      <TouchableOpacity onPress={() => Linking.openURL("mailto:" + profile.businessProfile.email)} style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="mail" size={14} color="#D8B86A" />
-                        <Text style={{ color: "#F4EFFA", fontSize: 11, marginLeft: 5 }}>Email</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL("mailto:" + profile.businessProfile.email)} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="mail" size={14} color="#0095F6" />
+                        <Text style={{ color: "#FFFFFF", fontSize: 11, marginLeft: 5 }}>Email</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.website && (
-                      <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(profile.businessProfile.website) ? profile.businessProfile.website : "https://" + profile.businessProfile.website)} style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="globe-outline" size={14} color="#D8B86A" />
-                        <Text style={{ color: "#F4EFFA", fontSize: 11, marginLeft: 5 }}>Website</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(profile.businessProfile.website) ? profile.businessProfile.website : "https://" + profile.businessProfile.website)} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="globe-outline" size={14} color="#0095F6" />
+                        <Text style={{ color: "#FFFFFF", fontSize: 11, marginLeft: 5 }}>Website</Text>
                       </TouchableOpacity>
                     )}
                   </View>
                   {!!profile.businessCatalog?.length && (
-                    <View style={{ borderTopWidth: 1, borderTopColor: "#49345F", marginTop: 11, paddingTop: 10 }}>
-                      <Text style={{ color: "#D8B86A", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
+                    <View style={{ borderTopWidth: 1, borderTopColor: "#262626", marginTop: 11, paddingTop: 10 }}>
+                      <Text style={{ color: "#0095F6", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
                       {profile.businessCatalog.slice(0, 5).map((item) => (
-                        <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#352443" }}>
-                          <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>{item.title} {item.price ? "· " + item.price : ""}</Text>
-                          {!!item.description && <Text numberOfLines={2} style={{ color: "#B8AACB", fontSize: 11, marginTop: 2 }}>{item.description}</Text>}
+                        <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#262626" }}>
+                          <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{item.title} {item.price ? "· " + item.price : ""}</Text>
+                          {!!item.description && <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}>{item.description}</Text>}
                         </View>
                       ))}
                     </View>
@@ -8212,7 +8190,7 @@ export default function App() {
 
               {profileEditing ? (
                 <View>
-                  <Text style={{ color: "#F4EFFA", marginBottom: 5 }}>
+                  <Text style={{ color: "#FFFFFF", marginBottom: 5 }}>
                     Display Name
                   </Text>
                   <TextInput
@@ -8227,17 +8205,17 @@ export default function App() {
                       borderColor: "#DBDBDB",
                       borderRadius: 12,
                       padding: 11,
-                      color: "#F4EFFA",
+                      color: "#FFFFFF",
                       marginBottom: 12,
                     }}
                   />
-                  <Text style={{ color: "#B8AACB", marginBottom: 5 }}>
+                  <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>
                     Username (स्थायी)
                   </Text>
-                  <Text style={{ color: "#B8AACB", paddingVertical: 10 }}>
+                  <Text style={{ color: "#A8A8A8", paddingVertical: 10 }}>
                     @{profile.username || "you"}
                   </Text>
-                  <Text style={{ color: "#B8AACB", marginBottom: 5 }}>Bio</Text>
+                  <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>Bio</Text>
                   <TextInput
                     value={profileDraft.bio}
                     onChangeText={(v) =>
@@ -8262,9 +8240,9 @@ export default function App() {
                       onPress={saveProfile}
                       disabled={profileBusy}
                       style={{
-                        backgroundColor: "#6D28D9",
+                        backgroundColor: "#0095F6",
                         borderWidth: 1,
-                        borderColor: "#D8B86A",
+                        borderColor: "#0095F6",
                         paddingVertical: 13,
                         paddingHorizontal: 24,
                         borderRadius: 13,
@@ -8285,7 +8263,7 @@ export default function App() {
                       }}
                       style={{ padding: 12 }}
                     >
-                      <Text style={{ color: "#B8AACB" }}>Back</Text>
+                      <Text style={{ color: "#A8A8A8" }}>Back</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -8301,9 +8279,9 @@ export default function App() {
                     onPress={() => setProfileEditing(true)}
                     style={{
                       borderWidth: 1,
-                      borderColor: "#D8B86A",
+                      borderColor: "#0095F6",
                       borderRadius: 14,
-                      backgroundColor: "#6D28D9",
+                      backgroundColor: "#0095F6",
                       paddingVertical: 13,
                       paddingHorizontal: 24,
                       marginRight: 8,
@@ -8339,7 +8317,7 @@ export default function App() {
               <View
                 style={{
                   height: 1,
-                  backgroundColor: "#49345F",
+                  backgroundColor: "#262626",
                   marginTop: 18,
                   marginBottom: 14,
                 }}
@@ -8350,9 +8328,9 @@ export default function App() {
                   marginBottom: 16,
                   padding: 15,
                   borderWidth: 1,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   borderRadius: 17,
-                  backgroundColor: "#100B19",
+                  backgroundColor: "#000000",
                 }}
               >
                 <View
@@ -8365,7 +8343,7 @@ export default function App() {
                 >
                   <Text
                     style={{
-                      color: "#F4EFFA",
+                      color: "#FFFFFF",
                       fontWeight: "800",
                       fontSize: 17,
                     }}
@@ -8376,13 +8354,13 @@ export default function App() {
                     onPress={refreshFollowRequests}
                     disabled={followRequestsBusy}
                   >
-                    <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>
+                    <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
                       {followRequestsBusy ? "Loading…" : "Refresh"}
                     </Text>
                   </TouchableOpacity>
                 </View>
                 {followRequests.length === 0 ? (
-                  <Text style={{ color: "#B8AACB", paddingVertical: 8 }}>
+                  <Text style={{ color: "#A8A8A8", paddingVertical: 8 }}>
                     अभी कोई pending follow request नहीं है।
                   </Text>
                 ) : (
@@ -8394,14 +8372,14 @@ export default function App() {
                         alignItems: "center",
                         paddingVertical: 10,
                         borderTopWidth: 1,
-                        borderTopColor: "#49345F",
+                        borderTopColor: "#262626",
                       }}
                     >
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>
+                        <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
                           {request.displayName || request.username}
                         </Text>
-                        <Text style={{ color: "#B8AACB", fontSize: 12 }}>
+                        <Text style={{ color: "#A8A8A8", fontSize: 12 }}>
                           @{request.username}
                         </Text>
                       </View>
@@ -8411,7 +8389,7 @@ export default function App() {
                           resolveFollowRequest(request.id, "accept")
                         }
                         style={{
-                          backgroundColor: "#6D28D9",
+                          backgroundColor: "#0095F6",
                           paddingHorizontal: 13,
                           paddingVertical: 9,
                           borderRadius: 10,
@@ -8428,13 +8406,13 @@ export default function App() {
                           resolveFollowRequest(request.id, "reject")
                         }
                         style={{
-                          backgroundColor: "#21162F",
+                          backgroundColor: "#1C1C1E",
                           paddingHorizontal: 13,
                           paddingVertical: 9,
                           borderRadius: 10,
                         }}
                       >
-                        <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>
+                        <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
                           Reject
                         </Text>
                       </TouchableOpacity>
@@ -8453,7 +8431,7 @@ export default function App() {
                 }}
               >
                 <Text
-                  style={{ color: "#F4EFFA", fontWeight: "800", fontSize: 19 }}
+                  style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 19 }}
                 >
                   Profile Settings
                 </Text>
@@ -8465,16 +8443,16 @@ export default function App() {
                     width: 42,
                     height: 42,
                     borderRadius: 13,
-                    backgroundColor: "#21162F",
+                    backgroundColor: "#1C1C1E",
                     borderWidth: 1,
-                    borderColor: "#49345F",
+                    borderColor: "#262626",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
                   <Text
                     style={{
-                      color: "#F4EFFA",
+                      color: "#FFFFFF",
                       fontSize: 23,
                       fontWeight: "800",
                     }}
@@ -8486,26 +8464,26 @@ export default function App() {
               {privacySettings.accountType === "business" && (
               <TouchableOpacity
                 onPress={() => { setBusinessDirectoryResults([]); setBusinessDirectoryOpen(true); }}
-                style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#80602E", backgroundColor: "#171020", flexDirection: "row", alignItems: "center" }}
+                style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#363636", backgroundColor: "#121212", flexDirection: "row", alignItems: "center" }}
               >
-                <Ionicons name="storefront" size={23} color="#D8B86A" />
+                <Ionicons name="storefront" size={23} color="#0095F6" />
                 <View style={{ marginLeft: 11, flex: 1 }}>
-                  <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>Area-wise Business Directory</Text>
-                  <Text style={{ color: "#B8AACB", fontSize: 11, marginTop: 3 }}>Discover local brands, shops and services</Text>
+                  <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Area-wise Business Directory</Text>
+                  <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 3 }}>Discover local brands, shops and services</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="#D8B86A" />
+                <Ionicons name="chevron-forward" size={18} color="#0095F6" />
               </TouchableOpacity>
               )}
               <View>
                 <View
                   style={{
                     borderWidth: 1,
-                    borderColor: "#49345F",
+                    borderColor: "#262626",
                     borderRadius: 16,
                     paddingHorizontal: 15,
                     paddingVertical: 15,
                     marginBottom: 12,
-                    backgroundColor: "#100B19",
+                    backgroundColor: "#000000",
                   }}
                 >
                   <View
@@ -8518,7 +8496,7 @@ export default function App() {
                     <View style={{ flex: 1, paddingRight: 12 }}>
                       <Text
                         style={{
-                          color: "#F4EFFA",
+                          color: "#FFFFFF",
                           fontWeight: "700",
                           fontSize: 15,
                         }}
@@ -8526,7 +8504,7 @@ export default function App() {
                         Notifications
                       </Text>
                       <Text
-                        style={{ color: "#B8AACB", fontSize: 12, marginTop: 4 }}
+                        style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
                       >
                         {notificationsEnabled
                           ? "Preference enabled"
@@ -8547,20 +8525,20 @@ export default function App() {
                   disabled={notificationsBusy}
                   style={{
                     borderWidth: 1,
-                    borderColor: "#49345F",
+                    borderColor: "#262626",
                     borderRadius: 14,
                     padding: 14,
                     marginBottom: 11,
-                    backgroundColor: "#100B19",
+                    backgroundColor: "#000000",
                   }}
                 >
-                  <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>
+                  <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
                     {notificationDetailsOpen
                       ? "Hide notification options"
                       : "Manage notification options"}
                   </Text>
                   <Text
-                    style={{ color: "#B8AACB", fontSize: 12, marginTop: 4 }}
+                    style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
                   >
                     Likes, comments, follows, messages and system alerts
                   </Text>
@@ -8569,11 +8547,11 @@ export default function App() {
                   <View
                     style={{
                       borderWidth: 1,
-                      borderColor: "#49345F",
+                      borderColor: "#262626",
                       borderRadius: 14,
                       padding: 14,
                       marginBottom: 12,
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                     }}
                   >
                     {[
@@ -8592,7 +8570,7 @@ export default function App() {
                           paddingVertical: 8,
                         }}
                       >
-                        <Text style={{ color: "#F4EFFA", fontWeight: "600" }}>
+                        <Text style={{ color: "#FFFFFF", fontWeight: "600" }}>
                           {item.label}
                         </Text>
                         <Switch
@@ -8639,16 +8617,16 @@ export default function App() {
                       paddingVertical: 15,
                       paddingHorizontal: 15,
                       borderWidth: 1,
-                      borderColor: "#49345F",
+                      borderColor: "#262626",
                       borderRadius: 15,
                       marginBottom: 10,
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                       elevation: 1,
                     }}
                   >
                     <Text
                       style={{
-                        color: "#F4EFFA",
+                        color: "#FFFFFF",
                         fontWeight: "700",
                         fontSize: 15,
                       }}
@@ -8656,7 +8634,7 @@ export default function App() {
                       {item.title}
                     </Text>
                     <Text
-                      style={{ color: "#B8AACB", fontSize: 11, marginTop: 4 }}
+                      style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}
                     >
                       {item.subtitle}
                     </Text>
@@ -8673,9 +8651,9 @@ export default function App() {
                   paddingHorizontal: 15,
                   paddingVertical: 14,
                   borderRadius: 14,
-                  backgroundColor: "#21162F",
+                  backgroundColor: "#1C1C1E",
                   borderWidth: 1,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -8688,11 +8666,11 @@ export default function App() {
                     gap: 10,
                   }}
                 >
-                  <Ionicons name="bookmark" size={21} color="#D8B86A" />
+                  <Ionicons name="bookmark" size={21} color="#0095F6" />
                   <View>
                     <Text
                       style={{
-                        color: "#F4EFFA",
+                        color: "#FFFFFF",
                         fontWeight: "800",
                         fontSize: 15,
                       }}
@@ -8700,13 +8678,13 @@ export default function App() {
                       Saved
                     </Text>
                     <Text
-                      style={{ color: "#B8AACB", fontSize: 11, marginTop: 2 }}
+                      style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}
                     >
                       Your saved posts and reels
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#D8B86A" />
+                <Ionicons name="chevron-forward" size={20} color="#0095F6" />
               </TouchableOpacity>
               <View
                 style={{
@@ -8718,11 +8696,11 @@ export default function App() {
                 }}
               >
                 <Text
-                  style={{ color: "#F4EFFA", fontSize: 19, fontWeight: "800" }}
+                  style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800" }}
                 >
                   Your Posts
                 </Text>
-                <Ionicons name="grid-outline" size={21} color="#D8B86A" />
+                <Ionicons name="grid-outline" size={21} color="#0095F6" />
               </View>
               {groupPostItems(
                 feedPosts.filter((p) => (p.user || "you") === "you"),
@@ -8752,13 +8730,13 @@ export default function App() {
                         style={{
                           width: "32.5%",
                           aspectRatio: 1,
-                          backgroundColor: "#21162F",
+                          backgroundColor: "#1C1C1E",
                           borderRadius: 11,
                           overflow: "hidden",
                           alignItems: "center",
                           justifyContent: "center",
                           borderWidth: 1,
-                          borderColor: "#49345F",
+                          borderColor: "#262626",
                         }}
                       >
                         {media.uri &&
@@ -8850,10 +8828,10 @@ export default function App() {
                     alignItems: "center",
                     paddingVertical: 28,
                     paddingHorizontal: 18,
-                    backgroundColor: "#100B19",
+                    backgroundColor: "#000000",
                     borderRadius: 16,
                     borderWidth: 1,
-                    borderColor: "#49345F",
+                    borderColor: "#262626",
                   }}
                 >
                   <View
@@ -8861,7 +8839,7 @@ export default function App() {
                       width: 58,
                       height: 58,
                       borderRadius: 20,
-                      backgroundColor: "#21162F",
+                      backgroundColor: "#1C1C1E",
                       alignItems: "center",
                       justifyContent: "center",
                       marginBottom: 12,
@@ -8871,7 +8849,7 @@ export default function App() {
                   </View>
                   <Text
                     style={{
-                      color: "#F4EFFA",
+                      color: "#FFFFFF",
                       fontSize: 16,
                       fontWeight: "800",
                       marginBottom: 6,
@@ -8881,7 +8859,7 @@ export default function App() {
                   </Text>
                   <Text
                     style={{
-                      color: "#B8AACB",
+                      color: "#A8A8A8",
                       fontSize: 12,
                       textAlign: "center",
                       lineHeight: 18,
@@ -8894,7 +8872,7 @@ export default function App() {
                     onPress={() => handleTab("Create")}
                     activeOpacity={0.85}
                     style={{
-                      backgroundColor: "#6D28D9",
+                      backgroundColor: "#0095F6",
                       paddingHorizontal: 22,
                       paddingVertical: 11,
                       borderRadius: 12,
@@ -8919,17 +8897,17 @@ export default function App() {
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
-          <Text style={{ color: "#B8AACB" }}>{activeTab}</Text>
+          <Text style={{ color: "#A8A8A8" }}>{activeTab}</Text>
         </View>
       )}
 
       <View style={styles.bottomNav}>
         {[
-          { name: "Home", icon: "home-outline" },
-          { name: "Search", icon: "search-outline" },
-          { name: "Chat", icon: "paper-plane-outline" },
-          { name: "Reels", icon: "play-circle-outline" },
-          { name: "Profile", icon: "person-circle-outline" },
+          { name: "Home", icon: "home-outline", activeIcon: "home" },
+          { name: "Reels", icon: "play-outline", activeIcon: "play" },
+          { name: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
+          { name: "Search", icon: "search-outline", activeIcon: "search" },
+          { name: "Profile", icon: "person-outline", activeIcon: "person" },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.name}
@@ -8938,9 +8916,9 @@ export default function App() {
             accessibilityLabel={tab.name}
           >
             <Ionicons
-              name={tab.icon}
+              name={activeTab === tab.name ? tab.activeIcon : tab.icon}
               size={25}
-              color={activeTab === tab.name ? "#262626" : "#8E8E93"}
+              color={activeTab === tab.name ? "#0095F6" : "#8E8E93"}
             />
             <Text
               style={[
@@ -8961,7 +8939,7 @@ export default function App() {
         onRequestClose={() => setSelectedStory(null)}
       >
         <GestureDetector gesture={storySwipeGesture}>
-          <View style={{ flex: 1, backgroundColor: "#08050D" }}>
+          <View style={{ flex: 1, backgroundColor: "#000000" }}>
             {selectedStory?.uri ? (
               selectedStory.mediaType === "video" ? (
                 <ReelVideo
@@ -9041,7 +9019,7 @@ export default function App() {
                             : "0%",
                       height: "100%",
                       borderRadius: 3,
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                     }}
                   />
                 </View>
@@ -9067,7 +9045,7 @@ export default function App() {
                   borderRadius: 19,
                   backgroundColor: "#64748B",
                   borderWidth: 1.5,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   alignItems: "center",
                   justifyContent: "center",
                   marginRight: 9,
@@ -9092,7 +9070,7 @@ export default function App() {
                 </Text>
                 {!!selectedStory?.createdAt && (
                   <Text
-                    style={{ color: "#E5E7EB", fontSize: 11, marginTop: 2 }}
+                    style={{ color: "#E5E5E5", fontSize: 11, marginTop: 2 }}
                   >
                     {formatPostTime(selectedStory.createdAt)}
                   </Text>
@@ -9101,7 +9079,7 @@ export default function App() {
 
               {String(selectedStory?.user || selectedStory?.username || "").replace(/^@/, "").toLowerCase() === String(authSession?.username || "").toLowerCase() && !selectedStory?.isStarterStory ? (
                 <TouchableOpacity onPress={() => requestDeleteContent("stories", selectedStory)} accessibilityLabel="Delete your story" style={{ padding: 9 }}>
-                  <Ionicons name="trash-outline" size={21} color="#D8B86A" />
+                  <Ionicons name="trash-outline" size={21} color="#0095F6" />
                 </TouchableOpacity>
               ) : null}
               <TouchableOpacity
@@ -9182,7 +9160,7 @@ export default function App() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "#080B14",
+            backgroundColor: "#000000",
             paddingTop: 42,
             paddingBottom: 18,
           }}
@@ -9293,7 +9271,7 @@ export default function App() {
                             width: "100%",
                             alignItems: "center",
                             justifyContent: "center",
-                            backgroundColor: "#151D2E",
+                            backgroundColor: "#121212",
                           }}
                         >
                           <Text style={{ fontSize: 64 }}>
@@ -9307,7 +9285,7 @@ export default function App() {
                 <Text
                   style={{
                     color: "#FFFFFF",
-                    backgroundColor: "#29344B",
+                    backgroundColor: "#262626",
                     paddingHorizontal: 13,
                     paddingVertical: 6,
                     borderRadius: 14,
@@ -9335,7 +9313,7 @@ export default function App() {
                   width: "100%",
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: "#151D2E",
+                  backgroundColor: "#121212",
                 }}
               >
                 <Text style={{ fontSize: 64 }}>
@@ -9350,10 +9328,10 @@ export default function App() {
               marginHorizontal: 16,
               marginTop: 8,
               padding: 16,
-              backgroundColor: "#151D2E",
+              backgroundColor: "#121212",
               borderRadius: 18,
               borderWidth: 1,
-              borderColor: "#29344B",
+              borderColor: "#262626",
             }}
           >
             {!!selectedPost?.caption ? (
@@ -9361,13 +9339,13 @@ export default function App() {
                 {selectedPost.caption}
               </Text>
             ) : (
-              <Text style={{ color: "#8793AA", fontSize: 13 }}>
+              <Text style={{ color: "#8E8E93", fontSize: 13 }}>
                 No caption added
               </Text>
             )}
             <Text
               style={{
-                color: "#8FA4CB",
+                color: "#A8A8A8",
                 fontSize: 11,
                 fontWeight: "700",
                 marginTop: 12,
@@ -9405,15 +9383,15 @@ export default function App() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(5, 2, 12, 0.78)",
+            backgroundColor: "rgba(0, 0, 0, 0.78)",
             justifyContent: "flex-end",
             paddingBottom: Platform.OS === "android" ? 38 : 0,
           }}
         >
           <View
             style={{
-              backgroundColor: "#100B19",
-              borderTopLeftRadius: 24,
+              backgroundColor: "#000000",
+              borderTopLeftRadius: 20,
               borderTopRightRadius: 24,
               paddingHorizontal: 20,
               paddingTop: 18,
@@ -9423,7 +9401,7 @@ export default function App() {
           >
             <Text
               style={{
-                color: "#F4EFFA",
+                color: "#FFFFFF",
                 fontSize: 22,
                 fontWeight: "900",
                 marginBottom: 5,
@@ -9431,13 +9409,13 @@ export default function App() {
             >
               Blocked Accounts
             </Text>
-            <Text style={{ color: "#B8AACB", fontSize: 13, marginBottom: 16 }}>
+            <Text style={{ color: "#A8A8A8", fontSize: 13, marginBottom: 16 }}>
               Accounts you have blocked cannot follow or contact you.
             </Text>
             {blockedAccountsLoading ? (
               <Text
                 style={{
-                  color: "#B8AACB",
+                  color: "#A8A8A8",
                   textAlign: "center",
                   paddingVertical: 28,
                 }}
@@ -9447,7 +9425,7 @@ export default function App() {
             ) : blockedAccounts.length === 0 ? (
               <Text
                 style={{
-                  color: "#B8AACB",
+                  color: "#A8A8A8",
                   textAlign: "center",
                   paddingVertical: 28,
                 }}
@@ -9465,12 +9443,12 @@ export default function App() {
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                       borderRadius: 14,
                       padding: 12,
                       marginBottom: 9,
                       borderWidth: 1,
-                      borderColor: "#352443",
+                      borderColor: "#262626",
                     }}
                   >
                     {item.avatarUrl ? (
@@ -9490,12 +9468,12 @@ export default function App() {
                           height: 42,
                           borderRadius: 21,
                           marginRight: 11,
-                          backgroundColor: "#21162F",
+                          backgroundColor: "#1C1C1E",
                           alignItems: "center",
                           justifyContent: "center",
                         }}
                       >
-                        <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>
+                        <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
                           {String(item.displayName || item.username)
                             .slice(0, 1)
                             .toUpperCase()}
@@ -9505,7 +9483,7 @@ export default function App() {
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          color: "#F4EFFA",
+                          color: "#FFFFFF",
                           fontWeight: "800",
                           fontSize: 14,
                         }}
@@ -9513,7 +9491,7 @@ export default function App() {
                         {item.displayName || item.username}
                       </Text>
                       <Text
-                        style={{ color: "#B8AACB", fontSize: 12, marginTop: 2 }}
+                        style={{ color: "#A8A8A8", fontSize: 12, marginTop: 2 }}
                       >
                         @{item.username}
                       </Text>
@@ -9522,7 +9500,7 @@ export default function App() {
                       disabled={blockedAccountsBusy}
                       onPress={() => handleUnblockAccount(item.username)}
                       style={{
-                        backgroundColor: "#D8B86A",
+                        backgroundColor: "#0095F6",
                         paddingHorizontal: 14,
                         paddingVertical: 9,
                         borderRadius: 10,
@@ -9531,7 +9509,7 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#1A1028",
+                          color: "#121212",
                           fontSize: 12,
                           fontWeight: "800",
                         }}
@@ -9552,7 +9530,7 @@ export default function App() {
               }}
             >
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "800", fontSize: 14 }}
+                style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 14 }}
               >
                 Close
               </Text>
@@ -9576,7 +9554,7 @@ export default function App() {
         >
           <View
             style={{
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingHorizontal: 20,
@@ -9587,7 +9565,7 @@ export default function App() {
           >
             <Text
               style={{
-                color: "#F4EFFA",
+                color: "#FFFFFF",
                 fontSize: 22,
                 fontWeight: "900",
                 marginBottom: 5,
@@ -9595,13 +9573,13 @@ export default function App() {
             >
               Restricted Accounts
             </Text>
-            <Text style={{ color: "#B8AACB", fontSize: 13, marginBottom: 16 }}>
+            <Text style={{ color: "#A8A8A8", fontSize: 13, marginBottom: 16 }}>
               Manage people whose interactions with you are limited.
             </Text>
             {restrictedAccountsLoading ? (
               <Text
                 style={{
-                  color: "#B8AACB",
+                  color: "#A8A8A8",
                   textAlign: "center",
                   paddingVertical: 28,
                 }}
@@ -9611,7 +9589,7 @@ export default function App() {
             ) : restrictedAccounts.length === 0 ? (
               <Text
                 style={{
-                  color: "#B8AACB",
+                  color: "#A8A8A8",
                   textAlign: "center",
                   paddingVertical: 28,
                 }}
@@ -9629,12 +9607,12 @@ export default function App() {
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      backgroundColor: "#100B19",
+                      backgroundColor: "#000000",
                       borderRadius: 14,
                       padding: 12,
                       marginBottom: 9,
                       borderWidth: 1,
-                      borderColor: "#352443",
+                      borderColor: "#262626",
                     }}
                   >
                     {item.avatarUrl ? (
@@ -9654,12 +9632,12 @@ export default function App() {
                           height: 42,
                           borderRadius: 21,
                           marginRight: 11,
-                          backgroundColor: "#21162F",
+                          backgroundColor: "#1C1C1E",
                           alignItems: "center",
                           justifyContent: "center",
                         }}
                       >
-                        <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>
+                        <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
                           {String(item.displayName || item.username)
                             .slice(0, 1)
                             .toUpperCase()}
@@ -9669,7 +9647,7 @@ export default function App() {
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          color: "#F4EFFA",
+                          color: "#FFFFFF",
                           fontWeight: "800",
                           fontSize: 14,
                         }}
@@ -9677,7 +9655,7 @@ export default function App() {
                         {item.displayName || item.username}
                       </Text>
                       <Text
-                        style={{ color: "#B8AACB", fontSize: 12, marginTop: 2 }}
+                        style={{ color: "#A8A8A8", fontSize: 12, marginTop: 2 }}
                       >
                         @{item.username}
                       </Text>
@@ -9686,7 +9664,7 @@ export default function App() {
                       disabled={restrictedAccountsBusy}
                       onPress={() => handleUnrestrictAccount(item.username)}
                       style={{
-                        backgroundColor: "#D8B86A",
+                        backgroundColor: "#0095F6",
                         paddingHorizontal: 14,
                         paddingVertical: 9,
                         borderRadius: 10,
@@ -9695,7 +9673,7 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#1A1028",
+                          color: "#121212",
                           fontSize: 12,
                           fontWeight: "800",
                         }}
@@ -9716,7 +9694,7 @@ export default function App() {
               }}
             >
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "800", fontSize: 14 }}
+                style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 14 }}
               >
                 Close
               </Text>
@@ -9743,7 +9721,7 @@ export default function App() {
         >
           <View
             style={{
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             borderRadius: 24,
@@ -9753,7 +9731,7 @@ export default function App() {
           >
             <Text
               style={{
-                color: "#F4EFFA",
+                color: "#FFFFFF",
                 fontSize: 22,
                 fontWeight: "800",
                 marginBottom: 18,
@@ -9761,7 +9739,7 @@ export default function App() {
             >
               Privacy Settings
             </Text>
-            <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 12 }}>
+            <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 12 }}>
               Choose how people can view and interact with your account.
             </Text>
             {[
@@ -9781,15 +9759,15 @@ export default function App() {
                   marginBottom: 9,
                   borderRadius: 14,
                   borderWidth: 1.5,
-                  borderColor: item.active ? "#D8B86A" : "#49345F",
-                  backgroundColor: item.active ? "rgba(216,184,106,0.13)" : "#100B19",
+                  borderColor: item.active ? "#0095F6" : "#262626",
+                  backgroundColor: item.active ? "rgba(216,184,106,0.13)" : "#000000",
                 }}
               >
                 <View style={{ flex: 1, paddingRight: 12 }}>
-                  <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>{item.title}</Text>
-                  <Text style={{ color: "#B8AACB", fontSize: 11, marginTop: 4 }}>{item.subtitle}</Text>
+                  <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{item.title}</Text>
+                  <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}>{item.subtitle}</Text>
                 </View>
-                <Ionicons name={item.active ? "checkmark-circle" : "ellipse-outline"} size={23} color={item.active ? "#D8B86A" : "#8C7C9E"} />
+                <Ionicons name={item.active ? "checkmark-circle" : "ellipse-outline"} size={23} color={item.active ? "#0095F6" : "#8C7C9E"} />
               </TouchableOpacity>
             ))}
             {[
@@ -9812,15 +9790,15 @@ export default function App() {
                   justifyContent: "space-between",
                   paddingVertical: 12,
                   borderBottomWidth: 1,
-                  borderBottomColor: "#352443",
+                  borderBottomColor: "#262626",
                 }}
               >
                 <View style={{ flex: 1, paddingRight: 12 }}>
-                  <Text style={{ color: "#F4EFFA", fontWeight: "600" }}>
+                  <Text style={{ color: "#FFFFFF", fontWeight: "600" }}>
                     {item.title}
                   </Text>
                   <Text
-                    style={{ color: "#B8AACB", fontSize: 12, marginTop: 3 }}
+                    style={{ color: "#A8A8A8", fontSize: 12, marginTop: 3 }}
                   >
                     {item.subtitle}
                   </Text>
@@ -9849,18 +9827,18 @@ export default function App() {
                 disabled={privacyBusy}
                 style={{ padding: 12, marginRight: 8 }}
               >
-                <Text style={{ color: "#B8AACB" }}>Cancel</Text>
+                <Text style={{ color: "#A8A8A8" }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={persistPrivacySettings}
                 disabled={privacyBusy}
                 style={{
                   padding: 12,
-                  backgroundColor: "#D8B86A",
+                  backgroundColor: "#0095F6",
                   borderRadius: 12,
                 }}
               >
-                <Text style={{ color: "#1A1028", fontWeight: "800" }}>
+                <Text style={{ color: "#121212", fontWeight: "800" }}>
                   {privacyBusy ? "Saving..." : "Save"}
                 </Text>
               </TouchableOpacity>
@@ -9880,13 +9858,13 @@ export default function App() {
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1, backgroundColor: "rgba(5,2,12,0.88)", justifyContent: "flex-end" }}
         >
-          <View style={{ maxHeight: "92%", backgroundColor: "#100B19", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#80602E", padding: 18 }}>
+          <View style={{ maxHeight: "92%", backgroundColor: "#000000", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#363636", padding: 18 }}>
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-                <Ionicons name="business" size={24} color="#D8B86A" />
-                <Text style={{ color: "#F4EFFA", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>Business Studio</Text>
+                <Ionicons name="business" size={24} color="#0095F6" />
+                <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>Business Studio</Text>
               </View>
-              <Text style={{ color: "#D8B86A", fontSize: 12, fontWeight: "700", marginBottom: 16 }}>PREMIUM BUSINESS PROFILE · AREA DISCOVERY</Text>
+              <Text style={{ color: "#0095F6", fontSize: 12, fontWeight: "700", marginBottom: 16 }}>PREMIUM BUSINESS PROFILE · AREA DISCOVERY</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 15 }}>
                 {[
                   ["Content", businessInsights.contentCount],
@@ -9894,9 +9872,9 @@ export default function App() {
                   ["Likes", businessInsights.likes],
                   ["Comments", businessInsights.comments],
                 ].map(([label, value]) => (
-                  <View key={label} style={{ minWidth: "47%", flexGrow: 1, padding: 11, borderRadius: 12, backgroundColor: "#21162F", borderWidth: 1, borderColor: "#49345F" }}>
-                    <Text style={{ color: "#D8B86A", fontSize: 18, fontWeight: "900" }}>{value}</Text>
-                    <Text style={{ color: "#B8AACB", fontSize: 11 }}>{label}</Text>
+                  <View key={label} style={{ minWidth: "47%", flexGrow: 1, padding: 11, borderRadius: 12, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626" }}>
+                    <Text style={{ color: "#0095F6", fontSize: 18, fontWeight: "900" }}>{value}</Text>
+                    <Text style={{ color: "#A8A8A8", fontSize: 11 }}>{label}</Text>
                   </View>
                 ))}
               </View>
@@ -9918,25 +9896,25 @@ export default function App() {
                 ["openingHours", "Business Hours", "e.g. Mon-Sat 10 AM-8 PM"],
               ].map(([key, label, placeholder]) => (
                 <View key={key} style={{ marginBottom: 11 }}>
-                  <Text style={{ color: "#D8CDE7", fontSize: 12, fontWeight: "700", marginBottom: 5 }}>{label}</Text>
+                  <Text style={{ color: "#D1D1D1", fontSize: 12, fontWeight: "700", marginBottom: 5 }}>{label}</Text>
                   <TextInput
                     value={String(businessProfile[key] ?? "")}
                     onChangeText={(value) => setBusinessProfile((current) => ({ ...current, [key]: key === "serviceRadiusKm" ? value.replace(/[^0-9]/g, "") : value }))}
                     placeholder={placeholder}
-                    placeholderTextColor="#776987"
+                    placeholderTextColor="#8E8E93"
                     multiline={key === "description" || key === "address" || key === "serviceAreas"}
                     keyboardType={key === "phone" || key === "whatsapp" || key === "pincode" || key === "serviceRadiusKm" ? "phone-pad" : "default"}
-                    style={{ color: "#F4EFFA", borderWidth: 1, borderColor: "#49345F", borderRadius: 12, backgroundColor: "#171020", paddingHorizontal: 12, paddingVertical: 11, minHeight: key === "description" || key === "serviceAreas" ? 76 : 44, textAlignVertical: "top" }}
+                    style={{ color: "#FFFFFF", borderWidth: 1, borderColor: "#262626", borderRadius: 12, backgroundColor: "#121212", paddingHorizontal: 12, paddingVertical: 11, minHeight: key === "description" || key === "serviceAreas" ? 76 : 44, textAlignVertical: "top" }}
                   />
                 </View>
               ))}
 
-              <View style={{ borderTopWidth: 1, borderTopColor: "#49345F", paddingTop: 15, marginBottom: 15 }}>
-                <Text style={{ color: "#D8B86A", fontSize: 16, fontWeight: "900", marginBottom: 9 }}>Product & Service Catalogue</Text>
+              <View style={{ borderTopWidth: 1, borderTopColor: "#262626", paddingTop: 15, marginBottom: 15 }}>
+                <Text style={{ color: "#0095F6", fontSize: 16, fontWeight: "900", marginBottom: 9 }}>Product & Service Catalogue</Text>
                 <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
                   {["product", "service"].map((type) => (
-                    <TouchableOpacity key={type} onPress={() => setCatalogDraft((old) => ({ ...old, itemType: type }))} style={{ paddingHorizontal: 13, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: catalogDraft.itemType === type ? "#D8B86A" : "#49345F", backgroundColor: catalogDraft.itemType === type ? "#382A1A" : "#171020" }}>
-                      <Text style={{ color: catalogDraft.itemType === type ? "#D8B86A" : "#B8AACB", fontWeight: "800" }}>{type === "product" ? "Product" : "Service"}</Text>
+                    <TouchableOpacity key={type} onPress={() => setCatalogDraft((old) => ({ ...old, itemType: type }))} style={{ paddingHorizontal: 13, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: catalogDraft.itemType === type ? "#0095F6" : "#262626", backgroundColor: catalogDraft.itemType === type ? "#1C1C1E" : "#121212" }}>
+                      <Text style={{ color: catalogDraft.itemType === type ? "#0095F6" : "#A8A8A8", fontWeight: "800" }}>{type === "product" ? "Product" : "Service"}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -9947,50 +9925,50 @@ export default function App() {
                   ["description", "Description", "Details, benefits and availability"],
                 ].map(([key, label, placeholder]) => (
                   <View key={key} style={{ marginBottom: 7 }}>
-                    <Text style={{ color: "#B8AACB", fontSize: 11, marginBottom: 3 }}>{label}</Text>
-                    <TextInput value={catalogDraft[key]} onChangeText={(value) => setCatalogDraft((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#776987" multiline={key === "description"} style={{ color: "#F4EFFA", backgroundColor: "#171020", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, padding: 10, minHeight: key === "description" ? 60 : 40 }} />
+                    <Text style={{ color: "#A8A8A8", fontSize: 11, marginBottom: 3 }}>{label}</Text>
+                    <TextInput value={catalogDraft[key]} onChangeText={(value) => setCatalogDraft((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#8E8E93" multiline={key === "description"} style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, minHeight: key === "description" ? 60 : 40 }} />
                   </View>
                 ))}
-                <TouchableOpacity onPress={addBusinessCatalogItem} style={{ backgroundColor: "#D8B86A", borderRadius: 10, padding: 11, alignItems: "center" }}>
-                  <Text style={{ color: "#1A1028", fontWeight: "900" }}>Add to Catalogue</Text>
+                <TouchableOpacity onPress={addBusinessCatalogItem} style={{ backgroundColor: "#0095F6", borderRadius: 10, padding: 11, alignItems: "center" }}>
+                  <Text style={{ color: "#121212", fontWeight: "900" }}>Add to Catalogue</Text>
                 </TouchableOpacity>
                 {businessCatalog.map((item) => (
-                  <View key={item.id} style={{ flexDirection: "row", alignItems: "center", padding: 10, borderBottomWidth: 1, borderBottomColor: "#352443" }}>
+                  <View key={item.id} style={{ flexDirection: "row", alignItems: "center", padding: 10, borderBottomWidth: 1, borderBottomColor: "#262626" }}>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>{item.title}</Text>
-                      <Text style={{ color: "#B8AACB", fontSize: 11 }}>{item.item_type} · {item.price || "Price on request"}</Text>
+                      <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{item.title}</Text>
+                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>{item.item_type} · {item.price || "Price on request"}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => removeBusinessCatalogItem(item.id)}><Ionicons name="trash-outline" size={18} color="#D8B86A" /></TouchableOpacity>
+                    <TouchableOpacity onPress={() => removeBusinessCatalogItem(item.id)}><Ionicons name="trash-outline" size={18} color="#0095F6" /></TouchableOpacity>
                   </View>
                 ))}
               </View>
-              <View style={{ borderTopWidth: 1, borderTopColor: "#49345F", paddingTop: 15, marginBottom: 15 }}>
-                <Text style={{ color: "#D8B86A", fontSize: 16, fontWeight: "900", marginBottom: 8 }}>Customer Quick Replies</Text>
-                <TextInput value={quickReplyDraft.shortcut} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, shortcut: value }))} placeholder="Shortcut e.g. welcome" placeholderTextColor="#776987" style={{ color: "#F4EFFA", backgroundColor: "#171020", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, padding: 10, marginBottom: 7 }} />
-                <TextInput value={quickReplyDraft.message} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, message: value }))} placeholder="Saved reply message..." placeholderTextColor="#776987" multiline style={{ color: "#F4EFFA", backgroundColor: "#171020", borderWidth: 1, borderColor: "#49345F", borderRadius: 10, padding: 10, minHeight: 62, marginBottom: 7 }} />
-                <TouchableOpacity onPress={addBusinessQuickReply} style={{ backgroundColor: "#382A1A", borderWidth: 1, borderColor: "#80602E", borderRadius: 10, padding: 11, alignItems: "center" }}>
-                  <Text style={{ color: "#D8B86A", fontWeight: "900" }}>Save Quick Reply</Text>
+              <View style={{ borderTopWidth: 1, borderTopColor: "#262626", paddingTop: 15, marginBottom: 15 }}>
+                <Text style={{ color: "#0095F6", fontSize: 16, fontWeight: "900", marginBottom: 8 }}>Customer Quick Replies</Text>
+                <TextInput value={quickReplyDraft.shortcut} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, shortcut: value }))} placeholder="Shortcut e.g. welcome" placeholderTextColor="#8E8E93" style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, marginBottom: 7 }} />
+                <TextInput value={quickReplyDraft.message} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, message: value }))} placeholder="Saved reply message..." placeholderTextColor="#8E8E93" multiline style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, minHeight: 62, marginBottom: 7 }} />
+                <TouchableOpacity onPress={addBusinessQuickReply} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", borderRadius: 10, padding: 11, alignItems: "center" }}>
+                  <Text style={{ color: "#0095F6", fontWeight: "900" }}>Save Quick Reply</Text>
                 </TouchableOpacity>
                 {businessQuickReplies.map((reply) => (
-                  <View key={reply.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "#352443" }}>
+                  <View key={reply.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "#262626" }}>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ color: "#D8B86A", fontWeight: "800" }}>/{reply.shortcut}</Text>
-                      <Text numberOfLines={2} style={{ color: "#B8AACB", fontSize: 11 }}>{reply.message}</Text>
+                      <Text style={{ color: "#0095F6", fontWeight: "800" }}>/{reply.shortcut}</Text>
+                      <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 11 }}>{reply.message}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => removeBusinessQuickReply(reply.id)}><Ionicons name="trash-outline" size={18} color="#D8B86A" /></TouchableOpacity>
+                    <TouchableOpacity onPress={() => removeBusinessQuickReply(reply.id)}><Ionicons name="trash-outline" size={18} color="#0095F6" /></TouchableOpacity>
                   </View>
                 ))}
               </View>
-              <View style={{ backgroundColor: "#21162F", borderWidth: 1, borderColor: "#80602E", borderRadius: 14, padding: 12, marginTop: 2, marginBottom: 14 }}>
-                <Text style={{ color: "#D8B86A", fontWeight: "800" }}>Area-wise Business Discovery</Text>
-                <Text style={{ color: "#B8AACB", fontSize: 12, marginTop: 4 }}>Customers can discover your business by city, locality, category and service areas.</Text>
+              <View style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", borderRadius: 14, padding: 12, marginTop: 2, marginBottom: 14 }}>
+                <Text style={{ color: "#0095F6", fontWeight: "800" }}>Area-wise Business Discovery</Text>
+                <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}>Customers can discover your business by city, locality, category and service areas.</Text>
               </View>
               <View style={{ flexDirection: "row", justifyContent: "flex-end", paddingBottom: 20 }}>
                 <TouchableOpacity onPress={() => setBusinessProfileOpen(false)} disabled={businessProfileBusy} style={{ padding: 13, marginRight: 8 }}>
-                  <Text style={{ color: "#B8AACB", fontWeight: "700" }}>Close</Text>
+                  <Text style={{ color: "#A8A8A8", fontWeight: "700" }}>Close</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={persistBusinessProfile} disabled={businessProfileBusy} style={{ backgroundColor: "#D8B86A", borderRadius: 12, paddingHorizontal: 18, paddingVertical: 13 }}>
-                  <Text style={{ color: "#1A1028", fontWeight: "900" }}>{businessProfileBusy ? "Saving..." : "Save Business Profile"}</Text>
+                <TouchableOpacity onPress={persistBusinessProfile} disabled={businessProfileBusy} style={{ backgroundColor: "#0095F6", borderRadius: 12, paddingHorizontal: 18, paddingVertical: 13 }}>
+                  <Text style={{ color: "#121212", fontWeight: "900" }}>{businessProfileBusy ? "Saving..." : "Save Business Profile"}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -10001,10 +9979,10 @@ export default function App() {
 
       <Modal visible={businessDirectoryOpen && privacySettings.accountType === "business"} transparent animationType="slide" onRequestClose={() => setBusinessDirectoryOpen(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "rgba(5,2,12,0.88)", justifyContent: "flex-end" }}>
-          <View style={{ maxHeight: "90%", backgroundColor: "#100B19", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: "#80602E", padding: 17 }}>
+          <View style={{ maxHeight: "90%", backgroundColor: "#000000", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: "#363636", padding: 17 }}>
             <ScrollView keyboardShouldPersistTaps="handled">
-              <Text style={{ color: "#D8B86A", fontSize: 20, fontWeight: "900", marginBottom: 5 }}>Local Business Directory</Text>
-              <Text style={{ color: "#B8AACB", fontSize: 12, marginBottom: 13 }}>Search by city, area or business category</Text>
+              <Text style={{ color: "#0095F6", fontSize: 20, fontWeight: "900", marginBottom: 5 }}>Local Business Directory</Text>
+              <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 13 }}>Search by city, area or business category</Text>
               {[
                 ["city", "City", "e.g. Ahmedabad"],
                 ["area", "Area / Locality", "e.g. Navrangpura"],
@@ -10012,23 +9990,23 @@ export default function App() {
                 ["q", "Business name / keyword", "Search brands and services"],
               ].map(([key, label, placeholder]) => (
                 <View key={key} style={{ marginBottom: 9 }}>
-                  <Text style={{ color: "#D8CDE7", fontSize: 12, marginBottom: 4 }}>{label}</Text>
-                  <TextInput value={businessDirectoryFilters[key]} onChangeText={(value) => setBusinessDirectoryFilters((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#776987" style={{ color: "#F4EFFA", backgroundColor: "#171020", borderWidth: 1, borderColor: "#49345F", borderRadius: 11, padding: 11 }} />
+                  <Text style={{ color: "#D1D1D1", fontSize: 12, marginBottom: 4 }}>{label}</Text>
+                  <TextInput value={businessDirectoryFilters[key]} onChangeText={(value) => setBusinessDirectoryFilters((old) => ({ ...old, [key]: value }))} placeholder={placeholder} placeholderTextColor="#8E8E93" style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 11, padding: 11 }} />
                 </View>
               ))}
-              <TouchableOpacity onPress={searchBusinessDirectory} disabled={businessDirectoryBusy} style={{ backgroundColor: "#D8B86A", padding: 13, borderRadius: 12, alignItems: "center", marginVertical: 8 }}>
-                <Text style={{ color: "#1A1028", fontWeight: "900" }}>{businessDirectoryBusy ? "Searching..." : "Find Local Businesses"}</Text>
+              <TouchableOpacity onPress={searchBusinessDirectory} disabled={businessDirectoryBusy} style={{ backgroundColor: "#0095F6", padding: 13, borderRadius: 12, alignItems: "center", marginVertical: 8 }}>
+                <Text style={{ color: "#121212", fontWeight: "900" }}>{businessDirectoryBusy ? "Searching..." : "Find Local Businesses"}</Text>
               </TouchableOpacity>
               {businessDirectoryResults.map((item) => (
-                <TouchableOpacity key={item.username} onPress={() => { setBusinessDirectoryOpen(false); openUserProfile(item.username); }} style={{ padding: 13, borderRadius: 13, borderWidth: 1, borderColor: "#49345F", marginBottom: 8, backgroundColor: "#171020" }}>
-                  <Text style={{ color: "#F4EFFA", fontWeight: "800" }}>{item.businessName || item.username}</Text>
-                  <Text style={{ color: "#D8B86A", fontSize: 11, marginTop: 3 }}>{[item.category, item.area, item.city, item.state].filter(Boolean).join(" · ")}</Text>
-                  {!!item.description && <Text numberOfLines={2} style={{ color: "#B8AACB", fontSize: 12, marginTop: 5 }}>{item.description}</Text>}
+                <TouchableOpacity key={item.username} onPress={() => { setBusinessDirectoryOpen(false); openUserProfile(item.username); }} style={{ padding: 13, borderRadius: 13, borderWidth: 1, borderColor: "#262626", marginBottom: 8, backgroundColor: "#121212" }}>
+                  <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{item.businessName || item.username}</Text>
+                  <Text style={{ color: "#0095F6", fontSize: 11, marginTop: 3 }}>{[item.category, item.area, item.city, item.state].filter(Boolean).join(" · ")}</Text>
+                  {!!item.description && <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 12, marginTop: 5 }}>{item.description}</Text>}
                 </TouchableOpacity>
               ))}
               {!businessDirectoryBusy && businessDirectoryResults.length === 0 && <Text style={{ color: "#8F819E", fontSize: 12, textAlign: "center", paddingVertical: 12 }}>Enter a city, area or category to discover businesses.</Text>}
               <TouchableOpacity onPress={() => setBusinessDirectoryOpen(false)} style={{ alignSelf: "flex-end", padding: 13 }}>
-                <Text style={{ color: "#D8B86A", fontWeight: "800" }}>Close</Text>
+                <Text style={{ color: "#0095F6", fontWeight: "800" }}>Close</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -10054,7 +10032,7 @@ export default function App() {
         >
           <View
             style={{
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderRadius: 24,
               padding: 22,
               alignItems: "center",
@@ -10064,7 +10042,7 @@ export default function App() {
               style={{
                 fontSize: 22,
                 fontWeight: "800",
-                color: "#F4EFFA",
+                color: "#FFFFFF",
                 marginBottom: 12,
               }}
             >
@@ -10073,7 +10051,7 @@ export default function App() {
             <Text
               style={{
                 fontSize: 15,
-                color: "#B8AACB",
+                color: "#A8A8A8",
                 textAlign: "center",
                 lineHeight: 22,
                 marginBottom: 22,
@@ -10086,7 +10064,7 @@ export default function App() {
               onPress={downloadAndInstallUpdate}
               disabled={updateDownloading}
               style={{
-                backgroundColor: updateDownloading ? "#594B68" : "#D8B86A",
+                backgroundColor: updateDownloading ? "#594B68" : "#0095F6",
                 paddingVertical: 13,
                 paddingHorizontal: 24,
                 borderRadius: 12,
@@ -10095,7 +10073,7 @@ export default function App() {
               }}
             >
               <Text
-                style={{ color: "#1A1028", fontWeight: "800", fontSize: 16 }}
+                style={{ color: "#121212", fontWeight: "800", fontSize: 16 }}
               >
                 {updateDownloading
                   ? "Updating app..."
@@ -10110,7 +10088,7 @@ export default function App() {
                 })
               }
               style={{
-                backgroundColor: "#21162F",
+                backgroundColor: "#1C1C1E",
                 paddingVertical: 13,
                 paddingHorizontal: 24,
                 borderRadius: 12,
@@ -10120,7 +10098,7 @@ export default function App() {
               }}
             >
               <Text
-                style={{ color: "#1A1028", fontWeight: "800", fontSize: 16 }}
+                style={{ color: "#121212", fontWeight: "800", fontSize: 16 }}
               >
                 Share App Link
               </Text>
@@ -10135,7 +10113,7 @@ export default function App() {
                 }}
               >
                 <Text
-                  style={{ color: "#B8AACB", fontWeight: "600", fontSize: 15 }}
+                  style={{ color: "#A8A8A8", fontWeight: "600", fontSize: 15 }}
                 >
                   Later
                 </Text>
@@ -10153,25 +10131,25 @@ export default function App() {
         onRequestClose={() => setAboutAppOpen(false)}
       >
         <View style={{ flex: 1, backgroundColor: "rgba(5, 2, 12, 0.82)", justifyContent: "flex-end", paddingBottom: Platform.OS === "android" ? 38 : 0 }}>
-          <View style={{ backgroundColor: "#100B19", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#49345F", paddingHorizontal: 22, paddingTop: 26, paddingBottom: 30 }}>
+          <View style={{ backgroundColor: "#000000", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#262626", paddingHorizontal: 22, paddingTop: 26, paddingBottom: 30 }}>
             <View style={{ alignItems: "center", marginBottom: 20 }}>
-              <View style={{ width: 62, height: 62, borderRadius: 20, backgroundColor: "#21162F", borderWidth: 1, borderColor: "#D8B86A", alignItems: "center", justifyContent: "center", marginBottom: 13 }}>
-                <Ionicons name="information-circle-outline" size={34} color="#D8B86A" />
+              <View style={{ width: 62, height: 62, borderRadius: 20, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", marginBottom: 13 }}>
+                <Ionicons name="information-circle-outline" size={34} color="#0095F6" />
               </View>
-              <Text style={{ color: "#F4EFFA", fontSize: 22, fontWeight: "800" }}>Bhumi Social AI</Text>
-              <Text style={{ color: "#B8AACB", fontSize: 13, marginTop: 6 }}>Version {appConfig.expo?.version || "1.0.0"}</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "800" }}>Bhumi Social AI</Text>
+              <Text style={{ color: "#A8A8A8", fontSize: 13, marginTop: 6 }}>Version {appConfig.expo?.version || "1.0.0"}</Text>
             </View>
-            <TouchableOpacity onPress={() => { setAboutAppOpen(false); Linking.openURL("https://bhumi-social-app-1.onrender.com/api/app-version"); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#D8B86A", alignItems: "center", justifyContent: "center", marginBottom: 11 }}>
-              <Text style={{ color: "#1A1028", fontSize: 15, fontWeight: "800" }}>Check Updates</Text>
+            <TouchableOpacity onPress={() => { setAboutAppOpen(false); Linking.openURL("https://bhumi-social-app-1.onrender.com/api/app-version"); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#0095F6", alignItems: "center", justifyContent: "center", marginBottom: 11 }}>
+              <Text style={{ color: "#121212", fontSize: 15, fontWeight: "800" }}>Check Updates</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setAboutAppOpen(false); Linking.openURL("https://bhumi-social-app-1.onrender.com/download"); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#21162F", borderWidth: 1, borderColor: "#59436F", alignItems: "center", justifyContent: "center", marginBottom: 11 }}>
-              <Text style={{ color: "#F4EFFA", fontSize: 15, fontWeight: "700" }}>Download App</Text>
+            <TouchableOpacity onPress={() => { setAboutAppOpen(false); Linking.openURL("https://bhumi-social-app-1.onrender.com/download"); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", alignItems: "center", justifyContent: "center", marginBottom: 11 }}>
+              <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}>Download App</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setAboutAppOpen(false); Share.share({ message: "Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download" }); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#21162F", borderWidth: 1, borderColor: "#59436F", alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ color: "#D8B86A", fontSize: 15, fontWeight: "700" }}>Share App</Text>
+            <TouchableOpacity onPress={() => { setAboutAppOpen(false); Share.share({ message: "Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download" }); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ color: "#0095F6", fontSize: 15, fontWeight: "700" }}>Share App</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setAboutAppOpen(false)} style={{ alignItems: "center", justifyContent: "center", paddingVertical: 16, marginTop: 5 }}>
-              <Text style={{ color: "#B8AACB", fontSize: 14, fontWeight: "700" }}>Close</Text>
+              <Text style={{ color: "#A8A8A8", fontSize: 14, fontWeight: "700" }}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -10199,7 +10177,7 @@ export default function App() {
           >
             <View
               style={{
-                backgroundColor: "#100B19",
+                backgroundColor: "#000000",
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
                 padding: 22,
@@ -10209,17 +10187,17 @@ export default function App() {
                 style={{
                   fontSize: 22,
                   fontWeight: "800",
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                   marginBottom: 6,
                 }}
               >
                 Account Settings
               </Text>
-              <Text style={{ color: "#B8AACB", marginBottom: 18 }}>
+              <Text style={{ color: "#A8A8A8", marginBottom: 18 }}>
                 Email and mobile number are optional.
               </Text>
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "700", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 6 }}
               >
                 Email address
               </Text>
@@ -10232,15 +10210,15 @@ export default function App() {
                 editable={!accountSettingsBusy}
                 style={{
                   borderWidth: 1,
-                  borderColor: "#3A2A4B",
+                  borderColor: "#262626",
                   borderRadius: 14,
                   padding: 13,
                   marginBottom: 14,
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                 }}
               />
               <Text
-                style={{ color: "#F4EFFA", fontWeight: "700", marginBottom: 6 }}
+                style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 6 }}
               >
                 Mobile number
               </Text>
@@ -10252,11 +10230,11 @@ export default function App() {
                 editable={!accountSettingsBusy}
                 style={{
                   borderWidth: 1,
-                  borderColor: "#3A2A4B",
+                  borderColor: "#262626",
                   borderRadius: 14,
                   padding: 13,
                   marginBottom: 18,
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                 }}
               />
               <View
@@ -10271,7 +10249,7 @@ export default function App() {
                   onPress={() => setAccountSettingsOpen(false)}
                   style={{ padding: 13, marginRight: 8 }}
                 >
-                  <Text style={{ color: "#B8AACB", fontWeight: "700" }}>
+                  <Text style={{ color: "#A8A8A8", fontWeight: "700" }}>
                     Cancel
                   </Text>
                 </TouchableOpacity>
@@ -10279,14 +10257,14 @@ export default function App() {
                   disabled={accountSettingsBusy}
                   onPress={saveAccountSettingsChanges}
                   style={{
-                    backgroundColor: "#D8B86A",
+                    backgroundColor: "#0095F6",
                     paddingVertical: 13,
                     paddingHorizontal: 20,
                     borderRadius: 14,
                     opacity: accountSettingsBusy ? 0.6 : 1,
                   }}
                 >
-                  <Text style={{ color: "#1A1028", fontWeight: "800" }}>
+                  <Text style={{ color: "#121212", fontWeight: "800" }}>
                     {accountSettingsBusy ? "Saving..." : "Save changes"}
                   </Text>
                 </TouchableOpacity>
@@ -10320,14 +10298,14 @@ export default function App() {
           >
             <View
               style={{
-                backgroundColor: "#100B19",
+                backgroundColor: "#000000",
                 borderRadius: 22,
                 padding: 20,
               }}
             >
               <Text
                 style={{
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                   fontSize: 20,
                   fontWeight: "800",
                   marginBottom: 18,
@@ -10363,11 +10341,11 @@ export default function App() {
                   editable={!passwordBusy}
                   style={{
                     borderWidth: 1,
-                    borderColor: "#3A2A4B",
+                    borderColor: "#262626",
                     borderRadius: 12,
                     padding: 12,
                     marginBottom: 12,
-                    color: "#F4EFFA",
+                    color: "#FFFFFF",
                   }}
                 />
               ))}
@@ -10408,7 +10386,7 @@ export default function App() {
                 style={{
                   padding: 12,
                   borderWidth: 1,
-                  borderColor: "#3A2A4B",
+                  borderColor: "#262626",
                   borderRadius: 12,
                   marginBottom: 14,
                 }}
@@ -10436,7 +10414,7 @@ export default function App() {
                   disabled={passwordBusy}
                   style={{ padding: 12, marginRight: 8 }}
                 >
-                  <Text style={{ color: "#B8AACB" }}>Cancel</Text>
+                  <Text style={{ color: "#A8A8A8" }}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={async () => {
@@ -10488,11 +10466,11 @@ export default function App() {
                   disabled={passwordBusy}
                   style={{
                     padding: 12,
-                    backgroundColor: "#D8B86A",
+                    backgroundColor: "#0095F6",
                     borderRadius: 12,
                   }}
                 >
-                  <Text style={{ color: "#1A1028", fontWeight: "800" }}>
+                  <Text style={{ color: "#121212", fontWeight: "800" }}>
                     {passwordBusy ? "Saving..." : "Change Password"}
                   </Text>
                 </TouchableOpacity>
@@ -10781,7 +10759,7 @@ export default function App() {
                       borderRadius: 18,
                       alignItems: "center",
                       justifyContent: "center",
-                      backgroundColor: chatUnreadOnly ? "#49345F" : "transparent",
+                      backgroundColor: chatUnreadOnly ? "#262626" : "transparent",
                     }}
                   >
                     <Ionicons
@@ -10816,7 +10794,7 @@ export default function App() {
                         borderRadius: 34,
                         backgroundColor: "#000000",
                         borderWidth: 2,
-                        borderColor: ownNote ? "#D8B86A" : "#49345F",
+                        borderColor: ownNote ? "#0095F6" : "#262626",
                         alignItems: "center",
                         justifyContent: "center",
                         overflow: "visible",
@@ -10977,7 +10955,7 @@ export default function App() {
                     paddingHorizontal: 18,
                     marginBottom: 4,
                     borderBottomWidth: 1,
-                    borderBottomColor: "#49345F",
+                    borderBottomColor: "#262626",
                   }}
                 >
                   {["All", "Primary", "General", "Requests"].map((tab) => {
@@ -11074,7 +11052,7 @@ export default function App() {
                       ) : null}
                     </View>
                     {chatPeopleBusy ? (
-                      <Text style={{ color: "#A997B8", padding: 10 }}>
+                      <Text style={{ color: "#A8A8A8", padding: 10 }}>
                         Searching people...
                       </Text>
                     ) : null}
@@ -11149,7 +11127,7 @@ export default function App() {
                     chatPeopleResults.length === 0 ? (
                       <Text
                         style={{
-                          color: "#A997B8",
+                          color: "#A8A8A8",
                           textAlign: "center",
                           padding: 12,
                         }}
@@ -11575,7 +11553,7 @@ export default function App() {
               }
             );
           } catch (error) {
-            NativeAlert.alert(
+            Alert.alert(
               "Attachment",
               error?.message || "Document खुल नहीं सका।"
             );
@@ -11620,7 +11598,7 @@ export default function App() {
                           {message.text ? (
                             <Text
                               style={{
-                                color: mine ? chatThemeColors.accent : "#F4EFFA",
+                                color: mine ? chatThemeColors.accent : "#FFFFFF",
                                 fontSize: 15,
                                 lineHeight: 21,
                               }}
@@ -11639,7 +11617,7 @@ export default function App() {
                           >
                             <Text
                               style={{
-                                color: mine ? "#D8B86A" : "#B8AACB",
+                                color: mine ? "#0095F6" : "#A8A8A8",
                                 fontSize: 10,
                               }}
                             >
@@ -11945,7 +11923,7 @@ export default function App() {
                         gap: 14,
                         backgroundColor: "#262626",
                         borderTopWidth: 1,
-                        borderTopColor: "#49345F",
+                        borderTopColor: "#262626",
                       }}
                     >
                       {[
@@ -11988,12 +11966,12 @@ export default function App() {
                       flexDirection: "row",
                       alignItems: "center",
                       paddingHorizontal: 12,
-                      paddingVertical: 7,
+                      paddingVertical: 9,
                       marginBottom: Platform.OS === "android" ? 6 : 0,
-                      borderTopWidth: 1,
-                      borderTopColor: "#49345F",
+                      borderTopWidth: StyleSheet.hairlineWidth,
+                      borderTopColor: "#262626",
                       backgroundColor: "#000000",
-                      gap: 11,
+                      gap: 9,
                       elevation: 7,
                     }}
                   >
@@ -12026,7 +12004,7 @@ export default function App() {
                       accessibilityLabel={isChatRecording ? "Stop voice recording" : "Start voice recording"}
                       style={{ width: 34, height: 40, alignItems: "center", justifyContent: "center" }}
                     >
-                      <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#D8B86A"} />
+                      <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#0095F6"} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setChatEmojiOpen((v) => !v)}
@@ -12046,15 +12024,17 @@ export default function App() {
                       maxLength={5000}
                       style={{
                         flex: 1,
+                        minHeight: 44,
                         maxHeight: 110,
                         backgroundColor: "#262626",
-                        borderWidth: 0,
-                        borderColor: "transparent",
-                        borderRadius: 25,
-                        paddingHorizontal: 18,
-                        paddingVertical: 13,
+                        borderWidth: 1,
+                        borderColor: "#303030",
+                        borderRadius: 24,
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
                         color: "#FFFFFF",
                         fontSize: 15,
+                        textAlignVertical: "center",
                       }}
                     />
                     <TouchableOpacity
@@ -12064,16 +12044,16 @@ export default function App() {
                       }
                       accessibilityLabel="Send message"
                       style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 24,
+                        width: 42,
+                        height: 42,
+                        borderRadius: 21,
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor: "transparent",
-                        elevation: 0,
+                        backgroundColor: "#0095F6",
+                        elevation: 1,
                       }}
                     >
-                      <Ionicons name="send" size={22} color="#3797F0" />
+                      <Ionicons name="send" size={19} color="#FFFFFF" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -12081,24 +12061,23 @@ export default function App() {
             )}
             <View style={[styles.bottomNav, selectedChatUser && { display: "none" }]}>
               {[
-                { name: "Home", icon: "home-outline" },
-                { name: "Reels", icon: "play-circle-outline" },
-                { name: "Chat", icon: "paper-plane-outline" },
-                { name: "Search", icon: "search-outline" },
-                { name: "Profile", icon: "person-circle-outline" },
+                { name: "Home", icon: "home-outline", activeIcon: "home" },
+                { name: "Reels", icon: "play-outline", activeIcon: "play" },
+                { name: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
+                { name: "Search", icon: "search-outline", activeIcon: "search" },
+                { name: "Profile", icon: "person-outline", activeIcon: "person" },
               ].map((tab) => (
                 <TouchableOpacity
                   key={tab.name}
                   style={styles.navItem}
                   onPress={() => {
-                    if (tab.name === "Chat") return;
                     closeMessages();
                     handleTab(tab.name);
                   }}
                   accessibilityLabel={tab.name}
                 >
                   <Ionicons
-                    name={tab.icon}
+                    name={activeTab === tab.name ? tab.activeIcon : tab.icon}
                     size={25}
                     color={activeTab === tab.name ? "#3797F0" : "#8E8E93"}
                   />
@@ -12137,7 +12116,7 @@ export default function App() {
           >
             <View
               style={{
-                backgroundColor: "#100B19",
+                backgroundColor: "#000000",
                 borderRadius: 20,
                 padding: 20,
               }}
@@ -12146,7 +12125,7 @@ export default function App() {
                 style={{
                   fontSize: 19,
                   fontWeight: "700",
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                   marginBottom: 14,
                 }}
               >
@@ -12156,23 +12135,23 @@ export default function App() {
                 value={noteDraft}
                 onChangeText={setNoteDraft}
                 placeholder="Share a thought..."
-                placeholderTextColor="#A997B8"
+                placeholderTextColor="#A8A8A8"
                 maxLength={60}
                 multiline
                 autoFocus
                 style={{
                   minHeight: 90,
                   borderWidth: 1,
-                  borderColor: "#49345F",
+                  borderColor: "#262626",
                   borderRadius: 12,
                   padding: 12,
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                   fontSize: 16,
                   textAlignVertical: "top",
                 }}
               />
               <Text
-                style={{ color: "#B8AACB", textAlign: "right", marginTop: 6 }}
+                style={{ color: "#A8A8A8", textAlign: "right", marginTop: 6 }}
               >
                 {noteDraft.length}/60
               </Text>
@@ -12185,7 +12164,7 @@ export default function App() {
                 onPress={submitUserNote}
                 disabled={!noteDraft.trim() || noteBusy}
                 style={{
-                  backgroundColor: "#6D28D9",
+                  backgroundColor: "#0095F6",
                   borderRadius: 10,
                   paddingVertical: 12,
                   alignItems: "center",
@@ -12212,7 +12191,7 @@ export default function App() {
                 onPress={() => setNoteComposerOpen(false)}
                 style={{ paddingVertical: 10, alignItems: "center" }}
               >
-                <Text style={{ color: "#B8AACB", fontWeight: "600" }}>
+                <Text style={{ color: "#A8A8A8", fontWeight: "600" }}>
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -12241,7 +12220,7 @@ export default function App() {
             activeOpacity={1}
             onPress={() => {}}
             style={{
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderRadius: 20,
               padding: 22,
             }}
@@ -12250,13 +12229,13 @@ export default function App() {
               style={{
                 fontSize: 16,
                 fontWeight: "700",
-                color: "#F4EFFA",
+                color: "#FFFFFF",
                 marginBottom: 14,
               }}
             >
               {noteViewer?.displayName || noteViewer?.username || "Note"}
             </Text>
-            <Text style={{ fontSize: 18, color: "#F4EFFA", lineHeight: 26 }}>
+            <Text style={{ fontSize: 18, color: "#FFFFFF", lineHeight: 26 }}>
               {noteViewer?.text || ""}
             </Text>
             <TouchableOpacity
@@ -12268,7 +12247,7 @@ export default function App() {
                 paddingHorizontal: 14,
               }}
             >
-              <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>Close</Text>
+              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>Close</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
@@ -12283,7 +12262,7 @@ export default function App() {
           setViewedProfileOpen(false);
         }}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#100B19" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
           <View style={{
             height: 52, flexDirection: "row", alignItems: "center",
             paddingHorizontal: 14, borderBottomWidth: 0.5, borderBottomColor: "#E8E8E8"
@@ -12291,7 +12270,7 @@ export default function App() {
             <TouchableOpacity onPress={() => setViewedProfileOpen(false)} style={{ width: 42 }}>
               <Ionicons name="arrow-back" size={25} color="#171717" />
             </TouchableOpacity>
-            <Text numberOfLines={1} style={{ flex: 1, fontSize: 17, fontWeight: "800", color: "#F4EFFA" }}>
+            <Text numberOfLines={1} style={{ flex: 1, fontSize: 17, fontWeight: "800", color: "#FFFFFF" }}>
               {viewedProfile ? `@${viewedProfile.username}` : "Profile"}
             </Text>
             {viewedProfile && String(viewedProfile.username || "").toLowerCase() !== String(authSession?.username || "").toLowerCase() ? (
@@ -12303,7 +12282,7 @@ export default function App() {
 
           {viewedProfileBusy && !viewedProfile ? (
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-              <Text style={{ color: "#B8AACB" }}>Loading profile...</Text>
+              <Text style={{ color: "#A8A8A8" }}>Loading profile...</Text>
             </View>
           ) : viewedProfile ? (
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -12311,10 +12290,10 @@ export default function App() {
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   {viewedProfile.avatarUrl ? (
                     <Image source={{ uri: viewedProfile.avatarUrl }}
-                      style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#21162F" }} />
+                      style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#1C1C1E" }} />
                   ) : (
-                    <View style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#21162F", alignItems: "center", justifyContent: "center" }}>
-                      <Text style={{ fontSize: 32, fontWeight: "800", color: "#F4EFFA" }}>
+                    <View style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
+                      <Text style={{ fontSize: 32, fontWeight: "800", color: "#FFFFFF" }}>
                         {String(viewedProfile.displayName || viewedProfile.username || "?").slice(0, 1).toUpperCase()}
                       </Text>
                     </View>
@@ -12332,19 +12311,19 @@ export default function App() {
                         activeOpacity={0.7}
                         style={{ alignItems: "center", paddingHorizontal: 3 }}
                       >
-                        <Text style={{ fontSize: 18, fontWeight: "800", color: "#F4EFFA" }}>{viewedProfile[field] || 0}</Text>
-                        <Text style={{ color: "#B8AACB", fontSize: 12 }}>{label}</Text>
+                        <Text style={{ fontSize: 18, fontWeight: "800", color: "#FFFFFF" }}>{viewedProfile[field] || 0}</Text>
+                        <Text style={{ color: "#A8A8A8", fontSize: 12 }}>{label}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
                 </View>
 
                 <View style={{ marginTop: 13 }}>
-                  <Text style={{ fontSize: 15, fontWeight: "800", color: "#F4EFFA" }}>
+                  <Text style={{ fontSize: 15, fontWeight: "800", color: "#FFFFFF" }}>
                     {viewedProfile.displayName || viewedProfile.username}
                   </Text>
                   {!!viewedProfile.bio && (
-                    <Text style={{ color: "#F4EFFA", marginTop: 4, lineHeight: 20 }}>{viewedProfile.bio}</Text>
+                    <Text style={{ color: "#FFFFFF", marginTop: 4, lineHeight: 20 }}>{viewedProfile.bio}</Text>
                   )}
                 </View>
 
@@ -12379,8 +12358,8 @@ export default function App() {
                         await openDirectChat(username);
                       }}
                       activeOpacity={0.8}
-                      style={{ flex: 1, height: 36, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "#21162F" }}>
-                      <Text style={{ color: "#F4EFFA", fontWeight: "800", fontSize: 13 }}>Message</Text>
+                      style={{ flex: 1, height: 36, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "#1C1C1E" }}>
+                      <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 13 }}>Message</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -12392,7 +12371,7 @@ export default function App() {
                   );
                   return (
                     <View style={{ marginTop: 19 }}>
-                      <Text style={{ color: "#F4EFFA", fontWeight: "800", marginBottom: 10 }}>Status</Text>
+                      <Text style={{ color: "#FFFFFF", fontWeight: "800", marginBottom: 10 }}>Status</Text>
                       {stories.length ? (
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                           {stories.map((story, index) => (
@@ -12401,13 +12380,13 @@ export default function App() {
                               onPress={() => openStoryGroup(stories)} />
                           ))}
                         </ScrollView>
-                      ) : <Text style={{ color: "#B8AACB", fontSize: 13 }}>No status yet</Text>}
+                      ) : <Text style={{ color: "#A8A8A8", fontSize: 13 }}>No status yet</Text>}
                     </View>
                   );
                 })()}
               </View>
 
-              <View style={{ flexDirection: "row", borderTopWidth: 0.5, borderBottomWidth: 0.5, borderColor: "#49345F", marginTop: 18 }}>
+              <View style={{ flexDirection: "row", borderTopWidth: 0.5, borderBottomWidth: 0.5, borderColor: "#262626", marginTop: 18 }}>
                 {[["posts", "grid-outline"], ["tagged", "person-outline"]].map(([tab, icon]) => (
                   <TouchableOpacity key={tab} onPress={() => setViewedProfileTab(tab)}
                     style={{
@@ -12421,17 +12400,17 @@ export default function App() {
 
               {viewedProfileTab === "posts" ? (
                 viewedProfilePostsBusy ? (
-                  <Text style={{ textAlign: "center", padding: 28, color: "#B8AACB" }}>Loading posts...</Text>
+                  <Text style={{ textAlign: "center", padding: 28, color: "#A8A8A8" }}>Loading posts...</Text>
                 ) : viewedProfilePosts.length ? (
                   <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
                     {viewedProfilePosts.map((post, index) => (
                       <View key={String(post.id || post._id || index)} style={{ width: "33.3333%", aspectRatio: 1, padding: 1 }}>
                         {(post.uri || post.mediaUrl) ? (
                           <Image source={{ uri: post.uri || post.mediaUrl }}
-                            style={{ width: "100%", height: "100%", backgroundColor: "#21162F" }} resizeMode="cover" />
+                            style={{ width: "100%", height: "100%", backgroundColor: "#1C1C1E" }} resizeMode="cover" />
                         ) : (
-                          <View style={{ flex: 1, backgroundColor: "#21162F", alignItems: "center", justifyContent: "center", padding: 5 }}>
-                            <Text numberOfLines={3} style={{ fontSize: 10, color: "#F4EFFA" }}>{post.caption || "Post"}</Text>
+                          <View style={{ flex: 1, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center", padding: 5 }}>
+                            <Text numberOfLines={3} style={{ fontSize: 10, color: "#FFFFFF" }}>{post.caption || "Post"}</Text>
                           </View>
                         )}
                       </View>
@@ -12440,13 +12419,13 @@ export default function App() {
                 ) : (
                   <View style={{ alignItems: "center", paddingVertical: 48 }}>
                     <Ionicons name="camera-outline" size={42} color="#222222" />
-                    <Text style={{ color: "#F4EFFA", fontSize: 17, fontWeight: "800", marginTop: 10 }}>No posts yet</Text>
+                    <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 10 }}>No posts yet</Text>
                   </View>
                 )
               ) : (
                 <View style={{ alignItems: "center", paddingVertical: 48 }}>
                   <Ionicons name="images-outline" size={38} color="#555555" />
-                  <Text style={{ color: "#B8AACB", marginTop: 10 }}>No tagged photos yet</Text>
+                  <Text style={{ color: "#A8A8A8", marginTop: 10 }}>No tagged photos yet</Text>
                 </View>
               )}
             </ScrollView>
@@ -12455,7 +12434,7 @@ export default function App() {
           {viewedProfileMenuOpen && viewedProfile && (
             <View style={{
               position: "absolute", top: 52, right: 12, width: 235,
-              backgroundColor: "#100B19", borderRadius: 14, paddingVertical: 5,
+              backgroundColor: "#000000", borderRadius: 14, paddingVertical: 5,
               elevation: 8, shadowColor: "#000000", shadowOpacity: 0.14,
               shadowRadius: 12, shadowOffset: { width: 0, height: 5 }
             }}>
@@ -12468,14 +12447,14 @@ export default function App() {
                   message: `View @${username}'s profile on Bhumi Social AI:\n${profileLink}\n\nGet Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download`,
                 });
               }} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
-                <Text style={{ color: "#F4EFFA", fontSize: 14 }}>Share Profile</Text>
+                <Text style={{ color: "#FFFFFF", fontSize: 14 }}>Share Profile</Text>
               </TouchableOpacity>
-              <View style={{ height: 0.5, backgroundColor: "#21162F" }} />
+              <View style={{ height: 0.5, backgroundColor: "#1C1C1E" }} />
               <TouchableOpacity disabled={viewedProfileRestrictBusy} onPress={() => {
                 setViewedProfileMenuOpen(false);
                 handleToggleViewedProfileRestriction();
               }} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
-                <Text style={{ color: "#F4EFFA", fontSize: 14 }}>
+                <Text style={{ color: "#FFFFFF", fontSize: 14 }}>
                   {viewedProfileRestricted ? "Unrestrict" : "Restrict"}
                 </Text>
               </TouchableOpacity>
@@ -12490,33 +12469,33 @@ export default function App() {
         presentationStyle="fullScreen"
         onRequestClose={() => setProfileConnectionsOpen(false)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#100B19" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
           <View style={{
             minHeight: 54, flexDirection: "row", alignItems: "center",
-            paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#352443"
+            paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#262626"
           }}>
             <TouchableOpacity onPress={() => setProfileConnectionsOpen(false)} style={{ padding: 8, marginRight: 8 }}>
-              <Ionicons name="arrow-back" size={24} color="#F4EFFA" />
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "#F4EFFA", fontSize: 17, fontWeight: "800" }}>
+              <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800" }}>
                 {profileConnectionsType === "followers" ? "Followers" : "Following"}
               </Text>
-              <Text style={{ color: "#B8AACB", fontSize: 11 }}>@{profileConnectionsUsername}</Text>
+              <Text style={{ color: "#A8A8A8", fontSize: 11 }}>@{profileConnectionsUsername}</Text>
             </View>
             <TouchableOpacity onPress={() => setProfileConnectionsOpen(false)} style={{ padding: 8 }}>
-              <Ionicons name="close" size={24} color="#D8B86A" />
+              <Ionicons name="close" size={24} color="#0095F6" />
             </TouchableOpacity>
           </View>
           {profileConnectionsBusy ? (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-              <ActivityIndicator size="large" color="#D8B86A" />
-              <Text style={{ color: "#B8AACB", marginTop: 12 }}>Loading {profileConnectionsType}...</Text>
+              <ActivityIndicator size="large" color="#0095F6" />
+              <Text style={{ color: "#A8A8A8", marginTop: 12 }}>Loading {profileConnectionsType}...</Text>
             </View>
           ) : profileConnectionsError ? (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-              <Text style={{ color: "#F4EFFA", textAlign: "center" }}>{profileConnectionsError}</Text>
-              <TouchableOpacity onPress={() => openProfileConnections(profileConnectionsUsername, profileConnectionsType)} style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, backgroundColor: "#49345F" }}>
+              <Text style={{ color: "#FFFFFF", textAlign: "center" }}>{profileConnectionsError}</Text>
+              <TouchableOpacity onPress={() => openProfileConnections(profileConnectionsUsername, profileConnectionsType)} style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, backgroundColor: "#262626" }}>
                 <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Retry</Text>
               </TouchableOpacity>
             </View>
@@ -12533,16 +12512,16 @@ export default function App() {
                       openUserProfile(username);
                     }}
                     activeOpacity={0.75}
-                    style={{ minHeight: 68, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#352443", gap: 12 }}
+                    style={{ minHeight: 68, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#262626", gap: 12 }}
                   >
-                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#21162F", alignItems: "center", justifyContent: "center" }}>
-                      <Text style={{ color: "#F4EFFA", fontSize: 18, fontWeight: "800" }}>{username.slice(0, 1).toUpperCase()}</Text>
+                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
+                      <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>{username.slice(0, 1).toUpperCase()}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ color: "#F4EFFA", fontSize: 14, fontWeight: "800" }}>@{username}</Text>
-                      <Text style={{ color: "#B8AACB", fontSize: 11 }}>View profile</Text>
+                      <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800" }}>@{username}</Text>
+                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>View profile</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={18} color="#D8B86A" />
+                    <Ionicons name="chevron-forward" size={18} color="#0095F6" />
                   </TouchableOpacity>
                 );
               })}
@@ -12550,7 +12529,7 @@ export default function App() {
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
               <Ionicons name="people-outline" size={42} color="#80699A" />
-              <Text style={{ color: "#F4EFFA", fontSize: 16, fontWeight: "800", marginTop: 12 }}>
+              <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "800", marginTop: 12 }}>
                 No {profileConnectionsType} yet
               </Text>
             </View>
@@ -12575,7 +12554,7 @@ export default function App() {
           <View
             style={{
               height: "78%",
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingTop: 20,
@@ -12589,11 +12568,11 @@ export default function App() {
                 paddingHorizontal: 18,
                 paddingBottom: 14,
                 borderBottomWidth: 1,
-                borderBottomColor: "#352443",
+                borderBottomColor: "#262626",
               }}
             >
               <Text
-                style={{ fontSize: 20, fontWeight: "800", color: "#F4EFFA" }}
+                style={{ fontSize: 20, fontWeight: "800", color: "#FFFFFF" }}
               >
                 Notifications
               </Text>
@@ -12602,7 +12581,7 @@ export default function App() {
               >
                 {unreadNotificationCount > 0 ? (
                   <TouchableOpacity onPress={handleReadAllNotifications}>
-                    <Text style={{ color: "#F4EFFA", fontWeight: "700" }}>
+                    <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
                       Mark all read
                     </Text>
                   </TouchableOpacity>
@@ -12610,13 +12589,13 @@ export default function App() {
                 <TouchableOpacity
                   onPress={() => setNotificationsListOpen(false)}
                 >
-                  <Ionicons name="close" size={27} color="#D8B86A" />
+                  <Ionicons name="close" size={27} color="#0095F6" />
                 </TouchableOpacity>
               </View>
             </View>
             {notificationsLoading ? (
               <Text
-                style={{ textAlign: "center", color: "#B8AACB", padding: 25 }}
+                style={{ textAlign: "center", color: "#A8A8A8", padding: 25 }}
               >
                 Loading notifications...
               </Text>
@@ -12645,9 +12624,9 @@ export default function App() {
                         alignItems: "center",
                         paddingHorizontal: 18,
                         paddingVertical: 16,
-                        backgroundColor: item.isRead ? "#100B19" : "#21162F",
+                        backgroundColor: item.isRead ? "#000000" : "#1C1C1E",
                         borderBottomWidth: 1,
-                        borderBottomColor: "#30213F",
+                        borderBottomColor: "#262626",
                       }}
                     >
                       <View
@@ -12655,7 +12634,7 @@ export default function App() {
                           width: 42,
                           height: 42,
                           borderRadius: 21,
-                          backgroundColor: "#2A1C3A",
+                          backgroundColor: "#262626",
                           alignItems: "center",
                           justifyContent: "center",
                           marginRight: 12,
@@ -12672,13 +12651,13 @@ export default function App() {
                                   : "person"
                           }
                           size={21}
-                          color="#D8B86A"
+                          color="#0095F6"
                         />
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text
                           style={{
-                            color: "#F4EFFA",
+                            color: "#FFFFFF",
                             fontSize: 14,
                             lineHeight: 20,
                           }}
@@ -12688,7 +12667,7 @@ export default function App() {
                         </Text>
                         <Text
                           style={{
-                            color: "#B8AACB",
+                            color: "#A8A8A8",
                             fontSize: 11,
                             marginTop: 5,
                           }}
@@ -12704,7 +12683,7 @@ export default function App() {
                             width: 9,
                             height: 9,
                             borderRadius: 5,
-                            backgroundColor: "#D8B86A",
+                            backgroundColor: "#0095F6",
                             marginLeft: 8,
                           }}
                         />
@@ -12716,7 +12695,7 @@ export default function App() {
                   <Text
                     style={{
                       textAlign: "center",
-                      color: "#B8AACB",
+                      color: "#A8A8A8",
                       padding: 35,
                     }}
                   >
@@ -12747,7 +12726,7 @@ export default function App() {
           <View
             style={{
               height: "76%",
-              backgroundColor: "#100B19",
+              backgroundColor: "#000000",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingTop: 20,
@@ -12761,11 +12740,11 @@ export default function App() {
                 paddingHorizontal: 18,
                 paddingBottom: 14,
                 borderBottomWidth: 1,
-                borderBottomColor: "#49345F",
+                borderBottomColor: "#262626",
               }}
             >
               <Text
-                style={{ color: "#F4EFFA", fontSize: 19, fontWeight: "800" }}
+                style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800" }}
               >
                 Reel comments
               </Text>
@@ -12775,7 +12754,7 @@ export default function App() {
             </View>
             {reelCommentsBusy && reelComments.length === 0 ? (
               <Text
-                style={{ color: "#B8AACB", textAlign: "center", padding: 24 }}
+                style={{ color: "#A8A8A8", textAlign: "center", padding: 24 }}
               >
                 Loading comments...
               </Text>
@@ -12794,11 +12773,11 @@ export default function App() {
                   style={{
                     paddingVertical: 12,
                     borderBottomWidth: 1,
-                    borderBottomColor: "#49345F",
+                    borderBottomColor: "#262626",
                   }}
                 >
                   <Text
-                    style={{ color: "#F4EFFA", fontSize: 14, lineHeight: 21 }}
+                    style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 21 }}
                   >
                     <Text style={{ fontWeight: "800" }}>
                       @{item.username || "user"}{" "}
@@ -12807,7 +12786,7 @@ export default function App() {
                   </Text>
                   {!!item.createdAt ? (
                     <Text
-                      style={{ color: "#A997B8", fontSize: 10, marginTop: 4 }}
+                      style={{ color: "#A8A8A8", fontSize: 10, marginTop: 4 }}
                     >
                       {new Date(item.createdAt).toLocaleString()}
                     </Text>
@@ -12829,12 +12808,12 @@ export default function App() {
                         paddingVertical: 5,
                         paddingHorizontal: 12,
                         borderRadius: 8,
-                        backgroundColor: "#21162F",
+                        backgroundColor: "#1C1C1E",
                       }}
                     >
                       <Text
                         style={{
-                          color: "#F4EFFA",
+                          color: "#FFFFFF",
                           fontSize: 12,
                           fontWeight: "800",
                         }}
@@ -12847,7 +12826,7 @@ export default function App() {
               ))}
               {!reelCommentsBusy && reelComments.length === 0 ? (
                 <Text
-                  style={{ color: "#B8AACB", textAlign: "center", padding: 28 }}
+                  style={{ color: "#A8A8A8", textAlign: "center", padding: 28 }}
                 >
                   No comments yet. Be the first to comment.
                 </Text>
@@ -12860,7 +12839,7 @@ export default function App() {
                 paddingHorizontal: 14,
                 paddingVertical: 12,
                 borderTopWidth: 1,
-                borderTopColor: "#49345F",
+                borderTopColor: "#262626",
                 gap: 9,
               }}
             >
@@ -12868,16 +12847,16 @@ export default function App() {
                 value={reelCommentDraft}
                 onChangeText={setReelCommentDraft}
                 placeholder="Add a comment..."
-                placeholderTextColor="#A997B8"
+                placeholderTextColor="#A8A8A8"
                 maxLength={2000}
                 editable={!reelCommentsBusy}
                 style={{
                   flex: 1,
-                  backgroundColor: "#21162F",
+                  backgroundColor: "#1C1C1E",
                   borderRadius: 22,
                   paddingHorizontal: 15,
                   paddingVertical: 11,
-                  color: "#F4EFFA",
+                  color: "#FFFFFF",
                 }}
               />
               <TouchableOpacity
@@ -12916,28 +12895,28 @@ export default function App() {
               alignItems: "center",
               justifyContent: "space-between",
               borderBottomWidth: 1,
-              borderBottomColor: "#352443",
+              borderBottomColor: "#262626",
             }}
           >
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
             >
               <TouchableOpacity onPress={() => setSavedScreenOpen(false)}>
-                <Ionicons name="arrow-back" size={25} color="#D8B86A" />
+                <Ionicons name="arrow-back" size={25} color="#0095F6" />
               </TouchableOpacity>
               <Text
-                style={{ color: "#F4EFFA", fontSize: 19, fontWeight: "800" }}
+                style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800" }}
               >
                 Saved
               </Text>
             </View>
             <TouchableOpacity onPress={handleOpenSavedScreen}>
-              <Ionicons name="refresh" size={22} color="#D8B86A" />
+              <Ionicons name="refresh" size={22} color="#0095F6" />
             </TouchableOpacity>
           </View>
           {savedContentBusy ? (
             <Text
-              style={{ color: "#B8AACB", textAlign: "center", padding: 30 }}
+              style={{ color: "#A8A8A8", textAlign: "center", padding: 30 }}
             >
               Loading saved items...
             </Text>
@@ -12961,7 +12940,7 @@ export default function App() {
                       aspectRatio: 0.82,
                       borderRadius: 10,
                       overflow: "hidden",
-                      backgroundColor: "#21162F",
+                      backgroundColor: "#1C1C1E",
                     }}
                   >
                     <TouchableOpacity
@@ -13066,7 +13045,7 @@ export default function App() {
               {!savedContent.length ? (
                 <View style={{ alignItems: "center", padding: 45 }}>
                   <Ionicons name="bookmark-outline" size={42} color="#A0A8B4" />
-                  <Text style={{ color: "#B8AACB", marginTop: 12 }}>
+                  <Text style={{ color: "#A8A8A8", marginTop: 12 }}>
                     Nothing saved yet.
                   </Text>
                 </View>
@@ -13082,7 +13061,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#08050D" },
+  screen: { flex: 1, backgroundColor: "#000000" },
   content: { flex: 1 },
   header: {
     height: 82,
@@ -13093,20 +13072,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#352443",
-    backgroundColor: "#08050D",
+    borderBottomColor: "#262626",
+    backgroundColor: "#000000",
   },
   brand: {
     flex: 1,
-    textAlign: "center",
+    textAlign: "left",
     fontSize: 18,
     fontWeight: "800",
-    color: "#F4EFFA",
+    color: "#FFFFFF",
     letterSpacing: -0.4,
   },
   headerSideSpacer: { width: 116 },
   headerActions: { flexDirection: "row", alignItems: "center", gap: 19 },
-  headerIcon: { fontSize: 27, color: "#D8B86A" },
+  headerIcon: { fontSize: 27, color: "#0095F6" },
   stories: { paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   story: { width: 68, alignItems: "center" },
   storyRing: {
@@ -13115,7 +13094,7 @@ const styles = StyleSheet.create({
     borderRadius: 34,
     padding: 0,
     borderWidth: 2,
-    borderColor: "#D8B86A",
+    borderColor: "#0095F6",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -13124,7 +13103,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 2,
-    borderColor: "#8B5CF6",
+    borderColor: "#0095F6",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -13137,14 +13116,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  plus: { fontSize: 30, color: "#F4EFFA" },
+  plus: { fontSize: 30, color: "#FFFFFF" },
   avatarLetter: { fontSize: 22, fontWeight: "700", color: "#343434" },
-  storyName: { marginTop: 5, fontSize: 11, color: "#E9DDF5" },
-  feedDivider: { height: 1, backgroundColor: "#352443" },
+  storyName: { marginTop: 5, fontSize: 11, color: "#E5E5E5" },
+  feedDivider: { height: 1, backgroundColor: "#262626" },
   post: {
     marginHorizontal: 0,
     marginBottom: 10,
-    backgroundColor: "#08050D",
+    backgroundColor: "#000000",
     borderWidth: 0,
     borderColor: "#000000",
     borderRadius: 0,
@@ -13164,14 +13143,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  smallAvatarText: { fontSize: 16, fontWeight: "700", color: "#34415A" },
+  smallAvatarText: { fontSize: 16, fontWeight: "700", color: "#FFFFFF" },
   postUserInfo: { flex: 1, marginLeft: 10 },
-  username: { fontSize: 14, fontWeight: "700", color: "#F4EFFA" },
-  location: { marginTop: 2, fontSize: 11, color: "#B8AACB" },
+  username: { fontSize: 14, fontWeight: "700", color: "#FFFFFF" },
+  location: { marginTop: 2, fontSize: 11, color: "#A8A8A8" },
   more: {
     fontSize: 19,
     fontWeight: "700",
-    color: "#D8B86A",
+    color: "#0095F6",
     paddingHorizontal: 5,
   },
   postImage: {
@@ -13188,7 +13167,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     gap: 20,
   },
-  actionIcon: { fontSize: 28, color: "#202020" },
+  actionIcon: { fontSize: 28, color: "#FFFFFF" },
   liked: { color: "#E1306C" },
   actionSpacer: { flex: 1 },
   likes: {
@@ -13196,41 +13175,41 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 13,
     fontWeight: "700",
-    color: "#F4EFFA",
+    color: "#FFFFFF",
   },
   caption: {
     marginHorizontal: 13,
     marginTop: 5,
     fontSize: 13,
-    color: "#E9DDF5",
+    color: "#E5E5E5",
     lineHeight: 19,
   },
   comments: {
     marginHorizontal: 13,
     marginTop: 5,
-    color: "#B8AACB",
+    color: "#A8A8A8",
     fontSize: 12,
   },
   time: {
     marginHorizontal: 13,
     marginTop: 6,
     fontSize: 9,
-    color: "#B8AACB",
+    color: "#A8A8A8",
     letterSpacing: 0.6,
   },
   bottomNav: {
     height: Platform.OS === "android" ? 86 : 70,
     paddingBottom: Platform.OS === "android" ? 36 : 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#49345F",
+    borderTopColor: "#262626",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    backgroundColor: "#08050D",
+    backgroundColor: "#000000",
   },
   navItem: { flex: 1, alignItems: "center", justifyContent: "center" },
-  navIcon: { fontSize: 24, color: "#8B7A9D" },
-  activeNavIcon: { color: "#D8B86A", fontWeight: "800" },
-  navLabel: { fontSize: 9, color: "#A997B8", marginTop: 1 },
-  activeNavLabel: { color: "#D8B86A", fontWeight: "800" },
+  navIcon: { fontSize: 24, color: "#8E8E93" },
+  activeNavIcon: { color: "#0095F6", fontWeight: "800" },
+  navLabel: { fontSize: 9, color: "#A8A8A8", marginTop: 1 },
+  activeNavLabel: { color: "#0095F6", fontWeight: "800" },
 });

@@ -1,17 +1,17 @@
 import React from "react";
 import {
   Modal, View, Text, ScrollView, TouchableOpacity, Switch,
-  ActivityIndicator, Alert, Linking, Platform
+  ActivityIndicator, Linking, Platform, StyleSheet
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
 
-const GOLD = "#D8B86A";
-const BG = "#0B0712";
-const PANEL = "#171020";
-const BORDER = "#49345F";
-const TEXT = "#F4EFFA";
-const MUTED = "#B8AACB";
+const GOLD = "#0095F6";
+const BG = "#000000";
+const PANEL = "#121212";
+const BORDER = "#262626";
+const TEXT = "#FFFFFF";
+const MUTED = "#A8A8A8";
 
 const ACTION_KEYS = new Set([
   "profile.usernameChange","account.profileQr","account.multipleAccounts","account.verification",
@@ -102,8 +102,6 @@ const SECTIONS = [
     ["messages.allowVideoCalls","Allow Video Calls","Allow incoming video calls",true],
     ["messages.disappearing","Disappearing Messages","Enable disappearing message preference",false],
     ["messages.mediaDownload","Media Auto Download","Automatically download chat media",true],
-    ["messages.voiceCalls","Incoming Voice Calls","Allow voice call invitations",true],
-    ["messages.videoCalls","Incoming Video Calls","Allow video call invitations",true],
   ]},
   { key:"story", title:"Story Settings", subtitle:"Manage story audience and replies", icon:"images-outline", fields:[
     ["story.closeFriends","Close Friends","Manage your Close Friends membership from each friend’s Chat Studio",true],
@@ -130,7 +128,7 @@ const SECTIONS = [
   ]},
   { key:"appearance", title:"Appearance Settings", subtitle:"Make the app feel like yours", icon:"color-palette-outline", fields:[
     ["appearance.theme","App Theme","Choose your preferred appearance",true],
-    ["appearance.royalTheme","Royal Purple + Gold","Use the Bhumi premium theme",true],
+    ["appearance.royalTheme","Bhumi Blue Theme","Use the Bhumi blue premium theme",true],
     ["appearance.language","App Language","Choose your display language",true],
     ["appearance.largeText","Larger Text","Increase text size across the app",false],
     ["appearance.animations","App Animations","Enable interface animations",true],
@@ -148,12 +146,6 @@ const SECTIONS = [
     ["advanced.clearCache","Clear Cache","Clear temporary cached files",false],
     ["advanced.downloads","Download Preferences","Choose media download preferences",true],
     ["advanced.wifiOnly","Wi-Fi Only Downloads","Restrict automatic downloads to Wi-Fi",false],
-["data.saver","Data Saver","Reduce mobile data usage",false],
-    ["data.storage","Storage Usage","Review app storage usage",true],
-    ["data.autoDownload","Media Auto Download","Automatically download supported media",true],
-    ["data.wifiOnly","Wi-Fi Only Downloads","Download media only on Wi-Fi",false],
-    ["data.background","Background Data","Allow background network activity",true],
-    ["data.highQuality","High Quality Uploads","Prefer high quality uploads",true],
   ]},
   { key:"creator", title:"Creator & Professional", subtitle:"Tools for creators and business profiles", icon:"analytics-outline", fields:[
     ["creator.accountType","Creator Account","Enable creator account preference",false],
@@ -200,6 +192,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const [preferences, setPreferences] = React.useState({});
   const [loading, setLoading] = React.useState(false);
   const [savingKey, setSavingKey] = React.useState("");
+  const [notice, setNotice] = React.useState(null);
   React.useEffect(() => {
     let alive = true;
     if (visible) {
@@ -218,10 +211,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         });
         setPreferences(merged);
       }).catch((error) => {
-        if (alive) Alert.alert("Settings", error.message || "Could not load preferences.");
+        if (alive) setNotice({ title: "Settings", message: error.message || "Could not load preferences." });
       }).finally(() => { if (alive) setLoading(false); });
     } else {
       setActive(null);
+      setNotice(null);
     }
     return () => { alive = false; };
   }, [visible, username]);
@@ -246,7 +240,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       }
     } catch (error) {
       setPreferences((current) => ({ ...current, [key]: previous }));
-      Alert.alert("Save failed", error.message || "Could not save this setting.");
+      setNotice({ title: "Save failed", message: error.message || "Could not save this setting." });
     } finally { setSavingKey(""); }
   };
 
@@ -256,6 +250,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         key === "account.deactivation" || key === "account.deletion") {
       setActive(null);
       onLegacyOpen?.("account");
+      return;
+    }
+    if (key.startsWith("privacy.") || key === "story.hideFrom") {
+      setActive(null);
+      onLegacyOpen?.("privacy");
       return;
     }
     if (key.startsWith("security.")) {
@@ -270,8 +269,15 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       onAbout?.();
       return;
     }
-    if (key === "advanced.permissions" || key === "location.history") {
+    if (key === "advanced.permissions") {
       Linking.openSettings();
+      return;
+    }
+    if (key === "location.history") {
+      setNotice({
+        title: "Location Sharing History",
+        message: "Location sharing is currently off by default. History will appear here after secure location-sharing controls are enabled.",
+      });
       return;
     }
     const labels = {
@@ -283,9 +289,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       "creator.monetization":"Creator monetization is not enabled on the server yet.",
       "creator.collaboration":"Brand collaboration tools are not connected yet.",
       "creator.promotions":"Promotion tools are not connected yet.",
-      "premium.profileStudio":"Profile Studio is not connected yet."
+      "premium.profileStudio":"Profile Studio is not connected yet.",
+      "appearance.chat":"Chat themes and friend-specific personalization are available from the palette button inside each conversation."
     };
-    Alert.alert("Not available yet", labels[key] || "This action is not connected yet. It has not been enabled.");
+    setNotice({ title: "Not available yet", message: labels[key] || "This action is not connected yet. It has not been enabled." });
   };
 
   const renderField = (field) => {
@@ -293,7 +300,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     const value = preferences[key] ?? defaultValue;
     const isAction = ACTION_KEYS.has(key);
     return (
-      <View key={key} style={{ backgroundColor:PANEL, borderWidth:1, borderColor:BORDER, borderRadius:15, padding:14, marginBottom:10 }}>
+      <View key={key} style={{ backgroundColor:BG, borderBottomWidth:StyleSheet.hairlineWidth, borderBottomColor:BORDER, paddingHorizontal:2, paddingVertical:16, marginBottom:0 }}>
         <View style={{ flexDirection:"row", alignItems:"center" }}>
           <View style={{ flex:1, paddingRight:12 }}>
             <Text style={{ color:TEXT, fontSize:14, fontWeight:"800" }}>{title}</Text>
@@ -301,11 +308,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {savingKey === key ? <Text style={{ color:GOLD, fontSize:10, marginTop:5 }}>Saving…</Text> : null}
           </View>
           {isAction ? (
-            <TouchableOpacity onPress={() => runSettingAction(key)} style={{ backgroundColor:"#30213F",borderColor:BORDER,borderWidth:1,borderRadius:10,paddingHorizontal:13,paddingVertical:9 }}>
+            <TouchableOpacity onPress={() => runSettingAction(key)} style={{ backgroundColor:"#1C1C1E",borderColor:"#303030",borderWidth:1,borderRadius:18,paddingHorizontal:15,paddingVertical:9 }}>
               <Text style={{ color:GOLD,fontSize:11,fontWeight:"900" }}>Open</Text>
             </TouchableOpacity>
           ) : (
-            <Switch value={!!value} onValueChange={(next) => saveValue(key,next)} disabled={!!savingKey} trackColor={{ false:"#51465E",true:"#7651B5" }} thumbColor={value ? GOLD : "#E8E2EF"} />
+            <Switch value={!!value} onValueChange={(next) => saveValue(key,next)} disabled={!!savingKey} trackColor={{ false:"#555555",true:"#0095F6" }} thumbColor={value ? GOLD : "#FFFFFF"} />
           )}
         </View>
       </View>
@@ -319,39 +326,39 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     return (
       <Modal visible={!!active && visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setActive(null)}>
         <View style={{ flex:1, backgroundColor:BG, paddingTop:16, paddingBottom: Platform.OS === "android" ? 36 : 0 }}>
-          <View style={{ flexDirection:"row", alignItems:"center", paddingHorizontal:18, paddingBottom:16, borderBottomWidth:1, borderBottomColor:BORDER }}>
+          <View style={{ flexDirection:"row", alignItems:"center", paddingHorizontal:18, paddingTop:5, paddingBottom:16, borderBottomWidth:1, borderBottomColor:BORDER, backgroundColor:BG }}>
             <TouchableOpacity onPress={() => setActive(null)} style={{ width:42,height:42,borderRadius:13,backgroundColor:PANEL,alignItems:"center",justifyContent:"center",marginRight:12 }}>
               <Ionicons name="arrow-back" size={22} color={GOLD}/>
             </TouchableOpacity>
             <View style={{ flex:1 }}>
-              <Text style={{ color:TEXT,fontSize:19,fontWeight:"900" }}>{section.title}</Text>
-              <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{section.subtitle}</Text>
+              <Text style={{ color:TEXT,fontSize:19,fontWeight:"900", letterSpacing:-0.35 }}>{section.title}</Text>
+              <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{section.subtitle}</Text>
             </View>
           </View>
           <ScrollView contentContainerStyle={{ padding:18,paddingBottom: Platform.OS === "android" ? 64 : 40 }} keyboardShouldPersistTaps="handled">
             {section.key === "location" ? (
-              <View style={{ backgroundColor:"#21162F",borderColor:GOLD,borderWidth:1,borderRadius:15,padding:14,marginBottom:14 }}>
+              <View style={{ backgroundColor:"#1C1C1E",borderColor:GOLD,borderWidth:1,borderRadius:15,padding:14,marginBottom:14 }}>
                 <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>LOCATION SAFETY</Text>
                 <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Location sharing is off by default. Only share with people you choose. Live location and nearby discovery require device permission and server-side sharing controls before they can become active.</Text>
                 <TouchableOpacity onPress={() => Linking.openSettings()} style={{ alignSelf:"flex-start",marginTop:12,backgroundColor:GOLD,borderRadius:10,paddingHorizontal:13,paddingVertical:9 }}>
-                  <Text style={{ color:"#170F20",fontWeight:"900",fontSize:12 }}>Open App Permissions</Text>
+                  <Text style={{ color:"#FFFFFF",fontWeight:"900",fontSize:12 }}>Open App Permissions</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
             {section.key === "security" ? (
-              <View style={{ backgroundColor:"#21162F",borderRadius:14,padding:13,marginBottom:13 }}>
+              <View style={{ backgroundColor:"#1C1C1E",borderRadius:14,padding:13,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"800",fontSize:12 }}>SECURITY NOTE</Text>
                 <Text style={{ color:MUTED,fontSize:11,lineHeight:17,marginTop:5 }}>Account security controls are separate from chat privacy preferences.</Text>
               </View>
             ) : null}
             {section.key === "messages" ? (
-              <View style={{ backgroundColor:"#21162F",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
+              <View style={{ backgroundColor:"#1C1C1E",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>CHAT PRIVACY CONTROLS</Text>
                 <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Blocked and Restricted Accounts are managed from the Privacy Settings section. Your existing conversations remain available when you turn off first-time message requests; new unknown senders are refused. Read receipts and typing indicators are enforced by the chat server.</Text>
               </View>
             ) : null}
             {section.key === "messages" ? (
-              <View style={{ backgroundColor:"#21162F",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
+              <View style={{ backgroundColor:"#1C1C1E",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>CHAT PERSONALIZATION STUDIO</Text>
                 <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Open Messages, enter any conversation, then tap the palette icon. Choose a separate chat theme, set a private name for that friend, and add or remove them from Favourite Friends or Close Friends. Favourite and Close Friends filters appear above your chat list.</Text>
               </View>
@@ -369,22 +376,22 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             ) : null}
             {section.legacy ? (
               <TouchableOpacity onPress={() => { setActive(null); onLegacyOpen?.(section.legacy); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
-                <Text style={{ color:"#170F20",fontWeight:"900" }}>Open Existing {section.title}</Text>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Open Existing {section.title}</Text>
               </TouchableOpacity>
             ) : null}
             {section.key === "about" ? (
               <TouchableOpacity onPress={() => { setActive(null); onAbout?.(); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
-                <Text style={{ color:"#170F20",fontWeight:"900" }}>About & App Updates</Text>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>About & App Updates</Text>
               </TouchableOpacity>
             ) : null}
             {section.key === "account" ? (
               <TouchableOpacity onPress={() => { setActive(null); onLegacyOpen?.("account"); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
-                <Text style={{ color:"#170F20",fontWeight:"900" }}>Manage Email & Mobile</Text>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Manage Email & Mobile</Text>
               </TouchableOpacity>
             ) : null}
             {section.key === "security" ? (
               <TouchableOpacity onPress={() => { setActive(null); onLegacyOpen?.("security"); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
-                <Text style={{ color:"#170F20",fontWeight:"900" }}>Change Password / Other Sessions</Text>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Change Password / Other Sessions</Text>
               </TouchableOpacity>
             ) : null}
           </ScrollView>
@@ -396,10 +403,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   return (
     <>
       <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-        <View style={{ flex:1,backgroundColor:"rgba(5,2,12,0.86)",justifyContent:"flex-end",paddingBottom: Platform.OS === "android" ? 38 : 0 }}>
-          <View style={{ backgroundColor:BG,borderTopLeftRadius:25,borderTopRightRadius:25,borderWidth:1,borderColor:BORDER,paddingTop:18,paddingHorizontal:17,paddingBottom: Platform.OS === "android" ? 22 : 25,maxHeight:"94%" }}>
-            <View style={{ alignSelf:"center",width:42,height:5,borderRadius:5,backgroundColor:"#7651B5",marginBottom:17 }}/>
-            <View style={{ backgroundColor:"#1A1028",borderWidth:1,borderColor:BORDER,borderRadius:20,padding:18,marginBottom:15 }}>
+        <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.72)",justifyContent:"flex-end",paddingBottom: Platform.OS === "android" ? 38 : 0 }}>
+          <View style={{ backgroundColor:BG,borderTopLeftRadius:22,borderTopRightRadius:22,borderWidth:1,borderColor:BORDER,paddingTop:18,paddingHorizontal:17,paddingBottom: Platform.OS === "android" ? 22 : 25,maxHeight:"94%" }}>
+            <View style={{ alignSelf:"center",width:42,height:5,borderRadius:5,backgroundColor:"#0095F6",marginBottom:17 }}/>
+            <View style={{ backgroundColor:"#121212",borderWidth:1,borderColor:BORDER,borderRadius:16,padding:18,marginBottom:15 }}>
               <Text style={{ color:GOLD,fontSize:11,fontWeight:"900",letterSpacing:2 }}>BHUMI SOCIAL AI</Text>
               <Text style={{ color:TEXT,fontSize:25,fontWeight:"900",marginTop:6 }}>Settings</Text>
               <Text style={{ color:MUTED,fontSize:12,marginTop:4 }}>Your account, privacy and app controls</Text>
@@ -407,8 +414,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical:18 }}/> : null}
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 48 : 12 }}>
               {SECTIONS.map((section) => (
-                <TouchableOpacity key={section.key} onPress={() => setActive(section.key)} activeOpacity={0.82} style={{ flexDirection:"row",alignItems:"center",backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:15,padding:13,marginBottom:9 }}>
-                  <View style={{ width:43,height:43,borderRadius:13,backgroundColor:"#281A39",alignItems:"center",justifyContent:"center",marginRight:12 }}>
+                <TouchableOpacity key={section.key} onPress={() => setActive(section.key)} activeOpacity={0.82} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderBottomWidth:1,borderBottomColor:BORDER,borderRadius:0,paddingHorizontal:2,paddingVertical:12,marginBottom:0 }}>
+                  <View style={{ width:42,height:42,borderRadius:21,backgroundColor:"#1C1C1E",alignItems:"center",justifyContent:"center",marginRight:12 }}>
                     <Ionicons name={section.icon} size={22} color={GOLD}/>
                   </View>
                   <View style={{ flex:1 }}>
@@ -430,6 +437,25 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         </View>
       </Modal>
       {renderSection()}
+      <Modal
+        visible={!!notice && visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNotice(null)}
+      >
+        <View style={{ flex:1, backgroundColor:"rgba(0,0,0,0.76)", justifyContent:"center", paddingHorizontal:28 }}>
+          <View style={{ backgroundColor:"#121212", borderWidth:1, borderColor:"#363636", borderRadius:20, padding:20 }}>
+            <View style={{ width:42, height:42, borderRadius:21, backgroundColor:"#1C1C1E", alignItems:"center", justifyContent:"center", marginBottom:13 }}>
+              <Ionicons name="information-circle-outline" size={23} color={GOLD}/>
+            </View>
+            <Text style={{ color:TEXT, fontSize:17, fontWeight:"900" }}>{notice?.title || "Bhumi Social AI"}</Text>
+            <Text style={{ color:MUTED, fontSize:13, lineHeight:19, marginTop:8 }}>{notice?.message || ""}</Text>
+            <TouchableOpacity onPress={() => setNotice(null)} style={{ marginTop:18, backgroundColor:GOLD, borderRadius:13, paddingVertical:12, alignItems:"center" }}>
+              <Text style={{ color:"#FFFFFF", fontSize:13, fontWeight:"900" }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }

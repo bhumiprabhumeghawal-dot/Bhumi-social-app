@@ -8,41 +8,62 @@ const AUTH_USERNAME_KEY = 'socialapp_auth_username';
 // Keep the bearer token in memory after the first secure read. SecureStore I/O
 // on every API request adds avoidable latency, especially during parallel loads.
 let authTokenMemory = null;
-let authTokenLoaded = false;
-let authTokenLoadPromise = null;
+let authUsernameMemory = null;
+let authSessionLoaded = false;
+let authSessionLoadPromise = null;
+let authSessionRevision = 0;
 
 async function getCachedAuthToken() {
-  if (authTokenLoaded) return authTokenMemory;
-  if (!authTokenLoadPromise) {
-    authTokenLoadPromise = SecureStore.getItemAsync(AUTH_TOKEN_KEY)
-      .then((token) => {
-        authTokenMemory = token || null;
-        authTokenLoaded = true;
-        return authTokenMemory;
-      })
-      .finally(() => { authTokenLoadPromise = null; });
-  }
-  return authTokenLoadPromise;
+  const session = await getAuthSession();
+  return session?.token || null;
 }
 
 export async function saveAuthSession(token, username) {
+  authSessionRevision += 1;
   authTokenMemory = token || null;
-  authTokenLoaded = true;
-  await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
-  await SecureStore.setItemAsync(AUTH_USERNAME_KEY, username);
+  authUsernameMemory = username || null;
+  authSessionLoaded = true;
+  await Promise.all([
+    SecureStore.setItemAsync(AUTH_TOKEN_KEY, token),
+    SecureStore.setItemAsync(AUTH_USERNAME_KEY, username),
+  ]);
 }
 
 export async function clearAuthSession() {
+  authSessionRevision += 1;
   authTokenMemory = null;
-  authTokenLoaded = true;
-  await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
-  await SecureStore.deleteItemAsync(AUTH_USERNAME_KEY);
+  authUsernameMemory = null;
+  authSessionLoaded = true;
+  await Promise.all([
+    SecureStore.deleteItemAsync(AUTH_TOKEN_KEY),
+    SecureStore.deleteItemAsync(AUTH_USERNAME_KEY),
+  ]);
 }
 
 export async function getAuthSession() {
-  const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
-  const username = await SecureStore.getItemAsync(AUTH_USERNAME_KEY);
-  return token && username ? { token, username } : null;
+  if (authSessionLoaded) {
+    return authTokenMemory && authUsernameMemory
+      ? { token: authTokenMemory, username: authUsernameMemory }
+      : null;
+  }
+  if (!authSessionLoadPromise) {
+    const revision = authSessionRevision;
+    authSessionLoadPromise = Promise.all([
+      SecureStore.getItemAsync(AUTH_TOKEN_KEY),
+      SecureStore.getItemAsync(AUTH_USERNAME_KEY),
+    ]).then(([token, username]) => {
+      if (revision !== authSessionRevision) {
+        return authTokenMemory && authUsernameMemory
+          ? { token: authTokenMemory, username: authUsernameMemory }
+          : null;
+      }
+      authTokenMemory = token || null;
+      authUsernameMemory = username || null;
+      authSessionLoaded = true;
+      return token && username ? { token, username } : null;
+    }).finally(() => { authSessionLoadPromise = null; });
+  }
+  return authSessionLoadPromise;
 }
 
 async function authHeaders(extra = {}) {
@@ -90,7 +111,7 @@ export async function verifyAuthSession() {
     return { valid: false, reason: 'missing_token' };
   }
 
-  const response = await originalFetch(`${API_BASE_URL}/api/auth/me`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
     method: 'GET',
     headers: { Authorization: `Bearer ${session.token}` },
   });
@@ -118,7 +139,8 @@ globalThis.fetch = async (input, init = {}) => {
   const url = typeof input === 'string' ? input : input.url;
   const urlText = String(url);
   const isUpload = /upload|media/i.test(urlText);
-  const timeoutMs = isUpload ? 120000 : (String(init.method || 'GET').toUpperCase() === 'GET' ? 15000 : 30000);
+  // Render free instances can take about a minute to wake from idle; local cache keeps the UI visible while the request is allowed to finish.
+  const timeoutMs = isUpload ? 120000 : 75000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
