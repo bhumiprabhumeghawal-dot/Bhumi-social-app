@@ -166,3 +166,7 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 ### Call failure recovery and backend wake-up tolerance
 - LiveKit connection errors now return the call view to its reconnect state instead of leaving a failed room mounted.
 - Non-upload API requests allow up to 75 seconds for Render's documented free-instance wake-up window; cached sections continue rendering while the request is pending.
+
+
+### Immediate disconnect recovery
+- The call UI now switches to its reconnect state immediately when LiveKit disconnects, then checks the call's server status in the background to distinguish a network drop from a call that was ended by the other participant.
