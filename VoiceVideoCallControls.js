@@ -219,46 +219,57 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   useEffect(() => {
     if (call || !enableIncoming || !currentUsername) return undefined;
     let active = true;
+    let timer = null;
     const checkIncoming = async () => {
-      if (callRef.current) return;
+      if (!active || callRef.current) return;
       try {
         const pending = await loadPendingCalls();
-        if (!active || callRef.current || !pending.length) return;
-        const next = pending[0];
-        callRef.current = next;
-        setCall(next);
-        setIncoming(true);
-        setCallMessage(next.type === "video" ? "आपको वीडियो कॉल आ रही है।" : "आपको वॉइस कॉल आ रही है।");
+        if (!active || callRef.current) return;
+        if (pending.length) {
+          const next = pending[0];
+          callRef.current = next;
+          setCall(next);
+          setIncoming(true);
+          setCallMessage(next.type === "video" ? "आपको वीडियो कॉल आ रही है।" : "आपको वॉइस कॉल आ रही है।");
+          return;
+        }
       } catch (error) {
-        // Keep polling quietly; temporary network errors should not interrupt chat.
+        // Retry after the current request settles; never stack overlapping polls.
+      } finally {
+        if (active && !callRef.current) timer = setTimeout(checkIncoming, 1400);
       }
     };
-    checkIncoming();
-    const timer = setInterval(checkIncoming, 3000);
-    return () => { active = false; clearInterval(timer); };
+    void checkIncoming();
+    return () => { active = false; if (timer) clearTimeout(timer); };
   }, [call, currentUsername, enableIncoming]);
 
   useEffect(() => {
     if (!call || incoming || connection || tokenAttemptedRef.current) return undefined;
     let active = true;
+    let timer = null;
     const checkStatus = async () => {
+      if (!active || tokenAttemptedRef.current) return;
       try {
         const latest = await getVoiceVideoCallStatus(call.id);
         if (!active || !latest) return;
         if (latest.status === "accepted" && !tokenAttemptedRef.current) {
           tokenAttemptedRef.current = true;
           await connectCall(latest);
-        } else if (["rejected", "missed", "ended"].includes(latest.status)) {
+          return;
+        }
+        if (["rejected", "missed", "ended"].includes(latest.status)) {
           setCallMessage(latest.status === "rejected" ? "कॉल अस्वीकार कर दी गई।" : latest.status === "missed" ? "कॉल का जवाब नहीं मिला।" : "कॉल समाप्त हो गई।");
-          setTimeout(() => { if (active) resetCall(); }, 2200);
+          timer = setTimeout(() => { if (active) resetCall(); }, 2200);
+          return;
         }
       } catch (error) {
         if (active) setCallMessage(error?.message || "कॉल की स्थिति नहीं मिल रही।");
+      } finally {
+        if (active && !tokenAttemptedRef.current) timer = setTimeout(checkStatus, 1200);
       }
     };
-    const timer = setInterval(checkStatus, 2200);
-    checkStatus();
-    return () => { active = false; clearInterval(timer); };
+    void checkStatus();
+    return () => { active = false; if (timer) clearTimeout(timer); };
   }, [call, incoming, connection]);
 
   const answerCall = async () => {
