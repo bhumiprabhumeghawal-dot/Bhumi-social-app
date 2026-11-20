@@ -1793,13 +1793,27 @@ function PostDetailActions({ post, authSession }) {
           >
             <View
               style={{
-                backgroundColor: "#151D2E",
+                backgroundColor: "#101114",
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
-                padding: 18,
-                maxHeight: "75%",
+                borderTopWidth: 1,
+                borderColor: "#292B30",
+                paddingHorizontal: 18,
+                paddingTop: 10,
+                paddingBottom: 18,
+                maxHeight: "78%",
               }}
             >
+              <View
+                style={{
+                  alignSelf: "center",
+                  width: 38,
+                  height: 4,
+                  borderRadius: 3,
+                  backgroundColor: "#55585F",
+                  marginBottom: 16,
+                }}
+              />
               <View
                 style={{
                   flexDirection: "row",
@@ -1808,13 +1822,27 @@ function PostDetailActions({ post, authSession }) {
                   marginBottom: 14,
                 }}
               >
-                <Text
-                  style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}
+                <View>
+                  <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>
+                    Comments
+                  </Text>
+                  <Text style={{ color: "#8E8E93", fontSize: 11, marginTop: 3 }}>
+                    Join the conversation
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setCommentsOpen(false)}
+                  accessibilityLabel="Close comments"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: "#24262B",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  Comments
-                </Text>
-                <TouchableOpacity onPress={() => setCommentsOpen(false)}>
-                  <Ionicons name="close" size={26} color="#FFFFFF" />
+                  <Ionicons name="close" size={19} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
               <ScrollView style={{ maxHeight: 360 }}>
@@ -1896,18 +1924,31 @@ function PostDetailActions({ post, authSession }) {
                   style={{
                     flex: 1,
                     color: "#FFFFFF",
-                    backgroundColor: "#202B40",
+                    backgroundColor: "#1B1D22",
+                    borderWidth: 1,
+                    borderColor: "#34363D",
                     borderRadius: 22,
                     paddingHorizontal: 15,
                     paddingVertical: 11,
+                    fontSize: 13,
                   }}
                 />
                 <TouchableOpacity
                   onPress={submitComment}
                   disabled={busy || !draft.trim()}
-                  style={{ padding: 10 }}
+                  style={{
+                    minWidth: 54,
+                    height: 40,
+                    marginLeft: 2,
+                    paddingHorizontal: 13,
+                    borderRadius: 20,
+                    backgroundColor: draft.trim() && !busy ? "#0095F6" : "#24262B",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: busy ? 0.55 : 1,
+                  }}
                 >
-                  <Text style={{ color: "#60A5FA", fontWeight: "800" }}>
+                  <Text style={{ color: draft.trim() && !busy ? "#FFFFFF" : "#777B84", fontWeight: "800", fontSize: 12 }}>
                     Post
                   </Text>
                 </TouchableOpacity>
