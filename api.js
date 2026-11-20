@@ -10,6 +10,9 @@ const AUTH_USERNAME_KEY = 'socialapp_auth_username';
 let authTokenMemory = null;
 let authTokenLoaded = false;
 let authTokenLoadPromise = null;
+let authUsernameMemory = null;
+let authSessionLoaded = false;
+let authSessionLoadPromise = null;
 
 async function getCachedAuthToken() {
   if (authTokenLoaded) return authTokenMemory;
@@ -28,21 +31,44 @@ async function getCachedAuthToken() {
 export async function saveAuthSession(token, username) {
   authTokenMemory = token || null;
   authTokenLoaded = true;
-  await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
-  await SecureStore.setItemAsync(AUTH_USERNAME_KEY, username);
+  authUsernameMemory = username || null;
+  authSessionLoaded = true;
+  await Promise.all([
+    SecureStore.setItemAsync(AUTH_TOKEN_KEY, token),
+    SecureStore.setItemAsync(AUTH_USERNAME_KEY, username),
+  ]);
 }
 
 export async function clearAuthSession() {
   authTokenMemory = null;
   authTokenLoaded = true;
-  await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
-  await SecureStore.deleteItemAsync(AUTH_USERNAME_KEY);
+  authUsernameMemory = null;
+  authSessionLoaded = true;
+  await Promise.all([
+    SecureStore.deleteItemAsync(AUTH_TOKEN_KEY),
+    SecureStore.deleteItemAsync(AUTH_USERNAME_KEY),
+  ]);
 }
 
 export async function getAuthSession() {
-  const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
-  const username = await SecureStore.getItemAsync(AUTH_USERNAME_KEY);
-  return token && username ? { token, username } : null;
+  if (authSessionLoaded) {
+    return authTokenMemory && authUsernameMemory
+      ? { token: authTokenMemory, username: authUsernameMemory }
+      : null;
+  }
+  if (!authSessionLoadPromise) {
+    authSessionLoadPromise = Promise.all([
+      SecureStore.getItemAsync(AUTH_TOKEN_KEY),
+      SecureStore.getItemAsync(AUTH_USERNAME_KEY),
+    ]).then(([token, username]) => {
+      authTokenMemory = token || null;
+      authTokenLoaded = true;
+      authUsernameMemory = username || null;
+      authSessionLoaded = true;
+      return token && username ? { token, username } : null;
+    }).finally(() => { authSessionLoadPromise = null; });
+  }
+  return authSessionLoadPromise;
 }
 
 async function authHeaders(extra = {}) {
