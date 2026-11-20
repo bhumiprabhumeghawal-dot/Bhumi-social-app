@@ -4346,19 +4346,19 @@ export default function App() {
   };
 
   const refreshContent = React.useCallback(async (forceRefresh = false) => {
-    let freshLoaded = false;
+    const freshLoaded = { posts: false, stories: false, reels: false };
 
+    // Paint each cached section independently; a slow Stories/Reels request
+    // must not hold the Home feed back on a cold server start.
     const cachePromise = Promise.all([
       getCachedContent("posts"),
       getCachedContent("stories"),
       getCachedContent("reels"),
     ]).then(([cachedPosts, cachedStories, cachedReels]) => {
-      if (freshLoaded) return;
-
-      if (Array.isArray(cachedPosts) && cachedPosts.length) {
+      if (!freshLoaded.posts && Array.isArray(cachedPosts) && cachedPosts.length) {
         setFeedPosts(cachedPosts);
       }
-      if (Array.isArray(cachedStories)) {
+      if (!freshLoaded.stories && Array.isArray(cachedStories)) {
         setServerStories(
           cachedStories.map((item, i) => ({
             ...item,
@@ -4367,33 +4367,38 @@ export default function App() {
           })),
         );
       }
-      if (Array.isArray(cachedReels)) setReels(cachedReels);
+      if (!freshLoaded.reels && Array.isArray(cachedReels)) setReels(cachedReels);
     });
 
-    try {
-      const [p, s, r] = await Promise.all([
-        loadContent("posts", { force: forceRefresh }),
-        loadContent("stories", { force: forceRefresh }),
-        loadContent("reels", { force: forceRefresh }),
-      ]);
+    const requests = await Promise.allSettled([
+      loadContent("posts", { force: forceRefresh }).then((items) => {
+        freshLoaded.posts = true;
+        setFeedPosts(items.length ? items : posts);
+      }),
+      loadContent("stories", { force: forceRefresh }).then((items) => {
+        freshLoaded.stories = true;
+        setServerStories(
+          items.map((item, i) => ({
+            ...item,
+            name: item.user || `story${i + 1}`,
+            color: "#DDE7F5",
+          })),
+        );
+      }),
+      loadContent("reels", { force: forceRefresh }).then((items) => {
+        freshLoaded.reels = true;
+        setReels(items);
+      }),
+    ]);
 
-      freshLoaded = true;
-      await cachePromise;
-
-      setServerOnline(true);
-      setFeedPosts(p.length ? p : posts);
-      setServerStories(
-        s.map((item, i) => ({
-          ...item,
-          name: item.user || `story${i + 1}`,
-          color: "#DDE7F5",
-        })),
+    await cachePromise;
+    const successfulRequests = requests.filter((item) => item.status === "fulfilled").length;
+    setServerOnline(successfulRequests > 0);
+    if (successfulRequests === 0) {
+      console.error(
+        "Server content load failed:",
+        requests.map((item) => item.status === "rejected" ? item.reason?.message : null).filter(Boolean),
       );
-      setReels(r);
-    } catch (e) {
-      await cachePromise;
-      setServerOnline(false);
-      console.error("Server load failed:", e);
     }
   }, []);
 
