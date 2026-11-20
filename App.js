@@ -1429,28 +1429,58 @@ function PostCard({
           >
             <View
               style={{
-                backgroundColor: "#100B19",
-                borderTopLeftRadius: 18,
-                borderTopRightRadius: 18,
-                padding: 18,
-                maxHeight: "75%",
+                backgroundColor: "#101114",
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                borderTopWidth: 1,
+                borderColor: "#292B30",
+                paddingHorizontal: 18,
+                paddingTop: 10,
+                paddingBottom: 18,
+                maxHeight: "78%",
               }}
             >
+              <View
+                style={{
+                  alignSelf: "center",
+                  width: 38,
+                  height: 4,
+                  borderRadius: 3,
+                  backgroundColor: "#55585F",
+                  marginBottom: 16,
+                }}
+              />
               <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  marginBottom: 12,
+                  marginBottom: 14,
                 }}
               >
-                <Text
-                  style={{ fontSize: 18, fontWeight: "600", color: "#FFFFFF" }}
+                <View>
+                  <Text
+                    style={{ fontSize: 18, fontWeight: "800", color: "#FFFFFF" }}
+                  >
+                    Comments
+                  </Text>
+                  <Text style={{ color: "#8E8E93", fontSize: 11, marginTop: 3 }}>
+                    Join the conversation
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setCommentsOpen(false)}
+                  accessibilityLabel="Close comments"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: "#24262B",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  Comments
-                </Text>
-                <TouchableOpacity onPress={() => setCommentsOpen(false)}>
-                  <Text style={{ fontSize: 22, color: "#FFFFFF" }}>×</Text>
+                  <Text style={{ fontSize: 21, color: "#FFFFFF", lineHeight: 24 }}>×</Text>
                 </TouchableOpacity>
               </View>
 
@@ -1531,19 +1561,31 @@ function PostCard({
                   style={{
                     flex: 1,
                     borderWidth: 1,
-                    borderColor: "#262626",
-                    borderRadius: 20,
-                    paddingHorizontal: 14,
-                    paddingVertical: 9,
+                    borderColor: "#34363D",
+                    borderRadius: 22,
+                    backgroundColor: "#1B1D22",
+                    paddingHorizontal: 15,
+                    paddingVertical: 10,
                     color: "#FFFFFF",
+                    fontSize: 13,
                   }}
                 />
                 <TouchableOpacity
                   onPress={submitComment}
                   disabled={interactionBusy || !commentDraft.trim()}
-                  style={{ padding: 10 }}
+                  style={{
+                    minWidth: 54,
+                    height: 40,
+                    marginLeft: 8,
+                    paddingHorizontal: 13,
+                    borderRadius: 20,
+                    backgroundColor: commentDraft.trim() && !interactionBusy ? "#0095F6" : "#24262B",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: interactionBusy ? 0.55 : 1,
+                  }}
                 >
-                  <Text style={{ color: "#0095F6", fontWeight: "600" }}>
+                  <Text style={{ color: commentDraft.trim() && !interactionBusy ? "#FFFFFF" : "#777B84", fontWeight: "800", fontSize: 12 }}>
                     Post
                   </Text>
                 </TouchableOpacity>
