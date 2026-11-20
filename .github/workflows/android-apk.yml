@@ -84,3 +84,5 @@ jobs:
           files: android/app/build/outputs/apk/release/*.apk
           overwrite_files: true
           make_latest: true
+
+# Trigger a fresh Android APK build.
