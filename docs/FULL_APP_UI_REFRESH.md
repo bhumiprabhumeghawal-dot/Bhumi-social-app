@@ -91,3 +91,10 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 - Kept the React Native LiveKit camera-track hook in its documented one-argument form, which returns local and remote camera references; avoided passing the web-components-only subscription options object.
 - Retained the local participant publication fallback for the self-preview tile. This is a source-level correction, not proof that the camera renders on-device.
 - The change has not been compiled or verified on a physical device; camera permission, device camera availability, and LiveKit runtime behavior still need an actual video-call test.
+
+
+### Theme consistency follow-up
+- Removed remaining legacy purple/brown surface and border colors from business profile panels, connection lists, notification and saved-content headers, and story rings.
+- Improved contrast for feed action icons and supporting text against the black feed surface.
+- Kept existing handlers, navigation, and data flows unchanged; this was a styling-only pass.
+- No build or device verification was run.
