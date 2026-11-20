@@ -70,7 +70,8 @@ function CallVideoStage({ callType, remoteName, isConnected }) {
           <Ionicons name="person" size={58} color="#FFFFFF" />
         </View>
         <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "800", marginTop: 20 }}>{remoteName}</Text>
-        <View style={{ marginTop: 10, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: "#1F1F1F" }}>
+        <View style={{ marginTop: 10, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: "#1F1F1F", flexDirection: "row", alignItems: "center", gap: 7 }}>
+          {isConnected ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#45D483" }} /> : <ActivityIndicator color="#0095F6" size="small" />}
           <Text style={{ color: "#D1D1D1", fontSize: 12 }}>{isConnected ? "वॉइस कॉल कनेक्ट है" : "वॉइस कॉल कनेक्ट हो रही है…"}</Text>
         </View>
       </View>
@@ -89,13 +90,13 @@ function CallVideoStage({ callType, remoteName, isConnected }) {
             <Ionicons name="videocam" size={42} color="#FFFFFF" />
           </View>
           <ActivityIndicator color="#0095F6" size="large" style={{ marginTop: 22 }} />
-          <Text style={{ color: "#FFFFFF", marginTop: 12, fontSize: 13 }}>वीडियो कनेक्ट हो रहा है…</Text>
+          <Text style={{ color: "#FFFFFF", marginTop: 12, fontSize: 13 }}>{isConnected ? "दूसरे व्यक्ति का वीडियो आ रहा है…" : "वीडियो कनेक्ट हो रहा है…"}</Text>
         </View>
       )}
       <View pointerEvents="none" style={{ position: "absolute", top: 14, left: 14, right: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <View style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.55)", flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#45D483" }} />
-          <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "800", letterSpacing: 0.8 }}>LIVE</Text>
+          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: isConnected ? "#45D483" : "#0095F6" }} />
+          <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "800", letterSpacing: 0.8 }}>{isConnected ? "LIVE" : "CONNECTING"}</Text>
         </View>
         <View style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.55)" }}>
           <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{remoteName || "Video call"}</Text>
