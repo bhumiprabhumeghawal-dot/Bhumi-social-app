@@ -247,8 +247,9 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     if (!call || incoming || connection || tokenAttemptedRef.current) return undefined;
     let active = true;
     let timer = null;
+    let finished = false;
     const checkStatus = async () => {
-      if (!active || tokenAttemptedRef.current) return;
+      if (!active || finished || tokenAttemptedRef.current) return;
       try {
         const latest = await getVoiceVideoCallStatus(call.id);
         if (!active || !latest) return;
@@ -258,6 +259,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           return;
         }
         if (["rejected", "missed", "ended"].includes(latest.status)) {
+          finished = true;
           setCallMessage(latest.status === "rejected" ? "कॉल अस्वीकार कर दी गई।" : latest.status === "missed" ? "कॉल का जवाब नहीं मिला।" : "कॉल समाप्त हो गई।");
           timer = setTimeout(() => { if (active) resetCall(); }, 2200);
           return;
@@ -265,7 +267,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       } catch (error) {
         if (active) setCallMessage(error?.message || "कॉल की स्थिति नहीं मिल रही।");
       } finally {
-        if (active && !tokenAttemptedRef.current) timer = setTimeout(checkStatus, 1200);
+        if (active && !finished && !tokenAttemptedRef.current) timer = setTimeout(checkStatus, 1200);
       }
     };
     void checkStatus();
