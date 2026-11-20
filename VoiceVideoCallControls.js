@@ -96,7 +96,7 @@ function CallVideoStage({ callType, remoteName }) {
           <View style={{ width: 104, height: 104, borderRadius: 52, backgroundColor: "#241B30", borderWidth: 1, borderColor: "#80683D", alignItems: "center", justifyContent: "center" }}>
             <Ionicons name="videocam" size={42} color="#E2C477" />
           </View>
-          <ActivityIndicator color="#D8B86A" size="large" style={{ marginTop: 22 }} />
+          <ActivityIndicator color="#0095F6" size="large" style={{ marginTop: 22 }} />
           <Text style={{ color: "#FFFFFF", marginTop: 12, fontSize: 13 }}>वीडियो कनेक्ट हो रहा है…</Text>
         </View>
       )}
@@ -330,8 +330,8 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           <View style={{ position: "absolute", top: -110, alignSelf: "center", width: 330, height: 330, borderRadius: 165, backgroundColor: "#21152D", opacity: 0.72 }} />
           <View style={{ paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#D8B86A" }} />
-              <Text style={{ color: "#D8B86A", fontSize: 10, fontWeight: "800", letterSpacing: 2 }}>BHUMI • PRIVATE CALL</Text>
+              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#0095F6" }} />
+              <Text style={{ color: "#0095F6", fontSize: 10, fontWeight: "800", letterSpacing: 2 }}>BHUMI • PRIVATE CALL</Text>
             </View>
             <TouchableOpacity onPress={endCall} accessibilityLabel="Close call" style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#211B2A", borderWidth: 1, borderColor: "#40334B", alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="chevron-down" size={22} color="#EDE6F2" />
@@ -354,7 +354,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
             </LiveKitRoom>
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 28 }}>
-              <View style={{ width: 154, height: 154, borderRadius: 77, borderWidth: 1, borderColor: "#80683D", alignItems: "center", justifyContent: "center", backgroundColor: "#17111F", shadowColor: "#D8B86A", shadowOpacity: 0.22, shadowRadius: 24, elevation: 10 }}>
+              <View style={{ width: 154, height: 154, borderRadius: 77, borderWidth: 1, borderColor: "#80683D", alignItems: "center", justifyContent: "center", backgroundColor: "#17111F", shadowColor: "#0095F6", shadowOpacity: 0.22, shadowRadius: 24, elevation: 10 }}>
                 <View style={{ width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: "#4D3C59", backgroundColor: "#251B30", alignItems: "center", justifyContent: "center" }}>
                   <Ionicons name={incoming ? "call" : call?.type === "video" ? "videocam" : "call"} size={48} color="#E2C477" />
                 </View>
@@ -364,7 +364,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               <View style={{ marginTop: 20, paddingHorizontal: 17, paddingVertical: 9, borderRadius: 22, backgroundColor: "#1C1723", borderWidth: 1, borderColor: "#44364F" }}>
                 <Text style={{ color: "#D9CBAE", fontSize: 12, textAlign: "center" }}>{callMessage || (incoming ? "आपको कॉल आ रही है" : "रिंग हो रही है…")}</Text>
               </View>
-              {busy ? <ActivityIndicator color="#D8B86A" size="small" style={{ marginTop: 22 }} /> : null}
+              {busy ? <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 22 }} /> : null}
               {incoming ? (
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18, marginTop: 48, width: "100%" }}>
                   <TouchableOpacity onPress={declineCall} activeOpacity={0.85} style={{ width: 132, minHeight: 92, borderRadius: 22, backgroundColor: "#28131D", borderWidth: 1, borderColor: "#9A4054", alignItems: "center", justifyContent: "center", paddingVertical: 13 }}>
