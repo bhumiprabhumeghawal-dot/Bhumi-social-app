@@ -2003,7 +2003,7 @@ function CustomAlertHost() {
       ? "#0095F6"
       : danger
         ? "#F06B83"
-        : "#B78CFF";
+        : "#0095F6";
   const icon = error
     ? "alert-circle"
     : success
@@ -2026,7 +2026,7 @@ function CustomAlertHost() {
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(4,3,12,0.84)",
+          backgroundColor: "rgba(0,0,0,0.82)",
           justifyContent: "center",
           alignItems: "center",
           padding: 24,
@@ -2036,14 +2036,14 @@ function CustomAlertHost() {
           style={{
             width: "100%",
             maxWidth: 390,
-            backgroundColor: "#120D1D",
+            backgroundColor: "#15171B",
             borderRadius: 24,
             borderWidth: 1,
-            borderColor: "#604785",
+            borderColor: "#30333A",
             padding: 22,
             alignItems: "center",
             elevation: 18,
-            shadowColor: "#9B5CFF",
+            shadowColor: "#000000",
             shadowOpacity: 0.28,
             shadowRadius: 22,
             shadowOffset: { width: 0, height: 8 },
@@ -2064,7 +2064,7 @@ function CustomAlertHost() {
           </View>
           <Text
             style={{
-              color: "#FFF9EE",
+              color: "#FFFFFF",
               fontSize: 20,
               fontWeight: "800",
               textAlign: "center",
@@ -2076,7 +2076,7 @@ function CustomAlertHost() {
           {!!alertData.message && (
             <Text
               style={{
-                color: "#C9BEDB",
+                color: "#C4C7CE",
                 fontSize: 15,
                 lineHeight: 22,
                 textAlign: "center",
@@ -2113,7 +2113,7 @@ function CustomAlertHost() {
                     flex: alertData.buttons.length > 1 ? 1 : undefined,
                     minHeight: 48,
                     borderWidth: cancel ? 1 : 0,
-                    borderColor: "#604785",
+                    borderColor: "#3A3D45",
                     paddingHorizontal: 12,
                     borderRadius: 14,
                     alignItems: "center",
@@ -2122,14 +2122,14 @@ function CustomAlertHost() {
                       ? destructive
                         ? "#F06B83"
                         : accent
-                      : "#281B3B",
+                      : "#24262B",
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 15,
                       fontWeight: "700",
-                      color: primary ? "#120D1D" : "#E8DDF8",
+                      color: primary ? "#FFFFFF" : "#E5E7EB",
                       textAlign: "center",
                     }}
                   >
@@ -2142,7 +2142,7 @@ function CustomAlertHost() {
           <Text
             style={{
               marginTop: 15,
-              color: "#A995C4",
+              color: "#8E929B",
               fontSize: 11,
               fontWeight: "600",
               letterSpacing: 0.5,
