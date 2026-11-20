@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCameraPermissions } from "expo-camera";
 import { requestRecordingPermissionsAsync } from "expo-audio";
 import {
+  AudioSession,
   LiveKitRoom,
   VideoTrack,
   useTracks,
@@ -170,6 +171,9 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     tokenAttemptedRef.current = false;
     setMicEnabled(true);
     setCameraEnabled(true);
+    AudioSession.stopAudioSession().catch((error) => {
+      console.warn("LiveKit audio session stop failed:", error?.message || error);
+    });
   };
 
   const connectCall = async (callInfo) => {
@@ -177,9 +181,18 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     setCallMessage("कॉल कनेक्ट हो रही है…");
     try {
       const result = await getCallConnectionToken(callInfo.id);
-      if (!mountedRef.current) return;
+      if (!result?.token || !result?.url) {
+        throw new Error("कॉल सर्वर से कनेक्शन जानकारी नहीं मिली।");
+      }
+      // LiveKit's React Native SDK requires its audio session to be started
+      // before joining so microphone and speaker routing are initialized.
+      await AudioSession.startAudioSession();
+      if (!mountedRef.current) {
+        await AudioSession.stopAudioSession();
+        return;
+      }
       setConnection(result);
-      setCallMessage("कनेक्ट हो गया");
+      setCallMessage("कॉल रूम से जुड़ रहे हैं…");
     } catch (error) {
       if (mountedRef.current) setCallMessage(error?.message || "कॉल कनेक्ट नहीं हो पाई।");
     } finally {
@@ -360,6 +373,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               connect={true}
               audio={micEnabled}
               video={call?.type === "video" && cameraEnabled}
+              onConnected={() => {
+                if (mountedRef.current) setCallMessage("कॉल कनेक्ट हो गई।");
+              }}
+              onError={(error) => {
+                if (mountedRef.current) setCallMessage(error?.message || "कॉल कनेक्शन में समस्या आई।");
+              }}
               onDisconnected={() => { if (mountedRef.current) resetCall(); }}
               options={{ adaptiveStream: true, dynacast: true }}
               style={{ flex: 1, marginTop: 18 }}
