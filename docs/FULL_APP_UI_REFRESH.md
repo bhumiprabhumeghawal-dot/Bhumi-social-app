@@ -142,3 +142,8 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 - Removed the extra local camera bootstrap that was calling setCameraEnabled(true) while LiveKitRoom already receives video={...} and manages local camera publication.
 - The room's native camera lifecycle is now the single source of truth; local self-preview continues to use the local camera publication/track reference.
 - Must still verify with two real devices because a source-level change cannot confirm camera hardware, permissions or network behavior.
+
+
+### Welcome, comments and detail surfaces
+- Aligned the welcome/onboarding screen, both comments sheets, zoom controls and post-detail backdrop with the same black/neutral surfaces and Bhumi Blue accent.
+- Kept the content, gestures, navigation and existing post/comment handlers unchanged.
