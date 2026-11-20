@@ -3655,6 +3655,31 @@ def update_call(call_id, action):
     return jsonify({"ok": True, "call": _call_json(updated)})
 
 
+
+@app.get("/api/calls/<call_id>")
+def get_call_status(call_id):
+    username = _call_user()
+    if not username:
+        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+    with get_db() as db:
+        row = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
+    if row is None:
+        return jsonify({"error": "Call not found."}), 404
+    if username.casefold() not in (
+        row["caller_username"].casefold(), row["callee_username"].casefold()
+    ):
+        return jsonify({"error": "You are not a participant in this call."}), 403
+    now = datetime.now(timezone.utc).isoformat()
+    if row["status"] == "ringing" and row["expires_at"] <= now:
+        with get_db() as db:
+            db.execute(
+                "UPDATE call_sessions SET status='missed', updated_at=? WHERE id=? AND status='ringing'",
+                (now, call_id),
+            )
+            row = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
+    return jsonify({"ok": True, "call": _call_json(row)})
+
+
 @app.post("/api/calls/<call_id>/token")
 def get_call_token(call_id):
     username = _call_user()
