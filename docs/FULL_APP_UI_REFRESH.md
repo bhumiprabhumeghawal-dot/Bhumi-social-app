@@ -98,3 +98,10 @@ Build a cohesive, original Bhumi Social AI interface inspired by Instagram's int
 - Improved contrast for feed action icons and supporting text against the black feed surface.
 - Kept existing handlers, navigation, and data flows unchanged; this was a styling-only pass.
 - No build or device verification was run.
+
+
+### Chat and call theme consistency
+- Renamed the default chat theme from “Royal Gold” to “Bhumi Blue” and aligned its base surface with the black-and-blue app identity.
+- Neutralized the remaining purple-tinted call control panel surface.
+- Preserved alternate user-selectable chat themes and all call controls/handlers.
+- No build or device verification was run.
