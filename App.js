@@ -12201,7 +12201,7 @@ export default function App() {
               {[
                 { name: "Home", icon: "home-outline", activeIcon: "home" },
                 { name: "Reels", icon: "play-outline", activeIcon: "play" },
-                { name: "Chat", icon: "chatbubble-outline", activeIcon: "chatbubble" },
+                { name: "Chat", label: "Messages", icon: "chatbubble-outline", activeIcon: "chatbubble" },
                 { name: "Search", icon: "search-outline", activeIcon: "search" },
                 { name: "Profile", icon: "person-outline", activeIcon: "person" },
               ].map((tab) => (
@@ -12217,7 +12217,7 @@ export default function App() {
                   <Ionicons
                     name={activeTab === tab.name ? tab.activeIcon : tab.icon}
                     size={25}
-                    color={activeTab === tab.name ? "#3797F0" : "#737373"}
+                    color={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? "#8B3DFF" : "#737373"}
                   />
                   <Text
                     style={[
@@ -12225,7 +12225,7 @@ export default function App() {
                       activeTab === tab.name && styles.activeNavLabel,
                     ]}
                   >
-                    {tab.name}
+                    {tab.label || tab.name}
                   </Text>
                 </TouchableOpacity>
               ))}
