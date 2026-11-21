@@ -16,6 +16,7 @@ jobs:
   publish-ota:
     name: Publish production OTA
     runs-on: ubuntu-latest
+    environment: Planning
     timeout-minutes: 30
     steps:
       - name: Checkout repository
@@ -28,6 +29,16 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Verify Expo token is available
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "ERROR: EXPO_TOKEN is missing. Add it under Settings > Environments > Planning > Environment secrets, or Repository secrets."
+            exit 1
+          fi
+          echo "Expo token is present (value hidden)."
 
       - name: Publish update to Expo production channel
         run: npx eas-cli@latest update --branch production --platform all --message "Bhumi Social AI production update" --non-interactive
