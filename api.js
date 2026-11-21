@@ -891,8 +891,7 @@ export async function togglePostLike(postId, activeSession = null) {
     `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/like`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: session.username }),
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
     }
   );
   const data = await response.json();
@@ -904,7 +903,8 @@ export async function togglePostLike(postId, activeSession = null) {
 
 export async function loadPostComments(postId) {
   const response = await fetch(
-    `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`
+    `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`,
+    { headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) {
@@ -913,13 +913,13 @@ export async function loadPostComments(postId) {
   return data.comments || [];
 }
 
-export async function createPostComment(postId, text, username = 'you') {
+export async function createPostComment(postId, text) {
   const response = await fetch(
     `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, text }),
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ text }),
     }
   );
   const data = await response.json();
@@ -932,7 +932,7 @@ export async function createPostComment(postId, text, username = 'you') {
 export async function approvePostComment(postId, commentId) {
   const response = await fetch(
     `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}/approve`,
-    { method: 'POST' }
+    { method: 'POST', headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not approve comment.');
@@ -1241,7 +1241,7 @@ export async function sendDirectMessage(username, text, attachment = null, reply
 export async function toggleReelLike(reelId) {
   const response = await fetch(`${API_BASE_URL}/api/reels/${encodeURIComponent(reelId)}/like`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await authHeaders({ 'Content-Type': 'application/json' }),
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not update reel like.');
@@ -1249,7 +1249,7 @@ export async function toggleReelLike(reelId) {
 }
 
 export async function loadReelComments(reelId) {
-  const response = await fetch(`${API_BASE_URL}/api/reels/${encodeURIComponent(reelId)}/comments`);
+  const response = await fetch(`${API_BASE_URL}/api/reels/${encodeURIComponent(reelId)}/comments`, { headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not load reel comments.');
   return data.comments || [];
@@ -1258,7 +1258,7 @@ export async function loadReelComments(reelId) {
 export async function createReelComment(reelId, text) {
   const response = await fetch(`${API_BASE_URL}/api/reels/${encodeURIComponent(reelId)}/comments`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ text }),
   });
   const data = await response.json();
@@ -1269,7 +1269,7 @@ export async function createReelComment(reelId, text) {
 export async function approveReelComment(reelId, commentId) {
   const response = await fetch(
     `${API_BASE_URL}/api/reels/${encodeURIComponent(reelId)}/comments/${encodeURIComponent(commentId)}/approve`,
-    { method: 'POST' }
+    { method: 'POST', headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not approve reel comment.');
