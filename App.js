@@ -7719,39 +7719,22 @@ export default function App() {
           </View>
           {searchQuery.trim().length < 2 ? (
             <View style={{ paddingTop: 8 }}>
-              <Text style={{ color: "#262626", fontSize: 18, fontWeight: "800", marginBottom: 12 }}>
-                Explore
-              </Text>
+              <Text style={{ color: "#262626", fontSize: 18, fontWeight: "800", marginBottom: 12 }}>Explore</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 3 }}>
                 {groupPostItems(feedPosts).slice(0, 18).map((post, index) => {
                   const media = post.mediaItems?.[0] || post;
                   const uri = media.uri || post.uri || media.mediaUrl || post.mediaUrl;
                   return (
-                    <TouchableOpacity
-                      key={post.groupId || post.id || `explore-${index}`}
-                      activeOpacity={0.88}
-                      onPress={() => {
-                        setSelectedPostMediaIndex(0);
-                        setSelectedPost(post);
-                      }}
-                      style={{ width: "33%", aspectRatio: 1, marginBottom: 2, backgroundColor: "#F0F0F0", overflow: "hidden" }}
-                    >
-                      {uri ? (
-                        <Image source={{ uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-                      ) : (
-                        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-                          <Ionicons name="image-outline" size={26} color="#8B3DFF" />
-                        </View>
-                      )}
+                    <TouchableOpacity key={post.groupId || post.id || `explore-${index}`} activeOpacity={0.88}
+                      onPress={() => { setSelectedPostMediaIndex(0); setSelectedPost(post); }}
+                      style={{ width: "33%", aspectRatio: 1, marginBottom: 2, backgroundColor: "#F0F0F0", overflow: "hidden" }}>
+                      {uri ? <Image source={{ uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" /> :
+                        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Ionicons name="image-outline" size={26} color="#8B3DFF" /></View>}
                     </TouchableOpacity>
                   );
                 })}
               </View>
-              {!feedPosts.length ? (
-                <Text style={{ color: "#737373", textAlign: "center", paddingVertical: 20 }}>
-                  Posts from the community will appear here.
-                </Text>
-              ) : null}
+              {!feedPosts.length ? <Text style={{ color: "#737373", textAlign: "center", paddingVertical: 20 }}>Posts from the community will appear here.</Text> : null}
             </View>
           ) : searchLoading ? (
             <Text style={{ color: "#737373", paddingVertical: 12 }}>
@@ -8412,7 +8395,7 @@ export default function App() {
                   borderWidth: 1,
                   borderColor: "#DBDBDB",
                   borderRadius: 17,
-                  backgroundColor: "#262626",
+                  backgroundColor: "#FFFFFF",
                 }}
               >
                 <View
@@ -8565,7 +8548,7 @@ export default function App() {
                     paddingHorizontal: 15,
                     paddingVertical: 15,
                     marginBottom: 12,
-                    backgroundColor: "#262626",
+                    backgroundColor: "#FFFFFF",
                   }}
                 >
                   <View
@@ -8611,7 +8594,7 @@ export default function App() {
                     borderRadius: 14,
                     padding: 14,
                     marginBottom: 11,
-                    backgroundColor: "#262626",
+                    backgroundColor: "#FFFFFF",
                   }}
                 >
                   <Text style={{ color: "#262626", fontWeight: "700" }}>
@@ -8633,7 +8616,7 @@ export default function App() {
                       borderRadius: 14,
                       padding: 14,
                       marginBottom: 12,
-                      backgroundColor: "#262626",
+                      backgroundColor: "#FFFFFF",
                     }}
                   >
                     {[
@@ -8702,7 +8685,7 @@ export default function App() {
                       borderColor: "#DBDBDB",
                       borderRadius: 15,
                       marginBottom: 10,
-                      backgroundColor: "#262626",
+                      backgroundColor: "#FFFFFF",
                       elevation: 1,
                     }}
                   >
@@ -8910,7 +8893,7 @@ export default function App() {
                     alignItems: "center",
                     paddingVertical: 28,
                     paddingHorizontal: 18,
-                    backgroundColor: "#262626",
+                    backgroundColor: "#FFFFFF",
                     borderRadius: 16,
                     borderWidth: 1,
                     borderColor: "#DBDBDB",
@@ -10650,7 +10633,7 @@ export default function App() {
           keyboardVerticalOffset={0}
           style={{ flex: 1 }}
         >
-          <SafeAreaView style={{ flex: 1, backgroundColor: "#262626", paddingBottom: Platform.OS === "android" ? 6 : 0 }}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF", paddingBottom: Platform.OS === "android" ? 6 : 0 }}>
             <View
               style={{
                 flexDirection: "row",
@@ -10658,7 +10641,7 @@ export default function App() {
                 paddingHorizontal: 16,
                 paddingTop: 16,
                 paddingBottom: 10,
-                backgroundColor: "#262626",
+                backgroundColor: "#FFFFFF",
                 minHeight: 58,
               }}
             >
@@ -10846,7 +10829,7 @@ export default function App() {
 
             {!selectedChatUser ? (
               <View
-                style={{ flex: 1, backgroundColor: "#262626", paddingTop: 8 }}
+                style={{ flex: 1, backgroundColor: "#FFFFFF", paddingTop: 8 }}
               >
                 {chatError ? (
                   <Text
@@ -10934,7 +10917,7 @@ export default function App() {
                         width: 68,
                         height: 68,
                         borderRadius: 34,
-                        backgroundColor: "#262626",
+                        backgroundColor: "#FFFFFF",
                         borderWidth: 2,
                         borderColor: ownNote ? "#8B3DFF" : "#DBDBDB",
                         alignItems: "center",
@@ -10965,7 +10948,7 @@ export default function App() {
                             paddingHorizontal: 7,
                             paddingVertical: 5,
                             borderRadius: 12,
-                            backgroundColor: "#262626",
+                            backgroundColor: "#FFFFFF",
                             borderWidth: 1,
                             borderColor: "#DBDBDB",
                             alignItems: "center",
@@ -11021,7 +11004,7 @@ export default function App() {
                           width: 68,
                           height: 68,
                           borderRadius: 34,
-                          backgroundColor: "#262626",
+                          backgroundColor: "#FFFFFF",
                           borderWidth: 2,
                           borderColor: "#3797F0",
                           alignItems: "center",
@@ -11061,7 +11044,7 @@ export default function App() {
                             paddingHorizontal: 7,
                             paddingVertical: 5,
                             borderRadius: 12,
-                            backgroundColor: "#262626",
+                            backgroundColor: "#FFFFFF",
                             borderWidth: 1,
                             borderColor: "#DBDBDB",
                             alignItems: "center",
@@ -11139,7 +11122,7 @@ export default function App() {
                       marginBottom: 12,
                       padding: 16,
                       borderRadius: 16,
-                      backgroundColor: "#262626",
+                      backgroundColor: "#FFFFFF",
                     }}
                   >
                     <Text
@@ -12027,7 +12010,7 @@ export default function App() {
                       <View style={{
                         marginHorizontal: 14, marginTop: 10, marginBottom: 8, padding: 11,
                         flexDirection: "row", alignItems: "center", gap: 13,
-                        backgroundColor: "#262626", borderRadius: 18,
+                        backgroundColor: "#FFFFFF", borderRadius: 18,
                         borderWidth: 1, borderColor: "#DBDBDB", elevation: 2,
                       }}>
                         <View style={{
@@ -12094,7 +12077,7 @@ export default function App() {
                             height: 36,
                             alignItems: "center",
                             justifyContent: "center",
-                            backgroundColor: "#262626",
+                            backgroundColor: "#FFFFFF",
                             borderRadius: 12,
                           }}
                         >
@@ -12112,7 +12095,7 @@ export default function App() {
                       marginBottom: Platform.OS === "android" ? 6 : 0,
                       borderTopWidth: StyleSheet.hairlineWidth,
                       borderTopColor: "#DBDBDB",
-                      backgroundColor: "#262626",
+                      backgroundColor: "#FFFFFF",
                       gap: 9,
                       elevation: 7,
                     }}
@@ -12696,7 +12679,7 @@ export default function App() {
           <View
             style={{
               height: "78%",
-              backgroundColor: "#262626",
+              backgroundColor: "#FFFFFF",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingTop: 20,
@@ -12766,7 +12749,7 @@ export default function App() {
                         alignItems: "center",
                         paddingHorizontal: 18,
                         paddingVertical: 16,
-                        backgroundColor: item.isRead ? "#262626" : "#F5F5F5",
+                        backgroundColor: item.isRead ? "#FFFFFF" : "#F5F5F5",
                         borderBottomWidth: 1,
                         borderBottomColor: "#DBDBDB",
                       }}
