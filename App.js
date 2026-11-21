@@ -7932,7 +7932,7 @@ export default function App() {
         >
           {!profile ? (
             <Text style={{ color: "#737373", textAlign: "center", padding: 24 }}>
-              Loading profile…
+              …
             </Text>
           ) : (
             <View>
@@ -9494,7 +9494,7 @@ export default function App() {
                   paddingVertical: 28,
                 }}
               >
-                Loading blocked accounts...
+                …
               </Text>
             ) : blockedAccounts.length === 0 ? (
               <Text
@@ -9658,7 +9658,7 @@ export default function App() {
                   paddingVertical: 28,
                 }}
               >
-                Loading restricted accounts...
+                …
               </Text>
             ) : restrictedAccounts.length === 0 ? (
               <Text
@@ -11280,7 +11280,7 @@ export default function App() {
                       paddingVertical: 8,
                     }}
                   >
-                    Loading messages...
+                    …
                   </Text>
                 ) : null}
                 <ScrollView
@@ -11511,7 +11511,7 @@ export default function App() {
                         padding: 24,
                       }}
                     >
-                      Loading messages...
+                      …
                     </Text>
                   ) : null}
                   {directMessages.map((message, index) => {
@@ -12416,7 +12416,7 @@ export default function App() {
 
           {viewedProfileBusy && !viewedProfile ? (
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-              <Text style={{ color: "#A8A8A8" }}>Loading profile...</Text>
+              <Text style={{ color: "#A8A8A8" }}>…</Text>
             </View>
           ) : viewedProfile ? (
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -12534,7 +12534,7 @@ export default function App() {
 
               {viewedProfileTab === "posts" ? (
                 viewedProfilePostsBusy ? (
-                  <Text style={{ textAlign: "center", padding: 28, color: "#A8A8A8" }}>Loading posts...</Text>
+                  <Text style={{ textAlign: "center", padding: 28, color: "#A8A8A8" }}>…</Text>
                 ) : viewedProfilePosts.length ? (
                   <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
                     {viewedProfilePosts.map((post, index) => (
@@ -12624,7 +12624,7 @@ export default function App() {
           {profileConnectionsBusy ? (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
               <ActivityIndicator size="large" color="#8B3DFF" />
-              <Text style={{ color: "#737373", marginTop: 12 }}>Loading {profileConnectionsType}...</Text>
+              <Text style={{ color: "#737373", marginTop: 12 }}>…</Text>
             </View>
           ) : profileConnectionsError ? (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -12739,7 +12739,7 @@ export default function App() {
               <Text
                 style={{ textAlign: "center", color: "#737373", padding: 25 }}
               >
-                Loading notifications...
+                …
               </Text>
             ) : (
               <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
@@ -12903,7 +12903,7 @@ export default function App() {
               <Text
                 style={{ color: "#A8A8A8", textAlign: "center", padding: 24 }}
               >
-                Loading comments...
+                …
               </Text>
             ) : null}
             <ScrollView
@@ -13065,7 +13065,7 @@ export default function App() {
             <Text
               style={{ color: "#A8A8A8", textAlign: "center", padding: 30 }}
             >
-              Loading saved items...
+              …
             </Text>
           ) : (
             <ScrollView
