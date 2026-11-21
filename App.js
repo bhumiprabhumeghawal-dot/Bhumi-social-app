@@ -171,34 +171,6 @@ function isVersionNewer(latest, current) {
   return false;
 }
 
-const stories = [
-  { name: "Your story", color: "#DDE7F5", own: true },
-  { name: "alex", color: "#F3C6B8" },
-  { name: "sophia", color: "#D7C4F1" },
-  { name: "mike", color: "#B8DCCB" },
-  { name: "emma", color: "#F1D69B" },
-  { name: "noah", color: "#B9D8EF" },
-];
-
-const posts = [
-  {
-    user: "alex.morgan",
-    location: "San Francisco, CA",
-    color: "#D8E7DF",
-    emoji: "🌿",
-    caption: "Finding beauty in the little things.",
-    likes: "1,284",
-  },
-  {
-    user: "sophia.lee",
-    location: "At the coast",
-    color: "#D5E5F4",
-    emoji: "🌊",
-    caption: "A little escape from the everyday.",
-    likes: "856",
-  },
-];
-
 function Story({ item, onPress }) {
   return (
     <TouchableOpacity
@@ -2344,7 +2316,7 @@ export default function App() {
     }
   };
 
-  const [feedPosts, setFeedPosts] = React.useState(posts);
+  const [feedPosts, setFeedPosts] = React.useState([]);
   const [feedViewportHeight, setFeedViewportHeight] = React.useState(0);
   const [feedHeaderHeight, setFeedHeaderHeight] = React.useState(0);
   const [activeFeedIndex, setActiveFeedIndex] = React.useState(0);
@@ -4439,7 +4411,7 @@ export default function App() {
     const requests = await Promise.allSettled([
       loadContent("posts", { force: forceRefresh }).then((items) => {
         freshLoaded.posts = true;
-        setFeedPosts(items.length ? items : posts);
+        setFeedPosts(Array.isArray(items) ? items : []);
       }),
       loadContent("stories", { force: forceRefresh }).then((items) => {
         freshLoaded.stories = true;
