@@ -1,13 +1,24 @@
 import { Ionicons } from "@expo/vector-icons";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 import { StatusBar } from "expo-status-bar";
 import appConfig from "./app.json";
 import SettingsDashboard from "./SettingsDashboard";
 import ChatPersonalization from "./ChatPersonalization";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
+import { registerCallPushToken } from "./api";
 import * as SecureStore from "expo-secure-store";
 import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
 import * as Updates from "expo-updates";
+import * as Notifications from "expo-notifications";
 import React from "react";
 import { useEvent, useEventListener } from "expo";
 import * as ImagePicker from "expo-image-picker";
@@ -2474,6 +2485,43 @@ export default function App() {
 
   const [authReady, setAuthReady] = React.useState(false);
   const [authSession, setAuthSession] = React.useState(null);
+
+  // Register this signed-in device for high-priority incoming-call push alerts.
+  // The existing in-app call listener still handles the full LiveKit call UI.
+  React.useEffect(() => {
+    let active = true;
+    const username = authSession?.username;
+    if (!authSession?.token || !username) return undefined;
+
+    (async () => {
+      try {
+        if (Platform.OS === "android") {
+          await Notifications.setNotificationChannelAsync("incoming-calls", {
+            name: "Incoming calls",
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 450, 250, 450, 250, 700],
+            sound: "default",
+            lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+            bypassDnd: false,
+          });
+        }
+        let permission = await Notifications.getPermissionsAsync();
+        if (!permission.granted) permission = await Notifications.requestPermissionsAsync();
+        if (!active || !permission.granted) return;
+
+        const projectId = appConfig?.expo?.extra?.eas?.projectId;
+        const tokenResult = await Notifications.getExpoPushTokenAsync(
+          projectId ? { projectId } : undefined
+        );
+        if (!active || !tokenResult?.data) return;
+        await registerCallPushToken(tokenResult.data);
+      } catch (error) {
+        console.warn("Incoming call push setup failed:", error?.message || error);
+      }
+    })();
+
+    return () => { active = false; };
+  }, [authSession?.token, authSession?.username]);
   const [authMode, setAuthMode] = React.useState("login");
   const [authAccountType, setAuthAccountType] = React.useState("personal");
   const [authUsername, setAuthUsername] = React.useState("");
