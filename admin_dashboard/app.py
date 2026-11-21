@@ -1,4 +1,6 @@
 import hmac
+import html
+from urllib.parse import quote, urlencode
 import json
 import os
 import secrets
@@ -122,6 +124,11 @@ def fetch_analytics():
     with urllib.request.urlopen(req, timeout=15) as response:
         return json.loads(response.read().decode("utf-8"))
 
+def fetch_admin_path(path):
+    req = urllib.request.Request(API_URL + path, headers={"X-Dashboard-Token": API_TOKEN, "Accept": "application/json"}, method="GET")
+    with urllib.request.urlopen(req, timeout=20) as response:
+        return json.loads(response.read().decode("utf-8"))
+
 def fmt_bytes(value):
     value = max(0, int(value or 0))
     units = ("B", "KB", "MB", "GB", "TB")
@@ -180,7 +187,35 @@ def dashboard():
     else:
         body = '<section class="panel"><span class="status bad">LIVE DATA NOT AVAILABLE</span><p>' + error + '</p><p><small>Backend analytics API और Render environment configuration जाँचें।</small></p></section>'
 
+    try:
+        search = str(request.args.get("q", "")).strip()[:60]
+        api_path = "/api/admin/users?limit=200" + ("&" + urlencode({"q": search}) if search else "")
+        directory = fetch_admin_path(api_path)
+        rows = []
+        for user in directory.get("users", []):
+            username = str(user.get("username") or "")
+            status = '<span class="status">ONLINE</span>' if user.get("is_online") else '<span class="status warn">OFFLINE</span>'
+            rows.append('<tr><td><a href="/user/' + quote(username, safe="") + '"><b>' + html.escape(username) + '</b></a><br><small>' + html.escape(str(user.get("display_name") or "")) + '</small></td><td>' + status + '<br><small>' + html.escape(str(user.get("last_seen_at") or "Never")) + '</small></td><td>' + str(int(user.get("followers") or 0)) + ' / ' + str(int(user.get("following") or 0)) + '</td><td>' + str(int(user.get("posts") or 0)) + '</td><td>' + str(int(user.get("messages_sent") or 0)) + ' sent · ' + str(int(user.get("messages_received") or 0)) + ' received</td><td>' + html.escape(str(user.get("account_created_at") or "—")) + '</td></tr>')
+        body += '<section class="panel"><div class="bar"><h2>All Users (' + str(directory.get("count", 0)) + ')</h2><form method="get" action="/" class="bar"><input name="q" value="' + html.escape(search, quote=True) + '" placeholder="Search username or name" style="width:220px"><button>Search</button></form></div><div style="overflow-x:auto"><table style="width:100%;min-width:760px;border-collapse:collapse"><thead><tr><th align="left">User</th><th align="left">Presence</th><th align="left">Followers / Following</th><th align="left">Posts</th><th align="left">Chat activity</th><th align="left">Joined</th></tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div><p><small>Chat messages content, passwords and location are not exposed. Location requires explicit user opt-in.</small></p></section>'
+    except Exception:
+        body += '<section class="panel"><h2>User Directory</h2><p class="muted">User list is temporarily unavailable.</p></section>'
+
     body += '<p><a href="/">↻ Refresh live data</a></p>'
+    return render_template_string(PAGE, body=body, logged_in=True, csrf=csrf_token())
+
+
+@app.get("/user/<username>")
+def user_detail(username):
+    from urllib.parse import quote
+    try:
+        data = fetch_admin_path("/api/admin/users/" + quote(username, safe=""))
+        user = data.get("user", {})
+        followers = ''.join('<li>' + html.escape(str(x.get("follower"))) + ' <small>' + html.escape(str(x.get("created_at"))) + '</small></li>' for x in data.get("followers", [])) or '<li>None</li>'
+        following = ''.join('<li>' + html.escape(str(x.get("following"))) + ' <small>' + html.escape(str(x.get("created_at"))) + '</small></li>' for x in data.get("following", [])) or '<li>None</li>'
+        chats = ''.join('<tr><td>' + html.escape(str(x.get("peer"))) + '</td><td>' + str(int(x.get("message_count") or 0)) + '</td><td>' + html.escape(str(x.get("first_message_at"))) + '</td><td>' + html.escape(str(x.get("last_message_at"))) + '</td></tr>' for x in data.get("chat_activity", []))
+        body = '<section class="panel"><h2>' + html.escape(str(user.get("display_name") or username)) + ' · @' + html.escape(username) + '</h2><p>Bio: ' + html.escape(str(user.get("bio") or "—")) + '</p><p>Joined: ' + html.escape(str(user.get("account_created_at") or "—")) + '</p><p>Last seen: ' + html.escape(str(user.get("last_seen_at") or "Never")) + '</p></section><div class="grid"><section class="panel"><h2>Followers</h2><ul>' + followers + '</ul></section><section class="panel"><h2>Following</h2><ul>' + following + '</ul></section></div><section class="panel"><h2>Chat Activity (metadata only)</h2><div style="overflow-x:auto"><table style="width:100%"><tr><th>Conversation with</th><th>Messages</th><th>First</th><th>Last</th></tr>' + chats + '</table></div><p><small>' + html.escape(str(data.get("privacy_note") or "")) + '</small></p></section><p><a href="/">← Back to users</a></p>'
+    except Exception:
+        body = '<section class="panel"><h2>User details unavailable</h2><a href="/">Back</a></section>'
     return render_template_string(PAGE, body=body, logged_in=True, csrf=csrf_token())
 
 if __name__ == "__main__":
