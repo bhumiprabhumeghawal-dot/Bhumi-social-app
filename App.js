@@ -105,6 +105,7 @@ import {
   verifyPasswordReset,
   resetPasswordWithToken,
   verifyAuthSession,
+  warmUpServer,
   searchUsers,
   loadFollowRequests,
   acceptFollowRequest,
@@ -680,9 +681,6 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: "#FFFFFF", fontSize: 14 }}>
-              Loading video...
-            </Text>
           </View>
         )}
         {status === "error" && (
@@ -2507,6 +2505,8 @@ export default function App() {
 
   React.useEffect(() => {
     let mounted = true;
+    // Wake the Render API while secure session restore continues in parallel.
+    void warmUpServer();
 
     (async () => {
       let savedSession = null;
@@ -5163,8 +5163,6 @@ export default function App() {
             <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 78, height: 78, borderRadius: 22 }} resizeMode="contain" />
           </View>
           <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "900", marginTop: 18 }}>Bhumi Social AI</Text>
-          <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 22 }} />
-          <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 10 }}>आपकी ऐप तैयार हो रही है…</Text>
         </View>
       </SafeAreaView>
     );
