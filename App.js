@@ -83,6 +83,8 @@ import {
   saveNotificationPreference,
   loadNotificationDetails,
   saveNotificationDetails,
+  loadSettingsPreferences,
+  saveSettingsPreferences,
   togglePostLike,
   loadPostById,
   loadPostComments,
@@ -3193,6 +3195,17 @@ export default function App() {
   const [viewedProfileRestrictBusy, setViewedProfileRestrictBusy] =
     React.useState(false);
   const [privacyBusy, setPrivacyBusy] = React.useState(false);
+  const [snapPrivacyOpen, setSnapPrivacyOpen] = React.useState(false);
+  const [snapPrivacyBusy, setSnapPrivacyBusy] = React.useState(false);
+  const [snapPrivacy, setSnapPrivacy] = React.useState({
+    contactAudience: "friends",
+    storyAudience: "followers",
+    readReceipts: true,
+    typingIndicator: true,
+    storyReplies: true,
+    disappearingMessages: "off",
+    hideFromSuggestions: false,
+  });
   const [businessProfileOpen, setBusinessProfileOpen] = React.useState(false);
   const [businessProfileBusy, setBusinessProfileBusy] = React.useState(false);
   const [businessInsights, setBusinessInsights] = React.useState({ contentCount: 0, followers: 0, likes: 0, comments: 0 });
@@ -4002,6 +4015,52 @@ export default function App() {
       );
     } finally {
       setPrivacyBusy(false);
+    }
+  };
+
+  const openSnapPrivacySettings = async () => {
+    setSnapPrivacyBusy(true);
+    try {
+      const saved = await loadSettingsPreferences();
+      setSnapPrivacy({
+        contactAudience: saved["privacy.contactAudience"] || "friends",
+        storyAudience: saved["story.audience"] || "followers",
+        readReceipts: saved["messages.readReceipts"] !== false,
+        typingIndicator: saved["messages.typingIndicator"] !== false,
+        storyReplies: saved["story.allowReplies"] !== false,
+        disappearingMessages: saved["messages.disappearing"] || "off",
+        hideFromSuggestions: saved["privacy.hideFromSuggestions"] === true,
+      });
+      setSnapPrivacyOpen(true);
+    } catch (error) {
+      Alert.alert("Privacy settings unavailable", error.message || "Please try again.");
+    } finally {
+      setSnapPrivacyBusy(false);
+    }
+  };
+
+  const updateSnapPrivacy = async (key, value) => {
+    const map = {
+      contactAudience: "privacy.contactAudience",
+      storyAudience: "story.audience",
+      readReceipts: "messages.readReceipts",
+      typingIndicator: "messages.typingIndicator",
+      storyReplies: "story.allowReplies",
+      disappearingMessages: "messages.disappearing",
+      hideFromSuggestions: "privacy.hideFromSuggestions",
+    };
+    const serverKey = map[key];
+    if (!serverKey || snapPrivacyBusy) return;
+    const previous = snapPrivacy[key];
+    setSnapPrivacy((current) => ({ ...current, [key]: value }));
+    setSnapPrivacyBusy(true);
+    try {
+      await saveSettingsPreferences({ [serverKey]: value });
+    } catch (error) {
+      setSnapPrivacy((current) => ({ ...current, [key]: previous }));
+      Alert.alert("Could not save", error.message || "Please try again.");
+    } finally {
+      setSnapPrivacyBusy(false);
     }
   };
 
@@ -9734,6 +9793,14 @@ export default function App() {
             <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 12 }}>
               Choose how people can view and interact with your account.
             </Text>
+            <TouchableOpacity onPress={openSnapPrivacySettings} disabled={snapPrivacyBusy} style={{ flexDirection: "row", alignItems: "center", padding: 14, marginBottom: 14, borderRadius: 14, backgroundColor: "rgba(181,139,255,0.13)", borderWidth: 1, borderColor: "#7657A5" }}>
+              <Ionicons name="shield-checkmark" size={22} color="#C9ACFF" />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Privacy & Chat Controls</Text>
+                <Text style={{ color: "#B8AFC5", fontSize: 11, marginTop: 3 }}>Messages, Story audience, read receipts and more</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#C9ACFF" />
+            </TouchableOpacity>
             {[
               { key: "business", title: "Business Account", subtitle: "Professional profile for your brand or business", active: privacySettings.accountType === "business" },
               { key: "creator", title: "Creator Account", subtitle: "Public profile for creators, reels and audience growth", active: privacySettings.accountType === "creator" },
@@ -9835,6 +9902,58 @@ export default function App() {
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={snapPrivacyOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSnapPrivacyOpen(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(5,2,12,0.82)", justifyContent: "flex-end" }}>
+          <View style={{ maxHeight: "88%", backgroundColor: "#101014", borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: "#34313D", padding: 20 }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                <Ionicons name="shield-checkmark" size={24} color="#B58BFF" />
+                <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>Privacy & Chat Controls</Text>
+              </View>
+              <Text style={{ color: "#AAA5B4", fontSize: 12, marginBottom: 18 }}>Snap-inspired controls · changes save automatically</Text>
+              {[
+                { key: "contactAudience", title: "Who can message or call me?", options: [["friends","Friends only"],["followers","Followers"],["everyone","Everyone"]] },
+                { key: "storyAudience", title: "Who can view my Stories?", options: [["followers","Followers"],["close_friends","Close Friends"],["everyone","Everyone"]] },
+                { key: "disappearingMessages", title: "Disappearing messages", options: [["off","Off"],["24h","After 24 hours"],["7d","After 7 days"]] },
+              ].map((item) => (
+                <View key={item.key} style={{ paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: "#302D37" }}>
+                  <Text style={{ color: "#FFFFFF", fontWeight: "800", marginBottom: 10 }}>{item.title}</Text>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+                    {item.options.map(([value, label]) => (
+                      <TouchableOpacity key={value} disabled={snapPrivacyBusy} onPress={() => updateSnapPrivacy(item.key, value)} style={{ paddingVertical: 8, paddingHorizontal: 11, borderRadius: 18, borderWidth: 1, borderColor: snapPrivacy[item.key] === value ? "#B58BFF" : "#45414D", backgroundColor: snapPrivacy[item.key] === value ? "rgba(181,139,255,0.18)" : "transparent" }}>
+                        <Text style={{ color: snapPrivacy[item.key] === value ? "#D9C5FF" : "#C4C0CB", fontSize: 12, fontWeight: "700" }}>{label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ))}
+              {[
+                { key: "readReceipts", title: "Read receipts", subtitle: "Let people know when you have read their messages." },
+                { key: "typingIndicator", title: "Typing indicator", subtitle: "Show when you are typing in a chat." },
+                { key: "storyReplies", title: "Allow Story replies", subtitle: "Let viewers reply to your Stories." },
+                { key: "hideFromSuggestions", title: "Hide me from suggestions", subtitle: "Reduce your profile appearing in discovery suggestions." },
+              ].map((item) => (
+                <View key={item.key} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#302D37" }}>
+                  <View style={{ flex: 1, paddingRight: 12 }}>
+                    <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{item.title}</Text>
+                    <Text style={{ color: "#AAA5B4", fontSize: 11, marginTop: 3 }}>{item.subtitle}</Text>
+                  </View>
+                  <Switch value={!!snapPrivacy[item.key]} disabled={snapPrivacyBusy} onValueChange={(value) => updateSnapPrivacy(item.key, value)} />
+                </View>
+              ))}
+              <TouchableOpacity onPress={() => setSnapPrivacyOpen(false)} style={{ alignSelf: "flex-end", marginTop: 18, paddingVertical: 11, paddingHorizontal: 22, borderRadius: 12, backgroundColor: "#B58BFF" }}>
+                <Text style={{ color: "#17121F", fontWeight: "900" }}>Done</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
