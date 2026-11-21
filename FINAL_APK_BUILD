@@ -5,3 +5,6 @@ Scroll fix: media tap recognizers now cancel after 8px movement so feed swipes d
 Final consolidated APK build trigger: 2026-11-21. Build only the current master source after feature audit.
 
 Signup/login keyboard visibility and user-selected username improvements included in final consolidated APK: 2026-11-21.
+
+Profile privacy update: add authenticated Block Account action to viewed profiles; blocking uses the existing server endpoint that removes mutual follows and cancels pending requests. Polish the profile action menu to match the premium dark theme.
+Final consolidated APK build trigger: 2026-11-21.
