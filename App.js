@@ -8357,6 +8357,21 @@ export default function App() {
                       Edit Profile
                     </Text>
                   </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => Share.share({ message: `Follow @${profile.username || authSession?.username || "me"} on Bhumi Social AI.` })}
+                    style={{
+                      borderWidth: 1,
+                      borderColor: "#DBDBDB",
+                      borderRadius: 14,
+                      backgroundColor: "#F5F5F5",
+                      paddingVertical: 13,
+                      paddingHorizontal: 18,
+                      marginRight: 8,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Text style={{ color: "#262626", fontWeight: "800" }}>Share Profile</Text>
+                  </TouchableOpacity>
                   {!!profile.avatarUrl && (
                     <TouchableOpacity
                       onPress={removeProfilePhoto}
@@ -8983,7 +8998,7 @@ export default function App() {
             <Ionicons
               name={activeTab === tab.name ? tab.activeIcon : tab.icon}
               size={25}
-              color={activeTab === tab.name ? "#0095F6" : "#8E8E93"}
+              color={activeTab === tab.name ? "#8B3DFF" : "#737373"}
             />
             <Text
               style={[
@@ -13219,7 +13234,7 @@ const styles = StyleSheet.create({
     borderRadius: 34,
     padding: 0,
     borderWidth: 2,
-    borderColor: "#0095F6",
+    borderColor: "#8B3DFF",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -13334,9 +13349,9 @@ const styles = StyleSheet.create({
   },
   navItem: { flex: 1, alignItems: "center", justifyContent: "center" },
   navIcon: { fontSize: 24, color: "#8E8E93" },
-  activeNavIcon: { color: "#0095F6", fontWeight: "800" },
+  activeNavIcon: { color: "#8B3DFF", fontWeight: "800" },
   navLabel: { fontSize: 9, color: "#737373", marginTop: 1 },
-  activeNavLabel: { color: "#0095F6", fontWeight: "800" },
+  activeNavLabel: { color: "#8B3DFF", fontWeight: "800" },
 });
 
 // Android APK rebuild trigger for the latest integrated master changes.
