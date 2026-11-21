@@ -3350,7 +3350,7 @@ export default function App() {
             ? {
                 ...item,
                 isLiked: !!result.liked,
-                likesCount: result.likesCount,
+                likesCount: Number(result.likes) || 0,
               }
             : item,
         ),
