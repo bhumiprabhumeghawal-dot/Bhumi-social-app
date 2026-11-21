@@ -3560,6 +3560,15 @@ def init_call_tables():
             CREATE INDEX IF NOT EXISTS idx_call_sessions_caller_status
             ON call_sessions(caller_username, status, created_at DESC)
         """)
+        # Case-insensitive indexes match the lookup predicates used by call signalling.
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_call_sessions_callee_status_ci
+            ON call_sessions(LOWER(callee_username), status, expires_at)
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_call_sessions_caller_status_ci
+            ON call_sessions(LOWER(caller_username), status, expires_at)
+        """)
 
 
 def _call_user():
@@ -3630,10 +3639,6 @@ def create_call():
             return jsonify({"error": "You already have an active call."}), 409
 
         db.execute("""
-            UPDATE call_sessions SET status='missed', updated_at=?
-            WHERE status='ringing' AND expires_at<=?
-        """, (now_text, now_text))
-        db.execute("""
             INSERT INTO call_sessions
                 (id, caller_username, callee_username, call_type, room_name,
                  status, created_at, updated_at, expires_at)
@@ -3651,10 +3656,6 @@ def get_pending_calls():
         return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as db:
-        db.execute("""
-            UPDATE call_sessions SET status='missed', updated_at=?
-            WHERE status='ringing' AND expires_at<=?
-        """, (now, now))
         rows = db.execute("""
             SELECT * FROM call_sessions
             WHERE LOWER(callee_username)=LOWER(?) AND status='ringing' AND expires_at>?
