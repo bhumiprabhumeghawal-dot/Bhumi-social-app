@@ -13325,3 +13325,5 @@ const styles = StyleSheet.create({
 });
 
 // Android APK rebuild trigger for the latest integrated master changes.
+
+// Rebuild APK after the Settings light-theme integration.
