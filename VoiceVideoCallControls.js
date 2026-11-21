@@ -187,7 +187,9 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       // These independent setup steps run together to reduce answer-to-audio delay.
       const [tokenResult, audioResult] = await Promise.allSettled([
         getCallConnectionToken(callInfo.id),
-        AudioSession.startAudioSession(),
+        audioSessionActiveRef.current
+          ? Promise.resolve(true)
+          : AudioSession.startAudioSession(),
       ]);
       if (audioResult.status === "fulfilled") audioSessionActiveRef.current = true;
       if (tokenResult.status === "rejected") {
@@ -225,11 +227,14 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   };
 
   const ensureCallPermissions = async (type) => {
-    const microphone = await requestRecordingPermissionsAsync();
+    const microphonePromise = requestRecordingPermissionsAsync();
+    const cameraPromise = type === "video"
+      ? (cameraPermission?.granted ? Promise.resolve(cameraPermission) : requestCameraPermission())
+      : Promise.resolve({ granted: true });
+    const [microphone, camera] = await Promise.all([microphonePromise, cameraPromise]);
     if (!microphone?.granted) throw new Error("कॉल के लिए माइक्रोफोन की अनुमति दें।");
-    if (type === "video") {
-      const camera = cameraPermission?.granted ? cameraPermission : await requestCameraPermission();
-      if (!camera?.granted) throw new Error("वीडियो कॉल के लिए कैमरा की अनुमति दें।");
+    if (type === "video" && !camera?.granted) {
+      throw new Error("वीडियो कॉल के लिए कैमरा की अनुमति दें।");
     }
   };
 
@@ -240,13 +245,32 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     try {
       await ensureCallPermissions(type);
       tokenAttemptedRef.current = false;
-      const created = await createVoiceVideoCall(username, type);
-      if (!mountedRef.current) return;
+      // Warm the native audio route while the recipient's phone is ringing.
+      // This avoids waiting for audio-session setup after the recipient answers.
+      const [created] = await Promise.all([
+        createVoiceVideoCall(username, type),
+        AudioSession.startAudioSession().then(() => {
+          audioSessionActiveRef.current = true;
+        }).catch((error) => {
+          console.warn("LiveKit audio prewarm failed:", error?.message || error);
+        }),
+      ]);
+      if (!mountedRef.current) {
+        if (audioSessionActiveRef.current) {
+          audioSessionActiveRef.current = false;
+          await AudioSession.stopAudioSession().catch(() => {});
+        }
+        return;
+      }
       callRef.current = created;
       setCall(created);
       setIncoming(false);
       setCallMessage("रिंग हो रही है… सामने वाले के जवाब का इंतज़ार करें।");
     } catch (error) {
+      if (audioSessionActiveRef.current && !callRef.current) {
+        audioSessionActiveRef.current = false;
+        await AudioSession.stopAudioSession().catch(() => {});
+      }
       if (mountedRef.current) setCallMessage(error?.message || "कॉल शुरू नहीं हो पाई।");
     } finally {
       if (mountedRef.current) setBusy(false);
