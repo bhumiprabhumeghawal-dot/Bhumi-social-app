@@ -3674,6 +3674,18 @@ def init_call_tables():
             ON call_sessions(LOWER(caller_username), status, expires_at)
         """)
 
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS call_push_tokens (
+                expo_push_token TEXT PRIMARY KEY,
+                username TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_call_push_tokens_username
+            ON call_push_tokens(LOWER(username))
+        """)
+
 
 def _send_incoming_call_push(username, caller, call_type, call_id):
     """Send a high-priority Expo push so a terminated app can still show an incoming-call alert."""
