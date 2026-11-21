@@ -1,2 +1,2 @@
-Final release build includes startup warm-up, silent startup shell, faster LiveKit call setup, and adaptive 1080p video capture/publishing.
-Source commit: 9a7f28c8567f231055c5728deb0730d7b5ecfb42
+Final release APK trigger after startup and calling performance improvements.
+Includes: deferred OTA check, no loading text labels, case-insensitive call lookup indexes, and removal of full-table expiry sweeps from call polling.
