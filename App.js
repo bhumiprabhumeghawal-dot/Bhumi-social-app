@@ -8353,7 +8353,7 @@ export default function App() {
                       marginBottom: 8,
                     }}
                   >
-                    <Text style={{ color: "#262626", fontWeight: "800" }}>
+                    <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
                       Edit Profile
                     </Text>
                   </TouchableOpacity>
@@ -8960,7 +8960,7 @@ export default function App() {
                   >
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#FFFFFF",
                         fontWeight: "700",
                         fontSize: 13,
                       }}
@@ -12193,7 +12193,7 @@ export default function App() {
                         elevation: 1,
                       }}
                     >
-                      <Ionicons name="send" size={19} color="#262626" />
+                      <Ionicons name="send" size={19} color="#FFFFFF" />
                     </TouchableOpacity>
                   </View>
                 </View>
