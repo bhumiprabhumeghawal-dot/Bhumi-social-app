@@ -5155,7 +5155,7 @@ export default function App() {
   if (!authReady) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
-        <StatusBar style="light" hidden={false} translucent={false} />
+        <StatusBar style="dark" hidden={false} translucent={false} />
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
           <View style={{ width: 92, height: 92, borderRadius: 28, backgroundColor: "#121212", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", padding: 6 }}>
             <Text style={{ fontFamily: "serif", fontStyle: "italic", fontSize: 70, fontWeight: "900", color: "#8B3DFF" }}>ℬ</Text>
