@@ -5232,8 +5232,19 @@ export default function App() {
     return (
       <SafeAreaView style={styles.screen}>
         <StatusBar style="dark" hidden={false} translucent={false} />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
+        >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 28, paddingVertical: 24 }}
+        >
         <View
-          style={{ flex: 1, justifyContent: "center", paddingHorizontal: 28 }}
+          style={{ flex: 1, justifyContent: "center" }}
         >
           <Text
             style={{
@@ -5408,6 +5419,8 @@ export default function App() {
             <Text style={{ color: "#0095F6" }}>Back to login</Text>
           </TouchableOpacity>
         </View>
+        </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
