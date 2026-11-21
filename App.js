@@ -13225,7 +13225,7 @@ const styles = StyleSheet.create({
   },
   headerSideSpacer: { width: 116 },
   headerActions: { flexDirection: "row", alignItems: "center", gap: 19 },
-  headerIcon: { fontSize: 27, color: "#0095F6" },
+  headerIcon: { fontSize: 27, color: "#8B3DFF" },
   stories: { paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   story: { width: 68, alignItems: "center" },
   storyRing: {
@@ -13243,7 +13243,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 2,
-    borderColor: "#0095F6",
+    borderColor: "#8B3DFF",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -13290,7 +13290,7 @@ const styles = StyleSheet.create({
   more: {
     fontSize: 19,
     fontWeight: "700",
-    color: "#0095F6",
+    color: "#8B3DFF",
     paddingHorizontal: 5,
   },
   postImage: {
