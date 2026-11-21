@@ -364,7 +364,32 @@ def list_content(kind):
         ).fetchall()
         viewer = getattr(g, "auth_username", None)
 
-        rows = [row for row in rows if can_view_content(db, row["username"], viewer)]
+        visible_rows = []
+        for row in rows:
+            owner = row["username"]
+            if not can_view_content(db, owner, viewer):
+                continue
+            if kind == "stories" and viewer and owner.casefold() != viewer.casefold():
+                audience = _chat_preferences(db, owner).get("story.audience", "followers")
+                follows_owner = bool(db.execute("""
+                    SELECT 1 FROM follows
+                    WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)
+                    LIMIT 1
+                """, (viewer, owner)).fetchone())
+                owner_follows_viewer = bool(db.execute("""
+                    SELECT 1 FROM follows
+                    WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)
+                    LIMIT 1
+                """, (owner, viewer)).fetchone())
+                if audience == "followers" and not follows_owner:
+                    continue
+                if audience == "close_friends" and not (follows_owner and owner_follows_viewer):
+                    continue
+            elif kind == "stories" and not viewer:
+                continue
+            visible_rows.append(row)
+
+        rows = visible_rows
 
         items = [content_json(row, viewer, db) for row in rows]
 
@@ -929,6 +954,9 @@ def people_suggestions():
                 "SELECT is_private FROM user_settings WHERE username=?",
                 (target,)
             ).fetchone()
+
+            if _chat_preferences(db, target).get("privacy.hideFromSuggestions", False) is True:
+                continue
 
             results.append({
                 "username": target,
@@ -3843,12 +3871,17 @@ def get_message_conversations():
     with get_db() as db:
         now = datetime.now(timezone.utc).isoformat()
         db.execute(
+            "DELETE FROM direct_messages WHERE expires_at IS NOT NULL AND expires_at <= ?",
+            (now,),
+        )
+        db.execute(
             """
             UPDATE direct_messages
             SET delivered_at = COALESCE(delivered_at, ?)
             WHERE LOWER(recipient_username)=LOWER(?)
+              AND (expires_at IS NULL OR expires_at > ?)
             """,
-            (now, current),
+            (now, current, now),
         )
         rows = db.execute("""
             SELECT
@@ -3875,10 +3908,11 @@ def get_message_conversations():
                   ELSE dm.sender_username
                 END
               )
-            WHERE LOWER(dm.sender_username)=LOWER(?)
-               OR LOWER(dm.recipient_username)=LOWER(?)
+            WHERE (LOWER(dm.sender_username)=LOWER(?)
+               OR LOWER(dm.recipient_username)=LOWER(?))
+              AND (dm.expires_at IS NULL OR dm.expires_at > ?)
             ORDER BY dm.created_at DESC, dm.id DESC
-        """, (current, current, current, current, current)).fetchall()
+        """, (current, current, current, current, current, now)).fetchall()
         connected_rows = db.execute("""
             SELECT CASE WHEN LOWER(follower)=LOWER(?) THEN following ELSE follower END AS peer
             FROM follows
