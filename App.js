@@ -1003,11 +1003,16 @@ function groupPostItems(items) {
 }
 
 function PostMediaTapSurface({ children, style, onSingleTap, onDoubleTap }) {
+  // A media tap must fail as soon as the finger moves into a scroll gesture.
+  // This prevents opening a post while the user is swiping through the feed.
   const singleTap = Gesture.Tap()
+    .maxDistance(8)
+    .maxDuration(220)
     .onEnd(() => onSingleTap?.())
     .runOnJS(true);
   const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
+    .maxDistance(8)
     .maxDuration(260)
     .onEnd(() => onDoubleTap?.())
     .runOnJS(true);
