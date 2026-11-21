@@ -10645,7 +10645,7 @@ export default function App() {
           keyboardVerticalOffset={0}
           style={{ flex: 1 }}
         >
-          <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF", paddingBottom: Platform.OS === "android" ? 6 : 0 }}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: "#000000", paddingBottom: Platform.OS === "android" ? 6 : 0 }}>
             <View
               style={{
                 flexDirection: "row",
@@ -10653,7 +10653,7 @@ export default function App() {
                 paddingHorizontal: 16,
                 paddingTop: 16,
                 paddingBottom: 10,
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "#000000",
                 minHeight: 58,
               }}
             >
@@ -10690,7 +10690,7 @@ export default function App() {
                       width: 43,
                       height: 43,
                       borderRadius: 22,
-                      backgroundColor: "#DBDBDB",
+                      backgroundColor: "#1C1C1E",
                       alignItems: "center",
                       justifyContent: "center",
                       overflow: "hidden",
@@ -10722,7 +10722,7 @@ export default function App() {
                     ) : (
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F5F5F5",
                           fontSize: 17,
                           fontWeight: "800",
                         }}
@@ -10737,7 +10737,7 @@ export default function App() {
                       style={{
                         fontSize: 17,
                         fontWeight: "800",
-                        color: "#262626",
+                        color: "#F5F5F5",
                       }}
                     >
                       {chatPreferences.name || messageConversations.find(
@@ -10789,7 +10789,7 @@ export default function App() {
                     <Text
                       numberOfLines={1}
                       style={{
-                        color: "#262626",
+                        color: "#F5F5F5",
                         fontSize: 23,
                         fontWeight: "900",
                         letterSpacing: -0.7,
@@ -10841,7 +10841,7 @@ export default function App() {
 
             {!selectedChatUser ? (
               <View
-                style={{ flex: 1, backgroundColor: "#FFFFFF", paddingTop: 8 }}
+                style={{ flex: 1, backgroundColor: "#000000", paddingTop: 8 }}
               >
                 {chatError ? (
                   <Text
@@ -10863,7 +10863,7 @@ export default function App() {
                     marginBottom: 8,
                     height: 44,
                     borderRadius: 24,
-                    backgroundColor: "#DBDBDB",
+                    backgroundColor: "#1C1C1E",
                   }}
                 >
                   <Ionicons name="search" size={23} color="#262626" />
@@ -10877,7 +10877,7 @@ export default function App() {
                     style={{
                       flex: 1,
                       paddingHorizontal: 13,
-                      color: "#262626",
+                      color: "#F5F5F5",
                       fontSize: 16,
                     }}
                   />
@@ -10929,9 +10929,9 @@ export default function App() {
                         width: 68,
                         height: 68,
                         borderRadius: 34,
-                        backgroundColor: "#FFFFFF",
+                        backgroundColor: "#000000",
                         borderWidth: 2,
-                        borderColor: ownNote ? "#8B3DFF" : "#DBDBDB",
+                        borderColor: ownNote ? "#0095F6" : "#DBDBDB",
                         alignItems: "center",
                         justifyContent: "center",
                         overflow: "visible",
@@ -10960,9 +10960,9 @@ export default function App() {
                             paddingHorizontal: 7,
                             paddingVertical: 5,
                             borderRadius: 12,
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "#000000",
                             borderWidth: 1,
-                            borderColor: "#DBDBDB",
+                            borderColor: "#303030",
                             alignItems: "center",
                             justifyContent: "center",
                             zIndex: 2,
@@ -10971,7 +10971,7 @@ export default function App() {
                           <Text
                             numberOfLines={2}
                             style={{
-                              color: "#262626",
+                              color: "#F5F5F5",
                               fontSize: 9,
                               textAlign: "center",
                             }}
@@ -10992,7 +10992,7 @@ export default function App() {
                           alignItems: "center",
                           justifyContent: "center",
                           borderWidth: 2,
-                          borderColor: "#DBDBDB",
+                          borderColor: "#303030",
                         }}
                       >
                         <Ionicons name="add" size={17} color="#262626" />
@@ -11000,7 +11000,7 @@ export default function App() {
                     </View>
                     <Text
                       numberOfLines={1}
-                      style={{ color: "#262626", fontSize: 12, marginTop: 7 }}
+                      style={{ color: "#F5F5F5", fontSize: 12, marginTop: 7 }}
                     >
                       Your note
                     </Text>
@@ -11016,7 +11016,7 @@ export default function App() {
                           width: 68,
                           height: 68,
                           borderRadius: 34,
-                          backgroundColor: "#FFFFFF",
+                          backgroundColor: "#000000",
                           borderWidth: 2,
                           borderColor: "#3797F0",
                           alignItems: "center",
@@ -11036,7 +11036,7 @@ export default function App() {
                         ) : (
                           <Text
                             style={{
-                              color: "#262626",
+                              color: "#F5F5F5",
                               fontSize: 25,
                               fontWeight: "800",
                             }}
@@ -11056,9 +11056,9 @@ export default function App() {
                             paddingHorizontal: 7,
                             paddingVertical: 5,
                             borderRadius: 12,
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "#000000",
                             borderWidth: 1,
-                            borderColor: "#DBDBDB",
+                            borderColor: "#303030",
                             alignItems: "center",
                             justifyContent: "center",
                             zIndex: 2,
@@ -11067,7 +11067,7 @@ export default function App() {
                           <Text
                             numberOfLines={2}
                             style={{
-                              color: "#262626",
+                              color: "#F5F5F5",
                               fontSize: 9,
                               textAlign: "center",
                             }}
@@ -11078,7 +11078,7 @@ export default function App() {
                       </View>
                       <Text
                         numberOfLines={1}
-                        style={{ color: "#262626", fontSize: 12, marginTop: 7 }}
+                        style={{ color: "#F5F5F5", fontSize: 12, marginTop: 7 }}
                       >
                         {note.displayName || note.username}
                       </Text>
@@ -11092,7 +11092,7 @@ export default function App() {
                     paddingHorizontal: 18,
                     marginBottom: 4,
                     borderBottomWidth: 1,
-                    borderBottomColor: "#DBDBDB",
+                    borderBottomColor: "#303030",
                   }}
                 >
                   {["All", "Primary", "General", "Requests"].map((tab) => {
@@ -11134,12 +11134,12 @@ export default function App() {
                       marginBottom: 12,
                       padding: 16,
                       borderRadius: 16,
-                      backgroundColor: "#FFFFFF",
+                      backgroundColor: "#000000",
                     }}
                   >
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#F5F5F5",
                         fontSize: 14,
                         fontWeight: "800",
                         marginBottom: 10,
@@ -11151,7 +11151,7 @@ export default function App() {
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        backgroundColor: "#DBDBDB",
+                        backgroundColor: "#1C1C1E",
                         borderRadius: 22,
                         paddingHorizontal: 13,
                       }}
@@ -11173,7 +11173,7 @@ export default function App() {
                           flex: 1,
                           paddingHorizontal: 10,
                           paddingVertical: 12,
-                          color: "#262626",
+                          color: "#F5F5F5",
                         }}
                       />
                       {newChatUsername ? (
@@ -11189,7 +11189,7 @@ export default function App() {
                       ) : null}
                     </View>
                     {chatPeopleBusy ? (
-                      <Text style={{ color: "#737373", padding: 10 }}>
+                      <Text style={{ color: "#A8A8A8", padding: 10 }}>
                         Searching people...
                       </Text>
                     ) : null}
@@ -11219,7 +11219,7 @@ export default function App() {
                             width: 42,
                             height: 42,
                             borderRadius: 22,
-                            backgroundColor: "#DBDBDB",
+                            backgroundColor: "#1C1C1E",
                             alignItems: "center",
                             justifyContent: "center",
                             overflow: "hidden",
@@ -11240,7 +11240,7 @@ export default function App() {
                             />
                           ) : (
                             <Text
-                              style={{ color: "#262626", fontWeight: "800" }}
+                              style={{ color: "#F5F5F5", fontWeight: "800" }}
                             >
                               {String(person.username || "?")
                                 .slice(0, 1)
@@ -11249,10 +11249,10 @@ export default function App() {
                           )}
                         </View>
                         <View style={{ flex: 1 }}>
-                          <Text style={{ color: "#262626", fontWeight: "800" }}>
+                          <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>
                             {person.displayName || person.username}
                           </Text>
-                          <Text style={{ color: "#737373", fontSize: 13 }}>
+                          <Text style={{ color: "#A8A8A8", fontSize: 13 }}>
                             @{person.username}
                           </Text>
                         </View>
@@ -11264,7 +11264,7 @@ export default function App() {
                     chatPeopleResults.length === 0 ? (
                       <Text
                         style={{
-                          color: "#737373",
+                          color: "#A8A8A8",
                           textAlign: "center",
                           padding: 12,
                         }}
@@ -11278,7 +11278,7 @@ export default function App() {
                 {chatBusy ? (
                   <Text
                     style={{
-                      color: "#737373",
+                      color: "#A8A8A8",
                       paddingHorizontal: 20,
                       paddingVertical: 8,
                     }}
@@ -11347,7 +11347,7 @@ export default function App() {
                               width: 56,
                               height: 56,
                               borderRadius: 28,
-                              backgroundColor: "#DBDBDB",
+                              backgroundColor: "#1C1C1E",
                               alignItems: "center",
                               justifyContent: "center",
                               overflow: "hidden",
@@ -11374,7 +11374,7 @@ export default function App() {
                             ) : (
                               <Text
                                 style={{
-                                  color: "#262626",
+                                  color: "#F5F5F5",
                                   fontSize: 22,
                                   fontWeight: "800",
                                 }}
@@ -11387,7 +11387,7 @@ export default function App() {
                             <Text
                               numberOfLines={1}
                               style={{
-                                color: "#262626",
+                                color: "#F5F5F5",
                                 fontSize: 15,
                                 fontWeight: "700",
                               }}
@@ -11399,7 +11399,7 @@ export default function App() {
                             <Text
                               numberOfLines={1}
                               style={{
-                                color: "#737373",
+                                color: "#A8A8A8",
                                 marginTop: 3,
                                 fontSize: 12,
                               }}
@@ -11421,7 +11421,7 @@ export default function App() {
                           <View
                             style={{ alignItems: "flex-end", minWidth: 35 }}
                           >
-                            <Text style={{ color: "#737373", fontSize: 13 }}>
+                            <Text style={{ color: "#A8A8A8", fontSize: 13 }}>
                               {conversation.lastMessageAt
                                 ? (() => {
                                     const date = new Date(
@@ -11459,7 +11459,7 @@ export default function App() {
                               >
                                 <Text
                                   style={{
-                                    color: "#262626",
+                                    color: "#F5F5F5",
                                     fontSize: 10,
                                     fontWeight: "800",
                                   }}
@@ -11477,7 +11477,7 @@ export default function App() {
                   messageConversations.length === 0 ? (
                     <Text
                       style={{
-                        color: "#737373",
+                        color: "#A8A8A8",
                         textAlign: "center",
                         padding: 28,
                       }}
@@ -11509,7 +11509,7 @@ export default function App() {
                   {chatBusy && directMessages.length === 0 ? (
                     <Text
                       style={{
-                        color: "#737373",
+                        color: "#A8A8A8",
                         textAlign: "center",
                         padding: 24,
                       }}
@@ -11537,7 +11537,7 @@ export default function App() {
                           <View style={{ width: 27, height: 27, borderRadius: 14, marginRight: 7, marginBottom: 2, backgroundColor: "transparent", borderWidth: 1, borderColor: chatThemeColors.accent, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                             {messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase())?.avatarUrl ? (
                               <Image source={{ uri: String(messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl).startsWith("http") ? messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl : "https://bhumi-social-app-1.onrender.com" + messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl }} style={{ width: 27, height: 27, borderRadius: 14 }} />
-                            ) : <Text style={{ color: "#262626", fontSize: 11, fontWeight: "800" }}>{String(selectedChatUser || "?").slice(0,1).toUpperCase()}</Text>}
+                            ) : <Text style={{ color: "#F5F5F5", fontSize: 11, fontWeight: "800" }}>{String(selectedChatUser || "?").slice(0,1).toUpperCase()}</Text>}
                           </View>
                         ) : null}
                         <TouchableOpacity
@@ -11571,7 +11571,7 @@ export default function App() {
                               <Text
                                 numberOfLines={1}
                                 style={{
-                                  color: "#262626",
+                                  color: "#F5F5F5",
                                   fontSize: 11,
                                   fontWeight: "800",
                                 }}
@@ -11581,7 +11581,7 @@ export default function App() {
                               <Text
                                 numberOfLines={2}
                                 style={{
-                                  color: "#737373",
+                                  color: "#A8A8A8",
                                   fontSize: 12,
                                 }}
                               >
@@ -11701,7 +11701,7 @@ export default function App() {
           padding: 14,
           borderRadius: 14,
           marginBottom: message.text ? 8 : 0,
-          backgroundColor: "#DBDBDB",
+          backgroundColor: "#1C1C1E",
           flexDirection: "row",
           alignItems: "center",
           gap: 10,
@@ -11714,14 +11714,14 @@ export default function App() {
         />
         <View style={{ flex: 1 }}>
           <Text numberOfLines={2} style={{
-            color: "#262626",
+            color: "#F5F5F5",
             fontSize: 13,
             fontWeight: "700",
           }}>
             {message.attachmentName || "Document"}
           </Text>
           <Text style={{
-            color: "#737373",
+            color: "#A8A8A8",
             fontSize: 11,
             marginTop: 3,
           }}>
@@ -11754,7 +11754,7 @@ export default function App() {
                           >
                             <Text
                               style={{
-                                color: mine ? "#8B3DFF" : "#737373",
+                                color: mine ? "#0095F6" : "#737373",
                                 fontSize: 10,
                               }}
                             >
@@ -11770,7 +11770,7 @@ export default function App() {
                             {mine ? (
                               <Text
                                 style={{
-                                  color: "#262626",
+                                  color: "#F5F5F5",
                                   fontSize: 9,
                                   fontWeight: "700",
                                 }}
@@ -11792,7 +11792,7 @@ export default function App() {
                               borderRadius: 15,
                               marginLeft: 7,
                               marginBottom: 2,
-                              backgroundColor: "#DBDBDB",
+                              backgroundColor: "#1C1C1E",
                               borderWidth: 0,
                               borderColor: "transparent",
                               alignItems: "center",
@@ -11812,7 +11812,7 @@ export default function App() {
                             ) : (
                               <Text
                                 style={{
-                                  color: "#262626",
+                                  color: "#F5F5F5",
                                   fontSize: 12,
                                   fontWeight: "800",
                                 }}
@@ -11830,7 +11830,7 @@ export default function App() {
                   {!chatBusy && directMessages.length === 0 && !chatError ? (
                     <Text
                       style={{
-                        color: "#737373",
+                        color: "#A8A8A8",
                         textAlign: "center",
                         paddingHorizontal: 24,
                         paddingVertical: 44,
@@ -11845,7 +11845,7 @@ export default function App() {
                 {chatPeerTyping ? (
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F5F5F5",
                       fontSize: 12,
                       fontWeight: "700",
                       paddingHorizontal: 18,
@@ -11863,15 +11863,15 @@ export default function App() {
                       marginBottom: 3,
                       padding: 15,
                       borderRadius: 18,
-                      backgroundColor: "#DBDBDB",
+                      backgroundColor: "#1C1C1E",
                       borderWidth: 1,
-                      borderColor: "#DBDBDB",
+                      borderColor: "#303030",
                       elevation: 2,
                     }}
                   >
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#F5F5F5",
                         fontSize: 12,
                         fontWeight: "700",
                         marginBottom: 9,
@@ -11904,7 +11904,7 @@ export default function App() {
                       >
                         <Text
                           style={{
-                            color: "#262626",
+                            color: "#F5F5F5",
                             fontWeight: "700",
                             fontSize: 12,
                           }}
@@ -11924,7 +11924,7 @@ export default function App() {
                             paddingHorizontal: 16,
                             paddingVertical: 10,
                             borderRadius: 20,
-                            backgroundColor: "#DBDBDB",
+                            backgroundColor: "#1C1C1E",
                           }}
                         >
                           <Text
@@ -11944,7 +11944,7 @@ export default function App() {
                       >
                         <Text
                           style={{
-                            color: "#737373",
+                            color: "#A8A8A8",
                             fontWeight: "700",
                             fontSize: 12,
                           }}
@@ -11964,9 +11964,9 @@ export default function App() {
                       paddingHorizontal: 14,
                       paddingVertical: 12,
                       borderRadius: 16,
-                      backgroundColor: "#DBDBDB",
+                      backgroundColor: "#1C1C1E",
                       borderWidth: 1,
-                      borderColor: "#DBDBDB",
+                      borderColor: "#303030",
                       flexDirection: "row",
                       alignItems: "center",
                       gap: 12,
@@ -11975,7 +11975,7 @@ export default function App() {
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F5F5F5",
                           fontSize: 11,
                           fontWeight: "800",
                         }}
@@ -11984,7 +11984,7 @@ export default function App() {
                       </Text>
                       <Text
                         numberOfLines={1}
-                        style={{ color: "#737373", fontSize: 12, marginTop: 4 }}
+                        style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
                       >
                         {chatReplyTo.text ||
                           (chatReplyTo.imageUrl ? "Photo" : "Message")}
@@ -12022,12 +12022,12 @@ export default function App() {
                       <View style={{
                         marginHorizontal: 14, marginTop: 10, marginBottom: 8, padding: 11,
                         flexDirection: "row", alignItems: "center", gap: 13,
-                        backgroundColor: "#FFFFFF", borderRadius: 18,
-                        borderWidth: 1, borderColor: "#DBDBDB", elevation: 2,
+                        backgroundColor: "#000000", borderRadius: 18,
+                        borderWidth: 1, borderColor: "#303030", elevation: 2,
                       }}>
                         <View style={{
                           width: 66, height: 66, borderRadius: 13, overflow: "hidden",
-                          backgroundColor: "#DBDBDB", alignItems: "center", justifyContent: "center",
+                          backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center",
                         }}>
                           {isPhoto ? (
                             <Image source={{ uri: chatMediaDraft.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
@@ -12036,15 +12036,15 @@ export default function App() {
                           )}
                         </View>
                         <View style={{ flex: 1, justifyContent: "center", gap: 5 }}>
-                          <Text style={{ color: "#262626", fontSize: 14, fontWeight: "800" }}>
+                          <Text style={{ color: "#F5F5F5", fontSize: 14, fontWeight: "800" }}>
                             {isPhoto ? "Photo attached" : isVideo ? "Video attached" : isAudio ? "Voice message attached" : "Document attached"}
                           </Text>
-                          <Text numberOfLines={2} style={{ color: "#737373", fontSize: 11, fontWeight: "500" }}>
+                          <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 11, fontWeight: "500" }}>
                             {draftName} · Ready to share
                           </Text>
                         </View>
                         <TouchableOpacity onPress={() => setChatMediaDraft(null)} accessibilityLabel="Remove attachment"
-                          style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: "#DBDBDB" }}>
+                          style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: "#1C1C1E" }}>
                           <Ionicons name="close" size={19} color="#B42318" />
                         </TouchableOpacity>
                       </View>
@@ -12058,9 +12058,9 @@ export default function App() {
                         paddingHorizontal: 16,
                         paddingVertical: 14,
                         gap: 14,
-                        backgroundColor: "#DBDBDB",
+                        backgroundColor: "#1C1C1E",
                         borderTopWidth: 1,
-                        borderTopColor: "#DBDBDB",
+                        borderTopColor: "#303030",
                       }}
                     >
                       {[
@@ -12089,7 +12089,7 @@ export default function App() {
                             height: 36,
                             alignItems: "center",
                             justifyContent: "center",
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "#000000",
                             borderRadius: 12,
                           }}
                         >
@@ -12106,8 +12106,8 @@ export default function App() {
                       paddingVertical: 9,
                       marginBottom: Platform.OS === "android" ? 6 : 0,
                       borderTopWidth: StyleSheet.hairlineWidth,
-                      borderTopColor: "#DBDBDB",
-                      backgroundColor: "#FFFFFF",
+                      borderTopColor: "#303030",
+                      backgroundColor: "#000000",
                       gap: 9,
                       elevation: 7,
                     }}
@@ -12141,7 +12141,7 @@ export default function App() {
                       accessibilityLabel={isChatRecording ? "Stop voice recording" : "Start voice recording"}
                       style={{ width: 34, height: 40, alignItems: "center", justifyContent: "center" }}
                     >
-                      <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#8B3DFF"} />
+                      <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#0095F6"} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setChatEmojiOpen((v) => !v)}
@@ -12163,13 +12163,13 @@ export default function App() {
                         flex: 1,
                         minHeight: 44,
                         maxHeight: 110,
-                        backgroundColor: "#DBDBDB",
+                        backgroundColor: "#1C1C1E",
                         borderWidth: 1,
                         borderColor: "#303030",
                         borderRadius: 24,
                         paddingHorizontal: 16,
                         paddingVertical: 10,
-                        color: "#262626",
+                        color: "#F5F5F5",
                         fontSize: 15,
                         textAlignVertical: "center",
                       }}
@@ -12186,7 +12186,7 @@ export default function App() {
                         borderRadius: 21,
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor: "#8B3DFF",
+                        backgroundColor: "#0095F6",
                         elevation: 1,
                       }}
                     >
@@ -12216,7 +12216,7 @@ export default function App() {
                   <Ionicons
                     name={activeTab === tab.name ? tab.activeIcon : tab.icon}
                     size={25}
-                    color={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? "#8B3DFF" : "#737373"}
+                    color={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? "#0095F6" : "#737373"}
                   />
                   <Text
                     style={[
