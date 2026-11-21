@@ -474,11 +474,11 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                 adaptiveStream: true,
                 dynacast: true,
                 videoCaptureDefaults: {
-                  resolution: VideoPresets.h1080.resolution,
+                  resolution: VideoPresets.h720.resolution,
                 },
                 publishDefaults: {
-                  videoEncoding: VideoPresets.h1080.encoding,
-                  videoSimulcastLayers: [VideoPresets.h720, VideoPresets.h360],
+                  videoEncoding: VideoPresets.h720.encoding,
+                  videoSimulcastLayers: [VideoPresets.h360, VideoPresets.h180],
                   simulcast: true,
                   audioBitrate: 32000,
                 },
