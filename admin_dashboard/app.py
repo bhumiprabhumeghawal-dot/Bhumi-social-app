@@ -31,7 +31,7 @@ PAGE = """
 <!doctype html>
 <html lang="hi"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#090d18"><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icon.svg" type="image/svg+xml">
 <title>Bhumi Social AI · Live Database Dashboard</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#090d18;color:#edf2ff;font:15px system-ui,Arial}
@@ -51,14 +51,14 @@ a{color:#9dc6ff;text-decoration:none}
 @media(max-width:600px){main{padding:13px}.card{padding:13px}.num{font-size:24px}}
 </style></head><body>
 <header><div class="bar"><div><h1>Bhumi Social AI · Live Database Dashboard</h1>
-<div class="muted">Private Admin Panel · Production Neon PostgreSQL</div></div>
+<div class="muted">Private Admin Panel · Production Neon PostgreSQL</div></div><button id="installApp" hidden onclick="installAdminApp()">Install App</button>
 {% if logged_in %}<form method="post" action="{{ url_for('logout') }}">
 <input type="hidden" name="csrf" value="{{ csrf }}"><button type="submit">Logout</button></form>{% endif %}
 </div></header><main>
 {% for message in get_flashed_messages() %}<div class="notice">{{ message }}</div>{% endfor %}
 {{ body|safe }}
 <div class="footer">Aggregate-only analytics · No passwords, tokens, emails or private message contents are displayed.</div>
-</main></body></html>
+</main><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));}let installEvent=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvent=e;document.getElementById("installApp").hidden=false;});async function installAdminApp(){if(!installEvent){alert("Browser menu में Add to Home screen चुनें।");return;}installEvent.prompt();await installEvent.userChoice;installEvent=null;}</script></body></html>
 """
 
 def csrf_token():
@@ -185,3 +185,19 @@ def dashboard():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "10000")), debug=False)
+
+
+@app.get('/manifest.webmanifest')
+def manifest():
+    return app.response_class(open(os.path.join(os.path.dirname(__file__), 'manifest.webmanifest'), encoding='utf-8').read(), mimetype='application/manifest+json')
+
+@app.get('/sw.js')
+def service_worker():
+    response = app.response_class(open(os.path.join(os.path.dirname(__file__), 'sw.js'), encoding='utf-8').read(), mimetype='application/javascript')
+    response.headers['Service-Worker-Allowed'] = '/'
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
+
+@app.get('/icon.svg')
+def app_icon():
+    return app.response_class(open(os.path.join(os.path.dirname(__file__), 'icon.svg'), encoding='utf-8').read(), mimetype='image/svg+xml')
