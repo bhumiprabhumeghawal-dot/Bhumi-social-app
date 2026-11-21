@@ -5234,7 +5234,7 @@ export default function App() {
         <StatusBar style="dark" hidden={false} translucent={false} />
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
           keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
         >
         <ScrollView
@@ -5650,7 +5650,7 @@ export default function App() {
         <StatusBar style="dark" hidden={false} translucent={false} />
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
           keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
         >
         <ScrollView
@@ -5724,6 +5724,7 @@ export default function App() {
                 value={authUsername}
                 onChangeText={setAuthUsername}
                 placeholder="अपना username खुद चुनें"
+                maxLength={50}
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!authBusy}
