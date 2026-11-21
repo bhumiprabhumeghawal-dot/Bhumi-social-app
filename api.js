@@ -174,6 +174,24 @@ globalThis.fetch = async (input, init = {}) => {
 };
 
 
+// Start waking the API as soon as the app launches. This is deliberately
+// non-blocking so cached UI and secure-session restoration are never held up.
+let serverWarmupPromise = null;
+export function warmUpServer() {
+  if (serverWarmupPromise) return serverWarmupPromise;
+  serverWarmupPromise = fetch(`${API_BASE_URL}/api/health`, {
+    method: 'GET',
+    headers: { 'Cache-Control': 'no-cache' },
+  })
+    .then((response) => response.ok)
+    .catch(() => false)
+    .finally(() => {
+      serverWarmupPromise = null;
+    });
+  return serverWarmupPromise;
+}
+
+
 export async function loadAccountSettings() {
   const response = await fetch(`${API_BASE_URL}/api/account/settings`);
   const data = await response.json();
