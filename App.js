@@ -5421,6 +5421,9 @@ export default function App() {
       if (liveCameraOpen) { setLiveCameraOpen(false); return true; }
       if (cameraOpen) { setCameraOpen(false); setIsRecording(false); return true; }
       if (selectedStory) { setSelectedStory(null); setStoryImageZoomed(false); return true; }
+      if (profileConnectionsOpen) { setProfileConnectionsOpen(false); return true; }
+      if (viewedProfileMenuOpen) { setViewedProfileMenuOpen(false); return true; }
+      if (viewedProfileOpen) { setViewedProfileOpen(false); setViewedProfile(null); return true; }
       if (selectedPost) { setSelectedPost(null); return true; }
       if (reelCommentsOpen) { setReelCommentsOpen(false); return true; }
       if (savedScreenOpen) { setSavedScreenOpen(false); return true; }
@@ -5431,9 +5434,6 @@ export default function App() {
       if (newChatComposerOpen) { setNewChatComposerOpen(false); return true; }
       if (selectedChatUser) { setSelectedChatUser(null); return true; }
       if (messagesOpen) { setMessagesOpen(false); return true; }
-      if (profileConnectionsOpen) { setProfileConnectionsOpen(false); return true; }
-      if (viewedProfileMenuOpen) { setViewedProfileMenuOpen(false); return true; }
-      if (viewedProfileOpen) { setViewedProfileOpen(false); setViewedProfile(null); return true; }
       if (profileEditing) { setProfileEditing(false); return true; }
       if (businessDirectoryOpen) { setBusinessDirectoryOpen(false); return true; }
       if (businessProfileOpen) { setBusinessProfileOpen(false); return true; }
