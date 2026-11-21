@@ -8,11 +8,11 @@ import CreatorBusinessHub from "./CreatorBusinessHub";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
 
 const GOLD = "#0095F6";
-const BG = "#000000";
-const PANEL = "#121212";
-const BORDER = "#262626";
-const TEXT = "#FFFFFF";
-const MUTED = "#A8A8A8";
+const BG = "#FFFFFF";
+const PANEL = "#FFFFFF";
+const BORDER = "#DBDBDB";
+const TEXT = "#262626";
+const MUTED = "#737373";
 
 const ACTION_KEYS = new Set([
   "profile.usernameChange","account.profileQr","account.multipleAccounts","account.verification",
