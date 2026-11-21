@@ -895,9 +895,7 @@ function ReelVideoZoomable({
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: "#FFFFFF", fontSize: 14 }}>
-              Loading video...
-            </Text>
+            
           </View>
         )}
         {status === "error" && (
