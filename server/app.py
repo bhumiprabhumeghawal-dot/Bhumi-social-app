@@ -3481,11 +3481,28 @@ def update_presence_heartbeat():
                 last_seen_at TEXT NOT NULL
             )
         """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS user_presence_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                event TEXT NOT NULL,
+                changed_at TEXT NOT NULL
+            )
+        """)
+        db.execute("CREATE INDEX IF NOT EXISTS idx_presence_history_user_time ON user_presence_history(LOWER(username), changed_at DESC)")
         existing = db.execute(
-            "SELECT username FROM user_presence WHERE LOWER(username)=LOWER(?)",
+            "SELECT username, last_seen_at FROM user_presence WHERE LOWER(username)=LOWER(?)",
             (username,),
         ).fetchone()
+        should_record_online = not existing
         if existing:
+            try:
+                previous = datetime.fromisoformat(str(existing["last_seen_at"]).replace("Z", "+00:00"))
+                if previous.tzinfo is None:
+                    previous = previous.replace(tzinfo=timezone.utc)
+                should_record_online = (datetime.now(timezone.utc) - previous).total_seconds() > 90
+            except (TypeError, ValueError):
+                should_record_online = True
             db.execute(
                 "UPDATE user_presence SET last_seen_at=? WHERE LOWER(username)=LOWER(?)",
                 (now, username),
@@ -3494,6 +3511,11 @@ def update_presence_heartbeat():
             db.execute(
                 "INSERT INTO user_presence (username,last_seen_at) VALUES (?,?)",
                 (username, now),
+            )
+        if should_record_online:
+            db.execute(
+                "INSERT INTO user_presence_history(username,event,changed_at) VALUES(?,?,?)",
+                (username, "online", now),
             )
     return jsonify({"ok": True, "lastSeenAt": now})
 
@@ -4763,11 +4785,16 @@ def admin_user_activity_summary(username):
                 WHERE LOWER(sender_username)=LOWER(?) OR LOWER(recipient_username)=LOWER(?)
                 GROUP BY peer ORDER BY last_message_at DESC LIMIT 100
             """, (username, username, username)).fetchall()
+            presence_history = db.execute("""
+                SELECT event, changed_at FROM user_presence_history
+                WHERE LOWER(username)=LOWER(?) ORDER BY changed_at DESC LIMIT 200
+            """, (username,)).fetchall()
         response = jsonify({
             "ok": True, "user": dict(user),
             "followers": [dict(x) for x in followers],
             "following": [dict(x) for x in following],
             "chat_activity": [dict(x) for x in chats],
+            "presence_history": [dict(x) for x in presence_history],
             "privacy_note": "Chat contents are not exposed; only conversation metadata is shown. Location is shown only after explicit user consent and is not yet enabled."
         })
         response.headers["Cache-Control"] = "no-store, max-age=0"
