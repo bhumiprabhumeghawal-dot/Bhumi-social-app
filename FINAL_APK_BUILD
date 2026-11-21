@@ -1,2 +1,2 @@
-Final release build includes app startup warm-up, silent startup shell, and faster LiveKit call setup.
-Source commit: 22e5a300043893b5471bf083efad641f81b70bcd
+Final release build includes startup warm-up, silent startup shell, faster LiveKit call setup, and adaptive 1080p video capture/publishing.
+Source commit: 9a7f28c8567f231055c5728deb0730d7b5ecfb42
