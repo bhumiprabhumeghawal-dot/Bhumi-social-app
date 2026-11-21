@@ -25,6 +25,7 @@ app.config.update(
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_DASHBOARD_PASSWORD", "")
 API_TOKEN = os.environ.get("DASHBOARD_API_TOKEN", "")
+ADMIN_DIRECTORY_TOKEN = os.environ.get("DASHBOARD_ADMIN_TOKEN", "")
 API_URL = os.environ.get("SOCIALAPP_API_URL", "https://bhumi-social-app-1.onrender.com").rstrip("/")
 if not ADMIN_PASSWORD or not API_TOKEN:
     raise RuntimeError("Admin dashboard credentials are not configured")
@@ -125,7 +126,7 @@ def fetch_analytics():
         return json.loads(response.read().decode("utf-8"))
 
 def fetch_admin_path(path):
-    req = urllib.request.Request(API_URL + path, headers={"X-Dashboard-Token": API_TOKEN, "Accept": "application/json"}, method="GET")
+    req = urllib.request.Request(API_URL + path, headers={"X-Dashboard-Token": ADMIN_DIRECTORY_TOKEN, "Accept": "application/json"}, method="GET")
     with urllib.request.urlopen(req, timeout=20) as response:
         return json.loads(response.read().decode("utf-8"))
 
