@@ -5287,7 +5287,7 @@ export default function App() {
               <TextInput
                 value={forgotEmail}
                 onChangeText={setForgotEmail}
-                placeholder="Email address"
+                placeholder="अपना ईमेल लिखें (जरूरी नहीं)"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={!authBusy}
@@ -5684,12 +5684,12 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Full Name
+                पूरा नाम / Full Name
               </Text>
               <TextInput
                 value={authFullName}
                 onChangeText={setAuthFullName}
-                placeholder="Full Name"
+                placeholder="अपना पूरा नाम लिखें"
                 autoCapitalize="words"
                 editable={!authBusy}
                 style={{
@@ -5732,7 +5732,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Email address
+                ईमेल (वैकल्पिक) / Email
               </Text>
               <TextInput
                 value={authEmail}
@@ -5782,12 +5782,12 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Mobile number
+                मोबाइल नंबर (वैकल्पिक) / Mobile
               </Text>
               <TextInput
                 value={authPhoneNumber}
                 onChangeText={setAuthPhoneNumber}
-                placeholder="Mobile number"
+                placeholder="अपना मोबाइल नंबर लिखें (जरूरी नहीं)"
                 keyboardType="phone-pad"
                 editable={!authBusy}
                 style={{
@@ -5804,12 +5804,12 @@ export default function App() {
           <Text
             style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
           >
-            Password (4 to 24 characters)
+            पासवर्ड (4 से 24 अक्षर) / Password
           </Text>
           <TextInput
             value={authPassword}
             onChangeText={setAuthPassword}
-            placeholder="Password (4 to 24 characters)"
+            placeholder="पासवर्ड बनाएं"
             secureTextEntry
             autoCapitalize="none"
             editable={!authBusy}
@@ -5829,12 +5829,12 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Confirm password
+                पासवर्ड दोबारा लिखें / Confirm password
               </Text>
               <TextInput
                 value={authConfirmPassword}
                 onChangeText={setAuthConfirmPassword}
-                placeholder="Confirm password"
+                पासवर्ड फिर से लिखें
                 secureTextEntry
                 autoCapitalize="none"
                 editable={!authBusy}
