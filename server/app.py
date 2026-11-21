@@ -609,6 +609,75 @@ def file_too_large(error):
     return jsonify({"error": "File exceeds the upload limit for this media type"}), 413
 
 
+# PUBLIC_LEGAL_PAGES_V1
+@app.get("/privacy")
+def privacy_policy_page():
+    html = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Privacy Policy · Bhumi Social AI</title><style>
+    *{box-sizing:border-box}body{margin:0;background:#080b12;color:#edf2ff;font:16px/1.7 system-ui,Arial,sans-serif}main{max-width:850px;margin:36px auto;padding:24px}article{background:#111827;border:1px solid #273247;border-radius:20px;padding:clamp(20px,5vw,42px)}h1,h2{line-height:1.25}h1{font-size:32px}h2{margin-top:30px;font-size:20px;color:#9fc8ff}p,li{color:#c6d0e0}a{color:#9fc8ff}small{color:#9aa8bd}.nav{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:20px}.pill{display:inline-block;padding:7px 12px;border:1px solid #33435e;border-radius:20px;text-decoration:none}</style></head><body><main><nav class="nav"><a class="pill" href="/">Bhumi Social AI</a><a class="pill" href="/terms">Terms</a><a class="pill" href="/delete-account">Delete account</a></nav><article>
+    <h1>Privacy Policy</h1><p><strong>Bhumi Social AI</strong> · Effective date: 21 November 2026</p>
+    <p>This policy explains what information the service processes, why it is used, how it is shared with service providers, and how you can request deletion. Contact: <a href="mailto:bhumiprabhumeghawal@gmail.com">bhumiprabhumeghawal@gmail.com</a>.</p>
+    <h2>Information we process</h2><ul>
+    <li><strong>Account information:</strong> username, password hash (not your readable password), account creation time, and any email address or phone number you choose to add.</li>
+    <li><strong>Profile and social activity:</strong> display name, bio, profile image, posts, stories, reels, likes, comments, follows, blocks, saved items and notification preferences.</li>
+    <li><strong>Messages and calls:</strong> direct messages and attachments you send, plus call signalling information such as participants, call type, status and timestamps. Message contents are not used for advertising.</li>
+    <li><strong>Technical and activity information:</strong> session identifiers stored as hashes, login/session expiry, presence/last-seen signals, and basic server/security logs needed to operate and protect the service.</li>
+    <li><strong>Permissions and media:</strong> camera, microphone and selected media are accessed when you use features that need them. The app does not need access to your camera or microphone when you are not using those features.</li>
+    </ul>
+    <h2>Location</h2><p>Do not assume that location history or continuous background tracking is active. Location-sharing controls are not currently offered as an operational feature. If location features are introduced, this policy and the in-app permission prompts will be updated before collection begins.</p>
+    <h2>How information is used</h2><p>We use information to create and secure accounts, show profiles and social content, deliver messages and calls, provide notifications, prevent abuse, troubleshoot errors, and maintain service performance. We do not sell personal information.</p>
+    <h2>Service providers and sharing</h2><p>Information is processed by infrastructure providers needed to run the service, which may include Render (application hosting), Neon (database hosting), LiveKit (real-time voice/video infrastructure), and configured S3-compatible media storage providers. These providers process information to provide their services. We do not publish private messages or account credentials to other users.</p>
+    <h2>Retention and security</h2><p>Information is retained while needed to provide the service, meet security and legal obligations, resolve disputes, and process deletion requests. Passwords are stored as hashes, and session tokens are stored as hashes. We use access controls and encrypted connections where supported, but no internet service can guarantee absolute security.</p>
+    <h2>Your choices and deletion</h2><p>You can update available account and privacy settings in the app. To request deletion of your account and associated personal information, visit <a href="/delete-account">Delete Account</a> or email <a href="mailto:bhumiprabhumeghawal@gmail.com?subject=Bhumi%20Social%20AI%20Account%20Deletion">bhumiprabhumeghawal@gmail.com</a> from your registered email, including your username. We may ask for reasonable verification. Some records may be retained where legally required or necessary for security, fraud prevention, or dispute resolution.</p>
+    <h2>Children</h2><p>Bhumi Social AI is a general social networking service and is not designed for children under 13. If you believe a child has created an account, contact us so we can review the report.</p>
+    <h2>Policy changes</h2><p>We may update this policy as features change. The effective date above will be revised when material changes are made.</p>
+    <h2>Contact</h2><p>Privacy and support: <a href="mailto:bhumiprabhumeghawal@gmail.com">bhumiprabhumeghawal@gmail.com</a></p>
+    </article></main></body></html>"""
+    response = app.response_class(html, mimetype="text/html")
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
+
+
+@app.get("/terms")
+def terms_page():
+    html = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Terms of Service · Bhumi Social AI</title><style>
+    *{box-sizing:border-box}body{margin:0;background:#080b12;color:#edf2ff;font:16px/1.7 system-ui,Arial,sans-serif}main{max-width:850px;margin:36px auto;padding:24px}article{background:#111827;border:1px solid #273247;border-radius:20px;padding:clamp(20px,5vw,42px)}h1,h2{line-height:1.25}h1{font-size:32px}h2{margin-top:30px;font-size:20px;color:#9fc8ff}p,li{color:#c6d0e0}a{color:#9fc8ff}.nav{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:20px}.pill{display:inline-block;padding:7px 12px;border:1px solid #33435e;border-radius:20px;text-decoration:none}</style></head><body><main><nav class="nav"><a class="pill" href="/">Bhumi Social AI</a><a class="pill" href="/privacy">Privacy</a><a class="pill" href="/delete-account">Delete account</a></nav><article>
+    <h1>Terms of Service</h1><p><strong>Bhumi Social AI</strong> · Effective date: 21 November 2026</p>
+    <p>By creating an account or using Bhumi Social AI, you agree to these terms. If you do not agree, do not use the service.</p>
+    <h2>Your account</h2><p>Provide accurate account information, keep your sign-in credentials private, and notify us if you suspect unauthorized access. You are responsible for activity performed through your account.</p>
+    <h2>Your content and conduct</h2><p>You remain responsible for content you upload, publish or send. Do not post unlawful, abusive, threatening, harassing, deceptive, infringing, or otherwise harmful material. Do not impersonate others, access accounts without permission, interfere with the service, or misuse other users' information.</p>
+    <h2>Safety and moderation</h2><p>We may restrict, remove or disable content or accounts where reasonably necessary to protect users, comply with law, investigate abuse, or maintain the service. You can report problems to <a href="mailto:bhumiprabhumeghawal@gmail.com">bhumiprabhumeghawal@gmail.com</a>.</p>
+    <h2>Privacy</h2><p>Our <a href="/privacy">Privacy Policy</a> explains how information is processed and how to request account deletion.</p>
+    <h2>Availability and third-party services</h2><p>Features may change, be unavailable, or depend on third-party infrastructure. We do not guarantee uninterrupted service, call quality, or permanent availability of user content. Third-party services may have their own terms and privacy practices.</p>
+    <h2>Termination</h2><p>You may stop using the service and request account deletion at any time using the <a href="/delete-account">account deletion page</a>. We may suspend access for serious violations, security risks or legal requirements.</p>
+    <h2>Disclaimers and liability</h2><p>The service is provided on an as-available basis to the extent permitted by applicable law. Nothing in these terms excludes rights or remedies that cannot legally be excluded. To the extent permitted by law, we are not responsible for indirect loss arising from interruptions, user-generated content, or third-party services.</p>
+    <h2>Changes and contact</h2><p>We may revise these terms as the service evolves. Continued use after an update means you accept the revised terms to the extent permitted by law. Contact: <a href="mailto:bhumiprabhumeghawal@gmail.com">bhumiprabhumeghawal@gmail.com</a>.</p>
+    </article></main></body></html>"""
+    response = app.response_class(html, mimetype="text/html")
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
+
+
+@app.get("/delete-account")
+def delete_account_page():
+    from urllib.parse import quote
+    username = str(request.args.get("username", "")).strip().lstrip("@")[:50]
+    subject = quote("Bhumi Social AI account deletion request")
+    body = quote("Please delete my Bhumi Social AI account and associated personal information.\\nUsername: " + (username or "[enter your username]") + "\\nI understand that identity verification may be required.")
+    mailto = "mailto:bhumiprabhumeghawal@gmail.com?subject=" + subject + "&body=" + body
+    html = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Delete Account · Bhumi Social AI</title><style>
+    *{box-sizing:border-box}body{margin:0;background:#080b12;color:#edf2ff;font:16px/1.7 system-ui,Arial,sans-serif}main{max-width:680px;margin:40px auto;padding:24px}.card{background:#111827;border:1px solid #273247;border-radius:20px;padding:clamp(22px,5vw,42px)}h1{line-height:1.2}p,li{color:#c6d0e0}a{color:#9fc8ff}.btn{display:inline-block;background:#1685d9;color:#fff;padding:13px 20px;border-radius:12px;text-decoration:none;font-weight:800;margin:12px 0}.nav{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:20px}</style></head><body><main><nav class="nav"><a href="/">Bhumi Social AI</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms</a></nav><section class="card">
+    <h1>Request account deletion</h1><p>Use the button below to email the Bhumi Social AI support team. Include the username of the account you want deleted. If you are signed in to the app, open Settings → Account Settings → Delete Account Request to reach this page.</p>
+    <ol><li>Send the deletion request from the email address associated with your account, if one is registered.</li><li>Include your exact username (not your password).</li><li>We may contact you to verify account ownership before processing the request.</li><li>After verification, account information and associated content will be deleted or de-identified where applicable, except information we must retain for legal, security or dispute-resolution reasons.</li></ol>
+    <p><strong>We will never ask you to send your password or one-time login code.</strong></p>
+    <a class="btn" href="__MAILTO__">Email deletion request</a>
+    <p>If the button does not open an email app, send your request directly to <a href="mailto:bhumiprabhumeghawal@gmail.com">bhumiprabhumeghawal@gmail.com</a>.</p>
+    </section></main></body></html>"""
+    html = html.replace("__MAILTO__", mailto)
+    response = app.response_class(html, mimetype="text/html")
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
+
+
 @app.get("/")
 def index():
     response = send_from_directory(BASE_DIR / "webapp", "index.html")
