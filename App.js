@@ -7718,9 +7718,41 @@ export default function App() {
             )}
           </View>
           {searchQuery.trim().length < 2 ? (
-            <Text style={{ color: "#737373", paddingVertical: 12 }}>
-              Enter at least 2 characters to search for people.
-            </Text>
+            <View style={{ paddingTop: 8 }}>
+              <Text style={{ color: "#262626", fontSize: 18, fontWeight: "800", marginBottom: 12 }}>
+                Explore
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 3 }}>
+                {groupPostItems(feedPosts).slice(0, 18).map((post, index) => {
+                  const media = post.mediaItems?.[0] || post;
+                  const uri = media.uri || post.uri || media.mediaUrl || post.mediaUrl;
+                  return (
+                    <TouchableOpacity
+                      key={post.groupId || post.id || `explore-${index}`}
+                      activeOpacity={0.88}
+                      onPress={() => {
+                        setSelectedPostMediaIndex(0);
+                        setSelectedPost(post);
+                      }}
+                      style={{ width: "33%", aspectRatio: 1, marginBottom: 2, backgroundColor: "#F0F0F0", overflow: "hidden" }}
+                    >
+                      {uri ? (
+                        <Image source={{ uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+                      ) : (
+                        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                          <Ionicons name="image-outline" size={26} color="#8B3DFF" />
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              {!feedPosts.length ? (
+                <Text style={{ color: "#737373", textAlign: "center", paddingVertical: 20 }}>
+                  Posts from the community will appear here.
+                </Text>
+              ) : null}
+            </View>
           ) : searchLoading ? (
             <Text style={{ color: "#737373", paddingVertical: 12 }}>
               Searching...
