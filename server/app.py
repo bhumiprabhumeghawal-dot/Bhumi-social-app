@@ -3675,8 +3675,85 @@ def init_call_tables():
         """)
 
 
+def _send_incoming_call_push(username, caller, call_type, call_id):
+    """Send a high-priority Expo push so a terminated app can still show an incoming-call alert."""
+    with get_db() as db:
+        rows = db.execute(
+            "SELECT expo_push_token FROM call_push_tokens WHERE LOWER(username)=LOWER(?)",
+            (username,),
+        ).fetchall()
+
+    if not rows:
+        return
+
+    payloads = [{
+        "to": row["expo_push_token"],
+        "title": "Incoming video call" if call_type == "video" else "Incoming voice call",
+        "body": f"@{caller} is calling you",
+        "sound": "default",
+        "priority": "high",
+        "ttl": 45,
+        "channelId": "incoming-calls",
+        "categoryId": "incoming_call",
+        "data": {"type": "incoming_call", "callId": call_id, "callType": call_type, "caller": caller},
+    } for row in rows]
+
+    for payload in payloads:
+        try:
+            request_obj = urllib.request.Request(
+                "https://exp.host/--/api/v2/push/send",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Accept": "application/json", "Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(request_obj, timeout=5) as response:
+                result = json.loads(response.read().decode("utf-8") or "{}")
+            ticket = (result.get("data") or {}) if isinstance(result, dict) else {}
+            if ticket.get("status") == "error" and ticket.get("details", {}).get("error") == "DeviceNotRegistered":
+                with get_db() as db:
+                    db.execute("DELETE FROM call_push_tokens WHERE expo_push_token=?", (payload["to"],))
+        except Exception:
+            app.logger.exception("Could not send incoming-call push to %s", username)
+
+
 def _call_user():
     return _chat_current_user()
+
+@app.post("/api/calls/push-token")
+def register_call_push_token():
+    username = _call_user()
+    if not username:
+        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+    payload = request.get_json(silent=True) or {}
+    token = str(payload.get("token") or "").strip()
+    if not token.startswith(("ExponentPushToken[", "ExpoPushToken[")) or len(token) > 512:
+        return jsonify({"error": "Invalid push token."}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        db.execute("""
+            INSERT INTO call_push_tokens (expo_push_token, username, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(expo_push_token) DO UPDATE SET
+                username=excluded.username, updated_at=excluded.updated_at
+        """, (token, username, now))
+    return jsonify({"ok": True})
+
+
+@app.delete("/api/calls/push-token")
+def unregister_call_push_token():
+    username = _call_user()
+    if not username:
+        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+    payload = request.get_json(silent=True) or {}
+    token = str(payload.get("token") or "").strip()
+    if not token:
+        return jsonify({"error": "Push token is required."}), 400
+    with get_db() as db:
+        db.execute(
+            "DELETE FROM call_push_tokens WHERE expo_push_token=? AND LOWER(username)=LOWER(?)",
+            (token, username),
+        )
+    return jsonify({"ok": True})
 
 
 def _call_json(row):
@@ -3750,6 +3827,8 @@ def create_call():
         """, (call_id, caller, callee, call_type, room_name, now_text, now_text, expires_text))
         row = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
 
+    # Push delivery is best-effort; call creation must succeed even if Expo is unavailable.
+    _send_incoming_call_push(callee, caller, call_type, call_id)
     return jsonify({"ok": True, "call": _call_json(row)}), 201
 
 
