@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "Bhumi Social AI Admin",
+  "short_name": "Bhumi Admin",
+  "description": "Private administration dashboard for Bhumi Social AI",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#090d18",
+  "theme_color": "#090d18",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
