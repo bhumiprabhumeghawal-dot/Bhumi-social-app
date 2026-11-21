@@ -1,2 +1,4 @@
 Final release APK trigger after startup and calling performance improvements.
 Includes: deferred OTA check, no loading text labels, case-insensitive call lookup indexes, and removal of full-table expiry sweeps from call polling.
+
+Scroll fix: media tap recognizers now cancel after 8px movement so feed swipes do not open posts.
