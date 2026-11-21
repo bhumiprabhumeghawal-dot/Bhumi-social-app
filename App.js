@@ -7492,15 +7492,7 @@ export default function App() {
                           onPress={() => openStoryGroup(group.items)}
                         />
                       ))}
-                    {stories
-                      .filter((story) => !story.own)
-                      .map((story) => (
-                        <Story
-                          key={story.name}
-                          item={story}
-                          onPress={() => openStoryGroup([story])}
-                        />
-                      ))}
+
                   </ScrollView>
                   <View style={styles.feedDivider} />
                 </View>
