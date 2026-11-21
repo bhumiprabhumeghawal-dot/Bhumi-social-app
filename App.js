@@ -7525,14 +7525,14 @@ export default function App() {
                               width: 23,
                               height: 23,
                               borderRadius: 12,
-                              backgroundColor: "#1C1C1E",
+                              backgroundColor: "#F5F5F5",
                               borderWidth: 2,
-                              borderColor: "#262626",
+                              borderColor: "#DBDBDB",
                               alignItems: "center",
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons name="add" size={17} color="#FFFFFF" />
+                            <Ionicons name="add" size={17} color="#262626" />
                           </TouchableOpacity>
                         </View>
                       );
@@ -7657,7 +7657,7 @@ export default function App() {
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ color: "#A8A8A8" }}>No posts yet.</Text>
+                  <Text style={{ color: "#737373" }}>No posts yet.</Text>
                 </View>
               }
             />
@@ -7671,7 +7671,7 @@ export default function App() {
         >
           <Text
             style={{
-              color: "#FFFFFF",
+              color: "#262626",
               fontSize: 26,
               fontWeight: "800",
               marginBottom: 16,
@@ -7683,7 +7683,7 @@ export default function App() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: "#1C1C1E",
+              backgroundColor: "#F5F5F5",
               borderRadius: 12,
               paddingHorizontal: 14,
               marginBottom: 18,
@@ -7691,12 +7691,12 @@ export default function App() {
               borderColor: "transparent",
             }}
           >
-            <Ionicons name="search-outline" size={20} color="#777777" />
+            <Ionicons name="search-outline" size={20} color="#737373" />
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholder="Search people by name or username"
-              placeholderTextColor="#A8A8A8"
+              placeholderTextColor="#737373"
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="search"
@@ -7704,7 +7704,7 @@ export default function App() {
                 flex: 1,
                 paddingVertical: 14,
                 paddingHorizontal: 10,
-                color: "#FFFFFF",
+                color: "#262626",
                 fontSize: 15,
               }}
             />
@@ -7713,16 +7713,16 @@ export default function App() {
                 onPress={() => setSearchQuery("")}
                 accessibilityLabel="Clear search"
               >
-                <Ionicons name="close-circle" size={20} color="#777777" />
+                <Ionicons name="close-circle" size={20} color="#737373" />
               </TouchableOpacity>
             )}
           </View>
           {searchQuery.trim().length < 2 ? (
-            <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
+            <Text style={{ color: "#737373", paddingVertical: 12 }}>
               Enter at least 2 characters to search for people.
             </Text>
           ) : searchLoading ? (
-            <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
+            <Text style={{ color: "#737373", paddingVertical: 12 }}>
               Searching...
             </Text>
           ) : searchError ? (
@@ -7730,7 +7730,7 @@ export default function App() {
               {searchError}
             </Text>
           ) : searchResults.length === 0 ? (
-            <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
+            <Text style={{ color: "#737373", paddingVertical: 12 }}>
               No users found.
             </Text>
           ) : (
@@ -7742,7 +7742,7 @@ export default function App() {
                   alignItems: "center",
                   paddingVertical: 13,
                   borderBottomWidth: 1,
-                  borderBottomColor: "#262626",
+                  borderBottomColor: "#DBDBDB",
                 }}
               >
                 <TouchableOpacity
@@ -7776,14 +7776,14 @@ export default function App() {
                         width: 48,
                         height: 48,
                         borderRadius: 24,
-                        backgroundColor: "#262626",
+                        backgroundColor: "#DBDBDB",
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
                       <Text
                         style={{
-                          color: "#FFFFFF",
+                          color: "#262626",
                           fontSize: 20,
                           fontWeight: "700",
                         }}
@@ -7797,7 +7797,7 @@ export default function App() {
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text
                       style={{
-                        color: "#FFFFFF",
+                        color: "#262626",
                         fontWeight: "700",
                         fontSize: 15,
                       }}
@@ -7805,7 +7805,7 @@ export default function App() {
                       {item.displayName || item.username}
                     </Text>
                     <Text
-                      style={{ color: "#A8A8A8", fontSize: 13, marginTop: 3 }}
+                      style={{ color: "#737373", fontSize: 13, marginTop: 3 }}
                     >
                       @{item.username}
                     </Text>
@@ -7896,7 +7896,7 @@ export default function App() {
                         item.isFollowing ||
                         item.followRequestStatus === "pending"
                           ? "#333333"
-                          : "#FFFFFF",
+                          : "#262626",
                       fontSize: 12,
                       fontWeight: "700",
                     }}
@@ -7922,7 +7922,7 @@ export default function App() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
         >
           {!profile ? (
-            <Text style={{ color: "#A8A8A8", textAlign: "center", padding: 24 }}>
+            <Text style={{ color: "#737373", textAlign: "center", padding: 24 }}>
               Loading profile…
             </Text>
           ) : (
@@ -7950,7 +7950,7 @@ export default function App() {
                       height: 96,
                       borderRadius: 48,
                       borderWidth: 3,
-                      borderColor: "#0095F6",
+                      borderColor: "#8B3DFF",
                       padding: 2,
                       alignItems: "center",
                       justifyContent: "center",
@@ -7985,14 +7985,14 @@ export default function App() {
                           width: 108,
                           height: 108,
                           borderRadius: 54,
-                          backgroundColor: "#262626",
+                          backgroundColor: "#DBDBDB",
                           alignItems: "center",
                           justifyContent: "center",
                         }}
                       >
                         <Text
                           style={{
-                            color: "#FFFFFF",
+                            color: "#262626",
                             fontSize: 32,
                             fontWeight: "700",
                           }}
@@ -8004,7 +8004,7 @@ export default function App() {
                   </View>
                   <Text
                     style={{
-                      color: "#FFFFFF",
+                      color: "#262626",
                       fontSize: 12,
                       textAlign: "center",
                       marginTop: 5,
@@ -8017,7 +8017,7 @@ export default function App() {
                 <View style={{ flex: 1, marginLeft: 16 }}>
                   <Text
                     style={{
-                      color: "#FFFFFF",
+                      color: "#262626",
                       fontSize: 21,
                       fontWeight: "800",
                     }}
@@ -8025,7 +8025,7 @@ export default function App() {
                     {profile.displayName || "you"}
                   </Text>
                   <Text
-                    style={{ color: "#A8A8A8", marginTop: 5, fontSize: 13 }}
+                    style={{ color: "#737373", marginTop: 5, fontSize: 13 }}
                   >
                     @{profile.username || "you"}
                   </Text>
@@ -8039,14 +8039,14 @@ export default function App() {
                     <View style={{ alignItems: "center" }}>
                       <Text
                         style={{
-                          color: "#FFFFFF",
+                          color: "#262626",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
                       >
                         {profile.postsCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
+                      <Text style={{ color: "#737373", fontSize: 11 }}>
                         Posts
                       </Text>
                     </View>
@@ -8056,14 +8056,14 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#FFFFFF",
+                          color: "#262626",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
                       >
                         {profile.followersCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
+                      <Text style={{ color: "#737373", fontSize: 11 }}>
                         Followers
                       </Text>
                     </TouchableOpacity>
@@ -8073,14 +8073,14 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#FFFFFF",
+                          color: "#262626",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
                       >
                         {profile.followingCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
+                      <Text style={{ color: "#737373", fontSize: 11 }}>
                         Following
                       </Text>
                     </TouchableOpacity>
@@ -8094,13 +8094,13 @@ export default function App() {
                     marginBottom: 18,
                     padding: 12,
                     borderBottomWidth: 1,
-                    borderColor: "#262626",
+                    borderColor: "#DBDBDB",
                     borderRadius: 0,
                   }}
                 >
                   <Text
                     style={{
-                      color: "#FFFFFF",
+                      color: "#262626",
                       fontSize: 15,
                       fontWeight: "800",
                       marginBottom: 10,
@@ -8137,7 +8137,7 @@ export default function App() {
                             paddingVertical: 10,
                             paddingHorizontal: 14,
                             borderRadius: 20,
-                            backgroundColor: "#1C1C1E",
+                            backgroundColor: "#F5F5F5",
                             flexDirection: "row",
                             alignItems: "center",
                             gap: 5,
@@ -8146,9 +8146,9 @@ export default function App() {
                           <Ionicons
                             name="add-circle"
                             size={18}
-                            color="#0095F6"
+                            color="#8B3DFF"
                           />
-                          <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                          <Text style={{ color: "#262626", fontWeight: "700" }}>
                             Add Status
                           </Text>
                         </TouchableOpacity>
@@ -8161,7 +8161,7 @@ export default function App() {
               {!!profile.bio && (
                 <Text
                   style={{
-                    color: "#FFFFFF",
+                    color: "#262626",
                     marginBottom: 20,
                     lineHeight: 23,
                     fontSize: 14,
@@ -8172,65 +8172,65 @@ export default function App() {
               )}
 
               {profile.accountType === "business" && profile.businessProfile && (
-                <View style={{ backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 14, padding: 15, marginBottom: 18 }}>
+                <View style={{ backgroundColor: "#FAFAFA", borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 14, padding: 15, marginBottom: 18 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 9 }}>
-                    <Ionicons name="business" size={20} color="#0095F6" />
-                    <Text style={{ color: "#0095F6", fontWeight: "900", fontSize: 16, marginLeft: 8 }}>
+                    <Ionicons name="business" size={20} color="#8B3DFF" />
+                    <Text style={{ color: "#8B3DFF", fontWeight: "900", fontSize: 16, marginLeft: 8 }}>
                       {profile.businessProfile.businessName || "Business"}
                     </Text>
-                    <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#363636", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
-                      <Text style={{ color: "#0095F6", fontSize: 9, fontWeight: "800" }}>BUSINESS</Text>
+                    <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
+                      <Text style={{ color: "#8B3DFF", fontSize: 9, fontWeight: "800" }}>BUSINESS</Text>
                     </View>
                   </View>
-                  {!!profile.businessProfile.category && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 6 }}>{profile.businessProfile.category}</Text>}
-                  {!!profile.businessProfile.description && <Text style={{ color: "#FFFFFF", fontSize: 13, lineHeight: 19, marginBottom: 8 }}>{profile.businessProfile.description}</Text>}
+                  {!!profile.businessProfile.category && <Text style={{ color: "#737373", fontSize: 12, marginBottom: 6 }}>{profile.businessProfile.category}</Text>}
+                  {!!profile.businessProfile.description && <Text style={{ color: "#262626", fontSize: 13, lineHeight: 19, marginBottom: 8 }}>{profile.businessProfile.description}</Text>}
                   {!!(profile.businessProfile.area || profile.businessProfile.city || profile.businessProfile.state) && (
                     <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                      <Ionicons name="location" size={15} color="#0095F6" />
-                      <Text style={{ color: "#D1D1D1", fontSize: 12, marginLeft: 6 }}>
+                      <Ionicons name="location" size={15} color="#8B3DFF" />
+                      <Text style={{ color: "#555555", fontSize: 12, marginLeft: 6 }}>
                         {[profile.businessProfile.area, profile.businessProfile.city, profile.businessProfile.state, profile.businessProfile.pincode].filter(Boolean).join(", ")}
                       </Text>
                     </View>
                   )}
-                  {!!profile.businessProfile.serviceAreas && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Serving: {profile.businessProfile.serviceAreas}</Text>}
-                  {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Service radius: {profile.businessProfile.serviceRadiusKm} km</Text>}
-                  {!!profile.businessProfile.address && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Address: {profile.businessProfile.address}</Text>}
-                  {!!profile.businessProfile.openingHours && <Text style={{ color: "#A8A8A8", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
-                  {!!profile.businessProfile.phone && <Text style={{ color: "#D1D1D1", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
-                  {!!profile.businessProfile.whatsapp && <Text style={{ color: "#D1D1D1", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
+                  {!!profile.businessProfile.serviceAreas && <Text style={{ color: "#737373", fontSize: 12, marginBottom: 5 }}>Serving: {profile.businessProfile.serviceAreas}</Text>}
+                  {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#737373", fontSize: 12, marginBottom: 5 }}>Service radius: {profile.businessProfile.serviceRadiusKm} km</Text>}
+                  {!!profile.businessProfile.address && <Text style={{ color: "#737373", fontSize: 12, marginBottom: 5 }}>Address: {profile.businessProfile.address}</Text>}
+                  {!!profile.businessProfile.openingHours && <Text style={{ color: "#737373", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
+                  {!!profile.businessProfile.phone && <Text style={{ color: "#555555", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
+                  {!!profile.businessProfile.whatsapp && <Text style={{ color: "#555555", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9 }}>
                     {!!profile.businessProfile.phone && (
-                      <TouchableOpacity onPress={() => Linking.openURL("tel:" + profile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="call" size={14} color="#0095F6" />
-                        <Text style={{ color: "#FFFFFF", fontSize: 11, marginLeft: 5 }}>Call</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL("tel:" + profile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#F5F5F5", borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="call" size={14} color="#8B3DFF" />
+                        <Text style={{ color: "#262626", fontSize: 11, marginLeft: 5 }}>Call</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.whatsapp && (
-                      <TouchableOpacity onPress={() => Linking.openURL("https://wa.me/" + profile.businessProfile.whatsapp.replace(/[^0-9]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="logo-whatsapp" size={14} color="#0095F6" />
-                        <Text style={{ color: "#FFFFFF", fontSize: 11, marginLeft: 5 }}>WhatsApp</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL("https://wa.me/" + profile.businessProfile.whatsapp.replace(/[^0-9]/g, ""))} style={{ backgroundColor: "#F5F5F5", borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="logo-whatsapp" size={14} color="#8B3DFF" />
+                        <Text style={{ color: "#262626", fontSize: 11, marginLeft: 5 }}>WhatsApp</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.email && (
-                      <TouchableOpacity onPress={() => Linking.openURL("mailto:" + profile.businessProfile.email)} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="mail" size={14} color="#0095F6" />
-                        <Text style={{ color: "#FFFFFF", fontSize: 11, marginLeft: 5 }}>Email</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL("mailto:" + profile.businessProfile.email)} style={{ backgroundColor: "#F5F5F5", borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="mail" size={14} color="#8B3DFF" />
+                        <Text style={{ color: "#262626", fontSize: 11, marginLeft: 5 }}>Email</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.website && (
-                      <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(profile.businessProfile.website) ? profile.businessProfile.website : "https://" + profile.businessProfile.website)} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="globe-outline" size={14} color="#0095F6" />
-                        <Text style={{ color: "#FFFFFF", fontSize: 11, marginLeft: 5 }}>Website</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(profile.businessProfile.website) ? profile.businessProfile.website : "https://" + profile.businessProfile.website)} style={{ backgroundColor: "#F5F5F5", borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="globe-outline" size={14} color="#8B3DFF" />
+                        <Text style={{ color: "#262626", fontSize: 11, marginLeft: 5 }}>Website</Text>
                       </TouchableOpacity>
                     )}
                   </View>
                   {!!profile.businessCatalog?.length && (
-                    <View style={{ borderTopWidth: 1, borderTopColor: "#262626", marginTop: 11, paddingTop: 10 }}>
-                      <Text style={{ color: "#0095F6", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
+                    <View style={{ borderTopWidth: 1, borderTopColor: "#DBDBDB", marginTop: 11, paddingTop: 10 }}>
+                      <Text style={{ color: "#8B3DFF", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
                       {profile.businessCatalog.slice(0, 5).map((item) => (
-                        <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#262626" }}>
-                          <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{item.title} {item.price ? "· " + item.price : ""}</Text>
-                          {!!item.description && <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}>{item.description}</Text>}
+                        <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#DBDBDB" }}>
+                          <Text style={{ color: "#262626", fontWeight: "700" }}>{item.title} {item.price ? "· " + item.price : ""}</Text>
+                          {!!item.description && <Text numberOfLines={2} style={{ color: "#737373", fontSize: 11, marginTop: 2 }}>{item.description}</Text>}
                         </View>
                       ))}
                     </View>
@@ -8240,7 +8240,7 @@ export default function App() {
 
               {profileEditing ? (
                 <View>
-                  <Text style={{ color: "#FFFFFF", marginBottom: 5 }}>
+                  <Text style={{ color: "#262626", marginBottom: 5 }}>
                     Display Name
                   </Text>
                   <TextInput
@@ -8255,17 +8255,17 @@ export default function App() {
                       borderColor: "#DBDBDB",
                       borderRadius: 12,
                       padding: 11,
-                      color: "#FFFFFF",
+                      color: "#262626",
                       marginBottom: 12,
                     }}
                   />
-                  <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>
+                  <Text style={{ color: "#737373", marginBottom: 5 }}>
                     Username (स्थायी)
                   </Text>
-                  <Text style={{ color: "#A8A8A8", paddingVertical: 10 }}>
+                  <Text style={{ color: "#737373", paddingVertical: 10 }}>
                     @{profile.username || "you"}
                   </Text>
-                  <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>Bio</Text>
+                  <Text style={{ color: "#737373", marginBottom: 5 }}>Bio</Text>
                   <TextInput
                     value={profileDraft.bio}
                     onChangeText={(v) =>
@@ -8290,9 +8290,9 @@ export default function App() {
                       onPress={saveProfile}
                       disabled={profileBusy}
                       style={{
-                        backgroundColor: "#0095F6",
+                        backgroundColor: "#8B3DFF",
                         borderWidth: 1,
-                        borderColor: "#0095F6",
+                        borderColor: "#8B3DFF",
                         paddingVertical: 13,
                         paddingHorizontal: 24,
                         borderRadius: 13,
@@ -8313,7 +8313,7 @@ export default function App() {
                       }}
                       style={{ padding: 12 }}
                     >
-                      <Text style={{ color: "#A8A8A8" }}>Back</Text>
+                      <Text style={{ color: "#737373" }}>Back</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -8329,16 +8329,16 @@ export default function App() {
                     onPress={() => setProfileEditing(true)}
                     style={{
                       borderWidth: 1,
-                      borderColor: "#0095F6",
+                      borderColor: "#8B3DFF",
                       borderRadius: 14,
-                      backgroundColor: "#0095F6",
+                      backgroundColor: "#8B3DFF",
                       paddingVertical: 13,
                       paddingHorizontal: 24,
                       marginRight: 8,
                       marginBottom: 8,
                     }}
                   >
-                    <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
+                    <Text style={{ color: "#262626", fontWeight: "800" }}>
                       Edit Profile
                     </Text>
                   </TouchableOpacity>
@@ -8367,7 +8367,7 @@ export default function App() {
               <View
                 style={{
                   height: 1,
-                  backgroundColor: "#262626",
+                  backgroundColor: "#DBDBDB",
                   marginTop: 18,
                   marginBottom: 14,
                 }}
@@ -8378,9 +8378,9 @@ export default function App() {
                   marginBottom: 16,
                   padding: 15,
                   borderWidth: 1,
-                  borderColor: "#262626",
+                  borderColor: "#DBDBDB",
                   borderRadius: 17,
-                  backgroundColor: "#000000",
+                  backgroundColor: "#262626",
                 }}
               >
                 <View
@@ -8393,7 +8393,7 @@ export default function App() {
                 >
                   <Text
                     style={{
-                      color: "#FFFFFF",
+                      color: "#262626",
                       fontWeight: "800",
                       fontSize: 17,
                     }}
@@ -8404,13 +8404,13 @@ export default function App() {
                     onPress={refreshFollowRequests}
                     disabled={followRequestsBusy}
                   >
-                    <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                    <Text style={{ color: "#262626", fontWeight: "700" }}>
                       {followRequestsBusy ? "Loading…" : "Refresh"}
                     </Text>
                   </TouchableOpacity>
                 </View>
                 {followRequests.length === 0 ? (
-                  <Text style={{ color: "#A8A8A8", paddingVertical: 8 }}>
+                  <Text style={{ color: "#737373", paddingVertical: 8 }}>
                     अभी कोई pending follow request नहीं है।
                   </Text>
                 ) : (
@@ -8422,14 +8422,14 @@ export default function App() {
                         alignItems: "center",
                         paddingVertical: 10,
                         borderTopWidth: 1,
-                        borderTopColor: "#262626",
+                        borderTopColor: "#DBDBDB",
                       }}
                     >
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
+                        <Text style={{ color: "#262626", fontWeight: "800" }}>
                           {request.displayName || request.username}
                         </Text>
-                        <Text style={{ color: "#A8A8A8", fontSize: 12 }}>
+                        <Text style={{ color: "#737373", fontSize: 12 }}>
                           @{request.username}
                         </Text>
                       </View>
@@ -8439,7 +8439,7 @@ export default function App() {
                           resolveFollowRequest(request.id, "accept")
                         }
                         style={{
-                          backgroundColor: "#0095F6",
+                          backgroundColor: "#8B3DFF",
                           paddingHorizontal: 13,
                           paddingVertical: 9,
                           borderRadius: 10,
@@ -8456,13 +8456,13 @@ export default function App() {
                           resolveFollowRequest(request.id, "reject")
                         }
                         style={{
-                          backgroundColor: "#1C1C1E",
+                          backgroundColor: "#F5F5F5",
                           paddingHorizontal: 13,
                           paddingVertical: 9,
                           borderRadius: 10,
                         }}
                       >
-                        <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                        <Text style={{ color: "#262626", fontWeight: "700" }}>
                           Reject
                         </Text>
                       </TouchableOpacity>
@@ -8481,7 +8481,7 @@ export default function App() {
                 }}
               >
                 <Text
-                  style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 19 }}
+                  style={{ color: "#262626", fontWeight: "800", fontSize: 19 }}
                 >
                   Profile Settings
                 </Text>
@@ -8493,16 +8493,16 @@ export default function App() {
                     width: 42,
                     height: 42,
                     borderRadius: 13,
-                    backgroundColor: "#1C1C1E",
+                    backgroundColor: "#F5F5F5",
                     borderWidth: 1,
-                    borderColor: "#262626",
+                    borderColor: "#DBDBDB",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
                   <Text
                     style={{
-                      color: "#FFFFFF",
+                      color: "#262626",
                       fontSize: 23,
                       fontWeight: "800",
                     }}
@@ -8514,26 +8514,26 @@ export default function App() {
               {privacySettings.accountType === "business" && (
               <TouchableOpacity
                 onPress={() => { setBusinessDirectoryResults([]); setBusinessDirectoryOpen(true); }}
-                style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#363636", backgroundColor: "#121212", flexDirection: "row", alignItems: "center" }}
+                style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#DBDBDB", backgroundColor: "#FAFAFA", flexDirection: "row", alignItems: "center" }}
               >
-                <Ionicons name="storefront" size={23} color="#0095F6" />
+                <Ionicons name="storefront" size={23} color="#8B3DFF" />
                 <View style={{ marginLeft: 11, flex: 1 }}>
-                  <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Area-wise Business Directory</Text>
-                  <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 3 }}>Discover local brands, shops and services</Text>
+                  <Text style={{ color: "#262626", fontWeight: "800" }}>Area-wise Business Directory</Text>
+                  <Text style={{ color: "#737373", fontSize: 11, marginTop: 3 }}>Discover local brands, shops and services</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="#0095F6" />
+                <Ionicons name="chevron-forward" size={18} color="#8B3DFF" />
               </TouchableOpacity>
               )}
               <View>
                 <View
                   style={{
                     borderWidth: 1,
-                    borderColor: "#262626",
+                    borderColor: "#DBDBDB",
                     borderRadius: 16,
                     paddingHorizontal: 15,
                     paddingVertical: 15,
                     marginBottom: 12,
-                    backgroundColor: "#000000",
+                    backgroundColor: "#262626",
                   }}
                 >
                   <View
@@ -8546,7 +8546,7 @@ export default function App() {
                     <View style={{ flex: 1, paddingRight: 12 }}>
                       <Text
                         style={{
-                          color: "#FFFFFF",
+                          color: "#262626",
                           fontWeight: "700",
                           fontSize: 15,
                         }}
@@ -8554,7 +8554,7 @@ export default function App() {
                         Notifications
                       </Text>
                       <Text
-                        style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
+                        style={{ color: "#737373", fontSize: 12, marginTop: 4 }}
                       >
                         {notificationsEnabled
                           ? "Preference enabled"
@@ -8566,7 +8566,7 @@ export default function App() {
                       onValueChange={changeNotificationPreference}
                       disabled={notificationsBusy}
                       trackColor={{ false: "#CBD5E1", true: "#93C5FD" }}
-                      thumbColor={notificationsEnabled ? "#262626" : "#F8FAFC"}
+                      thumbColor={notificationsEnabled ? "#DBDBDB" : "#F8FAFC"}
                     />
                   </View>
                 </View>
@@ -8575,20 +8575,20 @@ export default function App() {
                   disabled={notificationsBusy}
                   style={{
                     borderWidth: 1,
-                    borderColor: "#262626",
+                    borderColor: "#DBDBDB",
                     borderRadius: 14,
                     padding: 14,
                     marginBottom: 11,
-                    backgroundColor: "#000000",
+                    backgroundColor: "#262626",
                   }}
                 >
-                  <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                  <Text style={{ color: "#262626", fontWeight: "700" }}>
                     {notificationDetailsOpen
                       ? "Hide notification options"
                       : "Manage notification options"}
                   </Text>
                   <Text
-                    style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
+                    style={{ color: "#737373", fontSize: 12, marginTop: 4 }}
                   >
                     Likes, comments, follows, messages and system alerts
                   </Text>
@@ -8597,11 +8597,11 @@ export default function App() {
                   <View
                     style={{
                       borderWidth: 1,
-                      borderColor: "#262626",
+                      borderColor: "#DBDBDB",
                       borderRadius: 14,
                       padding: 14,
                       marginBottom: 12,
-                      backgroundColor: "#000000",
+                      backgroundColor: "#262626",
                     }}
                   >
                     {[
@@ -8620,7 +8620,7 @@ export default function App() {
                           paddingVertical: 8,
                         }}
                       >
-                        <Text style={{ color: "#FFFFFF", fontWeight: "600" }}>
+                        <Text style={{ color: "#262626", fontWeight: "600" }}>
                           {item.label}
                         </Text>
                         <Switch
@@ -8667,16 +8667,16 @@ export default function App() {
                       paddingVertical: 15,
                       paddingHorizontal: 15,
                       borderWidth: 1,
-                      borderColor: "#262626",
+                      borderColor: "#DBDBDB",
                       borderRadius: 15,
                       marginBottom: 10,
-                      backgroundColor: "#000000",
+                      backgroundColor: "#262626",
                       elevation: 1,
                     }}
                   >
                     <Text
                       style={{
-                        color: "#FFFFFF",
+                        color: "#262626",
                         fontWeight: "700",
                         fontSize: 15,
                       }}
@@ -8684,7 +8684,7 @@ export default function App() {
                       {item.title}
                     </Text>
                     <Text
-                      style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}
+                      style={{ color: "#737373", fontSize: 11, marginTop: 4 }}
                     >
                       {item.subtitle}
                     </Text>
@@ -8701,9 +8701,9 @@ export default function App() {
                   paddingHorizontal: 15,
                   paddingVertical: 14,
                   borderRadius: 14,
-                  backgroundColor: "#1C1C1E",
+                  backgroundColor: "#F5F5F5",
                   borderWidth: 1,
-                  borderColor: "#262626",
+                  borderColor: "#DBDBDB",
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -8716,11 +8716,11 @@ export default function App() {
                     gap: 10,
                   }}
                 >
-                  <Ionicons name="bookmark" size={21} color="#0095F6" />
+                  <Ionicons name="bookmark" size={21} color="#8B3DFF" />
                   <View>
                     <Text
                       style={{
-                        color: "#FFFFFF",
+                        color: "#262626",
                         fontWeight: "800",
                         fontSize: 15,
                       }}
@@ -8728,13 +8728,13 @@ export default function App() {
                       Saved
                     </Text>
                     <Text
-                      style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}
+                      style={{ color: "#737373", fontSize: 11, marginTop: 2 }}
                     >
                       Your saved posts and reels
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#0095F6" />
+                <Ionicons name="chevron-forward" size={20} color="#8B3DFF" />
               </TouchableOpacity>
               <View
                 style={{
@@ -8746,11 +8746,11 @@ export default function App() {
                 }}
               >
                 <Text
-                  style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800" }}
+                  style={{ color: "#262626", fontSize: 19, fontWeight: "800" }}
                 >
                   Your Posts
                 </Text>
-                <Ionicons name="grid-outline" size={21} color="#0095F6" />
+                <Ionicons name="grid-outline" size={21} color="#8B3DFF" />
               </View>
               {groupPostItems(
                 feedPosts.filter((p) => (p.user || "you") === "you"),
@@ -8780,13 +8780,13 @@ export default function App() {
                         style={{
                           width: "32.5%",
                           aspectRatio: 1,
-                          backgroundColor: "#1C1C1E",
+                          backgroundColor: "#F5F5F5",
                           borderRadius: 11,
                           overflow: "hidden",
                           alignItems: "center",
                           justifyContent: "center",
                           borderWidth: 1,
-                          borderColor: "#262626",
+                          borderColor: "#DBDBDB",
                         }}
                       >
                         {media.uri &&
@@ -8821,7 +8821,7 @@ export default function App() {
                               <Ionicons
                                 name="play-circle"
                                 size={34}
-                                color="#FFFFFF"
+                                color="#262626"
                               />
                             ) : (
                               <Text style={{ fontSize: 38 }}>
@@ -8844,7 +8844,7 @@ export default function App() {
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons name="play" size={15} color="#FFFFFF" />
+                            <Ionicons name="play" size={15} color="#262626" />
                           </View>
                         ) : null}
                         {hasMultiple ? (
@@ -8864,7 +8864,7 @@ export default function App() {
                             <Ionicons
                               name="copy-outline"
                               size={15}
-                              color="#FFFFFF"
+                              color="#262626"
                             />
                           </View>
                         ) : null}
@@ -8878,10 +8878,10 @@ export default function App() {
                     alignItems: "center",
                     paddingVertical: 28,
                     paddingHorizontal: 18,
-                    backgroundColor: "#000000",
+                    backgroundColor: "#262626",
                     borderRadius: 16,
                     borderWidth: 1,
-                    borderColor: "#262626",
+                    borderColor: "#DBDBDB",
                   }}
                 >
                   <View
@@ -8889,17 +8889,17 @@ export default function App() {
                       width: 58,
                       height: 58,
                       borderRadius: 20,
-                      backgroundColor: "#1C1C1E",
+                      backgroundColor: "#F5F5F5",
                       alignItems: "center",
                       justifyContent: "center",
                       marginBottom: 12,
                     }}
                   >
-                    <Ionicons name="images-outline" size={29} color="#262626" />
+                    <Ionicons name="images-outline" size={29} color="#DBDBDB" />
                   </View>
                   <Text
                     style={{
-                      color: "#FFFFFF",
+                      color: "#262626",
                       fontSize: 16,
                       fontWeight: "800",
                       marginBottom: 6,
@@ -8909,7 +8909,7 @@ export default function App() {
                   </Text>
                   <Text
                     style={{
-                      color: "#A8A8A8",
+                      color: "#737373",
                       fontSize: 12,
                       textAlign: "center",
                       lineHeight: 18,
@@ -8922,7 +8922,7 @@ export default function App() {
                     onPress={() => handleTab("Create")}
                     activeOpacity={0.85}
                     style={{
-                      backgroundColor: "#0095F6",
+                      backgroundColor: "#8B3DFF",
                       paddingHorizontal: 22,
                       paddingVertical: 11,
                       borderRadius: 12,
@@ -8930,7 +8930,7 @@ export default function App() {
                   >
                     <Text
                       style={{
-                        color: "#FFFFFF",
+                        color: "#262626",
                         fontWeight: "700",
                         fontSize: 13,
                       }}
@@ -8947,7 +8947,7 @@ export default function App() {
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
-          <Text style={{ color: "#A8A8A8" }}>{activeTab}</Text>
+          <Text style={{ color: "#737373" }}>{activeTab}</Text>
         </View>
       )}
 
@@ -10618,7 +10618,7 @@ export default function App() {
           keyboardVerticalOffset={0}
           style={{ flex: 1 }}
         >
-          <SafeAreaView style={{ flex: 1, backgroundColor: "#000000", paddingBottom: Platform.OS === "android" ? 6 : 0 }}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: "#262626", paddingBottom: Platform.OS === "android" ? 6 : 0 }}>
             <View
               style={{
                 flexDirection: "row",
@@ -10626,7 +10626,7 @@ export default function App() {
                 paddingHorizontal: 16,
                 paddingTop: 16,
                 paddingBottom: 10,
-                backgroundColor: "#000000",
+                backgroundColor: "#262626",
                 minHeight: 58,
               }}
             >
@@ -10638,14 +10638,14 @@ export default function App() {
                   }}
                   style={{ paddingRight: 14 }}
                 >
-                  <Ionicons name="arrow-back" size={25} color="#FFFFFF" />
+                  <Ionicons name="arrow-back" size={25} color="#262626" />
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity style={{ paddingRight: 18 }}>
                   <Ionicons
                     name="briefcase-outline"
                     size={27}
-                    color="#FFFFFF"
+                    color="#262626"
                   />
                 </TouchableOpacity>
               )}
@@ -10663,7 +10663,7 @@ export default function App() {
                       width: 43,
                       height: 43,
                       borderRadius: 22,
-                      backgroundColor: "#262626",
+                      backgroundColor: "#DBDBDB",
                       alignItems: "center",
                       justifyContent: "center",
                       overflow: "hidden",
@@ -10695,7 +10695,7 @@ export default function App() {
                     ) : (
                       <Text
                         style={{
-                          color: "#FFFFFF",
+                          color: "#262626",
                           fontSize: 17,
                           fontWeight: "800",
                         }}
@@ -10710,7 +10710,7 @@ export default function App() {
                       style={{
                         fontSize: 17,
                         fontWeight: "800",
-                        color: "#FFFFFF",
+                        color: "#262626",
                       }}
                     >
                       {chatPreferences.name || messageConversations.find(
@@ -10729,7 +10729,7 @@ export default function App() {
                   </View>
                   <VoiceVideoCallControls username={selectedChatUser} enableIncoming={false} />
                   <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel="Chat personalization" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "transparent", borderWidth: 0, borderColor: "transparent", alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="color-palette-outline" size={21} color="#FFFFFF" />
+                    <Ionicons name="color-palette-outline" size={21} color="#262626" />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -10748,7 +10748,7 @@ export default function App() {
                     <Ionicons
                       name="trending-up-outline"
                       size={29}
-                      color="#FFFFFF"
+                      color="#262626"
                     />
                   </TouchableOpacity>
                   <View
@@ -10762,7 +10762,7 @@ export default function App() {
                     <Text
                       numberOfLines={1}
                       style={{
-                        color: "#FFFFFF",
+                        color: "#262626",
                         fontSize: 23,
                         fontWeight: "900",
                         letterSpacing: -0.7,
@@ -10773,7 +10773,7 @@ export default function App() {
                     <Ionicons
                       name="chevron-down"
                       size={21}
-                      color="#FFFFFF"
+                      color="#262626"
                       style={{ marginLeft: 7 }}
                     />
                     <View
@@ -10796,7 +10796,7 @@ export default function App() {
                     accessibilityLabel="New message"
                     style={{ paddingHorizontal: 9 }}
                   >
-                    <Ionicons name="create-outline" size={25} color="#FFFFFF" />
+                    <Ionicons name="create-outline" size={25} color="#262626" />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={closeMessages}
@@ -10805,7 +10805,7 @@ export default function App() {
                     <Ionicons
                       name="ellipsis-horizontal"
                       size={27}
-                      color="#FFFFFF"
+                      color="#262626"
                     />
                   </TouchableOpacity>
                 </View>
@@ -10814,7 +10814,7 @@ export default function App() {
 
             {!selectedChatUser ? (
               <View
-                style={{ flex: 1, backgroundColor: "#000000", paddingTop: 8 }}
+                style={{ flex: 1, backgroundColor: "#262626", paddingTop: 8 }}
               >
                 {chatError ? (
                   <Text
@@ -10836,27 +10836,27 @@ export default function App() {
                     marginBottom: 8,
                     height: 44,
                     borderRadius: 24,
-                    backgroundColor: "#262626",
+                    backgroundColor: "#DBDBDB",
                   }}
                 >
-                  <Ionicons name="search" size={23} color="#FFFFFF" />
+                  <Ionicons name="search" size={23} color="#262626" />
                   <TextInput
                     value={chatSearchQuery}
                     onChangeText={setChatSearchQuery}
                     placeholder="Search"
-                    placeholderTextColor="#8E8E93"
+                    placeholderTextColor="#737373"
                     autoCapitalize="none"
                     autoCorrect={false}
                     style={{
                       flex: 1,
                       paddingHorizontal: 13,
-                      color: "#FFFFFF",
+                      color: "#262626",
                       fontSize: 16,
                     }}
                   />
                   {chatSearchQuery ? (
                     <TouchableOpacity onPress={() => setChatSearchQuery("")}>
-                      <Ionicons name="close-circle" size={19} color="#8E8E93" />
+                      <Ionicons name="close-circle" size={19} color="#737373" />
                     </TouchableOpacity>
                   ) : null}
                   <TouchableOpacity
@@ -10869,13 +10869,13 @@ export default function App() {
                       borderRadius: 18,
                       alignItems: "center",
                       justifyContent: "center",
-                      backgroundColor: chatUnreadOnly ? "#262626" : "transparent",
+                      backgroundColor: chatUnreadOnly ? "#DBDBDB" : "transparent",
                     }}
                   >
                     <Ionicons
                       name="options-outline"
                       size={21}
-                      color="#FFFFFF"
+                      color="#262626"
                     />
                   </TouchableOpacity>
                 </View>
@@ -10902,9 +10902,9 @@ export default function App() {
                         width: 68,
                         height: 68,
                         borderRadius: 34,
-                        backgroundColor: "#000000",
+                        backgroundColor: "#262626",
                         borderWidth: 2,
-                        borderColor: ownNote ? "#0095F6" : "#262626",
+                        borderColor: ownNote ? "#8B3DFF" : "#DBDBDB",
                         alignItems: "center",
                         justifyContent: "center",
                         overflow: "visible",
@@ -10919,7 +10919,7 @@ export default function App() {
                         <Ionicons
                           name="happy-outline"
                           size={48}
-                          color="#8E8E93"
+                          color="#737373"
                         />
                       )}
                       {ownNote?.text ? (
@@ -10933,9 +10933,9 @@ export default function App() {
                             paddingHorizontal: 7,
                             paddingVertical: 5,
                             borderRadius: 12,
-                            backgroundColor: "#000000",
+                            backgroundColor: "#262626",
                             borderWidth: 1,
-                            borderColor: "#363636",
+                            borderColor: "#DBDBDB",
                             alignItems: "center",
                             justifyContent: "center",
                             zIndex: 2,
@@ -10944,7 +10944,7 @@ export default function App() {
                           <Text
                             numberOfLines={2}
                             style={{
-                              color: "#FFFFFF",
+                              color: "#262626",
                               fontSize: 9,
                               textAlign: "center",
                             }}
@@ -10965,15 +10965,15 @@ export default function App() {
                           alignItems: "center",
                           justifyContent: "center",
                           borderWidth: 2,
-                          borderColor: "#363636",
+                          borderColor: "#DBDBDB",
                         }}
                       >
-                        <Ionicons name="add" size={17} color="#FFFFFF" />
+                        <Ionicons name="add" size={17} color="#262626" />
                       </View>
                     </View>
                     <Text
                       numberOfLines={1}
-                      style={{ color: "#FFFFFF", fontSize: 12, marginTop: 7 }}
+                      style={{ color: "#262626", fontSize: 12, marginTop: 7 }}
                     >
                       Your note
                     </Text>
@@ -10989,7 +10989,7 @@ export default function App() {
                           width: 68,
                           height: 68,
                           borderRadius: 34,
-                          backgroundColor: "#000000",
+                          backgroundColor: "#262626",
                           borderWidth: 2,
                           borderColor: "#3797F0",
                           alignItems: "center",
@@ -11009,7 +11009,7 @@ export default function App() {
                         ) : (
                           <Text
                             style={{
-                              color: "#FFFFFF",
+                              color: "#262626",
                               fontSize: 25,
                               fontWeight: "800",
                             }}
@@ -11029,9 +11029,9 @@ export default function App() {
                             paddingHorizontal: 7,
                             paddingVertical: 5,
                             borderRadius: 12,
-                            backgroundColor: "#000000",
+                            backgroundColor: "#262626",
                             borderWidth: 1,
-                            borderColor: "#363636",
+                            borderColor: "#DBDBDB",
                             alignItems: "center",
                             justifyContent: "center",
                             zIndex: 2,
@@ -11040,7 +11040,7 @@ export default function App() {
                           <Text
                             numberOfLines={2}
                             style={{
-                              color: "#FFFFFF",
+                              color: "#262626",
                               fontSize: 9,
                               textAlign: "center",
                             }}
@@ -11051,7 +11051,7 @@ export default function App() {
                       </View>
                       <Text
                         numberOfLines={1}
-                        style={{ color: "#FFFFFF", fontSize: 12, marginTop: 7 }}
+                        style={{ color: "#262626", fontSize: 12, marginTop: 7 }}
                       >
                         {note.displayName || note.username}
                       </Text>
@@ -11065,7 +11065,7 @@ export default function App() {
                     paddingHorizontal: 18,
                     marginBottom: 4,
                     borderBottomWidth: 1,
-                    borderBottomColor: "#262626",
+                    borderBottomColor: "#DBDBDB",
                   }}
                 >
                   {["All", "Primary", "General", "Requests"].map((tab) => {
@@ -11088,7 +11088,7 @@ export default function App() {
                       >
                         <Text
                           style={{
-                            color: active ? "#FFFFFF" : "#8E8E93",
+                            color: active ? "#262626" : "#737373",
                             fontSize: 14,
                             fontWeight: active ? "800" : "600",
                           }}
@@ -11107,12 +11107,12 @@ export default function App() {
                       marginBottom: 12,
                       padding: 16,
                       borderRadius: 16,
-                      backgroundColor: "#000000",
+                      backgroundColor: "#262626",
                     }}
                   >
                     <Text
                       style={{
-                        color: "#FFFFFF",
+                        color: "#262626",
                         fontSize: 14,
                         fontWeight: "800",
                         marginBottom: 10,
@@ -11124,7 +11124,7 @@ export default function App() {
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        backgroundColor: "#262626",
+                        backgroundColor: "#DBDBDB",
                         borderRadius: 22,
                         paddingHorizontal: 13,
                       }}
@@ -11132,13 +11132,13 @@ export default function App() {
                       <Ionicons
                         name="search-outline"
                         size={19}
-                        color="#8E8E93"
+                        color="#737373"
                       />
                       <TextInput
                         value={newChatUsername}
                         onChangeText={setNewChatUsername}
                         placeholder="Search people by name or username"
-                        placeholderTextColor="#8E8E93"
+                        placeholderTextColor="#737373"
                         autoCapitalize="none"
                         autoCorrect={false}
                         autoFocus
@@ -11146,7 +11146,7 @@ export default function App() {
                           flex: 1,
                           paddingHorizontal: 10,
                           paddingVertical: 12,
-                          color: "#FFFFFF",
+                          color: "#262626",
                         }}
                       />
                       {newChatUsername ? (
@@ -11156,13 +11156,13 @@ export default function App() {
                           <Ionicons
                             name="close-circle"
                             size={19}
-                            color="#8E8E93"
+                            color="#737373"
                           />
                         </TouchableOpacity>
                       ) : null}
                     </View>
                     {chatPeopleBusy ? (
-                      <Text style={{ color: "#A8A8A8", padding: 10 }}>
+                      <Text style={{ color: "#737373", padding: 10 }}>
                         Searching people...
                       </Text>
                     ) : null}
@@ -11192,7 +11192,7 @@ export default function App() {
                             width: 42,
                             height: 42,
                             borderRadius: 22,
-                            backgroundColor: "#262626",
+                            backgroundColor: "#DBDBDB",
                             alignItems: "center",
                             justifyContent: "center",
                             overflow: "hidden",
@@ -11213,7 +11213,7 @@ export default function App() {
                             />
                           ) : (
                             <Text
-                              style={{ color: "#FFFFFF", fontWeight: "800" }}
+                              style={{ color: "#262626", fontWeight: "800" }}
                             >
                               {String(person.username || "?")
                                 .slice(0, 1)
@@ -11222,10 +11222,10 @@ export default function App() {
                           )}
                         </View>
                         <View style={{ flex: 1 }}>
-                          <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
+                          <Text style={{ color: "#262626", fontWeight: "800" }}>
                             {person.displayName || person.username}
                           </Text>
-                          <Text style={{ color: "#A8A8A8", fontSize: 13 }}>
+                          <Text style={{ color: "#737373", fontSize: 13 }}>
                             @{person.username}
                           </Text>
                         </View>
@@ -11237,7 +11237,7 @@ export default function App() {
                     chatPeopleResults.length === 0 ? (
                       <Text
                         style={{
-                          color: "#A8A8A8",
+                          color: "#737373",
                           textAlign: "center",
                           padding: 12,
                         }}
@@ -11251,7 +11251,7 @@ export default function App() {
                 {chatBusy ? (
                   <Text
                     style={{
-                      color: "#A8A8A8",
+                      color: "#737373",
                       paddingHorizontal: 20,
                       paddingVertical: 8,
                     }}
@@ -11320,7 +11320,7 @@ export default function App() {
                               width: 56,
                               height: 56,
                               borderRadius: 28,
-                              backgroundColor: "#262626",
+                              backgroundColor: "#DBDBDB",
                               alignItems: "center",
                               justifyContent: "center",
                               overflow: "hidden",
@@ -11347,7 +11347,7 @@ export default function App() {
                             ) : (
                               <Text
                                 style={{
-                                  color: "#FFFFFF",
+                                  color: "#262626",
                                   fontSize: 22,
                                   fontWeight: "800",
                                 }}
@@ -11360,7 +11360,7 @@ export default function App() {
                             <Text
                               numberOfLines={1}
                               style={{
-                                color: "#FFFFFF",
+                                color: "#262626",
                                 fontSize: 15,
                                 fontWeight: "700",
                               }}
@@ -11372,7 +11372,7 @@ export default function App() {
                             <Text
                               numberOfLines={1}
                               style={{
-                                color: "#A8A8A8",
+                                color: "#737373",
                                 marginTop: 3,
                                 fontSize: 12,
                               }}
@@ -11394,7 +11394,7 @@ export default function App() {
                           <View
                             style={{ alignItems: "flex-end", minWidth: 35 }}
                           >
-                            <Text style={{ color: "#A8A8A8", fontSize: 13 }}>
+                            <Text style={{ color: "#737373", fontSize: 13 }}>
                               {conversation.lastMessageAt
                                 ? (() => {
                                     const date = new Date(
@@ -11432,7 +11432,7 @@ export default function App() {
                               >
                                 <Text
                                   style={{
-                                    color: "#FFFFFF",
+                                    color: "#262626",
                                     fontSize: 10,
                                     fontWeight: "800",
                                   }}
@@ -11450,7 +11450,7 @@ export default function App() {
                   messageConversations.length === 0 ? (
                     <Text
                       style={{
-                        color: "#A8A8A8",
+                        color: "#737373",
                         textAlign: "center",
                         padding: 28,
                       }}
@@ -11482,7 +11482,7 @@ export default function App() {
                   {chatBusy && directMessages.length === 0 ? (
                     <Text
                       style={{
-                        color: "#A8A8A8",
+                        color: "#737373",
                         textAlign: "center",
                         padding: 24,
                       }}
@@ -11510,7 +11510,7 @@ export default function App() {
                           <View style={{ width: 27, height: 27, borderRadius: 14, marginRight: 7, marginBottom: 2, backgroundColor: "transparent", borderWidth: 1, borderColor: chatThemeColors.accent, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                             {messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase())?.avatarUrl ? (
                               <Image source={{ uri: String(messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl).startsWith("http") ? messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl : "https://bhumi-social-app-1.onrender.com" + messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl }} style={{ width: 27, height: 27, borderRadius: 14 }} />
-                            ) : <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "800" }}>{String(selectedChatUser || "?").slice(0,1).toUpperCase()}</Text>}
+                            ) : <Text style={{ color: "#262626", fontSize: 11, fontWeight: "800" }}>{String(selectedChatUser || "?").slice(0,1).toUpperCase()}</Text>}
                           </View>
                         ) : null}
                         <TouchableOpacity
@@ -11544,7 +11544,7 @@ export default function App() {
                               <Text
                                 numberOfLines={1}
                                 style={{
-                                  color: "#FFFFFF",
+                                  color: "#262626",
                                   fontSize: 11,
                                   fontWeight: "800",
                                 }}
@@ -11554,7 +11554,7 @@ export default function App() {
                               <Text
                                 numberOfLines={2}
                                 style={{
-                                  color: "#A8A8A8",
+                                  color: "#737373",
                                   fontSize: 12,
                                 }}
                               >
@@ -11674,7 +11674,7 @@ export default function App() {
           padding: 14,
           borderRadius: 14,
           marginBottom: message.text ? 8 : 0,
-          backgroundColor: "#262626",
+          backgroundColor: "#DBDBDB",
           flexDirection: "row",
           alignItems: "center",
           gap: 10,
@@ -11683,18 +11683,18 @@ export default function App() {
         <Ionicons
           name="document-text"
           size={30}
-          color="#FFFFFF"
+          color="#262626"
         />
         <View style={{ flex: 1 }}>
           <Text numberOfLines={2} style={{
-            color: "#FFFFFF",
+            color: "#262626",
             fontSize: 13,
             fontWeight: "700",
           }}>
             {message.attachmentName || "Document"}
           </Text>
           <Text style={{
-            color: "#A8A8A8",
+            color: "#737373",
             fontSize: 11,
             marginTop: 3,
           }}>
@@ -11708,7 +11708,7 @@ export default function App() {
                           {message.text ? (
                             <Text
                               style={{
-                                color: mine ? chatThemeColors.accent : "#FFFFFF",
+                                color: mine ? chatThemeColors.accent : "#262626",
                                 fontSize: 15,
                                 lineHeight: 21,
                               }}
@@ -11727,7 +11727,7 @@ export default function App() {
                           >
                             <Text
                               style={{
-                                color: mine ? "#0095F6" : "#A8A8A8",
+                                color: mine ? "#8B3DFF" : "#737373",
                                 fontSize: 10,
                               }}
                             >
@@ -11743,7 +11743,7 @@ export default function App() {
                             {mine ? (
                               <Text
                                 style={{
-                                  color: "#FFFFFF",
+                                  color: "#262626",
                                   fontSize: 9,
                                   fontWeight: "700",
                                 }}
@@ -11765,7 +11765,7 @@ export default function App() {
                               borderRadius: 15,
                               marginLeft: 7,
                               marginBottom: 2,
-                              backgroundColor: "#262626",
+                              backgroundColor: "#DBDBDB",
                               borderWidth: 0,
                               borderColor: "transparent",
                               alignItems: "center",
@@ -11785,7 +11785,7 @@ export default function App() {
                             ) : (
                               <Text
                                 style={{
-                                  color: "#FFFFFF",
+                                  color: "#262626",
                                   fontSize: 12,
                                   fontWeight: "800",
                                 }}
@@ -11803,7 +11803,7 @@ export default function App() {
                   {!chatBusy && directMessages.length === 0 && !chatError ? (
                     <Text
                       style={{
-                        color: "#A8A8A8",
+                        color: "#737373",
                         textAlign: "center",
                         paddingHorizontal: 24,
                         paddingVertical: 44,
@@ -11818,7 +11818,7 @@ export default function App() {
                 {chatPeerTyping ? (
                   <Text
                     style={{
-                      color: "#FFFFFF",
+                      color: "#262626",
                       fontSize: 12,
                       fontWeight: "700",
                       paddingHorizontal: 18,
@@ -11836,15 +11836,15 @@ export default function App() {
                       marginBottom: 3,
                       padding: 15,
                       borderRadius: 18,
-                      backgroundColor: "#262626",
+                      backgroundColor: "#DBDBDB",
                       borderWidth: 1,
-                      borderColor: "#363636",
+                      borderColor: "#DBDBDB",
                       elevation: 2,
                     }}
                   >
                     <Text
                       style={{
-                        color: "#FFFFFF",
+                        color: "#262626",
                         fontSize: 12,
                         fontWeight: "700",
                         marginBottom: 9,
@@ -11877,7 +11877,7 @@ export default function App() {
                       >
                         <Text
                           style={{
-                            color: "#FFFFFF",
+                            color: "#262626",
                             fontWeight: "700",
                             fontSize: 12,
                           }}
@@ -11897,7 +11897,7 @@ export default function App() {
                             paddingHorizontal: 16,
                             paddingVertical: 10,
                             borderRadius: 20,
-                            backgroundColor: "#262626",
+                            backgroundColor: "#DBDBDB",
                           }}
                         >
                           <Text
@@ -11917,7 +11917,7 @@ export default function App() {
                       >
                         <Text
                           style={{
-                            color: "#A8A8A8",
+                            color: "#737373",
                             fontWeight: "700",
                             fontSize: 12,
                           }}
@@ -11937,9 +11937,9 @@ export default function App() {
                       paddingHorizontal: 14,
                       paddingVertical: 12,
                       borderRadius: 16,
-                      backgroundColor: "#262626",
+                      backgroundColor: "#DBDBDB",
                       borderWidth: 1,
-                      borderColor: "#363636",
+                      borderColor: "#DBDBDB",
                       flexDirection: "row",
                       alignItems: "center",
                       gap: 12,
@@ -11948,7 +11948,7 @@ export default function App() {
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          color: "#FFFFFF",
+                          color: "#262626",
                           fontSize: 11,
                           fontWeight: "800",
                         }}
@@ -11957,7 +11957,7 @@ export default function App() {
                       </Text>
                       <Text
                         numberOfLines={1}
-                        style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
+                        style={{ color: "#737373", fontSize: 12, marginTop: 4 }}
                       >
                         {chatReplyTo.text ||
                           (chatReplyTo.imageUrl ? "Photo" : "Message")}
@@ -11967,7 +11967,7 @@ export default function App() {
                       onPress={() => setChatReplyTo(null)}
                       accessibilityLabel="Cancel reply"
                     >
-                      <Ionicons name="close-circle" size={22} color="#8E8E93" />
+                      <Ionicons name="close-circle" size={22} color="#737373" />
                     </TouchableOpacity>
                   </View>
                 ) : null}
@@ -11995,29 +11995,29 @@ export default function App() {
                       <View style={{
                         marginHorizontal: 14, marginTop: 10, marginBottom: 8, padding: 11,
                         flexDirection: "row", alignItems: "center", gap: 13,
-                        backgroundColor: "#000000", borderRadius: 18,
-                        borderWidth: 1, borderColor: "#363636", elevation: 2,
+                        backgroundColor: "#262626", borderRadius: 18,
+                        borderWidth: 1, borderColor: "#DBDBDB", elevation: 2,
                       }}>
                         <View style={{
                           width: 66, height: 66, borderRadius: 13, overflow: "hidden",
-                          backgroundColor: "#262626", alignItems: "center", justifyContent: "center",
+                          backgroundColor: "#DBDBDB", alignItems: "center", justifyContent: "center",
                         }}>
                           {isPhoto ? (
                             <Image source={{ uri: chatMediaDraft.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
                           ) : (
-                            <Ionicons name={isVideo ? "videocam" : isAudio ? "mic" : "document-text"} size={32} color="#FFFFFF" />
+                            <Ionicons name={isVideo ? "videocam" : isAudio ? "mic" : "document-text"} size={32} color="#262626" />
                           )}
                         </View>
                         <View style={{ flex: 1, justifyContent: "center", gap: 5 }}>
-                          <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800" }}>
+                          <Text style={{ color: "#262626", fontSize: 14, fontWeight: "800" }}>
                             {isPhoto ? "Photo attached" : isVideo ? "Video attached" : isAudio ? "Voice message attached" : "Document attached"}
                           </Text>
-                          <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 11, fontWeight: "500" }}>
+                          <Text numberOfLines={2} style={{ color: "#737373", fontSize: 11, fontWeight: "500" }}>
                             {draftName} · Ready to share
                           </Text>
                         </View>
                         <TouchableOpacity onPress={() => setChatMediaDraft(null)} accessibilityLabel="Remove attachment"
-                          style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: "#262626" }}>
+                          style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: "#DBDBDB" }}>
                           <Ionicons name="close" size={19} color="#B42318" />
                         </TouchableOpacity>
                       </View>
@@ -12031,9 +12031,9 @@ export default function App() {
                         paddingHorizontal: 16,
                         paddingVertical: 14,
                         gap: 14,
-                        backgroundColor: "#262626",
+                        backgroundColor: "#DBDBDB",
                         borderTopWidth: 1,
-                        borderTopColor: "#262626",
+                        borderTopColor: "#DBDBDB",
                       }}
                     >
                       {[
@@ -12062,7 +12062,7 @@ export default function App() {
                             height: 36,
                             alignItems: "center",
                             justifyContent: "center",
-                            backgroundColor: "#000000",
+                            backgroundColor: "#262626",
                             borderRadius: 12,
                           }}
                         >
@@ -12079,8 +12079,8 @@ export default function App() {
                       paddingVertical: 9,
                       marginBottom: Platform.OS === "android" ? 6 : 0,
                       borderTopWidth: StyleSheet.hairlineWidth,
-                      borderTopColor: "#262626",
-                      backgroundColor: "#000000",
+                      borderTopColor: "#DBDBDB",
+                      backgroundColor: "#262626",
                       gap: 9,
                       elevation: 7,
                     }}
@@ -12092,7 +12092,7 @@ export default function App() {
                       <Ionicons
                         name="images-outline"
                         size={25}
-                        color="#FFFFFF"
+                        color="#262626"
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -12102,11 +12102,11 @@ export default function App() {
                       <Ionicons
                         name="camera-outline"
                         size={25}
-                        color="#FFFFFF"
+                        color="#262626"
                       />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={chooseChatDocument} accessibilityLabel="Attach document">
-                      <Ionicons name="document-attach-outline" size={23} color="#FFFFFF" />
+                      <Ionicons name="document-attach-outline" size={23} color="#262626" />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={isChatRecording ? stopChatVoiceRecording : startChatVoiceRecording}
@@ -12114,7 +12114,7 @@ export default function App() {
                       accessibilityLabel={isChatRecording ? "Stop voice recording" : "Start voice recording"}
                       style={{ width: 34, height: 40, alignItems: "center", justifyContent: "center" }}
                     >
-                      <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#0095F6"} />
+                      <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#8B3DFF"} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setChatEmojiOpen((v) => !v)}
@@ -12123,7 +12123,7 @@ export default function App() {
                       <Ionicons
                         name="happy-outline"
                         size={25}
-                        color="#FFFFFF"
+                        color="#262626"
                       />
                     </TouchableOpacity>
                     <TextInput
@@ -12136,13 +12136,13 @@ export default function App() {
                         flex: 1,
                         minHeight: 44,
                         maxHeight: 110,
-                        backgroundColor: "#262626",
+                        backgroundColor: "#DBDBDB",
                         borderWidth: 1,
                         borderColor: "#303030",
                         borderRadius: 24,
                         paddingHorizontal: 16,
                         paddingVertical: 10,
-                        color: "#FFFFFF",
+                        color: "#262626",
                         fontSize: 15,
                         textAlignVertical: "center",
                       }}
@@ -12159,11 +12159,11 @@ export default function App() {
                         borderRadius: 21,
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor: "#0095F6",
+                        backgroundColor: "#8B3DFF",
                         elevation: 1,
                       }}
                     >
-                      <Ionicons name="send" size={19} color="#FFFFFF" />
+                      <Ionicons name="send" size={19} color="#262626" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -12189,7 +12189,7 @@ export default function App() {
                   <Ionicons
                     name={activeTab === tab.name ? tab.activeIcon : tab.icon}
                     size={25}
-                    color={activeTab === tab.name ? "#3797F0" : "#8E8E93"}
+                    color={activeTab === tab.name ? "#3797F0" : "#737373"}
                   />
                   <Text
                     style={[
@@ -12664,7 +12664,7 @@ export default function App() {
           <View
             style={{
               height: "78%",
-              backgroundColor: "#000000",
+              backgroundColor: "#262626",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingTop: 20,
@@ -12678,11 +12678,11 @@ export default function App() {
                 paddingHorizontal: 18,
                 paddingBottom: 14,
                 borderBottomWidth: 1,
-                borderBottomColor: "#262626",
+                borderBottomColor: "#DBDBDB",
               }}
             >
               <Text
-                style={{ fontSize: 20, fontWeight: "800", color: "#FFFFFF" }}
+                style={{ fontSize: 20, fontWeight: "800", color: "#262626" }}
               >
                 Notifications
               </Text>
@@ -12691,7 +12691,7 @@ export default function App() {
               >
                 {unreadNotificationCount > 0 ? (
                   <TouchableOpacity onPress={handleReadAllNotifications}>
-                    <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                    <Text style={{ color: "#262626", fontWeight: "700" }}>
                       Mark all read
                     </Text>
                   </TouchableOpacity>
@@ -12699,13 +12699,13 @@ export default function App() {
                 <TouchableOpacity
                   onPress={() => setNotificationsListOpen(false)}
                 >
-                  <Ionicons name="close" size={27} color="#0095F6" />
+                  <Ionicons name="close" size={27} color="#8B3DFF" />
                 </TouchableOpacity>
               </View>
             </View>
             {notificationsLoading ? (
               <Text
-                style={{ textAlign: "center", color: "#A8A8A8", padding: 25 }}
+                style={{ textAlign: "center", color: "#737373", padding: 25 }}
               >
                 Loading notifications...
               </Text>
@@ -12734,9 +12734,9 @@ export default function App() {
                         alignItems: "center",
                         paddingHorizontal: 18,
                         paddingVertical: 16,
-                        backgroundColor: item.isRead ? "#000000" : "#1C1C1E",
+                        backgroundColor: item.isRead ? "#262626" : "#F5F5F5",
                         borderBottomWidth: 1,
-                        borderBottomColor: "#262626",
+                        borderBottomColor: "#DBDBDB",
                       }}
                     >
                       <View
@@ -12744,7 +12744,7 @@ export default function App() {
                           width: 42,
                           height: 42,
                           borderRadius: 21,
-                          backgroundColor: "#262626",
+                          backgroundColor: "#DBDBDB",
                           alignItems: "center",
                           justifyContent: "center",
                           marginRight: 12,
@@ -12761,13 +12761,13 @@ export default function App() {
                                   : "person"
                           }
                           size={21}
-                          color="#0095F6"
+                          color="#8B3DFF"
                         />
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text
                           style={{
-                            color: "#FFFFFF",
+                            color: "#262626",
                             fontSize: 14,
                             lineHeight: 20,
                           }}
@@ -12777,7 +12777,7 @@ export default function App() {
                         </Text>
                         <Text
                           style={{
-                            color: "#A8A8A8",
+                            color: "#737373",
                             fontSize: 11,
                             marginTop: 5,
                           }}
@@ -12793,7 +12793,7 @@ export default function App() {
                             width: 9,
                             height: 9,
                             borderRadius: 5,
-                            backgroundColor: "#0095F6",
+                            backgroundColor: "#8B3DFF",
                             marginLeft: 8,
                           }}
                         />
@@ -12805,7 +12805,7 @@ export default function App() {
                   <Text
                     style={{
                       textAlign: "center",
-                      color: "#A8A8A8",
+                      color: "#737373",
                       padding: 35,
                     }}
                   >
