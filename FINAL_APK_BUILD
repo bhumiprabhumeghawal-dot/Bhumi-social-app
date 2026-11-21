@@ -8,3 +8,5 @@ Signup/login keyboard visibility and user-selected username improvements include
 
 Profile privacy update: add authenticated Block Account action to viewed profiles; blocking uses the existing server endpoint that removes mutual follows and cancels pending requests. Polish the profile action menu to match the premium dark theme.
 Final consolidated APK build trigger: 2026-11-21.
+
+Startup crash capture: install global JS handler before lazy-loading App and show a visible error screen with saved report instead of silently exiting. Android version 1.0.8 (versionCode 9).
