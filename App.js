@@ -5569,7 +5569,7 @@ export default function App() {
               }}
             >
               <Text
-                style={{ color: "#000000", fontSize: 16, fontWeight: "800" }}
+                style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "800" }}
               >
                 Get Started
               </Text>
@@ -7788,7 +7788,7 @@ export default function App() {
                         width: 48,
                         height: 48,
                         borderRadius: 24,
-                        backgroundColor: "#DBDBDB",
+                        backgroundColor: "#262626",
                         alignItems: "center",
                         justifyContent: "center",
                       }}
@@ -7997,7 +7997,7 @@ export default function App() {
                           width: 108,
                           height: 108,
                           borderRadius: 54,
-                          backgroundColor: "#DBDBDB",
+                          backgroundColor: "#262626",
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -8237,7 +8237,7 @@ export default function App() {
                     )}
                   </View>
                   {!!profile.businessCatalog?.length && (
-                    <View style={{ borderTopWidth: 1, borderTopColor: "#DBDBDB", marginTop: 11, paddingTop: 10 }}>
+                    <View style={{ borderTopWidth: 1, borderTopColor: "#262626", marginTop: 11, paddingTop: 10 }}>
                       <Text style={{ color: "#0095F6", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
                       {profile.businessCatalog.slice(0, 5).map((item) => (
                         <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#303030" }}>
@@ -8288,11 +8288,11 @@ export default function App() {
                     placeholder="Write about yourself"
                     style={{
                       borderWidth: 1,
-                      borderColor: "#DDD",
+                      borderColor: "#303030",
                       borderRadius: 8,
                       padding: 11,
                       minHeight: 80,
-                      color: "#222",
+                      color: "#F5F5F5",
                       marginBottom: 12,
                       textAlignVertical: "top",
                     }}
@@ -8375,9 +8375,9 @@ export default function App() {
                       disabled={profileBusy}
                       style={{
                         borderWidth: 1,
-                        borderColor: "#F2B8BE",
+                        borderColor: "#9A4054",
                         borderRadius: 14,
-                        backgroundColor: "#FFF1F2",
+                        backgroundColor: "#35191D",
                         paddingVertical: 13,
                         paddingHorizontal: 16,
                         marginBottom: 8,
@@ -8394,7 +8394,7 @@ export default function App() {
               <View
                 style={{
                   height: 1,
-                  backgroundColor: "#DBDBDB",
+                  backgroundColor: "#262626",
                   marginTop: 18,
                   marginBottom: 14,
                 }}
@@ -8449,7 +8449,7 @@ export default function App() {
                         alignItems: "center",
                         paddingVertical: 10,
                         borderTopWidth: 1,
-                        borderTopColor: "#DBDBDB",
+                        borderTopColor: "#262626",
                       }}
                     >
                       <View style={{ flex: 1 }}>
