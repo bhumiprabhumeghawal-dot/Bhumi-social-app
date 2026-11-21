@@ -183,14 +183,29 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     setRoomConnected(false);
     setCallMessage("कॉल कनेक्ट हो रही है…");
     try {
-      const result = await getCallConnectionToken(callInfo.id);
+      // Fetch the short-lived room token while native audio routing starts.
+      // These independent setup steps run together to reduce answer-to-audio delay.
+      const [tokenResult, audioResult] = await Promise.allSettled([
+        getCallConnectionToken(callInfo.id),
+        AudioSession.startAudioSession(),
+      ]);
+      if (audioResult.status === "fulfilled") audioSessionActiveRef.current = true;
+      if (tokenResult.status === "rejected") {
+        if (audioSessionActiveRef.current) {
+          audioSessionActiveRef.current = false;
+          await AudioSession.stopAudioSession().catch(() => {});
+        }
+        throw tokenResult.reason;
+      }
+      if (audioResult.status === "rejected") throw audioResult.reason;
+      const result = tokenResult.value;
       if (!result?.token || !result?.url) {
+        if (audioSessionActiveRef.current) {
+          audioSessionActiveRef.current = false;
+          await AudioSession.stopAudioSession().catch(() => {});
+        }
         throw new Error("कॉल सर्वर से कनेक्शन जानकारी नहीं मिली।");
       }
-      // LiveKit's React Native SDK requires its audio session to be started
-      // before joining so microphone and speaker routing are initialized.
-      await AudioSession.startAudioSession();
-      audioSessionActiveRef.current = true;
       if (!mountedRef.current) {
         audioSessionActiveRef.current = false;
         await AudioSession.stopAudioSession();
@@ -289,7 +304,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       } catch (error) {
         if (active) setCallMessage(error?.message || "कॉल की स्थिति नहीं मिल रही।");
       } finally {
-        if (active && !finished && !tokenAttemptedRef.current) timer = setTimeout(checkStatus, 1200);
+        if (active && !finished && !tokenAttemptedRef.current) timer = setTimeout(checkStatus, 750);
       }
     };
     void checkStatus();
