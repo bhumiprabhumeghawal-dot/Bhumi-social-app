@@ -252,9 +252,15 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       setHubVisible(true);
       return;
     }
+    if (key === "account.deletion") {
+      setActive(null);
+      const url = "https://bhumi-social-app-1.onrender.com/delete-account?username=" + encodeURIComponent(username || "");
+      Linking.openURL(url).catch(() => setNotice({ title: "Account deletion", message: "Open https://bhumi-social-app-1.onrender.com/delete-account in your browser or email bhumiprabhumeghawal@gmail.com." }));
+      return;
+    }
     if (key === "profile.usernameChange" || key === "account.multipleAccounts" ||
         key === "account.verification" || key === "account.dataDownload" ||
-        key === "account.deactivation" || key === "account.deletion") {
+        key === "account.deactivation") {
       setActive(null);
       onLegacyOpen?.("account");
       return;
@@ -269,8 +275,15 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       onLegacyOpen?.("security");
       return;
     }
+    if (key === "account.terms" || key === "account.privacyPolicy") {
+      setActive(null);
+      const url = key === "account.terms"
+        ? "https://bhumi-social-app-1.onrender.com/terms"
+        : "https://bhumi-social-app-1.onrender.com/privacy";
+      Linking.openURL(url).catch(() => setNotice({ title: "Legal information", message: "Open " + url + " in your browser." }));
+      return;
+    }
     if (key === "account.appUpdates" || key === "account.appVersionInfo" ||
-        key === "account.terms" || key === "account.privacyPolicy" ||
         key === "account.openSource" || key === "account.helpCenter") {
       setActive(null);
       onAbout?.();
