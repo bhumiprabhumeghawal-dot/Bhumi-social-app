@@ -273,7 +273,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       } catch (error) {
         // Retry after the current request settles; never stack overlapping polls.
       } finally {
-        if (active && !callRef.current) timer = setTimeout(checkIncoming, 1400);
+        if (active && !callRef.current) timer = setTimeout(checkIncoming, 1000 + Math.floor(Math.random() * 250));
       }
     };
     void checkIncoming();
@@ -304,7 +304,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       } catch (error) {
         if (active) setCallMessage(error?.message || "कॉल की स्थिति नहीं मिल रही।");
       } finally {
-        if (active && !finished && !tokenAttemptedRef.current) timer = setTimeout(checkStatus, 750);
+        if (active && !finished && !tokenAttemptedRef.current) timer = setTimeout(checkStatus, 900 + Math.floor(Math.random() * 200));
       }
     };
     void checkStatus();
@@ -446,11 +446,11 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                 adaptiveStream: true,
                 dynacast: true,
                 videoCaptureDefaults: {
-                  resolution: VideoPresets.h1080.resolution,
+                  resolution: VideoPresets.h720.resolution,
                 },
                 publishDefaults: {
-                  videoEncoding: VideoPresets.h1080.encoding,
-                  videoSimulcastLayers: [VideoPresets.h720, VideoPresets.h360],
+                  videoEncoding: VideoPresets.h720.encoding,
+                  videoSimulcastLayers: [VideoPresets.h360, VideoPresets.h180],
                   simulcast: true,
                   audioBitrate: 32000,
                 },
