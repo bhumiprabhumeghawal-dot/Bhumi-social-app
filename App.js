@@ -8985,7 +8985,7 @@ export default function App() {
         {[
           { name: "Home", icon: "home-outline", activeIcon: "home" },
           { name: "Reels", icon: "play-outline", activeIcon: "play" },
-          { name: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
+          { name: "Chat", icon: "chatbubble-outline", activeIcon: "chatbubble" },
           { name: "Search", icon: "search-outline", activeIcon: "search" },
           { name: "Profile", icon: "person-outline", activeIcon: "person" },
         ].map((tab) => (
@@ -8996,9 +8996,9 @@ export default function App() {
             accessibilityLabel={tab.name}
           >
             <Ionicons
-              name={activeTab === tab.name ? tab.activeIcon : tab.icon}
+              name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
               size={25}
-              color={activeTab === tab.name ? "#8B3DFF" : "#737373"}
+              color={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? "#8B3DFF" : "#737373"}
             />
             <Text
               style={[
@@ -12203,7 +12203,7 @@ export default function App() {
               {[
                 { name: "Home", icon: "home-outline", activeIcon: "home" },
                 { name: "Reels", icon: "play-outline", activeIcon: "play" },
-                { name: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
+                { name: "Chat", icon: "chatbubble-outline", activeIcon: "chatbubble" },
                 { name: "Search", icon: "search-outline", activeIcon: "search" },
                 { name: "Profile", icon: "person-outline", activeIcon: "person" },
               ].map((tab) => (
