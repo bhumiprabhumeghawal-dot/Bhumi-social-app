@@ -7,7 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import CreatorBusinessHub from "./CreatorBusinessHub";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
 
-const GOLD = "#0095F6";
+const GOLD = "#8B3DFF";
 const BG = "#FFFFFF";
 const PANEL = "#FFFFFF";
 const BORDER = "#DBDBDB";
