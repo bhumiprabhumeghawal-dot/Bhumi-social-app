@@ -72,6 +72,7 @@ import {
   createBusinessQuickReply,
   deleteBusinessQuickReply,
   loadBlockedAccounts,
+  blockAccount,
   unblockAccount,
   loadRestrictedAccounts,
   restrictAccount,
@@ -2571,6 +2572,7 @@ export default function App() {
   const [viewedProfileTab, setViewedProfileTab] = React.useState("posts");
   const [viewedProfileMenuOpen, setViewedProfileMenuOpen] = React.useState(false);
   const [viewedProfileFollowBusy, setViewedProfileFollowBusy] = React.useState(false);
+  const [viewedProfileBlockBusy, setViewedProfileBlockBusy] = React.useState(false);
   const [profileConnectionsOpen, setProfileConnectionsOpen] = React.useState(false);
   const [profileConnectionsType, setProfileConnectionsType] = React.useState("followers");
   const [profileConnectionsUsername, setProfileConnectionsUsername] = React.useState("");
@@ -3952,6 +3954,30 @@ export default function App() {
       Alert.alert("Follow", e.message || "Could not update follow.");
     } finally {
       setViewedProfileFollowBusy(false);
+    }
+  };
+
+  const handleBlockViewedProfile = async () => {
+    const username = String(viewedProfile?.username || "").replace(/^@/, "").trim();
+    if (!username || viewedProfileBlockBusy ||
+        username.toLowerCase() === String(authSession?.username || "").toLowerCase()) return;
+
+    setViewedProfileBlockBusy(true);
+    try {
+      await blockAccount(username);
+      setViewedProfileMenuOpen(false);
+      setViewedProfileOpen(false);
+      setViewedProfile(null);
+      setSearchResults((current) => current.filter(
+        (item) => String(item.username || "").toLowerCase() !== username.toLowerCase()
+      ));
+      setFollowRequests((current) => current.filter(
+        (item) => String(item.username || item.requester || "").toLowerCase() !== username.toLowerCase()
+      ));
+    } catch (error) {
+      Alert.alert("Block failed", error.message || "Could not block this account.");
+    } finally {
+      setViewedProfileBlockBusy(false);
     }
   };
 
@@ -12633,7 +12659,7 @@ export default function App() {
           {viewedProfileMenuOpen && viewedProfile && (
             <View style={{
               position: "absolute", top: 52, right: 12, width: 235,
-              backgroundColor: "#000000", borderRadius: 14, paddingVertical: 5,
+              backgroundColor: "#151020", borderWidth: 1, borderColor: "#30253E", borderRadius: 14, paddingVertical: 5,
               elevation: 8, shadowColor: "#FFFFFF", shadowOpacity: 0.14,
               shadowRadius: 12, shadowOffset: { width: 0, height: 5 }
             }}>
@@ -12648,7 +12674,13 @@ export default function App() {
               }} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
                 <Text style={{ color: "#F5F5F5", fontSize: 14 }}>Share Profile</Text>
               </TouchableOpacity>
-              <View style={{ height: 0.5, backgroundColor: "#1C1C1E" }} />
+              <View style={{ height: 0.5, backgroundColor: "#30253E" }} />
+              <TouchableOpacity disabled={viewedProfileBlockBusy} onPress={handleBlockViewedProfile} style={{ paddingHorizontal: 16, paddingVertical: 13, opacity: viewedProfileBlockBusy ? 0.55 : 1 }}>
+                <Text style={{ color: "#FF6B7A", fontSize: 14, fontWeight: "700" }}>
+                  {viewedProfileBlockBusy ? "Blocking…" : "Block Account"}
+                </Text>
+              </TouchableOpacity>
+              <View style={{ height: 0.5, backgroundColor: "#30253E" }} />
               <TouchableOpacity disabled={viewedProfileRestrictBusy} onPress={() => {
                 setViewedProfileMenuOpen(false);
                 handleToggleViewedProfileRestriction();

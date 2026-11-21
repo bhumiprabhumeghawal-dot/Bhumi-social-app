@@ -762,8 +762,23 @@ export async function unrestrictAccount(username) {
   return data;
 }
 
+export async function blockAccount(username) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/settings/blocked-accounts/${encodeURIComponent(username)}`,
+    {
+      method: 'POST',
+      headers: await authHeaders(),
+    }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Account could not be blocked.');
+  return data;
+}
+
 export async function loadBlockedAccounts() {
-  const response = await fetch(`${API_BASE_URL}/api/settings/blocked-accounts`);
+  const response = await fetch(`${API_BASE_URL}/api/settings/blocked-accounts`, {
+    headers: await authHeaders(),
+  });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Blocked accounts could not be loaded.');
   return data.blockedAccounts || [];
