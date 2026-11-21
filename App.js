@@ -3240,6 +3240,7 @@ export default function App() {
   const [notificationsBusy, setNotificationsBusy] = React.useState(false);
   const [notificationsListOpen, setNotificationsListOpen] =
     React.useState(false);
+  const [notificationFilter, setNotificationFilter] = React.useState("All");
   const [notificationsList, setNotificationsList] = React.useState([]);
   const [unreadNotificationCount, setUnreadNotificationCount] =
     React.useState(0);
@@ -3661,6 +3662,7 @@ export default function App() {
   };
 
   const openNotifications = async () => {
+    setNotificationFilter("All");
     setNotificationsListOpen(true);
     setNotificationsLoading(true);
     try {
@@ -12729,6 +12731,14 @@ export default function App() {
                 </TouchableOpacity>
               </View>
             </View>
+            <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
+              {["All", "Likes", "Comments", "Follows"].map((filter) => (
+                <TouchableOpacity key={filter} onPress={() => setNotificationFilter(filter)}
+                  style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 18, backgroundColor: notificationFilter === filter ? "#8B3DFF" : "#F5F5F5" }}>
+                  <Text style={{ color: notificationFilter === filter ? "#FFFFFF" : "#262626", fontSize: 12, fontWeight: "800" }}>{filter}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             {notificationsLoading ? (
               <Text
                 style={{ textAlign: "center", color: "#737373", padding: 25 }}
@@ -12737,7 +12747,12 @@ export default function App() {
               </Text>
             ) : (
               <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
-                {notificationsList.map((item, index) => {
+                {notificationsList.filter((item) => {
+                  if (notificationFilter === "All") return true;
+                  if (notificationFilter === "Likes") return item.kind === "like";
+                  if (notificationFilter === "Comments") return item.kind === "comment";
+                  return ["follow", "follow_request", "follow_accepted", "follow_rejected"].includes(item.kind);
+                }).map((item, index) => {
                   const actor = item.actor ? "@" + item.actor : "Someone";
                   const messages = {
                     follow_request: "sent you a follow request",
