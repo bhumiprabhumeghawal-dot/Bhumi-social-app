@@ -3389,7 +3389,7 @@ def init_chat_tables():
         for column in (
             "image_url", "delivered_at", "read_at", "reply_to_id",
             "attachment_url", "attachment_type", "attachment_name",
-            "attachment_mime", "attachment_size",
+            "attachment_mime", "attachment_size", "expires_at",
         ):
             if column not in columns:
                 db.execute(f"ALTER TABLE direct_messages ADD COLUMN {column} TEXT")
@@ -3407,8 +3407,8 @@ def init_chat_tables():
             )
         """)
 
-def _chat_preference(db, username, key, default=True):
-    """Read one authenticated user's persisted chat privacy preference."""
+def _chat_preferences(db, username):
+    """Read persisted privacy preferences for an authenticated account."""
     db.execute("""
         CREATE TABLE IF NOT EXISTS user_settings_preferences (
             username TEXT PRIMARY KEY,
@@ -3424,7 +3424,11 @@ def _chat_preference(db, username, key, default=True):
         values = json.loads(row["preferences_json"]) if row else {}
     except (TypeError, ValueError):
         values = {}
-    value = values.get(key, default)
+    return values if isinstance(values, dict) else {}
+
+
+def _chat_preference(db, username, key, default=True):
+    value = _chat_preferences(db, username).get(key, default)
     return value if isinstance(value, bool) else default
 
 
@@ -3940,6 +3944,10 @@ def get_direct_messages(username):
 
         target = user["username"]
         now = datetime.now(timezone.utc).isoformat()
+        db.execute(
+            "DELETE FROM direct_messages WHERE expires_at IS NOT NULL AND expires_at <= ?",
+            (now,),
+        )
 
         receipts_enabled = _chat_preference(db, current, "messages.readReceipts", True)
         if receipts_enabled:
@@ -3976,15 +3984,17 @@ def get_direct_messages(username):
                 dm.body, dm.image_url, dm.attachment_url, dm.attachment_type,
                 dm.attachment_name, dm.attachment_mime, dm.attachment_size,
                 dm.created_at, dm.delivered_at, dm.read_at, dm.reply_to_id,
+                dm.expires_at,
                 parent.body AS reply_text,
                 parent.sender_username AS reply_sender
             FROM direct_messages dm
             LEFT JOIN direct_messages parent ON parent.id = dm.reply_to_id
-            WHERE (LOWER(dm.sender_username)=LOWER(?) AND LOWER(dm.recipient_username)=LOWER(?))
-               OR (LOWER(dm.sender_username)=LOWER(?) AND LOWER(dm.recipient_username)=LOWER(?))
+            WHERE ((LOWER(dm.sender_username)=LOWER(?) AND LOWER(dm.recipient_username)=LOWER(?))
+               OR (LOWER(dm.sender_username)=LOWER(?) AND LOWER(dm.recipient_username)=LOWER(?)))
+              AND (dm.expires_at IS NULL OR dm.expires_at > ?)
             ORDER BY dm.created_at ASC, dm.id ASC
             LIMIT 500
-        """, (current, target, target, current)).fetchall()
+        """, (current, target, target, current, now)).fetchall()
 
     return jsonify({
         "username": target,
@@ -4002,6 +4012,7 @@ def get_direct_messages(username):
             "createdAt": row["created_at"],
             "deliveredAt": row["delivered_at"],
             "readAt": row["read_at"],
+            "expiresAt": row["expires_at"],
             "replyToId": row["reply_to_id"],
             "replyText": row["reply_text"],
             "replySender": row["reply_sender"],
@@ -4085,6 +4096,23 @@ def send_direct_message(username):
         if blocked_pair:
             return jsonify({"error": "Messages are unavailable between these users."}), 403
 
+        target_preferences = _chat_preferences(db, target)
+        contact_audience = target_preferences.get("privacy.contactAudience", "everyone")
+        follows_target = bool(db.execute("""
+            SELECT 1 FROM follows
+            WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)
+            LIMIT 1
+        """, (current, target)).fetchone())
+        target_follows_current = bool(db.execute("""
+            SELECT 1 FROM follows
+            WHERE LOWER(follower)=LOWER(?) AND LOWER(following)=LOWER(?)
+            LIMIT 1
+        """, (target, current)).fetchone())
+        if contact_audience == "friends" and not (follows_target and target_follows_current):
+            return jsonify({"error": "This user only accepts messages from friends."}), 403
+        if contact_audience == "followers" and not follows_target:
+            return jsonify({"error": "This user only accepts messages from followers."}), 403
+
         settings = db.execute(
             "SELECT allow_messages FROM user_settings WHERE username=?",
             (target,),
@@ -4124,17 +4152,24 @@ def send_direct_message(username):
             if not parent:
                 return jsonify({"error": "Reply message not found in this chat."}), 404
 
+        disappearing = _chat_preferences(db, current).get("messages.disappearing", "off")
+        expiry_hours = {"24h": 24, "7d": 24 * 7, "24_hours": 24, "7_days": 24 * 7}.get(disappearing)
+        expires_at = (
+            (datetime.now(timezone.utc) + timedelta(hours=expiry_hours)).isoformat()
+            if expiry_hours else None
+        )
         db.execute("""
             INSERT INTO direct_messages (
                 id, sender_username, recipient_username, body, image_url, created_at,
                 reply_to_id, attachment_url, attachment_type, attachment_name,
-                attachment_mime, attachment_size
+                attachment_mime, attachment_size, expires_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             message_id, current, target, body, legacy_image_url, now,
             reply_to_id, attachment_url, attachment_type, attachment_name,
             attachment_mime, str(attachment_size) if attachment_size is not None else None,
+            expires_at,
         ))
         _people_notification(db, target, current, "message", message_id, now)
 
@@ -4224,7 +4259,8 @@ def update_chat_typing(username):
             return jsonify({"error": "User not found."}), 404
 
         target = user["username"]
-        if not _chat_preference(db, current, "messages.typing", True):
+        if not _chat_preference(db, current, "messages.typingIndicator",
+                                 _chat_preference(db, current, "messages.typing", True)):
             db.execute("""
                 DELETE FROM direct_message_typing
                 WHERE LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?)
@@ -4264,7 +4300,8 @@ def get_chat_typing(username):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
-        if not _chat_preference(db, current, "messages.typing", True):
+        if not _chat_preference(db, current, "messages.typingIndicator",
+                                 _chat_preference(db, current, "messages.typing", True)):
             return jsonify({"typing": False})
         blocked_pair = db.execute("""
             SELECT 1 FROM people_blocks
