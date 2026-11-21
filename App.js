@@ -1376,7 +1376,7 @@ function PostCard({
             <Ionicons name="chatbubble-outline" size={24} color="#0095F6" />
           </TouchableOpacity>
           <TouchableOpacity onPress={sharePost}>
-            <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
+            <Ionicons name="paper-plane-outline" size={25} color="#262626" />
           </TouchableOpacity>
           <View style={styles.actionSpacer} />
           <TouchableOpacity onPress={() => setSaved(!saved)}>
@@ -4998,10 +4998,10 @@ export default function App() {
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 17 }}>
         <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel="Create menu" style={{ padding: 3 }}>
-          <Ionicons name="add-circle-outline" size={27} color="#FFFFFF" />
+          <Ionicons name="add-circle-outline" size={27} color="#262626" />
         </TouchableOpacity>
         <TouchableOpacity onPress={openNotifications} accessibilityLabel="Notifications" style={{ position: "relative", padding: 3 }}>
-          <Ionicons name="heart-outline" size={26} color="#FFFFFF" />
+          <Ionicons name="heart-outline" size={26} color="#262626" />
           {unreadNotificationCount > 0 ? (
             <View style={{ position: "absolute", right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#E1306C", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}>
               <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text>
@@ -13171,7 +13171,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#000000" },
+  screen: { flex: 1, backgroundColor: "#FFFFFF" },
   content: { flex: 1 },
   header: {
     height: 82,
@@ -13182,15 +13182,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#262626",
-    backgroundColor: "#000000",
+    borderBottomColor: "#DBDBDB",
+    backgroundColor: "#FFFFFF",
   },
   brand: {
     flex: 1,
     textAlign: "left",
     fontSize: 18,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: "#262626",
     letterSpacing: -0.4,
   },
   headerSideSpacer: { width: 116 },
@@ -13228,14 +13228,14 @@ const styles = StyleSheet.create({
   },
   plus: { fontSize: 30, color: "#FFFFFF" },
   avatarLetter: { fontSize: 22, fontWeight: "700", color: "#343434" },
-  storyName: { marginTop: 5, fontSize: 11, color: "#E5E5E5" },
-  feedDivider: { height: 1, backgroundColor: "#262626" },
+  storyName: { marginTop: 5, fontSize: 11, color: "#262626" },
+  feedDivider: { height: 1, backgroundColor: "#EFEFEF" },
   post: {
     marginHorizontal: 0,
     marginBottom: 10,
-    backgroundColor: "#000000",
+    backgroundColor: "#FFFFFF",
     borderWidth: 0,
-    borderColor: "#000000",
+    borderColor: "#FFFFFF",
     borderRadius: 0,
     overflow: "hidden",
   },
@@ -13255,8 +13255,8 @@ const styles = StyleSheet.create({
   },
   smallAvatarText: { fontSize: 16, fontWeight: "700", color: "#FFFFFF" },
   postUserInfo: { flex: 1, marginLeft: 10 },
-  username: { fontSize: 14, fontWeight: "700", color: "#FFFFFF" },
-  location: { marginTop: 2, fontSize: 11, color: "#A8A8A8" },
+  username: { fontSize: 14, fontWeight: "700", color: "#262626" },
+  location: { marginTop: 2, fontSize: 11, color: "#737373" },
   more: {
     fontSize: 19,
     fontWeight: "700",
@@ -13277,7 +13277,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     gap: 20,
   },
-  actionIcon: { fontSize: 28, color: "#FFFFFF" },
+  actionIcon: { fontSize: 28, color: "#262626" },
   liked: { color: "#E1306C" },
   actionSpacer: { flex: 1 },
   likes: {
@@ -13285,19 +13285,19 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 13,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#262626",
   },
   caption: {
     marginHorizontal: 13,
     marginTop: 5,
     fontSize: 13,
-    color: "#E5E5E5",
+    color: "#262626",
     lineHeight: 19,
   },
   comments: {
     marginHorizontal: 13,
     marginTop: 5,
-    color: "#A8A8A8",
+    color: "#737373",
     fontSize: 12,
   },
   time: {
@@ -13311,16 +13311,16 @@ const styles = StyleSheet.create({
     height: Platform.OS === "android" ? 86 : 70,
     paddingBottom: Platform.OS === "android" ? 36 : 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#262626",
+    borderTopColor: "#DBDBDB",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    backgroundColor: "#000000",
+    backgroundColor: "#FFFFFF",
   },
   navItem: { flex: 1, alignItems: "center", justifyContent: "center" },
   navIcon: { fontSize: 24, color: "#8E8E93" },
   activeNavIcon: { color: "#0095F6", fontWeight: "800" },
-  navLabel: { fontSize: 9, color: "#A8A8A8", marginTop: 1 },
+  navLabel: { fontSize: 9, color: "#737373", marginTop: 1 },
   activeNavLabel: { color: "#0095F6", fontWeight: "800" },
 });
 
