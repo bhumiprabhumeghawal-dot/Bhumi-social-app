@@ -1,13 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
 import { StatusBar } from "expo-status-bar";
 import appConfig from "./app.json";
 import SettingsDashboard from "./SettingsDashboard";
@@ -153,6 +145,15 @@ import {
   Modal,
   Linking,
 } from "react-native";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 function formatHindiLastSeen(value) {
   const stamp = new Date(value).getTime();
