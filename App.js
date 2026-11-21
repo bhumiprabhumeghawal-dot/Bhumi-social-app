@@ -7522,9 +7522,9 @@ export default function App() {
                               width: 23,
                               height: 23,
                               borderRadius: 12,
-                              backgroundColor: "#F5F5F5",
+                              backgroundColor: "#1C1C1E",
                               borderWidth: 2,
-                              borderColor: "#DBDBDB",
+                              borderColor: "#303030",
                               alignItems: "center",
                               justifyContent: "center",
                             }}
@@ -7654,7 +7654,7 @@ export default function App() {
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ color: "#737373" }}>No posts yet.</Text>
+                  <Text style={{ color: "#A8A8A8" }}>No posts yet.</Text>
                 </View>
               }
             />
@@ -7668,7 +7668,7 @@ export default function App() {
         >
           <Text
             style={{
-              color: "#262626",
+              color: "#F5F5F5",
               fontSize: 26,
               fontWeight: "800",
               marginBottom: 16,
@@ -7680,7 +7680,7 @@ export default function App() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: "#F5F5F5",
+              backgroundColor: "#1C1C1E",
               borderRadius: 12,
               paddingHorizontal: 14,
               marginBottom: 18,
@@ -7701,7 +7701,7 @@ export default function App() {
                 flex: 1,
                 paddingVertical: 14,
                 paddingHorizontal: 10,
-                color: "#262626",
+                color: "#F5F5F5",
                 fontSize: 15,
               }}
             />
@@ -7716,7 +7716,7 @@ export default function App() {
           </View>
           {searchQuery.trim().length < 2 ? (
             <View style={{ paddingTop: 8 }}>
-              <Text style={{ color: "#262626", fontSize: 18, fontWeight: "800", marginBottom: 12 }}>Explore</Text>
+              <Text style={{ color: "#F5F5F5", fontSize: 18, fontWeight: "800", marginBottom: 12 }}>Explore</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 3 }}>
                 {groupPostItems(feedPosts).slice(0, 18).map((post, index) => {
                   const media = post.mediaItems?.[0] || post;
@@ -7724,17 +7724,17 @@ export default function App() {
                   return (
                     <TouchableOpacity key={post.groupId || post.id || `explore-${index}`} activeOpacity={0.88}
                       onPress={() => { setSelectedPostMediaIndex(0); setSelectedPost(post); }}
-                      style={{ width: "33%", aspectRatio: 1, marginBottom: 2, backgroundColor: "#F0F0F0", overflow: "hidden" }}>
+                      style={{ width: "33%", aspectRatio: 1, marginBottom: 2, backgroundColor: "#121212", overflow: "hidden" }}>
                       {uri ? <Image source={{ uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" /> :
-                        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Ionicons name="image-outline" size={26} color="#8B3DFF" /></View>}
+                        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Ionicons name="image-outline" size={26} color="#0095F6" /></View>}
                     </TouchableOpacity>
                   );
                 })}
               </View>
-              {!feedPosts.length ? <Text style={{ color: "#737373", textAlign: "center", paddingVertical: 20 }}>Posts from the community will appear here.</Text> : null}
+              {!feedPosts.length ? <Text style={{ color: "#A8A8A8", textAlign: "center", paddingVertical: 20 }}>Posts from the community will appear here.</Text> : null}
             </View>
           ) : searchLoading ? (
-            <Text style={{ color: "#737373", paddingVertical: 12 }}>
+            <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
               Searching...
             </Text>
           ) : searchError ? (
@@ -7742,7 +7742,7 @@ export default function App() {
               {searchError}
             </Text>
           ) : searchResults.length === 0 ? (
-            <Text style={{ color: "#737373", paddingVertical: 12 }}>
+            <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
               No users found.
             </Text>
           ) : (
@@ -7754,7 +7754,7 @@ export default function App() {
                   alignItems: "center",
                   paddingVertical: 13,
                   borderBottomWidth: 1,
-                  borderBottomColor: "#DBDBDB",
+                  borderBottomColor: "#303030",
                 }}
               >
                 <TouchableOpacity
@@ -7795,7 +7795,7 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F5F5F5",
                           fontSize: 20,
                           fontWeight: "700",
                         }}
@@ -7809,7 +7809,7 @@ export default function App() {
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#F5F5F5",
                         fontWeight: "700",
                         fontSize: 15,
                       }}
@@ -7817,7 +7817,7 @@ export default function App() {
                       {item.displayName || item.username}
                     </Text>
                     <Text
-                      style={{ color: "#737373", fontSize: 13, marginTop: 3 }}
+                      style={{ color: "#A8A8A8", fontSize: 13, marginTop: 3 }}
                     >
                       @{item.username}
                     </Text>
@@ -7934,7 +7934,7 @@ export default function App() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
         >
           {!profile ? (
-            <Text style={{ color: "#737373", textAlign: "center", padding: 24 }}>
+            <Text style={{ color: "#A8A8A8", textAlign: "center", padding: 24 }}>
               
             </Text>
           ) : (
@@ -7962,7 +7962,7 @@ export default function App() {
                       height: 96,
                       borderRadius: 48,
                       borderWidth: 3,
-                      borderColor: "#8B3DFF",
+                      borderColor: "#0095F6",
                       padding: 2,
                       alignItems: "center",
                       justifyContent: "center",
@@ -8004,7 +8004,7 @@ export default function App() {
                       >
                         <Text
                           style={{
-                            color: "#262626",
+                            color: "#F5F5F5",
                             fontSize: 32,
                             fontWeight: "700",
                           }}
@@ -8016,7 +8016,7 @@ export default function App() {
                   </View>
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F5F5F5",
                       fontSize: 12,
                       textAlign: "center",
                       marginTop: 5,
@@ -8029,7 +8029,7 @@ export default function App() {
                 <View style={{ flex: 1, marginLeft: 16 }}>
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F5F5F5",
                       fontSize: 21,
                       fontWeight: "800",
                     }}
@@ -8037,7 +8037,7 @@ export default function App() {
                     {profile.displayName || "you"}
                   </Text>
                   <Text
-                    style={{ color: "#737373", marginTop: 5, fontSize: 13 }}
+                    style={{ color: "#A8A8A8", marginTop: 5, fontSize: 13 }}
                   >
                     @{profile.username || "you"}
                   </Text>
@@ -8051,14 +8051,14 @@ export default function App() {
                     <View style={{ alignItems: "center" }}>
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F5F5F5",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
                       >
                         {profile.postsCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#737373", fontSize: 11 }}>
+                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
                         Posts
                       </Text>
                     </View>
@@ -8068,14 +8068,14 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F5F5F5",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
                       >
                         {profile.followersCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#737373", fontSize: 11 }}>
+                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
                         Followers
                       </Text>
                     </TouchableOpacity>
@@ -8085,14 +8085,14 @@ export default function App() {
                     >
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F5F5F5",
                           fontWeight: "900",
                           fontSize: 18,
                         }}
                       >
                         {profile.followingCount ?? 0}
                       </Text>
-                      <Text style={{ color: "#737373", fontSize: 11 }}>
+                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
                         Following
                       </Text>
                     </TouchableOpacity>
@@ -8106,13 +8106,13 @@ export default function App() {
                     marginBottom: 18,
                     padding: 12,
                     borderBottomWidth: 1,
-                    borderColor: "#DBDBDB",
+                    borderColor: "#303030",
                     borderRadius: 0,
                   }}
                 >
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F5F5F5",
                       fontSize: 15,
                       fontWeight: "800",
                       marginBottom: 10,
@@ -8149,7 +8149,7 @@ export default function App() {
                             paddingVertical: 10,
                             paddingHorizontal: 14,
                             borderRadius: 20,
-                            backgroundColor: "#F5F5F5",
+                            backgroundColor: "#1C1C1E",
                             flexDirection: "row",
                             alignItems: "center",
                             gap: 5,
@@ -8158,9 +8158,9 @@ export default function App() {
                           <Ionicons
                             name="add-circle"
                             size={18}
-                            color="#8B3DFF"
+                            color="#0095F6"
                           />
-                          <Text style={{ color: "#262626", fontWeight: "700" }}>
+                          <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
                             Add Status
                           </Text>
                         </TouchableOpacity>
@@ -8173,7 +8173,7 @@ export default function App() {
               {!!profile.bio && (
                 <Text
                   style={{
-                    color: "#262626",
+                    color: "#F5F5F5",
                     marginBottom: 20,
                     lineHeight: 23,
                     fontSize: 14,
@@ -8184,65 +8184,65 @@ export default function App() {
               )}
 
               {profile.accountType === "business" && profile.businessProfile && (
-                <View style={{ backgroundColor: "#FAFAFA", borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 14, padding: 15, marginBottom: 18 }}>
+                <View style={{ backgroundColor: "#121212", borderWidth: 1, borderColor: "#303030", borderRadius: 14, padding: 15, marginBottom: 18 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 9 }}>
-                    <Ionicons name="business" size={20} color="#8B3DFF" />
-                    <Text style={{ color: "#8B3DFF", fontWeight: "900", fontSize: 16, marginLeft: 8 }}>
+                    <Ionicons name="business" size={20} color="#0095F6" />
+                    <Text style={{ color: "#0095F6", fontWeight: "900", fontSize: 16, marginLeft: 8 }}>
                       {profile.businessProfile.businessName || "Business"}
                     </Text>
-                    <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
-                      <Text style={{ color: "#8B3DFF", fontSize: 9, fontWeight: "800" }}>BUSINESS</Text>
+                    <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#303030", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
+                      <Text style={{ color: "#0095F6", fontSize: 9, fontWeight: "800" }}>BUSINESS</Text>
                     </View>
                   </View>
-                  {!!profile.businessProfile.category && <Text style={{ color: "#737373", fontSize: 12, marginBottom: 6 }}>{profile.businessProfile.category}</Text>}
-                  {!!profile.businessProfile.description && <Text style={{ color: "#262626", fontSize: 13, lineHeight: 19, marginBottom: 8 }}>{profile.businessProfile.description}</Text>}
+                  {!!profile.businessProfile.category && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 6 }}>{profile.businessProfile.category}</Text>}
+                  {!!profile.businessProfile.description && <Text style={{ color: "#F5F5F5", fontSize: 13, lineHeight: 19, marginBottom: 8 }}>{profile.businessProfile.description}</Text>}
                   {!!(profile.businessProfile.area || profile.businessProfile.city || profile.businessProfile.state) && (
                     <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                      <Ionicons name="location" size={15} color="#8B3DFF" />
-                      <Text style={{ color: "#555555", fontSize: 12, marginLeft: 6 }}>
+                      <Ionicons name="location" size={15} color="#0095F6" />
+                      <Text style={{ color: "#A8A8A8", fontSize: 12, marginLeft: 6 }}>
                         {[profile.businessProfile.area, profile.businessProfile.city, profile.businessProfile.state, profile.businessProfile.pincode].filter(Boolean).join(", ")}
                       </Text>
                     </View>
                   )}
-                  {!!profile.businessProfile.serviceAreas && <Text style={{ color: "#737373", fontSize: 12, marginBottom: 5 }}>Serving: {profile.businessProfile.serviceAreas}</Text>}
-                  {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#737373", fontSize: 12, marginBottom: 5 }}>Service radius: {profile.businessProfile.serviceRadiusKm} km</Text>}
-                  {!!profile.businessProfile.address && <Text style={{ color: "#737373", fontSize: 12, marginBottom: 5 }}>Address: {profile.businessProfile.address}</Text>}
-                  {!!profile.businessProfile.openingHours && <Text style={{ color: "#737373", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
-                  {!!profile.businessProfile.phone && <Text style={{ color: "#555555", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
-                  {!!profile.businessProfile.whatsapp && <Text style={{ color: "#555555", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
+                  {!!profile.businessProfile.serviceAreas && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Serving: {profile.businessProfile.serviceAreas}</Text>}
+                  {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Service radius: {profile.businessProfile.serviceRadiusKm} km</Text>}
+                  {!!profile.businessProfile.address && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Address: {profile.businessProfile.address}</Text>}
+                  {!!profile.businessProfile.openingHours && <Text style={{ color: "#A8A8A8", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
+                  {!!profile.businessProfile.phone && <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
+                  {!!profile.businessProfile.whatsapp && <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9 }}>
                     {!!profile.businessProfile.phone && (
-                      <TouchableOpacity onPress={() => Linking.openURL("tel:" + profile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#F5F5F5", borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="call" size={14} color="#8B3DFF" />
-                        <Text style={{ color: "#262626", fontSize: 11, marginLeft: 5 }}>Call</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL("tel:" + profile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="call" size={14} color="#0095F6" />
+                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>Call</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.whatsapp && (
-                      <TouchableOpacity onPress={() => Linking.openURL("https://wa.me/" + profile.businessProfile.whatsapp.replace(/[^0-9]/g, ""))} style={{ backgroundColor: "#F5F5F5", borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="logo-whatsapp" size={14} color="#8B3DFF" />
-                        <Text style={{ color: "#262626", fontSize: 11, marginLeft: 5 }}>WhatsApp</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL("https://wa.me/" + profile.businessProfile.whatsapp.replace(/[^0-9]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="logo-whatsapp" size={14} color="#0095F6" />
+                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>WhatsApp</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.email && (
-                      <TouchableOpacity onPress={() => Linking.openURL("mailto:" + profile.businessProfile.email)} style={{ backgroundColor: "#F5F5F5", borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="mail" size={14} color="#8B3DFF" />
-                        <Text style={{ color: "#262626", fontSize: 11, marginLeft: 5 }}>Email</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL("mailto:" + profile.businessProfile.email)} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="mail" size={14} color="#0095F6" />
+                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>Email</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.website && (
-                      <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(profile.businessProfile.website) ? profile.businessProfile.website : "https://" + profile.businessProfile.website)} style={{ backgroundColor: "#F5F5F5", borderWidth: 1, borderColor: "#DBDBDB", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="globe-outline" size={14} color="#8B3DFF" />
-                        <Text style={{ color: "#262626", fontSize: 11, marginLeft: 5 }}>Website</Text>
+                      <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(profile.businessProfile.website) ? profile.businessProfile.website : "https://" + profile.businessProfile.website)} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="globe-outline" size={14} color="#0095F6" />
+                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>Website</Text>
                       </TouchableOpacity>
                     )}
                   </View>
                   {!!profile.businessCatalog?.length && (
                     <View style={{ borderTopWidth: 1, borderTopColor: "#DBDBDB", marginTop: 11, paddingTop: 10 }}>
-                      <Text style={{ color: "#8B3DFF", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
+                      <Text style={{ color: "#0095F6", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
                       {profile.businessCatalog.slice(0, 5).map((item) => (
-                        <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#DBDBDB" }}>
-                          <Text style={{ color: "#262626", fontWeight: "700" }}>{item.title} {item.price ? "· " + item.price : ""}</Text>
-                          {!!item.description && <Text numberOfLines={2} style={{ color: "#737373", fontSize: 11, marginTop: 2 }}>{item.description}</Text>}
+                        <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#303030" }}>
+                          <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>{item.title} {item.price ? "· " + item.price : ""}</Text>
+                          {!!item.description && <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}>{item.description}</Text>}
                         </View>
                       ))}
                     </View>
@@ -8252,7 +8252,7 @@ export default function App() {
 
               {profileEditing ? (
                 <View>
-                  <Text style={{ color: "#262626", marginBottom: 5 }}>
+                  <Text style={{ color: "#F5F5F5", marginBottom: 5 }}>
                     Display Name
                   </Text>
                   <TextInput
@@ -8264,20 +8264,20 @@ export default function App() {
                     placeholder="Display Name"
                     style={{
                       borderWidth: 1,
-                      borderColor: "#DBDBDB",
+                      borderColor: "#303030",
                       borderRadius: 12,
                       padding: 11,
-                      color: "#262626",
+                      color: "#F5F5F5",
                       marginBottom: 12,
                     }}
                   />
-                  <Text style={{ color: "#737373", marginBottom: 5 }}>
+                  <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>
                     Username (स्थायी)
                   </Text>
-                  <Text style={{ color: "#737373", paddingVertical: 10 }}>
+                  <Text style={{ color: "#A8A8A8", paddingVertical: 10 }}>
                     @{profile.username || "you"}
                   </Text>
-                  <Text style={{ color: "#737373", marginBottom: 5 }}>Bio</Text>
+                  <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>Bio</Text>
                   <TextInput
                     value={profileDraft.bio}
                     onChangeText={(v) =>
@@ -8302,9 +8302,9 @@ export default function App() {
                       onPress={saveProfile}
                       disabled={profileBusy}
                       style={{
-                        backgroundColor: "#8B3DFF",
+                        backgroundColor: "#0095F6",
                         borderWidth: 1,
-                        borderColor: "#8B3DFF",
+                        borderColor: "#0095F6",
                         paddingVertical: 13,
                         paddingHorizontal: 24,
                         borderRadius: 13,
@@ -8325,7 +8325,7 @@ export default function App() {
                       }}
                       style={{ padding: 12 }}
                     >
-                      <Text style={{ color: "#737373" }}>Back</Text>
+                      <Text style={{ color: "#A8A8A8" }}>Back</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -8341,9 +8341,9 @@ export default function App() {
                     onPress={() => setProfileEditing(true)}
                     style={{
                       borderWidth: 1,
-                      borderColor: "#8B3DFF",
+                      borderColor: "#0095F6",
                       borderRadius: 14,
-                      backgroundColor: "#8B3DFF",
+                      backgroundColor: "#0095F6",
                       paddingVertical: 13,
                       paddingHorizontal: 24,
                       marginRight: 8,
@@ -8358,16 +8358,16 @@ export default function App() {
                     onPress={() => Share.share({ message: `Follow @${profile.username || authSession?.username || "me"} on Bhumi Social AI.` })}
                     style={{
                       borderWidth: 1,
-                      borderColor: "#DBDBDB",
+                      borderColor: "#303030",
                       borderRadius: 14,
-                      backgroundColor: "#F5F5F5",
+                      backgroundColor: "#1C1C1E",
                       paddingVertical: 13,
                       paddingHorizontal: 18,
                       marginRight: 8,
                       marginBottom: 8,
                     }}
                   >
-                    <Text style={{ color: "#262626", fontWeight: "800" }}>Share Profile</Text>
+                    <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>Share Profile</Text>
                   </TouchableOpacity>
                   {!!profile.avatarUrl && (
                     <TouchableOpacity
@@ -8405,9 +8405,9 @@ export default function App() {
                   marginBottom: 16,
                   padding: 15,
                   borderWidth: 1,
-                  borderColor: "#DBDBDB",
+                  borderColor: "#303030",
                   borderRadius: 17,
-                  backgroundColor: "#FFFFFF",
+                  backgroundColor: "#121212",
                 }}
               >
                 <View
@@ -8420,7 +8420,7 @@ export default function App() {
                 >
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F5F5F5",
                       fontWeight: "800",
                       fontSize: 17,
                     }}
@@ -8431,13 +8431,13 @@ export default function App() {
                     onPress={refreshFollowRequests}
                     disabled={followRequestsBusy}
                   >
-                    <Text style={{ color: "#262626", fontWeight: "700" }}>
+                    <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
                       {followRequestsBusy ? "" : "Refresh"}
                     </Text>
                   </TouchableOpacity>
                 </View>
                 {followRequests.length === 0 ? (
-                  <Text style={{ color: "#737373", paddingVertical: 8 }}>
+                  <Text style={{ color: "#A8A8A8", paddingVertical: 8 }}>
                     अभी कोई pending follow request नहीं है।
                   </Text>
                 ) : (
@@ -8453,10 +8453,10 @@ export default function App() {
                       }}
                     >
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: "#262626", fontWeight: "800" }}>
+                        <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>
                           {request.displayName || request.username}
                         </Text>
-                        <Text style={{ color: "#737373", fontSize: 12 }}>
+                        <Text style={{ color: "#A8A8A8", fontSize: 12 }}>
                           @{request.username}
                         </Text>
                       </View>
@@ -8466,7 +8466,7 @@ export default function App() {
                           resolveFollowRequest(request.id, "accept")
                         }
                         style={{
-                          backgroundColor: "#8B3DFF",
+                          backgroundColor: "#0095F6",
                           paddingHorizontal: 13,
                           paddingVertical: 9,
                           borderRadius: 10,
@@ -8483,13 +8483,13 @@ export default function App() {
                           resolveFollowRequest(request.id, "reject")
                         }
                         style={{
-                          backgroundColor: "#F5F5F5",
+                          backgroundColor: "#1C1C1E",
                           paddingHorizontal: 13,
                           paddingVertical: 9,
                           borderRadius: 10,
                         }}
                       >
-                        <Text style={{ color: "#262626", fontWeight: "700" }}>
+                        <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
                           Reject
                         </Text>
                       </TouchableOpacity>
@@ -8508,7 +8508,7 @@ export default function App() {
                 }}
               >
                 <Text
-                  style={{ color: "#262626", fontWeight: "800", fontSize: 19 }}
+                  style={{ color: "#F5F5F5", fontWeight: "800", fontSize: 19 }}
                 >
                   Profile Settings
                 </Text>
@@ -8520,16 +8520,16 @@ export default function App() {
                     width: 42,
                     height: 42,
                     borderRadius: 13,
-                    backgroundColor: "#F5F5F5",
+                    backgroundColor: "#1C1C1E",
                     borderWidth: 1,
-                    borderColor: "#DBDBDB",
+                    borderColor: "#303030",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F5F5F5",
                       fontSize: 23,
                       fontWeight: "800",
                     }}
@@ -8541,26 +8541,26 @@ export default function App() {
               {privacySettings.accountType === "business" && (
               <TouchableOpacity
                 onPress={() => { setBusinessDirectoryResults([]); setBusinessDirectoryOpen(true); }}
-                style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#DBDBDB", backgroundColor: "#FAFAFA", flexDirection: "row", alignItems: "center" }}
+                style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#303030", backgroundColor: "#121212", flexDirection: "row", alignItems: "center" }}
               >
-                <Ionicons name="storefront" size={23} color="#8B3DFF" />
+                <Ionicons name="storefront" size={23} color="#0095F6" />
                 <View style={{ marginLeft: 11, flex: 1 }}>
-                  <Text style={{ color: "#262626", fontWeight: "800" }}>Area-wise Business Directory</Text>
-                  <Text style={{ color: "#737373", fontSize: 11, marginTop: 3 }}>Discover local brands, shops and services</Text>
+                  <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>Area-wise Business Directory</Text>
+                  <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 3 }}>Discover local brands, shops and services</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="#8B3DFF" />
+                <Ionicons name="chevron-forward" size={18} color="#0095F6" />
               </TouchableOpacity>
               )}
               <View>
                 <View
                   style={{
                     borderWidth: 1,
-                    borderColor: "#DBDBDB",
+                    borderColor: "#303030",
                     borderRadius: 16,
                     paddingHorizontal: 15,
                     paddingVertical: 15,
                     marginBottom: 12,
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: "#121212",
                   }}
                 >
                   <View
@@ -8573,7 +8573,7 @@ export default function App() {
                     <View style={{ flex: 1, paddingRight: 12 }}>
                       <Text
                         style={{
-                          color: "#262626",
+                          color: "#F5F5F5",
                           fontWeight: "700",
                           fontSize: 15,
                         }}
@@ -8581,7 +8581,7 @@ export default function App() {
                         Notifications
                       </Text>
                       <Text
-                        style={{ color: "#737373", fontSize: 12, marginTop: 4 }}
+                        style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
                       >
                         {notificationsEnabled
                           ? "Preference enabled"
@@ -8602,20 +8602,20 @@ export default function App() {
                   disabled={notificationsBusy}
                   style={{
                     borderWidth: 1,
-                    borderColor: "#DBDBDB",
+                    borderColor: "#303030",
                     borderRadius: 14,
                     padding: 14,
                     marginBottom: 11,
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: "#121212",
                   }}
                 >
-                  <Text style={{ color: "#262626", fontWeight: "700" }}>
+                  <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
                     {notificationDetailsOpen
                       ? "Hide notification options"
                       : "Manage notification options"}
                   </Text>
                   <Text
-                    style={{ color: "#737373", fontSize: 12, marginTop: 4 }}
+                    style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
                   >
                     Likes, comments, follows, messages and system alerts
                   </Text>
@@ -8624,11 +8624,11 @@ export default function App() {
                   <View
                     style={{
                       borderWidth: 1,
-                      borderColor: "#DBDBDB",
+                      borderColor: "#303030",
                       borderRadius: 14,
                       padding: 14,
                       marginBottom: 12,
-                      backgroundColor: "#FFFFFF",
+                      backgroundColor: "#121212",
                     }}
                   >
                     {[
@@ -8647,7 +8647,7 @@ export default function App() {
                           paddingVertical: 8,
                         }}
                       >
-                        <Text style={{ color: "#262626", fontWeight: "600" }}>
+                        <Text style={{ color: "#F5F5F5", fontWeight: "600" }}>
                           {item.label}
                         </Text>
                         <Switch
@@ -8694,16 +8694,16 @@ export default function App() {
                       paddingVertical: 15,
                       paddingHorizontal: 15,
                       borderWidth: 1,
-                      borderColor: "#DBDBDB",
+                      borderColor: "#303030",
                       borderRadius: 15,
                       marginBottom: 10,
-                      backgroundColor: "#FFFFFF",
+                      backgroundColor: "#121212",
                       elevation: 1,
                     }}
                   >
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#F5F5F5",
                         fontWeight: "700",
                         fontSize: 15,
                       }}
@@ -8711,7 +8711,7 @@ export default function App() {
                       {item.title}
                     </Text>
                     <Text
-                      style={{ color: "#737373", fontSize: 11, marginTop: 4 }}
+                      style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}
                     >
                       {item.subtitle}
                     </Text>
@@ -8728,9 +8728,9 @@ export default function App() {
                   paddingHorizontal: 15,
                   paddingVertical: 14,
                   borderRadius: 14,
-                  backgroundColor: "#F5F5F5",
+                  backgroundColor: "#1C1C1E",
                   borderWidth: 1,
-                  borderColor: "#DBDBDB",
+                  borderColor: "#303030",
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -8743,11 +8743,11 @@ export default function App() {
                     gap: 10,
                   }}
                 >
-                  <Ionicons name="bookmark" size={21} color="#8B3DFF" />
+                  <Ionicons name="bookmark" size={21} color="#0095F6" />
                   <View>
                     <Text
                       style={{
-                        color: "#262626",
+                        color: "#F5F5F5",
                         fontWeight: "800",
                         fontSize: 15,
                       }}
@@ -8755,13 +8755,13 @@ export default function App() {
                       Saved
                     </Text>
                     <Text
-                      style={{ color: "#737373", fontSize: 11, marginTop: 2 }}
+                      style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}
                     >
                       Your saved posts and reels
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#8B3DFF" />
+                <Ionicons name="chevron-forward" size={20} color="#0095F6" />
               </TouchableOpacity>
               <View
                 style={{
@@ -8773,11 +8773,11 @@ export default function App() {
                 }}
               >
                 <Text
-                  style={{ color: "#262626", fontSize: 19, fontWeight: "800" }}
+                  style={{ color: "#F5F5F5", fontSize: 19, fontWeight: "800" }}
                 >
                   Your Posts
                 </Text>
-                <Ionicons name="grid-outline" size={21} color="#8B3DFF" />
+                <Ionicons name="grid-outline" size={21} color="#0095F6" />
               </View>
               {groupPostItems(
                 feedPosts.filter((p) => (p.user || "you") === "you"),
@@ -8807,13 +8807,13 @@ export default function App() {
                         style={{
                           width: "32.5%",
                           aspectRatio: 1,
-                          backgroundColor: "#F5F5F5",
+                          backgroundColor: "#1C1C1E",
                           borderRadius: 11,
                           overflow: "hidden",
                           alignItems: "center",
                           justifyContent: "center",
                           borderWidth: 1,
-                          borderColor: "#DBDBDB",
+                          borderColor: "#303030",
                         }}
                       >
                         {media.uri &&
@@ -8905,10 +8905,10 @@ export default function App() {
                     alignItems: "center",
                     paddingVertical: 28,
                     paddingHorizontal: 18,
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: "#121212",
                     borderRadius: 16,
                     borderWidth: 1,
-                    borderColor: "#DBDBDB",
+                    borderColor: "#303030",
                   }}
                 >
                   <View
@@ -8916,7 +8916,7 @@ export default function App() {
                       width: 58,
                       height: 58,
                       borderRadius: 20,
-                      backgroundColor: "#F5F5F5",
+                      backgroundColor: "#1C1C1E",
                       alignItems: "center",
                       justifyContent: "center",
                       marginBottom: 12,
@@ -8926,7 +8926,7 @@ export default function App() {
                   </View>
                   <Text
                     style={{
-                      color: "#262626",
+                      color: "#F5F5F5",
                       fontSize: 16,
                       fontWeight: "800",
                       marginBottom: 6,
@@ -8936,7 +8936,7 @@ export default function App() {
                   </Text>
                   <Text
                     style={{
-                      color: "#737373",
+                      color: "#A8A8A8",
                       fontSize: 12,
                       textAlign: "center",
                       lineHeight: 18,
@@ -8949,7 +8949,7 @@ export default function App() {
                     onPress={() => handleTab("Create")}
                     activeOpacity={0.85}
                     style={{
-                      backgroundColor: "#8B3DFF",
+                      backgroundColor: "#0095F6",
                       paddingHorizontal: 22,
                       paddingVertical: 11,
                       borderRadius: 12,
@@ -8974,7 +8974,7 @@ export default function App() {
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
-          <Text style={{ color: "#737373" }}>{activeTab}</Text>
+          <Text style={{ color: "#A8A8A8" }}>{activeTab}</Text>
         </View>
       )}
 
@@ -8995,7 +8995,7 @@ export default function App() {
             <Ionicons
               name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
               size={25}
-              color={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? "#8B3DFF" : "#737373"}
+              color={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? "#0095F6" : "#737373"}
             />
             <Text
               style={[
