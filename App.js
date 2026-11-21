@@ -4995,7 +4995,7 @@ export default function App() {
   const renderAppHeader = () => (
     <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative" }]}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flex: 1 }}>
-        <Text accessibilityLabel="Bhumi Social AI logo" style={{ width: 32, textAlign: "center", fontFamily: "serif", fontStyle: "italic", fontSize: 31, fontWeight: "900", color: "#8B3DFF" }}>ℬ</Text>
+        <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 32, height: 32 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
         <Text style={styles.brand} numberOfLines={1}>Bhumi Social AI</Text>
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 17 }}>
@@ -5160,7 +5160,7 @@ export default function App() {
         <StatusBar style="dark" hidden={false} translucent={false} />
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
           <View style={{ width: 92, height: 92, borderRadius: 28, backgroundColor: "#121212", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", padding: 6 }}>
-            <Text style={{ fontFamily: "serif", fontStyle: "italic", fontSize: 70, fontWeight: "900", color: "#8B3DFF" }}>ℬ</Text>
+            <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 78, height: 78, borderRadius: 22 }} resizeMode="contain" />
           </View>
           <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "900", marginTop: 18 }}>Bhumi Social AI</Text>
           <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 22 }} />
@@ -5457,7 +5457,7 @@ export default function App() {
                 marginBottom: 20,
               }}
             >
-              <Text style={{ fontFamily: "serif", fontStyle: "italic", fontSize: 86, fontWeight: "900", color: "#8B3DFF" }}>ℬ</Text>
+              <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 96, height: 96, borderRadius: 28 }} resizeMode="contain" />
             </View>
             <Text
               style={{
@@ -5607,7 +5607,7 @@ export default function App() {
           contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingVertical: 30 }}
         >
           <View style={{ alignItems: "center", marginBottom: 28 }}>
-            <Text accessibilityLabel="Bhumi Social AI logo" style={{ fontFamily: "serif", fontStyle: "italic", fontSize: 76, fontWeight: "900", color: "#8B3DFF", marginBottom: 14 }}>ℬ</Text>
+            <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 76, height: 76, marginBottom: 14 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
             <Text style={{ fontSize: 27, fontWeight: "800", color: "#FFFFFF", letterSpacing: -0.6 }}>Bhumi Social AI</Text>
             <Text style={{ color: "#A8A8A8", marginTop: 7, fontSize: 13 }}>
               {authMode === "register" ? "Create your account and connect" : "Welcome back. Sign in to continue."}
