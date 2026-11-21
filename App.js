@@ -112,7 +112,6 @@ import {
   loadMessageConversations,
   sendPresenceHeartbeat,
   getChatPresence,
-  loadSettingsPreferences,
   loadUserNotes,
   saveUserNote,
   deleteUserNote,
