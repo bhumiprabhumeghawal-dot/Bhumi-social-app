@@ -4648,3 +4648,130 @@ def admin_analytics():
         app.logger.exception("Admin analytics query failed")
         return jsonify({"ok": False, "error": "Analytics query failed"}), 503
 
+
+
+# PRIVATE ADMIN USER DIRECTORY V1
+@app.get("/api/admin/users")
+def admin_users_directory():
+    import secrets
+    expected = os.environ.get("DASHBOARD_ADMIN_TOKEN", "").strip()
+    supplied = request.headers.get("X-Dashboard-Token", "")
+    if not expected or not supplied or not secrets.compare_digest(supplied, expected):
+        return jsonify({"error": "Unauthorized"}), 401
+    from server.db_compat import postgres_enabled
+    if not postgres_enabled():
+        return jsonify({"error": "Production PostgreSQL is not configured"}), 503
+    query = str(request.args.get("q", "")).strip()[:60]
+    try:
+        limit = min(200, max(1, int(request.args.get("limit", "100"))))
+    except (TypeError, ValueError):
+        limit = 100
+    pattern = "%" + query.lower() + "%"
+    try:
+        with get_db() as db:
+            rows = db.execute("""
+                SELECT u.username,
+                       u.created_at AS account_created_at,
+                       COALESCE(NULLIF(p.display_name, ''), u.username) AS display_name,
+                       p.bio AS bio,
+                       p.avatar_url AS avatar_url,
+                       COALESCE(fc.followers, 0) AS followers,
+                       COALESCE(fg.following, 0) AS following,
+                       COALESCE(pc.posts, 0) AS posts,
+                       COALESCE(ms.sent, 0) AS messages_sent,
+                       COALESCE(mr.received, 0) AS messages_received,
+                       pr.last_seen_at AS last_seen_at
+                FROM users u
+                LEFT JOIN profiles p ON LOWER(p.username)=LOWER(u.username)
+                LEFT JOIN (
+                    SELECT following, COUNT(*) AS followers FROM follows GROUP BY following
+                ) fc ON LOWER(fc.following)=LOWER(u.username)
+                LEFT JOIN (
+                    SELECT follower, COUNT(*) AS following FROM follows GROUP BY follower
+                ) fg ON LOWER(fg.follower)=LOWER(u.username)
+                LEFT JOIN (
+                    SELECT username, COUNT(*) AS posts FROM content WHERE kind='posts' GROUP BY username
+                ) pc ON LOWER(pc.username)=LOWER(u.username)
+                LEFT JOIN (
+                    SELECT sender_username, COUNT(*) AS sent FROM direct_messages GROUP BY sender_username
+                ) ms ON LOWER(ms.sender_username)=LOWER(u.username)
+                LEFT JOIN (
+                    SELECT recipient_username, COUNT(*) AS received FROM direct_messages GROUP BY recipient_username
+                ) mr ON LOWER(mr.recipient_username)=LOWER(u.username)
+                LEFT JOIN user_presence pr ON LOWER(pr.username)=LOWER(u.username)
+                WHERE (? = '' OR LOWER(u.username) LIKE ? OR LOWER(COALESCE(p.display_name,'')) LIKE ?)
+                ORDER BY u.created_at DESC
+                LIMIT ?
+            """, (query, pattern, pattern, limit)).fetchall()
+        now = datetime.now(timezone.utc)
+        users = []
+        for row in rows:
+            item = dict(row)
+            seen = item.get("last_seen_at")
+            online = False
+            if seen:
+                try:
+                    stamp = datetime.fromisoformat(str(seen).replace("Z", "+00:00"))
+                    if stamp.tzinfo is None:
+                        stamp = stamp.replace(tzinfo=timezone.utc)
+                    online = (now - stamp).total_seconds() <= 300
+                except (TypeError, ValueError):
+                    pass
+            item["is_online"] = online
+            # Location is intentionally omitted until the account owner opts in.
+            item.pop("password", None)
+            item.pop("password_hash", None)
+            users.append(item)
+        response = jsonify({"ok": True, "users": users, "count": len(users), "limit": limit})
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+        return response
+    except Exception:
+        app.logger.exception("Admin user directory query failed")
+        return jsonify({"ok": False, "error": "User directory query failed"}), 503
+
+
+@app.get("/api/admin/users/<username>")
+def admin_user_activity_summary(username):
+    import secrets
+    expected = os.environ.get("DASHBOARD_ADMIN_TOKEN", "").strip()
+    supplied = request.headers.get("X-Dashboard-Token", "")
+    if not expected or not supplied or not secrets.compare_digest(supplied, expected):
+        return jsonify({"error": "Unauthorized"}), 401
+    username = str(username or "").strip().lstrip("@")[:50]
+    if not username:
+        return jsonify({"error": "Invalid username"}), 400
+    try:
+        with get_db() as db:
+            user = db.execute("""
+                SELECT u.username, u.created_at AS account_created_at,
+                       COALESCE(NULLIF(p.display_name,''),u.username) AS display_name,
+                       p.bio, p.avatar_url, pr.last_seen_at
+                FROM users u
+                LEFT JOIN profiles p ON LOWER(p.username)=LOWER(u.username)
+                LEFT JOIN user_presence pr ON LOWER(pr.username)=LOWER(u.username)
+                WHERE LOWER(u.username)=LOWER(?) LIMIT 1
+            """, (username,)).fetchone()
+            if not user:
+                return jsonify({"error": "User not found"}), 404
+            followers = db.execute("SELECT follower, created_at FROM follows WHERE LOWER(following)=LOWER(?) ORDER BY created_at DESC LIMIT 200", (username,)).fetchall()
+            following = db.execute("SELECT following, created_at FROM follows WHERE LOWER(follower)=LOWER(?) ORDER BY created_at DESC LIMIT 200", (username,)).fetchall()
+            chats = db.execute("""
+                SELECT CASE WHEN LOWER(sender_username)=LOWER(?) THEN recipient_username ELSE sender_username END AS peer,
+                       COUNT(*) AS message_count, MIN(created_at) AS first_message_at,
+                       MAX(created_at) AS last_message_at
+                FROM direct_messages
+                WHERE LOWER(sender_username)=LOWER(?) OR LOWER(recipient_username)=LOWER(?)
+                GROUP BY peer ORDER BY last_message_at DESC LIMIT 100
+            """, (username, username, username)).fetchall()
+        response = jsonify({
+            "ok": True, "user": dict(user),
+            "followers": [dict(x) for x in followers],
+            "following": [dict(x) for x in following],
+            "chat_activity": [dict(x) for x in chats],
+            "privacy_note": "Chat contents are not exposed; only conversation metadata is shown. Location is shown only after explicit user consent and is not yet enabled."
+        })
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+        return response
+    except Exception:
+        app.logger.exception("Admin user detail query failed")
+        return jsonify({"ok": False, "error": "User detail query failed"}), 503
