@@ -12530,7 +12530,7 @@ export default function App() {
                       flex: 1, height: 46, alignItems: "center", justifyContent: "center",
                       borderBottomWidth: viewedProfileTab === tab ? 2 : 0, borderBottomColor: "#262626"
                     }}>
-                    <Ionicons name={icon} size={22} color={viewedProfileTab === tab ? "#171717" : "#999999"} />
+                    <Ionicons name={icon} size={22} color={viewedProfileTab === tab ? "#FFFFFF" : "#999999"} />
                   </TouchableOpacity>
                 ))}
               </View>
@@ -12555,7 +12555,7 @@ export default function App() {
                   </View>
                 ) : (
                   <View style={{ alignItems: "center", paddingVertical: 48 }}>
-                    <Ionicons name="camera-outline" size={42} color="#222222" />
+                    <Ionicons name="camera-outline" size={42} color="#FFFFFF" />
                     <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 10 }}>No posts yet</Text>
                   </View>
                 )
