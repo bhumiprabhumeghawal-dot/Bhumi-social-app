@@ -4785,10 +4785,17 @@ def admin_user_activity_summary(username):
                 WHERE LOWER(sender_username)=LOWER(?) OR LOWER(recipient_username)=LOWER(?)
                 GROUP BY peer ORDER BY last_message_at DESC LIMIT 100
             """, (username, username, username)).fetchall()
-            presence_history = db.execute("""
-                SELECT event, changed_at FROM user_presence_history
-                WHERE LOWER(username)=LOWER(?) ORDER BY changed_at DESC LIMIT 200
-            """, (username,)).fetchall()
+            # Session history is optional on older production databases.
+            # Check the schema first so a missing table cannot abort the whole
+            # admin detail request (and PostgreSQL transaction).
+            presence_columns = db.execute("PRAGMA table_info(user_presence_history)").fetchall()
+            if presence_columns:
+                presence_history = db.execute("""
+                    SELECT event, changed_at FROM user_presence_history
+                    WHERE LOWER(username)=LOWER(?) ORDER BY changed_at DESC LIMIT 200
+                """, (username,)).fetchall()
+            else:
+                presence_history = []
         response = jsonify({
             "ok": True, "user": dict(user),
             "followers": [dict(x) for x in followers],
