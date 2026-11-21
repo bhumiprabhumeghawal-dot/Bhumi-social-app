@@ -12677,24 +12677,24 @@ export default function App() {
 
       <Modal
         visible={notificationsListOpen}
-        transparent
+        transparent={false}
         animationType="slide"
         onRequestClose={() => setNotificationsListOpen(false)}
       >
         <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(5, 2, 12, 0.78)",
-            justifyContent: "flex-end",
-            paddingBottom: Platform.OS === "android" ? 38 : 0,
+            backgroundColor: "#FFFFFF",
+            justifyContent: "flex-start",
+            paddingBottom: 0,
           }}
         >
           <View
             style={{
-              height: "78%",
+              height: "100%",
               backgroundColor: "#FFFFFF",
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
               paddingTop: 20,
             }}
           >
