@@ -209,6 +209,10 @@ def content_json(row, viewer=None, db=None):
                 (row["id"],)
             ).fetchone()
             extra["likesCount"] = int(likes["total"] or 0)
+            extra["isLiked"] = bool(db.execute(
+                "SELECT 1 FROM post_likes WHERE content_id=? AND LOWER(username)=LOWER(?)",
+                (row["id"], viewer or "")
+            ).fetchone()) if viewer else False
         comments = db.execute(
             f"SELECT COUNT(*) AS total FROM {comment_table} WHERE content_id=? AND approved=1",
             (row["id"],)
