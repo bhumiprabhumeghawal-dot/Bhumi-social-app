@@ -15,7 +15,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#08050D",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/bhumi-social-ai-logo.jpg"
       },
       "package": "com.bhumi_socialmediaai.SocialApp",
@@ -55,7 +55,7 @@
     "scheme": "bhumisocial",
     "androidStatusBar": {
       "backgroundColor": "#08050D",
-      "barStyle": "light-content",
+      "barStyle": "dark-content",
       "hidden": false,
       "translucent": false
     },
