@@ -1010,10 +1010,17 @@ function PostCard({
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
 
-  const [liked, setLiked] = React.useState(false);
+  const [liked, setLiked] = React.useState(Boolean(post?.isLiked));
   const [likeCount, setLikeCount] = React.useState(
-    Number(String(post.likes || "0").replace(/,/g, "")) || 0,
+    Number(String(post?.likesCount ?? post?.likes ?? "0").replace(/,/g, "")) || 0,
   );
+
+  React.useEffect(() => {
+    setLiked(Boolean(post?.isLiked));
+    setLikeCount(
+      Number(String(post?.likesCount ?? post?.likes ?? "0").replace(/,/g, "")) || 0,
+    );
+  }, [post?.id, post?.isLiked, post?.likesCount, post?.likes]);
   const [saved, setSaved] = React.useState(false);
   const [commentsOpen, setCommentsOpen] = React.useState(false);
   const [comments, setComments] = React.useState([]);
