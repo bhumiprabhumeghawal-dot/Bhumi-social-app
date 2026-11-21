@@ -1,1 +1,2 @@
-Final blueprint release trigger for Bhumi Social AI v1.0.7 (Android versionCode 8).
+Final release build includes app startup warm-up, silent startup shell, and faster LiveKit call setup.
+Source commit: 22e5a300043893b5471bf083efad641f81b70bcd
