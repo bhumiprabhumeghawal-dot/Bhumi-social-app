@@ -8983,7 +8983,7 @@ export default function App() {
         {[
           { name: "Home", icon: "home-outline", activeIcon: "home" },
           { name: "Reels", icon: "play-outline", activeIcon: "play" },
-          { name: "Chat", icon: "chatbubble-outline", activeIcon: "chatbubble" },
+          { name: "Chat", label: "Messages", icon: "chatbubble-outline", activeIcon: "chatbubble" },
           { name: "Search", icon: "search-outline", activeIcon: "search" },
           { name: "Profile", icon: "person-outline", activeIcon: "person" },
         ].map((tab) => (
@@ -9004,7 +9004,7 @@ export default function App() {
                 activeTab === tab.name && styles.activeNavLabel,
               ]}
             >
-              {tab.name}
+              {tab.label || tab.name}
             </Text>
           </TouchableOpacity>
         ))}
@@ -12572,8 +12572,8 @@ export default function App() {
           {viewedProfileMenuOpen && viewedProfile && (
             <View style={{
               position: "absolute", top: 52, right: 12, width: 235,
-              backgroundColor: "#000000", borderRadius: 14, paddingVertical: 5,
-              elevation: 8, shadowColor: "#000000", shadowOpacity: 0.14,
+              backgroundColor: "#FFFFFF", borderRadius: 14, paddingVertical: 5,
+              elevation: 8, shadowColor: "#FFFFFF", shadowOpacity: 0.14,
               shadowRadius: 12, shadowOffset: { width: 0, height: 5 }
             }}>
               <TouchableOpacity onPress={() => {
@@ -12585,14 +12585,14 @@ export default function App() {
                   message: `View @${username}'s profile on Bhumi Social AI:\n${profileLink}\n\nGet Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download`,
                 });
               }} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
-                <Text style={{ color: "#FFFFFF", fontSize: 14 }}>Share Profile</Text>
+                <Text style={{ color: "#262626", fontSize: 14 }}>Share Profile</Text>
               </TouchableOpacity>
-              <View style={{ height: 0.5, backgroundColor: "#1C1C1E" }} />
+              <View style={{ height: 0.5, backgroundColor: "#F5F5F5" }} />
               <TouchableOpacity disabled={viewedProfileRestrictBusy} onPress={() => {
                 setViewedProfileMenuOpen(false);
                 handleToggleViewedProfileRestriction();
               }} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
-                <Text style={{ color: "#FFFFFF", fontSize: 14 }}>
+                <Text style={{ color: "#262626", fontSize: 14 }}>
                   {viewedProfileRestricted ? "Unrestrict" : "Restrict"}
                 </Text>
               </TouchableOpacity>
@@ -12607,34 +12607,34 @@ export default function App() {
         presentationStyle="fullScreen"
         onRequestClose={() => setProfileConnectionsOpen(false)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
           <View style={{
             minHeight: 54, flexDirection: "row", alignItems: "center",
-            paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#262626"
+            paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#DBDBDB"
           }}>
             <TouchableOpacity onPress={() => setProfileConnectionsOpen(false)} style={{ padding: 8, marginRight: 8 }}>
-              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+              <Ionicons name="arrow-back" size={24} color="#262626" />
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800" }}>
+              <Text style={{ color: "#262626", fontSize: 17, fontWeight: "800" }}>
                 {profileConnectionsType === "followers" ? "Followers" : "Following"}
               </Text>
-              <Text style={{ color: "#A8A8A8", fontSize: 11 }}>@{profileConnectionsUsername}</Text>
+              <Text style={{ color: "#737373", fontSize: 11 }}>@{profileConnectionsUsername}</Text>
             </View>
             <TouchableOpacity onPress={() => setProfileConnectionsOpen(false)} style={{ padding: 8 }}>
-              <Ionicons name="close" size={24} color="#0095F6" />
+              <Ionicons name="close" size={24} color="#8B3DFF" />
             </TouchableOpacity>
           </View>
           {profileConnectionsBusy ? (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-              <ActivityIndicator size="large" color="#0095F6" />
-              <Text style={{ color: "#A8A8A8", marginTop: 12 }}>Loading {profileConnectionsType}...</Text>
+              <ActivityIndicator size="large" color="#8B3DFF" />
+              <Text style={{ color: "#737373", marginTop: 12 }}>Loading {profileConnectionsType}...</Text>
             </View>
           ) : profileConnectionsError ? (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-              <Text style={{ color: "#FFFFFF", textAlign: "center" }}>{profileConnectionsError}</Text>
-              <TouchableOpacity onPress={() => openProfileConnections(profileConnectionsUsername, profileConnectionsType)} style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, backgroundColor: "#262626" }}>
-                <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Retry</Text>
+              <Text style={{ color: "#262626", textAlign: "center" }}>{profileConnectionsError}</Text>
+              <TouchableOpacity onPress={() => openProfileConnections(profileConnectionsUsername, profileConnectionsType)} style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, backgroundColor: "#DBDBDB" }}>
+                <Text style={{ color: "#262626", fontWeight: "800" }}>Retry</Text>
               </TouchableOpacity>
             </View>
           ) : profileConnectionsItems.length ? (
@@ -12650,16 +12650,16 @@ export default function App() {
                       openUserProfile(username);
                     }}
                     activeOpacity={0.75}
-                    style={{ minHeight: 68, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#262626", gap: 12 }}
+                    style={{ minHeight: 68, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#DBDBDB", gap: 12 }}
                   >
-                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
-                      <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>{username.slice(0, 1).toUpperCase()}</Text>
+                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#F5F5F5", alignItems: "center", justifyContent: "center" }}>
+                      <Text style={{ color: "#262626", fontSize: 18, fontWeight: "800" }}>{username.slice(0, 1).toUpperCase()}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800" }}>@{username}</Text>
-                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>View profile</Text>
+                      <Text style={{ color: "#262626", fontSize: 14, fontWeight: "800" }}>@{username}</Text>
+                      <Text style={{ color: "#737373", fontSize: 11 }}>View profile</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={18} color="#0095F6" />
+                    <Ionicons name="chevron-forward" size={18} color="#8B3DFF" />
                   </TouchableOpacity>
                 );
               })}
@@ -12667,7 +12667,7 @@ export default function App() {
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
               <Ionicons name="people-outline" size={42} color="#80699A" />
-              <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "800", marginTop: 12 }}>
+              <Text style={{ color: "#262626", fontSize: 16, fontWeight: "800", marginTop: 12 }}>
                 No {profileConnectionsType} yet
               </Text>
             </View>
