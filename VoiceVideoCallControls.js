@@ -18,7 +18,7 @@ import {
   useLocalParticipant,
   registerGlobals,
 } from "@livekit/react-native";
-import { Track } from "livekit-client";
+import { Track, VideoPresets } from "livekit-client";
 import {
   createVoiceVideoCall,
   loadPendingCalls,
@@ -442,7 +442,19 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                   }
                 } catch (_) {}
               }}
-              options={{ adaptiveStream: true, dynacast: true }}
+              options={{
+                adaptiveStream: true,
+                dynacast: true,
+                videoCaptureDefaults: {
+                  resolution: VideoPresets.h1080.resolution,
+                },
+                publishDefaults: {
+                  videoEncoding: VideoPresets.h1080.encoding,
+                  videoSimulcastLayers: [VideoPresets.h720, VideoPresets.h360],
+                  simulcast: true,
+                  audioBitrate: 32000,
+                },
+              }}
               style={{ flex: 1, marginTop: 18 }}
             >
               <CallVideoStage callType={call?.type} remoteName={incoming ? call?.caller : username} isConnected={roomConnected} />
