@@ -5635,9 +5635,16 @@ export default function App() {
     return (
       <SafeAreaView style={styles.screen}>
         <StatusBar style="dark" hidden={false} translucent={false} />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
+        >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingVertical: 30 }}
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-start", paddingHorizontal: 24, paddingTop: 24, paddingBottom: 48 }}
         >
           <View style={{ alignItems: "center", marginBottom: 28 }}>
             <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 76, height: 76, marginBottom: 14 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
@@ -5698,24 +5705,30 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Username
+                Username (आपकी पसंद का)
               </Text>
               <TextInput
                 value={authUsername}
                 onChangeText={setAuthUsername}
-                placeholder="Choose a username"
+                placeholder="अपना username खुद चुनें"
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!authBusy}
+                returnKeyType="next"
                 style={{
                   borderWidth: 1,
-                  borderColor: "#262626",
-                  borderRadius: 8,
-                  padding: 13,
-                  marginBottom: 12,
+                  borderColor: "#0095F6",
+                  borderRadius: 10,
+                  backgroundColor: "#121212",
+                  padding: 15,
+                  marginBottom: 6,
                   color: "#FFFFFF",
+                  fontSize: 16,
                 }}
               />
+              <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 12 }}>
+                यही आपका @username होगा। ऐप आपके लिए username नहीं बनाएगी। 3–50 अक्षर: English letters, numbers, dot (.) या underscore (_).
+              </Text>
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
@@ -5881,6 +5894,7 @@ export default function App() {
             </Text>
           </TouchableOpacity>
         </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
