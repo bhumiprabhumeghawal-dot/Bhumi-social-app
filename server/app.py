@@ -3560,6 +3560,15 @@ def init_call_tables():
             CREATE INDEX IF NOT EXISTS idx_call_sessions_caller_status
             ON call_sessions(caller_username, status, created_at DESC)
         """)
+        # Match case-insensitive participant lookups and expiry filtering.
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_call_sessions_callee_lower_status_expiry
+            ON call_sessions(LOWER(callee_username), status, expires_at, created_at DESC)
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_call_sessions_caller_lower_status_expiry
+            ON call_sessions(LOWER(caller_username), status, expires_at, created_at DESC)
+        """)
         # Case-insensitive indexes match the lookup predicates used by call signalling.
         db.execute("""
             CREATE INDEX IF NOT EXISTS idx_call_sessions_callee_status_ci
