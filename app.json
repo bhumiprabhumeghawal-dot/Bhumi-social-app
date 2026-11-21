@@ -5,7 +5,7 @@
     "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/bhumi-social-ai-logo.jpg",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bhumi.socialapp",
