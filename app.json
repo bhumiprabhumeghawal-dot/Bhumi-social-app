@@ -2,7 +2,7 @@
   "expo": {
     "name": "Bhumi Social AI",
     "slug": "SocialApp",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/bhumi-social-ai-logo.jpg",
     "userInterfaceStyle": "light",
@@ -19,7 +19,7 @@
         "foregroundImage": "./assets/bhumi-social-ai-logo.jpg"
       },
       "package": "com.bhumi_socialmediaai.SocialApp",
-      "versionCode": 7,
+      "versionCode": 8,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
