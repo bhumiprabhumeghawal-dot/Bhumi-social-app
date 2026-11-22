@@ -4100,6 +4100,15 @@ def get_message_conversations():
         return jsonify({"error": "Please log in to view messages."}), 401
 
     with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS message_inbox_folders (
+                username TEXT NOT NULL,
+                peer_username TEXT NOT NULL,
+                folder TEXT NOT NULL CHECK(folder IN ('primary', 'general', 'requests')),
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY(username, peer_username)
+            )
+        """)
         now = datetime.now(timezone.utc).isoformat()
         db.execute(
             "DELETE FROM direct_messages WHERE expires_at IS NOT NULL AND expires_at <= ?",
@@ -4150,6 +4159,12 @@ def get_message_conversations():
             WHERE LOWER(follower)=LOWER(?) OR LOWER(following)=LOWER(?)
         """, (current, current, current)).fetchall()
         connected_users = {str(item["peer"]).lower() for item in connected_rows}
+        folder_rows = db.execute("""
+            SELECT peer_username, folder
+            FROM message_inbox_folders
+            WHERE LOWER(username)=LOWER(?)
+        """, (current,)).fetchall()
+        saved_folders = {str(item["peer_username"]).lower(): str(item["folder"]) for item in folder_rows}
 
     conversations = []
     seen = set()
@@ -4164,7 +4179,8 @@ def get_message_conversations():
         if key in seen:
             continue
         seen.add(key)
-        inbox_folder = "primary" if key in connected_users else "requests"
+        default_folder = "primary" if key in connected_users else "requests"
+        inbox_folder = saved_folders.get(key, default_folder)
         conversations.append({
             "username": other,
             "displayName": row["other_display_name"] or other,
@@ -4186,6 +4202,37 @@ def get_message_conversations():
         })
 
     return jsonify({"conversations": conversations})
+
+
+@app.patch("/api/messages/conversations/<username>/folder")
+def update_message_conversation_folder(username):
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to organize messages."}), 401
+    peer = str(username or "").strip().lstrip("@")
+    if not peer or peer.lower() == current.lower():
+        return jsonify({"error": "Choose a valid conversation."}), 400
+    data = request.get_json(silent=True) or {}
+    folder = str(data.get("folder") or "").strip().lower()
+    if folder not in {"primary", "general", "requests"}:
+        return jsonify({"error": "Choose Primary, General or Requests."}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        exists = db.execute("""
+            SELECT 1 FROM direct_messages
+            WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+               OR (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+            LIMIT 1
+        """, (current, peer, peer, current)).fetchone()
+        if not exists:
+            return jsonify({"error": "Conversation not found."}), 404
+        db.execute("""
+            INSERT INTO message_inbox_folders (username, peer_username, folder, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(username, peer_username) DO UPDATE SET
+                folder=excluded.folder, updated_at=excluded.updated_at
+        """, (current, peer, folder, now))
+    return jsonify({"ok": True, "username": peer, "folder": folder})
 
 
 @app.get("/api/messages/<username>")
