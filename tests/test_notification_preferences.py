@@ -95,6 +95,24 @@ class NotificationPreferenceApiTests(unittest.TestCase):
         self.assertEqual(loaded.status_code, 200)
         self.assertFalse(loaded.get_json()["reels"])
 
+    def test_reel_activity_obeys_reels_preference(self):
+        self.client.patch(
+            "/api/settings/notifications/details",
+            json={"reels": False},
+        )
+        now = datetime.now(timezone.utc).isoformat()
+        with patch.object(server_app.threading, "Thread") as thread:
+            with self.db:
+                server_app._people_notification(
+                    self.db, "alice", "bob", "reel_comment", "reel-1", now
+                )
+        count = self.db.execute(
+            "SELECT COUNT(*) AS total FROM people_notifications WHERE recipient=?",
+            ("alice",),
+        ).fetchone()["total"]
+        self.assertEqual(count, 0)
+        thread.assert_not_called()
+
     def test_unknown_notification_preference_is_rejected(self):
         response = self.client.patch(
             "/api/settings/notifications/details",
