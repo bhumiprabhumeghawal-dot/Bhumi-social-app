@@ -5094,7 +5094,11 @@ def init_people_connect_tables():
         except Exception:
             # The column already exists on upgraded databases.
             pass
-        db.execute("ALTER TABLE notification_detail_preferences ADD COLUMN reels INTEGER NOT NULL DEFAULT 1")
+        try:
+            db.execute("ALTER TABLE notification_detail_preferences ADD COLUMN reels INTEGER NOT NULL DEFAULT 1")
+        except Exception:
+            # The column already exists on upgraded databases.
+            pass
         db.execute("""
             CREATE TABLE IF NOT EXISTS follow_requests (
                 id TEXT PRIMARY KEY,
