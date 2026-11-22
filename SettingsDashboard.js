@@ -131,7 +131,7 @@ const SECTIONS = [
     ["security.fingerprint","Fingerprint Unlock","Use supported device biometrics",false],
     ["security.faceUnlock","Face Unlock","Use supported device face authentication",false],
     ["security.pin","App PIN","Protect access with an app PIN",false],
-    ["security.autoLock","Automatic Lock","Lock the app after inactivity",true],
+    ["security.autoLock","Automatic Lock","Require App PIN or biometrics whenever the app leaves the foreground",true],
     ["security.checkup","Security Checkup","Review important account protection settings",false],
   ]},
   { key:"notifications", title:"Notification Settings", subtitle:"Choose alerts, sounds and quiet hours", icon:"notifications-outline", legacy:"notifications", fields:[
