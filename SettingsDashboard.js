@@ -355,6 +355,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       setNotice({ title:"Display Settings", message:"The app currently uses its supported dark interface and English/Hindi text where provided. Per-user display and language switching is not fully implemented yet." });
       return;
     }
+    if (key === "feed.favorites" || key === "feed.mutedAccounts") {
+      setNotice({ title: key === "feed.favorites" ? "Favorites Feed" : "Muted Accounts", message: "This dedicated list-management screen is not implemented yet. This control has not been enabled as a working feature." });
+      return;
+    }
     if (key === "location.history" || key === "location.liveSharing" || key === "location.nearbyFriends" || key === "location.background") {
       setNotice({ title:"Location Sharing", message:"Location sharing, nearby discovery and location history are not active. No location is being shared or tracked by these settings." });
       return;
