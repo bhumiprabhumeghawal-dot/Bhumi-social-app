@@ -885,7 +885,8 @@ export async function changeAccountPassword(oldPassword, newPassword, confirmPas
 
 export async function loadPostById(postId) {
   const response = await fetch(
-    `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}`
+    `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}`,
+    { headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) {
@@ -893,20 +894,18 @@ export async function loadPostById(postId) {
   }
   const item = data.item;
   if (!item) return null;
+  const mediaUri = item.mediaUrl
+    ? (item.mediaUrl.startsWith("http") ? item.mediaUrl : `${API_BASE_URL}${item.mediaUrl}`)
+    : null;
+  const avatarUrl = item.avatarUrl
+    ? (item.avatarUrl.startsWith("http") ? item.avatarUrl : API_BASE_URL + item.avatarUrl)
+    : null;
   return {
     ...item,
-    avatarUrl: item.avatarUrl
-      ? (item.avatarUrl.startsWith("http") ? item.avatarUrl : API_BASE_URL + item.avatarUrl)
-      : null,
-    uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
+    avatarUrl,
+    uri: mediaUri,
     likes: '0',
-    mediaItems: [{
-      ...item,
-      avatarUrl: item.avatarUrl
-        ? (item.avatarUrl.startsWith("http") ? item.avatarUrl : API_BASE_URL + item.avatarUrl)
-        : null,
-      uri: item.mediaUrl ? `${API_BASE_URL}${item.mediaUrl}` : null,
-    }],
+    mediaItems: [{ ...item, avatarUrl, uri: mediaUri }],
   };
 }
 
