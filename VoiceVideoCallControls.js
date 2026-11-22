@@ -309,7 +309,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
             const uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); });
             callKeepUuidRef.current = uuid;
             callKeepCallIdRef.current = next.id;
-            RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video").catch?.((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
+            Promise.resolve(RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video")).catch((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
           }
           return;
         }
@@ -381,7 +381,9 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     resetCall();
   };
 
-  declineHandlerRef.current = declineCall;\n\n  const endCall = async () => {
+  declineHandlerRef.current = declineCall;
+
+  const endCall = async () => {
     const current = callRef.current;
     if (current) {
       try { await respondToCall(current.id, "end"); } catch (_) {}
