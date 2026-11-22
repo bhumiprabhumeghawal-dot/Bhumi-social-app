@@ -5139,12 +5139,6 @@ export default function App() {
     }
     setActiveTab(name);
     if (name === "Home") refreshContent();
-    if (name === "Reels" && reels.length === 0) {
-      Alert.alert("Reels", "No reels yet.", [
-        { text: "रील अपलोड करें", onPress: createReel },
-        { text: "ठीक है", style: "cancel" },
-      ]);
-    }
   };
 
   React.useEffect(() => {
