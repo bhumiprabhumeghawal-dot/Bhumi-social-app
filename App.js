@@ -2527,7 +2527,11 @@ export default function App() {
   const [authReady, setAuthReady] = React.useState(false);
   const [authSession, setAuthSession] = React.useState(null);
   React.useEffect(() => {
-    if (authReady && !authSession) {
+    if (authReady && authSession && appLockPinRef.current) {
+      setAppPinLocked(true);
+      setAppPinInput("");
+      setAppPinError("");
+    } else if (authReady && !authSession) {
       setAppPinLocked(false);
       setAppPinInput("");
       setAppPinError("");
