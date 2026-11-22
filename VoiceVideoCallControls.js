@@ -146,6 +146,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const callKeepUuidRef = useRef(null);
   const callKeepCallIdRef = useRef(null);
   const callKeepEventBusyRef = useRef(false);
+  const incomingRef = useRef(false);
   const answerHandlerRef = useRef(null);
   const declineHandlerRef = useRef(null);
   const endHandlerRef = useRef(null);
@@ -153,6 +154,10 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   useEffect(() => {
     callRef.current = call;
   }, [call]);
+
+  useEffect(() => {
+    incomingRef.current = incoming;
+  }, [incoming]);
 
   useEffect(() => {
     connectionRef.current = connection;
@@ -174,7 +179,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     listen("endCall", ({ callUUID }) => {
       if (!active || callUUID !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
       callKeepEventBusyRef.current = true;
-      const handler = incoming ? declineHandlerRef.current : endHandlerRef.current;
+      const handler = incomingRef.current ? declineHandlerRef.current : endHandlerRef.current;
       Promise.resolve(handler?.()).finally(() => { callKeepEventBusyRef.current = false; });
     });
     if (!callKeepSetupPromise) {
@@ -200,7 +205,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     }
     callKeepSetupPromise.catch(() => {});
     return () => { active = false; subscriptions.forEach((item) => item.remove()); };
-  }, [currentUsername, enableIncoming, incoming]);
+  }, [currentUsername, enableIncoming]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -208,6 +213,10 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   }, []);
 
   const resetCall = () => {
+    const nativeUuid = callKeepUuidRef.current;
+    callKeepUuidRef.current = null;
+    callKeepCallIdRef.current = null;
+    if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     setCall(null);
     setIncoming(false);
     setConnection(null);
