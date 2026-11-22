@@ -5,6 +5,34 @@ import RNCallKeep from "react-native-callkeep";
 
 const TASK_NAME = "BHUMI_INCOMING_CALL_BACKGROUND";
 
+let callKeepSetupPromise = null;
+
+export function ensureCallKeepSetup() {
+  if (Platform.OS !== "android") return Promise.resolve(true);
+  if (!callKeepSetupPromise) {
+    callKeepSetupPromise = RNCallKeep.setup({
+      ios: { appName: "Bhumi Social AI" },
+      android: {
+        alertTitle: "कॉल की अनुमति जरूरी है",
+        alertDescription: "Bhumi Social AI को लॉक स्क्रीन पर कॉल दिखाने के लिए Phone Account की अनुमति दें।",
+        cancelButton: "बाद में",
+        okButton: "अनुमति दें",
+        additionalPermissions: [],
+      },
+      foregroundService: {
+        channelId: "bhumi-social-calls",
+        channelName: "Bhumi Social Calls",
+        notificationTitle: "Bhumi Social कॉल चालू है",
+      },
+    }).catch((error) => {
+      callKeepSetupPromise = null;
+      console.warn("CallKeep setup failed:", error?.message || error);
+      throw error;
+    });
+  }
+  return callKeepSetupPromise;
+}
+
 function parseIncomingCallPayload(taskData) {
   if (!taskData || typeof taskData !== "object") return null;
   let payload = taskData;
