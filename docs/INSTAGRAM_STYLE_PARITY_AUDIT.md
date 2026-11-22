@@ -124,3 +124,4 @@ The existing app is a large single-file React Native screen with supporting modu
 - Profile QR deep link route is present in App.js (`bhumisocial://profile/<username>`), so QR scan routing is wired to the profile opener.
 - This is a layout/code change only; device-level visual verification and the remaining feature-by-feature behavior checks are still pending.
 - Settings shortcuts for Story Highlights and Chat Appearance now open the existing Profile and Messages screens; Content Preferences is a persisted setting switch rather than a dead action button.
+- Profile screen now uses the native `settings-outline` icon in the Settings row; the top profile header retains the Instagram-style top-right menu entry.
