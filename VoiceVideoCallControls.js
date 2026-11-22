@@ -7,6 +7,8 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import RNCallKeep from "react-native-callkeep";
+import { Platform } from "react-native";
 import { useCameraPermissions } from "expo-camera";
 import { requestRecordingPermissionsAsync } from "expo-audio";
 import {
@@ -27,6 +29,7 @@ import {
   getVoiceVideoCallStatus,
 } from "./api";
 
+let callKeepSetupPromise = null;
 let liveKitGlobalsRegistered = false;
 if (!liveKitGlobalsRegistered) {
   try {
@@ -140,6 +143,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const audioSessionActiveRef = useRef(false);
   const disconnectHandlingRef = useRef(false);
   const mountedRef = useRef(true);
+  const callKeepUuidRef = useRef(null);
+  const callKeepCallIdRef = useRef(null);
+  const callKeepEventBusyRef = useRef(false);
+  const answerHandlerRef = useRef(null);
+  const declineHandlerRef = useRef(null);
+  const endHandlerRef = useRef(null);
 
   useEffect(() => {
     callRef.current = call;
@@ -296,6 +305,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           setCall(next);
           setIncoming(true);
           setCallMessage(next.type === "video" ? "आपको वीडियो कॉल आ रही है।" : "आपको वॉइस कॉल आ रही है।");
+          if (Platform.OS === "android") {
+            const uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); });
+            callKeepUuidRef.current = uuid;
+            callKeepCallIdRef.current = next.id;
+            RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video").catch?.((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
+          }
           return;
         }
       } catch (error) {
@@ -351,6 +366,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       setCall(next);
       setIncoming(false);
       await connectCall(next);
+      if (Platform.OS === "android" && callKeepUuidRef.current) RNCallKeep.setCurrentCallActive(callKeepUuidRef.current);
     } catch (error) {
       setCallMessage(error?.message || "कॉल स्वीकार नहीं हो पाई।");
     } finally {
@@ -358,13 +374,14 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     }
   };
 
-  const declineCall = async () => {
+  answerHandlerRef.current = answerCall;
+\n  const declineCall = async () => {
     if (!call) return;
     try { await respondToCall(call.id, "reject"); } catch (_) {}
     resetCall();
   };
 
-  const endCall = async () => {
+  declineHandlerRef.current = declineCall;\n\n  const endCall = async () => {
     const current = callRef.current;
     if (current) {
       try { await respondToCall(current.id, "end"); } catch (_) {}
