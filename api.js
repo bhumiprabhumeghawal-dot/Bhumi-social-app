@@ -288,7 +288,7 @@ const CONTENT_CACHE_TTL_MS = 60 * 1000;
 const UPLOAD_REQUESTS_IN_FLIGHT = new Map();
 
 async function loadContentOnce(type) {
-  const response = await fetch(`${API_BASE_URL}/api/${type}`);
+  const response = await fetch(`${API_BASE_URL}/api/${type}`, { headers: await authHeaders() });
   if (!response.ok) {
     throw new Error(`Could not load ${type}`);
   }
