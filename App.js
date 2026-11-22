@@ -10815,14 +10815,14 @@ export default function App() {
                   }}
                   style={{ paddingRight: 14 }}
                 >
-                  <Ionicons name="arrow-back" size={25} color="#262626" />
+                  <Ionicons name="arrow-back" size={25} color="#F5F5F5" />
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity style={{ paddingRight: 18 }}>
                   <Ionicons
                     name="briefcase-outline"
                     size={27}
-                    color="#262626"
+                    color="#F5F5F5"
                   />
                 </TouchableOpacity>
               )}
@@ -10906,7 +10906,7 @@ export default function App() {
                   </View>
                   <VoiceVideoCallControls username={selectedChatUser} enableIncoming={false} />
                   <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel="Chat personalization" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "transparent", borderWidth: 0, borderColor: "transparent", alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="color-palette-outline" size={21} color="#262626" />
+                    <Ionicons name="color-palette-outline" size={21} color="#F5F5F5" />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -10925,7 +10925,7 @@ export default function App() {
                     <Ionicons
                       name="trending-up-outline"
                       size={29}
-                      color="#262626"
+                      color="#F5F5F5"
                     />
                   </TouchableOpacity>
                   <View
@@ -10950,7 +10950,7 @@ export default function App() {
                     <Ionicons
                       name="chevron-down"
                       size={21}
-                      color="#262626"
+                      color="#F5F5F5"
                       style={{ marginLeft: 7 }}
                     />
                     <View
@@ -10973,7 +10973,7 @@ export default function App() {
                     accessibilityLabel="New message"
                     style={{ paddingHorizontal: 9 }}
                   >
-                    <Ionicons name="create-outline" size={25} color="#262626" />
+                    <Ionicons name="create-outline" size={25} color="#F5F5F5" />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={closeMessages}
@@ -10982,7 +10982,7 @@ export default function App() {
                     <Ionicons
                       name="ellipsis-horizontal"
                       size={27}
-                      color="#262626"
+                      color="#F5F5F5"
                     />
                   </TouchableOpacity>
                 </View>
@@ -11016,7 +11016,7 @@ export default function App() {
                     backgroundColor: "#1C1C1E",
                   }}
                 >
-                  <Ionicons name="search" size={23} color="#262626" />
+                  <Ionicons name="search" size={23} color="#F5F5F5" />
                   <TextInput
                     value={chatSearchQuery}
                     onChangeText={setChatSearchQuery}
@@ -11052,7 +11052,7 @@ export default function App() {
                     <Ionicons
                       name="options-outline"
                       size={21}
-                      color="#262626"
+                      color="#F5F5F5"
                     />
                   </TouchableOpacity>
                 </View>
@@ -11145,7 +11145,7 @@ export default function App() {
                           borderColor: "#303030",
                         }}
                       >
-                        <Ionicons name="add" size={17} color="#262626" />
+                        <Ionicons name="add" size={17} color="#F5F5F5" />
                       </View>
                     </View>
                     <Text
@@ -11265,7 +11265,7 @@ export default function App() {
                       >
                         <Text
                           style={{
-                            color: active ? "#262626" : "#737373",
+                            color: active ? "#F5F5F5" : "#A8A8A8",
                             fontSize: 14,
                             fontWeight: active ? "800" : "600",
                           }}
@@ -11860,7 +11860,7 @@ export default function App() {
         <Ionicons
           name="document-text"
           size={30}
-          color="#262626"
+          color="#F5F5F5"
         />
         <View style={{ flex: 1 }}>
           <Text numberOfLines={2} style={{
@@ -12182,7 +12182,7 @@ export default function App() {
                           {isPhoto ? (
                             <Image source={{ uri: chatMediaDraft.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
                           ) : (
-                            <Ionicons name={isVideo ? "videocam" : isAudio ? "mic" : "document-text"} size={32} color="#262626" />
+                            <Ionicons name={isVideo ? "videocam" : isAudio ? "mic" : "document-text"} size={32} color="#F5F5F5" />
                           )}
                         </View>
                         <View style={{ flex: 1, justifyContent: "center", gap: 5 }}>
@@ -12269,7 +12269,7 @@ export default function App() {
                       <Ionicons
                         name="images-outline"
                         size={25}
-                        color="#262626"
+                        color="#F5F5F5"
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -12279,11 +12279,11 @@ export default function App() {
                       <Ionicons
                         name="camera-outline"
                         size={25}
-                        color="#262626"
+                        color="#F5F5F5"
                       />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={chooseChatDocument} accessibilityLabel="Attach document">
-                      <Ionicons name="document-attach-outline" size={23} color="#262626" />
+                      <Ionicons name="document-attach-outline" size={23} color="#F5F5F5" />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={isChatRecording ? stopChatVoiceRecording : startChatVoiceRecording}
@@ -12300,7 +12300,7 @@ export default function App() {
                       <Ionicons
                         name="happy-outline"
                         size={25}
-                        color="#262626"
+                        color="#F5F5F5"
                       />
                     </TouchableOpacity>
                     <TextInput
