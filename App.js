@@ -3924,7 +3924,7 @@ export default function App() {
         setSelectedPost(post);
         return;
       }
-      if (kind === "comment") {
+      if (kind === "comment" || kind === "like") {
         try {
           let reelItems = reels || [];
           if (!reelItems.some((entry) => Number(entry.id) === Number(item.referenceId))) {
@@ -3937,7 +3937,7 @@ export default function App() {
           if (reelIndex >= 0) {
             setActiveTab("Reels");
             setActiveReelIndex(reelIndex);
-            await handleOpenReelComments(reelItems[reelIndex]);
+            if (kind === "comment") await handleOpenReelComments(reelItems[reelIndex]);
             return;
           }
         } catch (error) {
