@@ -3413,6 +3413,8 @@ export default function App() {
     comments: true,
     follows: true,
     messages: true,
+    requests: true,
+    reels: true,
     system_alerts: true,
   });
 
@@ -13325,8 +13327,8 @@ export default function App() {
               <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
                 {notificationsList.filter((item) => {
                   if (notificationFilter === "All") return true;
-                  if (notificationFilter === "Likes") return item.kind === "like";
-                  if (notificationFilter === "Comments") return item.kind === "comment";
+                  if (notificationFilter === "Likes") return item.kind === "like" || item.kind === "reel_like";
+                  if (notificationFilter === "Comments") return item.kind === "comment" || item.kind === "reel_comment";
                   if (notificationFilter === "Messages") return item.kind === "message";
                   return ["follow", "follow_request", "follow_accepted", "follow_rejected"].includes(item.kind);
                 }).map((item, index) => {
@@ -13338,6 +13340,8 @@ export default function App() {
                     follow_rejected: "declined your follow request",
                     like: "liked your post",
                     comment: "commented on your post",
+                    reel_like: "liked your reel",
+                    reel_comment: "commented on your reel",
                     message: "sent you a message",
                     mention_posts: "mentioned you in a post",
                     mention_stories: "mentioned you in a story/status",
@@ -13370,9 +13374,9 @@ export default function App() {
                       >
                         <Ionicons
                           name={
-                            item.kind === "like"
+                            item.kind === "like" || item.kind === "reel_like"
                               ? "heart"
-                              : item.kind === "comment"
+                              : item.kind === "comment" || item.kind === "reel_comment"
                                 ? "chatbubble"
                                 : item.kind === "message"
                                   ? "paper-plane"
