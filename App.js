@@ -35,7 +35,8 @@ import {Alert as NativeAlert,
   ActivityIndicator,
   KeyboardAvoidingView,
   BackHandler,
-  Platform } from "react-native";
+  Platform,
+  AppState } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
 import {
   applyZoomEffect,
@@ -2272,6 +2273,40 @@ export default function App() {
   }, []);
 
   const [activeTab, setActiveTab] = React.useState("Home");
+  const [appPinLocked, setAppPinLocked] = React.useState(false);
+  const [appPinInput, setAppPinInput] = React.useState("");
+  const [appPinError, setAppPinError] = React.useState("");
+  const appLockPinRef = React.useRef(null);
+
+  React.useEffect(() => {
+    let alive = true;
+    const refreshLock = async () => {
+      try {
+        const pin = await SecureStore.getItemAsync("bhumi_app_lock_pin");
+        if (!alive) return;
+        appLockPinRef.current = pin || null;
+        if (pin) setAppPinLocked(true);
+      } catch (error) {
+        console.warn("App Lock could not read secure PIN:", error?.message || error);
+      }
+    };
+    void refreshLock();
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "inactive" || nextState === "background") void refreshLock();
+    });
+    return () => {
+      alive = false;
+      subscription?.remove();
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!authSession) {
+      setAppPinLocked(false);
+      setAppPinInput("");
+      setAppPinError("");
+    }
+  }, [authSession]);
   const [cameraOpen, setCameraOpen] = React.useState(false);
   const [cameraFacing, setCameraFacing] = React.useState("back");
   const [cameraMode, setCameraMode] = React.useState("video");
@@ -13495,6 +13530,61 @@ export default function App() {
         </SafeAreaView>
       </Modal>
 
+      <Modal
+        visible={appPinLocked && !!authSession}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => {}}
+      >
+        <View style={{ flex:1,backgroundColor:"#000000",justifyContent:"center",paddingHorizontal:28 }}>
+          <View style={{ backgroundColor:"#121212",borderWidth:1,borderColor:"#303030",borderRadius:22,padding:22,alignItems:"center" }}>
+            <View style={{ width:64,height:64,borderRadius:32,backgroundColor:"#1C1C1E",alignItems:"center",justifyContent:"center",marginBottom:14 }}>
+              <Ionicons name="lock-closed" size={29} color="#0095F6"/>
+            </View>
+            <Text style={{ color:"#FFFFFF",fontSize:21,fontWeight:"900" }}>Bhumi Social AI Locked</Text>
+            <Text style={{ color:"#A8A8A8",fontSize:12,textAlign:"center",lineHeight:18,marginTop:7 }}>Enter your device App PIN to continue.</Text>
+            <TextInput
+              value={appPinInput}
+              onChangeText={(value)=>{setAppPinInput(value.replace(/\\D/g,"").slice(0,6));setAppPinError("");}}
+              placeholder="Enter 4–6 digit PIN"
+              placeholderTextColor="#777777"
+              keyboardType="number-pad"
+              secureTextEntry
+              maxLength={6}
+              autoFocus
+              style={{ width:"100%",color:"#FFFFFF",borderWidth:1,borderColor:"#3A3A3A",borderRadius:13,padding:14,marginTop:18,fontSize:20,textAlign:"center",letterSpacing:8 }}
+            />
+            {appPinError ? <Text style={{ color:"#F08080",fontSize:12,marginTop:9 }}>{appPinError}</Text> : null}
+            <TouchableOpacity
+              onPress={()=>{
+                if (appLockPinRef.current && appPinInput === appLockPinRef.current) {
+                  setAppPinLocked(false);
+                  setAppPinInput("");
+                  setAppPinError("");
+                } else {
+                  setAppPinError("PIN सही नहीं है। दोबारा कोशिश करें।");
+                  setAppPinInput("");
+                }
+              }}
+              style={{ width:"100%",backgroundColor:"#0095F6",borderRadius:13,padding:14,alignItems:"center",marginTop:15 }}
+            >
+              <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Unlock App</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={async()=>{
+                try { await clearAuthSession(); } catch (_) {}
+                setAuthSession(null);
+                setAppPinLocked(false);
+                setAppPinInput("");
+              }}
+              style={{ padding:13,marginTop:4 }}
+            >
+              <Text style={{ color:"#A8A8A8",fontWeight:"800" }}>Sign out instead</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <CustomAlertHost />
     </SafeAreaView>
   );
