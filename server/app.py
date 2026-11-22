@@ -2341,6 +2341,8 @@ def create_post_comment(content_id):
             return jsonify({"error": "Post not found"}), 404
         if not can_view_content(db, post["username"], username):
             return jsonify({"error": "Post not found"}), 404
+        if not _chat_preference(db, post["username"], "privacy.comments", True):
+            return jsonify({"error": "This user is not accepting comments."}), 403
 
         restricted = db.execute("""
             SELECT 1 FROM people_restrictions
@@ -2498,6 +2500,8 @@ def create_reel_comment(content_id):
             return jsonify({"error": "Reel not found"}), 404
         if not can_view_content(db, reel["username"], username):
             return jsonify({"error": "Reel not found"}), 404
+        if not _chat_preference(db, reel["username"], "privacy.comments", True):
+            return jsonify({"error": "This user is not accepting comments."}), 403
 
         restricted = db.execute("""
             SELECT 1 FROM people_restrictions
