@@ -399,9 +399,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
             callKeepUuidRef.current = uuid;
             callKeepCallIdRef.current = next.id;
             const hasRecoveredNativeAction = pendingCallKeepActionRef.current?.uuid === uuid;
-            if (hasRecoveredNativeAction) {
-              processPendingCallKeepAction();
-            } else {
+            if (!hasRecoveredNativeAction) {
               Promise.resolve(RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video")).catch((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
             }
           }
@@ -493,6 +491,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     resetCall();
   };
+
+  endHandlerRef.current = endCall;
+
+  useEffect(() => {
+    if (call && callKeepUuidRef.current) processPendingCallKeepAction();
+  }, [call, incoming, currentUsername]);
 
   const showCallModal = !!call;
 
