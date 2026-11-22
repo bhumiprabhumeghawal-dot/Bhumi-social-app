@@ -4,6 +4,7 @@ import urllib.request
 import urllib.error
 import sqlite3
 import uuid
+import threading
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -4950,6 +4951,64 @@ def get_chat_typing(username):
 
 
 
+
+def _send_social_activity_push(recipient, actor, kind, reference_id=None):
+    """Best-effort push delivery for social activity after its notification row is written."""
+    messages = {
+        "like": ("New like", f"@{actor} liked your post"),
+        "comment": ("New comment", f"@{actor} commented on your post"),
+        "follow": ("New follower", f"@{actor} started following you"),
+        "follow_request": ("Follow request", f"@{actor} requested to follow you"),
+        "follow_accepted": ("Follow request accepted", f"@{actor} accepted your follow request"),
+        "follow_rejected": ("Follow request update", f"@{actor} declined your follow request"),
+    }
+    title_body = messages.get(kind)
+    if not title_body:
+        return
+    try:
+        with get_db() as db:
+            rows = db.execute(
+                "SELECT expo_push_token FROM call_push_tokens WHERE LOWER(username)=LOWER(?)",
+                (recipient,),
+            ).fetchall()
+        for row in rows:
+            payload = {
+                "to": row["expo_push_token"],
+                "title": title_body[0],
+                "body": title_body[1],
+                "sound": "default",
+                "priority": "high",
+                "channelId": "default",
+                "data": {
+                    "type": kind,
+                    "actor": actor,
+                    "referenceId": reference_id,
+                },
+            }
+            req = urllib.request.Request(
+                "https://exp.host/--/api/v2/push/send",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Accept": "application/json", "Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                result = json.loads(response.read().decode("utf-8") or "{}")
+            tickets = result.get("data") if isinstance(result, dict) else None
+            ticket_list = tickets if isinstance(tickets, list) else [tickets]
+            if any(
+                ticket and ticket.get("status") == "error"
+                and ticket.get("details", {}).get("error") == "DeviceNotRegistered"
+                for ticket in ticket_list
+            ):
+                with get_db() as db:
+                    db.execute(
+                        "DELETE FROM call_push_tokens WHERE expo_push_token=?",
+                        (row["expo_push_token"],),
+                    )
+    except Exception:
+        app.logger.exception("Could not send social activity push to %s", recipient)
+
+
 def _people_notification(db, recipient, actor, kind, reference_id, now):
     if not recipient or not actor or recipient.lower() == actor.lower():
         return
@@ -4980,6 +5039,13 @@ def _people_notification(db, recipient, actor, kind, reference_id, now):
         (id, recipient, actor, kind, reference_id, created_at, is_read)
         VALUES (?, ?, ?, ?, ?, ?, 0)
     """, (uuid.uuid4().hex, recipient, actor, kind, reference_id, now))
+    if kind in {"like", "comment", "follow", "follow_request", "follow_accepted", "follow_rejected"}:
+        # Do not hold the request's database transaction open while contacting Expo.
+        threading.Thread(
+            target=_send_social_activity_push,
+            args=(recipient, actor, kind, reference_id),
+            daemon=True,
+        ).start()
 
 
 
