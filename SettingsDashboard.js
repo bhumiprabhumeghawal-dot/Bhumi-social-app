@@ -422,6 +422,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     if (!recipient) { setLocationStatus("जिस दोस्त को लोकेशन भेजनी है उसका username लिखें।"); return; }
     setLocationLoading(true);
     setLocationStatus("Location permission माँगी जा रही है…");
+    let createdShareId = null;
     try {
       const permission = await Location.requestForegroundPermissionsAsync();
       if (permission.status !== "granted") throw new Error("Live location के लिए While Using the App location permission जरूरी है।");
@@ -437,6 +438,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         accuracy: position.coords.accuracy,
         duration_minutes: locationDuration,
       });
+      createdShareId = created.share_id;
       activeLocationShareRef.current = { shareId:created.share_id, recipient:created.recipient_username };
       locationDurationRef.current = locationDuration;
       if (preferences["location.background"]) {
@@ -489,6 +491,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       setLocationStatus("आपकी live location @" + created.recipient_username + " के साथ साझा हो रही है। " + (preferences["location.background"] ? "Background location service चालू है।" : "Updates app foreground में होंगी।"));
       await refreshLocationShares();
     } catch (error) {
+      if (createdShareId) {
+        try { await stopLocationShare(createdShareId); } catch (_) {}
+        await stopLocationWatcher();
+      }
       setLocationStatus(error?.message || "Live location शुरू नहीं हो सकी।");
     } finally { setLocationLoading(false); }
   };
@@ -1019,7 +1025,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             ))}
             {!(locationShares.history || []).length ? <Text style={{ color:MUTED,fontSize:11 }}>No location sharing history in the last 30 days.</Text> : null}
             <View style={{ backgroundColor:"#1B1B1B",borderRadius:12,padding:12,marginTop:15,marginBottom:20 }}>
-              <Text style={{ color:MUTED,fontSize:10,lineHeight:15 }}>Location is shared only after you press Start, only with the selected mutual follower, and expires automatically. Foreground sharing works while the app is open. If Background Location is enabled, Android/iOS may continue updates with an ongoing system location notification/permission. Stop sharing here to end it. Approximate Location rounds coordinates before sending.</Text>
+              <Text style={{ color:MUTED,fontSize:10,lineHeight:15 }}>Location is shared only after you press Start, only with the selected mutual follower, and expires automatically. Background Location requires the separate switch, Always permission, and an ongoing system notification. You can stop sharing here at any time. Approximate Location rounds coordinates before sending.</Text>
             </View>
           </ScrollView>
         </View>
