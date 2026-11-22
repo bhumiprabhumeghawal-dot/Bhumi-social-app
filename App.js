@@ -10856,10 +10856,15 @@ export default function App() {
                   <Ionicons name="arrow-back" size={25} color="#F5F5F5" />
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity style={{ paddingRight: 18 }}>
+                <TouchableOpacity
+                  onPress={() => setChatInboxTab("Requests")}
+                  accessibilityRole="button"
+                  accessibilityLabel="Open message requests"
+                  style={{ paddingRight: 18 }}
+                >
                   <Ionicons
-                    name="briefcase-outline"
-                    size={27}
+                    name="mail-unread-outline"
+                    size={25}
                     color="#F5F5F5"
                   />
                 </TouchableOpacity>
