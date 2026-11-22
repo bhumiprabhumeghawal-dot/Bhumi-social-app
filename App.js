@@ -2280,19 +2280,22 @@ export default function App() {
 
   React.useEffect(() => {
     let alive = true;
-    const refreshLock = async () => {
+    const refreshLock = async (onLaunch = false) => {
       try {
-        const pin = await SecureStore.getItemAsync("bhumi_app_lock_pin");
+        const [pin, autoLock] = await Promise.all([
+          SecureStore.getItemAsync("bhumi_app_lock_pin"),
+          SecureStore.getItemAsync("bhumi_app_auto_lock"),
+        ]);
         if (!alive) return;
         appLockPinRef.current = pin || null;
-        if (pin) setAppPinLocked(true);
+        if (pin && (onLaunch || autoLock !== "false")) setAppPinLocked(true);
       } catch (error) {
         console.warn("App Lock could not read secure PIN:", error?.message || error);
       }
     };
-    void refreshLock();
+    void refreshLock(true);
     const subscription = AppState.addEventListener("change", (nextState) => {
-      if (nextState === "inactive" || nextState === "background") void refreshLock();
+      if (nextState === "inactive" || nextState === "background") void refreshLock(false);
     });
     return () => {
       alive = false;
