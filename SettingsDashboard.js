@@ -46,7 +46,7 @@ const ACTION_KEYS = new Set([
   "security.twoFactor","security.loginHistory","security.activeDevices","security.appLock",
   "security.fingerprint","security.faceUnlock","security.pin","security.checkup",
   "privacy.profileVisitors","privacy.hiddenWords",
-  "story.hideFrom","story.highlights","story.closeFriends","feed.mutedAccounts","feed.favorites","feed.notInterested",
+  "story.hideFrom","story.highlights","story.closeFriends","feed.mutedAccounts","feed.favorites",
   "appearance.appIcon","appearance.display","appearance.chat",
   "advanced.permissions","advanced.reset","advanced.storage","advanced.clearCache",
   "creator.accountType","creator.businessAccount","creator.dashboard","creator.insights","creator.followerAnalytics","creator.contentAnalytics","creator.audience","creator.monetization","creator.collaboration","creator.promotions","premium.profileStudio",
@@ -348,6 +348,16 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         key === "account.openSource" || key === "account.helpCenter") {
       setActive(null);
       onAbout?.();
+      return;
+    }
+    if (key === "story.highlights") {
+      setActive(null);
+      onLegacyOpen?.("profile");
+      return;
+    }
+    if (key === "appearance.chat") {
+      setActive(null);
+      onLegacyOpen?.("messages");
       return;
     }
     if (key === "story.closeFriends") {
