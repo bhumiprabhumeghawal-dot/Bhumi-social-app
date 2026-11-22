@@ -12,7 +12,7 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - Feed media: use the available feed viewport and the media's supported aspect ratio; never stretch media to fill a mismatched ratio.
 - Reels: one viewport-height item per page, with only the active reel playing.
 - Bottom navigation: 68 dp Android / 58 dp iOS, including platform-specific bottom inset handling.
-- Profile avatar currently uses 96 dp; compare against the target layout during device QA before changing it.
+- Profile avatar frame currently uses 86 dp; verify against compact and large screens during device QA.
 - Settings sheet currently caps at 94% of available height and must remain scrollable on short screens and with the keyboard open.
 
 ## Screen-by-screen acceptance checklist
@@ -60,6 +60,7 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [ ] Verify notification list, unread state, navigation to the related post/profile, and empty state.
 - [x] Add settings search and filtered category results; verify category navigation and close behavior during device QA.
 - [ ] Verify privacy, blocked/restricted accounts, login/security, notifications, appearance, account controls, and logout.
+- [x] Align Creator & Business Hub colors with the app-wide dark surface and blue accent system.
 - [ ] Verify all setting actions are functional and do not merely show placeholder notices.
 
 ### Quality gates
