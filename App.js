@@ -12933,8 +12933,8 @@ export default function App() {
             <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
               {["All", "Likes", "Comments", "Follows"].map((filter) => (
                 <TouchableOpacity key={filter} onPress={() => setNotificationFilter(filter)}
-                  style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 18, backgroundColor: notificationFilter === filter ? "#0095F6" : "#F5F5F5" }}>
-                  <Text style={{ color: notificationFilter === filter ? "#FFFFFF" : "#262626", fontSize: 12, fontWeight: "800" }}>{filter}</Text>
+                  style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 18, backgroundColor: notificationFilter === filter ? "#0095F6" : "#262626" }}>
+                  <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "800" }}>{filter}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -12974,7 +12974,7 @@ export default function App() {
                         alignItems: "center",
                         paddingHorizontal: 18,
                         paddingVertical: 16,
-                        backgroundColor: item.isRead ? "#FFFFFF" : "#F5F5F5",
+                        backgroundColor: item.isRead ? "#000000" : "#121212",
                         borderBottomWidth: 1,
                         borderBottomColor: "#303030",
                       }}
@@ -13041,16 +13041,18 @@ export default function App() {
                     </TouchableOpacity>
                   );
                 })}
-                {!notificationsList.length ? (
-                  <Text
-                    style={{
-                      textAlign: "center",
-                      color: "#A8A8A8",
-                      padding: 35,
-                    }}
-                  >
-                    No notifications yet.
-                  </Text>
+                {notificationsList.filter((item) => {
+                  if (notificationFilter === "All") return true;
+                  if (notificationFilter === "Likes") return item.kind === "like";
+                  if (notificationFilter === "Comments") return item.kind === "comment";
+                  return ["follow", "follow_request", "follow_accepted", "follow_rejected"].includes(item.kind);
+                }).length === 0 ? (
+                  <View style={{ alignItems: "center", padding: 36 }}>
+                    <Ionicons name="notifications-outline" size={34} color="#A8A8A8" />
+                    <Text style={{ color: "#F5F5F5", fontSize: 14, fontWeight: "700", marginTop: 10 }}>
+                      {notificationsList.length === 0 ? "No notifications yet." : "No " + notificationFilter.toLowerCase() + " notifications."}
+                    </Text>
+                  </View>
                 ) : null}
               </ScrollView>
             )}
