@@ -4955,7 +4955,7 @@ def get_chat_typing(username):
 
 
 
-def _send_social_activity_push(recipient, actor, kind, reference_id=None):
+def _send_social_activity_push(recipient, actor, kind, reference_id=None, notification_id=None):
     """Best-effort push delivery for social activity after its notification row is written."""
     messages = {
         "like": ("New like", f"@{actor} liked your post"),
@@ -4988,6 +4988,7 @@ def _send_social_activity_push(recipient, actor, kind, reference_id=None):
                     "type": kind,
                     "actor": actor,
                     "referenceId": reference_id,
+                    "notificationId": notification_id,
                 },
             }
             req = urllib.request.Request(
@@ -5039,16 +5040,17 @@ def _people_notification(db, recipient, actor, kind, reference_id, now):
         return
     if detail and not detail["enabled"]:
         return
+    notification_id = uuid.uuid4().hex
     db.execute("""
         INSERT INTO people_notifications
         (id, recipient, actor, kind, reference_id, created_at, is_read)
         VALUES (?, ?, ?, ?, ?, ?, 0)
-    """, (uuid.uuid4().hex, recipient, actor, kind, reference_id, now))
+    """, (notification_id, recipient, actor, kind, reference_id, now))
     if kind in {"like", "comment", "follow", "follow_request", "follow_accepted", "follow_rejected"}:
         # Do not hold the request's database transaction open while contacting Expo.
         threading.Thread(
             target=_send_social_activity_push,
-            args=(recipient, actor, kind, reference_id),
+            args=(recipient, actor, kind, reference_id, notification_id),
             daemon=True,
         ).start()
 
