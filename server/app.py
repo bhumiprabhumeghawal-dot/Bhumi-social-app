@@ -2360,7 +2360,7 @@ def create_post_comment(content_id):
         """, (cursor.lastrowid,)).fetchone()
 
         if approved:
-            _people_notification(db, post["username"], username, "comment", cursor.lastrowid, now)
+            _people_notification(db, post["username"], username, "comment", content_id, now)
 
         return jsonify({
             "ok": True,
@@ -2517,7 +2517,7 @@ def create_reel_comment(content_id):
         """, (cursor.lastrowid,)).fetchone()
 
         if approved:
-            _people_notification(db, reel["username"], username, "comment", cursor.lastrowid, now)
+            _people_notification(db, reel["username"], username, "comment", content_id, now)
 
         comments_count = db.execute(
             "SELECT COUNT(*) AS total FROM reel_comments WHERE content_id=? AND approved=1",
