@@ -2652,7 +2652,7 @@ export default function App() {
     return scoreB - scoreA;
   });
   const chatThemeColors = ({
-    royal: { bg: "#000000", mine: "#262626", other: "#1C1C1E", accent: "#0095F6" },
+    royal: { bg: "#000000", mine: "#3797F0", other: "#262626", accent: "#FFFFFF" },
     midnight: { bg: "#080B12", mine: "#253044", other: "#151B27", accent: "#8FA8D8" },
     ocean: { bg: "#071521", mine: "#12415A", other: "#102A3A", accent: "#61C5E8" },
     rose: { bg: "#1B0B16", mine: "#63304A", other: "#321A29", accent: "#F0A0C0" },
