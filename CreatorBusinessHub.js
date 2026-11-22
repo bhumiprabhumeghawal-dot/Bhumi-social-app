@@ -10,14 +10,14 @@ import {
   createBusinessCatalogItem, deleteBusinessCatalogItem
 } from "./api";
 
-const GOLD = "#D8B86A";
-const BG = "#0B0712";
-const PANEL = "#171020";
-const BORDER = "#49345F";
-const TEXT = "#F4EFFA";
-const MUTED = "#B8AACB";
+const GOLD = "#0095F6";
+const BG = "#000000";
+const PANEL = "#121212";
+const BORDER = "#262626";
+const TEXT = "#F5F5F5";
+const MUTED = "#A8A8A8";
 const inputStyle = {
-  color: TEXT, backgroundColor: "#100B19", borderColor: BORDER,
+  color: TEXT, backgroundColor: "#0A0A0A", borderColor: BORDER,
   borderWidth: 1, borderRadius: 11, paddingHorizontal: 12,
   paddingVertical: 10, marginTop: 7, fontSize: 13
 };
