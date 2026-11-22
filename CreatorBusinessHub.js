@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  ActivityIndicator, Alert, Modal, ScrollView, Text, TextInput,
+  ActivityIndicator, Modal, ScrollView, Text, TextInput,
   TouchableOpacity, View
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,6 +31,8 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
   const [business, setBusiness] = React.useState({});
   const [items, setItems] = React.useState([]);
   const [form, setForm] = React.useState({ title: "", price: "", description: "", category: "product" });
+  const [feedback, setFeedback] = React.useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState(null);
 
   const refresh = React.useCallback(async () => {
     if (!visible || !username) return;
@@ -47,7 +49,7 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
         setPosts(Array.isArray(creatorPosts) ? creatorPosts : []);
       }
     } catch (error) {
-      Alert.alert("Creator & Business Hub", error.message || "Data could not be loaded.");
+      setFeedback(error.message || "Data could not be loaded.");
     } finally {
       setLoading(false);
     }
@@ -63,7 +65,7 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
       setTab("overview");
       await refresh();
     } catch (error) {
-      Alert.alert("Account type", error.message || "Account type could not be changed.");
+      setFeedback(error.message || "Account type could not be changed.");
     } finally { setSaving(false); }
   };
 
@@ -72,15 +74,15 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
     try {
       const saved = await saveBusinessProfile(business);
       setBusiness(saved || business);
-      Alert.alert("Saved", "Business profile saved successfully.");
+      setFeedback("Business profile saved successfully.");
     } catch (error) {
-      Alert.alert("Save failed", error.message || "Business profile could not be saved.");
+      setFeedback(error.message || "Business profile could not be saved.");
     } finally { setSaving(false); }
   };
 
   const addItem = async () => {
     if (!form.title.trim()) {
-      Alert.alert("Product", "Please enter a product or service name.");
+      setFeedback("Please enter a product or service name.");
       return;
     }
     setSaving(true);
@@ -90,21 +92,28 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
         description: form.description.trim(), item_type: form.category
       });
       setItems(current => [item, ...current]);
+      setFeedback("Product or service added to your catalog.");
       setForm({ title: "", price: "", description: "", category: "product" });
     } catch (error) {
-      Alert.alert("Catalog", error.message || "Item could not be added.");
+      setFeedback(error.message || "Item could not be added.");
     } finally { setSaving(false); }
   };
 
-  const removeItem = (id) => Alert.alert("Delete item?", "This item will be removed from your catalog.", [
-    { text: "Cancel", style: "cancel" },
-    { text: "Delete", style: "destructive", onPress: async () => {
-      try {
-        await deleteBusinessCatalogItem(id);
-        setItems(current => current.filter(item => String(item.id) !== String(id)));
-      } catch (error) { Alert.alert("Delete failed", error.message || "Item could not be deleted."); }
-    }}
-  ]);
+  const removeItem = async () => {
+    const id = confirmDeleteId;
+    if (id == null) return;
+    setSaving(true);
+    try {
+      await deleteBusinessCatalogItem(id);
+      setItems(current => current.filter(item => String(item.id) !== String(id)));
+      setFeedback("Catalog item deleted.");
+    } catch (error) {
+      setFeedback(error.message || "Item could not be deleted.");
+    } finally {
+      setSaving(false);
+      setConfirmDeleteId(null);
+    }
+  };
 
   const field = (label, key, multiline = false) => (
     <View style={{ marginBottom: 10 }}>
@@ -150,6 +159,14 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
           <TouchableOpacity onPress={refresh}><Ionicons name="refresh" size={21} color={GOLD}/></TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 17, paddingBottom: 50 }} keyboardShouldPersistTaps="handled">
+          {feedback ? (
+            <View style={{ backgroundColor: "#121212", borderColor: BORDER, borderWidth: 1, borderRadius: 11, padding: 12, marginBottom: 12, flexDirection: "row", alignItems: "center" }}>
+              <Text style={{ color: TEXT, fontSize: 12, flex: 1 }}>{feedback}</Text>
+              <TouchableOpacity onPress={() => setFeedback("")} style={{ paddingLeft: 12 }}>
+                <Ionicons name="close" size={18} color={MUTED} />
+              </TouchableOpacity>
+            </View>
+          ) : null}
           <View style={{ backgroundColor: "#121212", borderColor: GOLD, borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 14 }}>
             <Text style={{ color: GOLD, fontWeight: "900", fontSize: 12 }}>ACCOUNT TYPE</Text>
             <Text style={{ color: MUTED, fontSize: 11, marginTop: 4 }}>Choose the tools that match how you use Bhumi Social AI.</Text>
@@ -216,7 +233,7 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
                         <Text style={{ color: TEXT, fontWeight: "800" }}>{item.title}</Text>
                         <Text style={{ color: MUTED, fontSize: 11, marginTop: 3 }}>{item.price ? "₹" + item.price : "Price not set"} · {item.description || "No description"}</Text>
                       </View>
-                      <TouchableOpacity onPress={() => removeItem(item.id)}><Ionicons name="trash-outline" color="#F08080" size={19}/></TouchableOpacity>
+                      <TouchableOpacity onPress={() => setConfirmDeleteId(item.id)}><Ionicons name="trash-outline" color="#F08080" size={19}/></TouchableOpacity>
                     </View>
                   ))}
                   {!items.length ? <Text style={{ color: MUTED, fontSize: 12 }}>No products or services added yet.</Text> : null}
@@ -246,6 +263,22 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
           ) : null}
         </ScrollView>
       </View>
+      <Modal visible={confirmDeleteId != null} transparent animationType="fade" onRequestClose={() => setConfirmDeleteId(null)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "center", padding: 28 }}>
+          <View style={{ backgroundColor: PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 16, padding: 18 }}>
+            <Text style={{ color: TEXT, fontSize: 16, fontWeight: "900" }}>Delete catalog item?</Text>
+            <Text style={{ color: MUTED, fontSize: 12, marginTop: 8 }}>This item will be permanently removed from your catalog.</Text>
+            <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}>
+              <TouchableOpacity onPress={() => setConfirmDeleteId(null)} disabled={saving} style={{ padding: 11, marginRight: 8 }}>
+                <Text style={{ color: TEXT, fontWeight: "700" }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={removeItem} disabled={saving} style={{ backgroundColor: "#ED4956", borderRadius: 9, paddingHorizontal: 15, paddingVertical: 11 }}>
+                <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{saving ? "Deleting..." : "Delete"}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Modal>
   );
 }
