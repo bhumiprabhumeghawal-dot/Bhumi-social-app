@@ -21,7 +21,6 @@ on:
       - 'App.js'
       - 'package.json'
       - 'package-lock.json'
-      - '.github/workflows/android-apk.yml'
 
 permissions:
   contents: write
