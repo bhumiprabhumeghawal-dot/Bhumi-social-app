@@ -29,6 +29,7 @@ All measurements below are React Native density-independent pixels (dp), not raw
 ### Reels
 - [x] Full viewport paging and active-index tracking.
 - [x] Active-only video playback wiring.
+- [x] Remove the blocking empty-Reels alert; the Reels screen now owns its empty state and upload action.
 - [ ] Verify right-side action rail, caption truncation, follow state, comments sheet, share sheet, and mute state.
 - [ ] Verify swipe/zoom interaction and safe-area placement across Android devices.
 
@@ -54,7 +55,7 @@ All measurements below are React Native density-independent pixels (dp), not raw
 
 ### Notifications, settings, privacy, and account
 - [ ] Verify notification list, unread state, navigation to the related post/profile, and empty state.
-- [ ] Verify settings categories, search/discovery of settings, back navigation, and close behavior.
+- [x] Add settings search and filtered category results; verify category navigation and close behavior during device QA.
 - [ ] Verify privacy, blocked/restricted accounts, login/security, notifications, appearance, account controls, and logout.
 - [ ] Verify all setting actions are functional and do not merely show placeholder notices.
 
@@ -64,6 +65,11 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [ ] End-to-end checks for login persistence, post/story/reel publishing, likes/comments/saves, follow requests, DM delivery, and calls.
 - [ ] Confirm no regression in feed/reel scrolling, zoom coordination, and active-only reel playback.
 - [ ] Only after these checks, create a release APK; this branch is not a release build.
+
+## Release policy
+
+- Do not trigger Android APK builds, EAS builds, or release workflows while this parity pass is in progress.
+- Build only after the full screen checklist, static checks, and device QA have been completed and the user is told the result.
 
 ## Current implementation notes
 
