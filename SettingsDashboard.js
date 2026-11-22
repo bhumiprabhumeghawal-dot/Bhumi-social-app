@@ -334,7 +334,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           merged["privacy.readReceipts"] = merged["messages.readReceipts"];
         }
         Object.entries(notificationDetails || {}).forEach(([name, enabled]) => {
-          const key = ({ likes:"notifications.likes", comments:"notifications.comments", follows:"notifications.follows", requests:"notifications.requests", messages:"notifications.messages" })[name];
+          const key = ({ likes:"notifications.likes", comments:"notifications.comments", follows:"notifications.follows", requests:"notifications.requests", messages:"notifications.messages", reels:"notifications.reels" })[name];
           if (key) merged[key] = enabled;
         });
         setPreferences(merged);
@@ -383,7 +383,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           "messages.readReceipts": value,
         }));
       } else {
-        const detailKey = ({ "notifications.likes":"likes", "notifications.comments":"comments", "notifications.follows":"follows", "notifications.messages":"messages", "notifications.requests":"requests" })[key];
+        const detailKey = ({ "notifications.likes":"likes", "notifications.comments":"comments", "notifications.follows":"follows", "notifications.messages":"messages", "notifications.requests":"requests", "notifications.reels":"reels" })[key];
         if (detailKey) {
           await saveNotificationDetails({ [detailKey]: value });
           setPreferences((current) => ({ ...current, [key]: value }));
