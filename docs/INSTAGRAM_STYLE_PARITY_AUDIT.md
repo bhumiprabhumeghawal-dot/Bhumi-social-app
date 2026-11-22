@@ -65,6 +65,7 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [x] Connect Close Friends settings to the Messages inbox / Chat Personalization Studio.
 - [x] Implement real temporary cache clearing without deleting account data, posts, or messages.
 - [ ] Verify privacy, blocked/restricted accounts, login/security, notifications, appearance, account controls, and logout.
+- [x] Generate a scannable per-user profile QR code using the existing `bhumisocial://profile/<username>` deep link and provide native profile sharing.
 - [x] Align Creator & Business Hub colors with the app-wide dark surface and blue accent system.
 - [x] Replace Creator & Business Hub system alerts with inline feedback and an in-app catalog-delete confirmation.
 - [ ] Verify all setting actions are functional and do not merely show placeholder notices.
