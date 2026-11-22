@@ -48,6 +48,40 @@ class NotificationPreferenceApiTests(unittest.TestCase):
         self.assertEqual(loaded.status_code, 200)
         self.assertFalse(loaded.get_json()["requests"])
 
+    def test_follow_request_alerts_obey_the_dedicated_preference(self):
+        self.client.patch(
+            "/api/settings/notifications/details",
+            json={"requests": False},
+        )
+        now = datetime.now(timezone.utc).isoformat()
+        with patch.object(server_app.threading, "Thread") as thread:
+            with self.db:
+                server_app._people_notification(
+                    self.db, "alice", "bob", "follow_request", "request-1", now
+                )
+        count = self.db.execute(
+            "SELECT COUNT(*) AS total FROM people_notifications WHERE recipient=?",
+            ("alice",),
+        ).fetchone()["total"]
+        self.assertEqual(count, 0)
+        thread.assert_not_called()
+
+        self.client.patch(
+            "/api/settings/notifications/details",
+            json={"requests": True},
+        )
+        with patch.object(server_app.threading, "Thread") as thread:
+            with self.db:
+                server_app._people_notification(
+                    self.db, "alice", "bob", "follow_request", "request-2", now
+                )
+        count = self.db.execute(
+            "SELECT COUNT(*) AS total FROM people_notifications WHERE recipient=?",
+            ("alice",),
+        ).fetchone()["total"]
+        self.assertEqual(count, 1)
+        thread.assert_called_once()
+
     def test_unknown_notification_preference_is_rejected(self):
         response = self.client.patch(
             "/api/settings/notifications/details",
