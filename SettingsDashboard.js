@@ -445,6 +445,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       const approximate = !!preferences["location.approximate"];
       const latitude = approximate ? Math.round(position.coords.latitude * 100) / 100 : position.coords.latitude;
       const longitude = approximate ? Math.round(position.coords.longitude * 100) / 100 : position.coords.longitude;
+      const previousShareId = activeLocationShareRef.current?.shareId || await SecureStore.getItemAsync("bhumi_live_share_id");
+      if (previousShareId) await stopLocationShare(previousShareId).catch(() => {});
       await stopLocationWatcher();
       const created = await createOrUpdateLocationShare({
         recipient_username: recipient,
