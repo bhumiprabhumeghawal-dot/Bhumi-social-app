@@ -909,6 +909,14 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               </View>
             ))}
             {!locationShares.outgoing.length ? <Text style={{ color:MUTED,fontSize:11 }}>You are not sharing your location with anyone.</Text> : null}
+            <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginTop:18,marginBottom:8 }}>Recent Location History</Text>
+            {(locationShares.history || []).map((item)=>(
+              <View key={"history-"+item.share_id} style={{ backgroundColor:PANEL,borderRadius:11,padding:11,marginBottom:7 }}>
+                <Text style={{ color:TEXT,fontSize:11,fontWeight:"800" }}>{item.owner_username===username ? "You shared with @"+item.recipient_username : "@"+item.owner_username+" shared with you"}</Text>
+                <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>{new Date(item.created_at).toLocaleString()} · {item.active ? "Active" : "Ended"}</Text>
+              </View>
+            ))}
+            {!(locationShares.history || []).length ? <Text style={{ color:MUTED,fontSize:11 }}>No location sharing history in the last 30 days.</Text> : null}
             <View style={{ backgroundColor:"#1B1B1B",borderRadius:12,padding:12,marginTop:15,marginBottom:20 }}>
               <Text style={{ color:MUTED,fontSize:10,lineHeight:15 }}>Location is shared only after you press Start, only with the selected mutual follower, and expires automatically. Live updates run while the app is open in the foreground; background tracking is not enabled. Approximate Location rounds coordinates before sending.</Text>
             </View>
