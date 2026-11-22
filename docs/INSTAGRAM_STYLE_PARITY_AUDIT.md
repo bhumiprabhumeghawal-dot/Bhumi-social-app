@@ -69,6 +69,8 @@ All measurements below are React Native density-independent pixels (dp), not raw
 
 - [x] Add a dedicated Messages notification filter so DM alerts are visible without mixing them into Likes, Comments, or Follows.
 
+- [x] Source includes incoming/outgoing call signaling, push-token registration, CallKeep lock-screen integration, and LiveKit room-token flow; [ ] verify Render LIVEKIT_URL/API key configuration and real-device audio/video end-to-end before calling this complete.
+
 ### Quality gates
 - [x] Correct a malformed confirm-password TextInput attribute discovered during source review.
 - [x] Python backend compile, backend unit tests, and media-storage checks passed in GitHub CI; npm install passed on Node 18/20/22.
