@@ -146,4 +146,4 @@ The existing app is a large single-file React Native screen with supporting modu
 - [x] Add nearby-friend distance sorting only for friends who have explicitly shared their location with the current user.
 - [x] Update the public privacy policy for location and sign-in history collection/retention.
 - [ ] Device QA required for OS permission prompts, background task persistence, battery restrictions, map links, and real multi-account mutual-follow sharing. Android background location also requires appropriate Google Play disclosure/review if publishing there.
-- [ ] 2FA, biometric unlock, location tagging in posts, and a general location-based discovery directory remain separate unfinished features; do not show them as enabled.
+- [x] Add optional device fingerprint/Face ID enrollment using Expo LocalAuthentication, with the App PIN retained as fallback and biometric settings stored securely on-device.\n- [ ] Email/TOTP two-factor sign-in, location tagging in posts, and a general location-based discovery directory remain separate unfinished features; do not show them as enabled.
