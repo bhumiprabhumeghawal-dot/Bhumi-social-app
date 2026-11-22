@@ -3913,17 +3913,38 @@ export default function App() {
         );
         return;
       }
+      let post = null;
       try {
-        const post = await loadPostById(item.referenceId);
-        if (!post) {
-          Alert.alert("Post unavailable", "This post may have been deleted.");
-          return;
-        }
+        post = await loadPostById(item.referenceId);
+      } catch (_) {
+        // Reel comments use the same notification kind; try the Reels feed next.
+      }
+      if (post) {
         setSelectedPostMediaIndex(0);
         setSelectedPost(post);
-      } catch (e) {
-        Alert.alert("Post", e.message || "Could not open this post.");
+        return;
       }
+      if (kind === "comment") {
+        try {
+          let reelItems = reels || [];
+          if (!reelItems.some((entry) => Number(entry.id) === Number(item.referenceId))) {
+            reelItems = await loadContent("reels", { force: true });
+            setReels(reelItems);
+          }
+          const reelIndex = reelItems.findIndex(
+            (entry) => Number(entry.id) === Number(item.referenceId),
+          );
+          if (reelIndex >= 0) {
+            setActiveTab("Reels");
+            setActiveReelIndex(reelIndex);
+            await handleOpenReelComments(reelItems[reelIndex]);
+            return;
+          }
+        } catch (error) {
+          console.warn("Could not open reel notification:", error?.message || error);
+        }
+      }
+      Alert.alert("Content unavailable", "This post or reel may have been deleted or is no longer visible.");
       return;
     }
 
