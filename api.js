@@ -472,7 +472,8 @@ async function saveCachedProfile(username, viewer, data) {
 
 export async function loadProfile(username = 'you', viewer = 'you') {
   const response = await fetch(
-    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}?viewer=${encodeURIComponent(viewer)}`
+    `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}?viewer=${encodeURIComponent(viewer)}`,
+    { headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल लोड नहीं हुई।');
@@ -499,7 +500,8 @@ export async function loadProfilePosts(username, viewer = '', pageSize = 100) {
       offset: String(offset),
     });
     const response = await fetch(
-      `${API_BASE_URL}/api/profile/${encodeURIComponent(normalizedUsername)}/posts?${query.toString()}`
+      `${API_BASE_URL}/api/profile/${encodeURIComponent(normalizedUsername)}/posts?${query.toString()}`,
+      { headers: await authHeaders() }
     );
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल पोस्ट लोड नहीं हुई।');
