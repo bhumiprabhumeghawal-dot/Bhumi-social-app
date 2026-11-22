@@ -63,6 +63,12 @@
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true
         }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Bhumi Social AI to use Face ID to unlock the app."
+        }
       ]
     ],
     "extra": {
