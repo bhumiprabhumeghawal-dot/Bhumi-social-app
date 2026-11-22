@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  Modal, View, Text, ScrollView, TouchableOpacity, Switch,
+  Modal, View, Text, TextInput, ScrollView, TouchableOpacity, Switch,
   ActivityIndicator, Linking, Platform, StyleSheet
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -195,6 +195,17 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const [loading, setLoading] = React.useState(false);
   const [savingKey, setSavingKey] = React.useState("");
   const [notice, setNotice] = React.useState(null);
+  const [settingsSearch, setSettingsSearch] = React.useState("");
+  const normalizedSearch = settingsSearch.trim().toLowerCase();
+  const visibleSections = SECTIONS.map((section) => ({
+    ...section,
+    fields: section.fields.filter((field) => !normalizedSearch ||
+      field[1].toLowerCase().includes(normalizedSearch) ||
+      field[2].toLowerCase().includes(normalizedSearch)),
+  })).filter((section) => !normalizedSearch ||
+    section.title.toLowerCase().includes(normalizedSearch) ||
+    section.subtitle.toLowerCase().includes(normalizedSearch) ||
+    section.fields.length > 0);
   React.useEffect(() => {
     let alive = true;
     if (visible) {
@@ -426,14 +437,37 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.72)",justifyContent:"flex-end",paddingBottom: Platform.OS === "android" ? 38 : 0 }}>
           <View style={{ backgroundColor:BG,borderTopLeftRadius:22,borderTopRightRadius:22,borderWidth:1,borderColor:BORDER,paddingTop:18,paddingHorizontal:17,paddingBottom: Platform.OS === "android" ? 22 : 25,maxHeight:"94%" }}>
             <View style={{ alignSelf:"center",width:42,height:5,borderRadius:5,backgroundColor:"#0095F6",marginBottom:17 }}/>
-            <View style={{ backgroundColor:"#121212",borderWidth:1,borderColor:BORDER,borderRadius:16,padding:18,marginBottom:15 }}>
-              <Text style={{ color:GOLD,fontSize:11,fontWeight:"900",letterSpacing:2 }}>BHUMI SOCIAL AI</Text>
-              <Text style={{ color:TEXT,fontSize:25,fontWeight:"900",marginTop:6 }}>Settings</Text>
-              <Text style={{ color:MUTED,fontSize:12,marginTop:4 }}>Your account, privacy and app controls</Text>
+            <View style={{ paddingHorizontal:2, marginBottom:15 }}>
+              <Text style={{ color:TEXT,fontSize:25,fontWeight:"900",letterSpacing:-0.6 }}>Settings and activity</Text>
+              <Text style={{ color:MUTED,fontSize:12,marginTop:4 }}>Manage your account, privacy and how you use Bhumi Social AI</Text>
             </View>
+            <View style={{ flexDirection:"row",alignItems:"center",backgroundColor:PANEL,borderRadius:12,paddingHorizontal:12,height:44,marginBottom:14 }}>
+              <Ionicons name="search" size={19} color={MUTED}/>
+              <TextInput
+                value={settingsSearch}
+                onChangeText={setSettingsSearch}
+                placeholder="Search settings"
+                placeholderTextColor="#8E8E8E"
+                returnKeyType="search"
+                autoCorrect={false}
+                style={{ flex:1,color:TEXT,fontSize:14,paddingVertical:0,paddingHorizontal:9 }}
+                accessibilityLabel="Search settings"
+              />
+              {settingsSearch ? <TouchableOpacity onPress={() => setSettingsSearch("")} accessibilityLabel="Clear settings search"><Ionicons name="close-circle" size={18} color={MUTED}/></TouchableOpacity> : null}
+            </View>
+            <TouchableOpacity onPress={() => { setSettingsSearch(""); setActive("account"); }} activeOpacity={0.85} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderWidth:1,borderColor:BORDER,borderRadius:13,padding:13,marginBottom:15 }}>
+              <View style={{ width:40,height:40,borderRadius:20,backgroundColor:PANEL,alignItems:"center",justifyContent:"center",marginRight:11 }}>
+                <Ionicons name="people-circle-outline" size={25} color={GOLD}/>
+              </View>
+              <View style={{ flex:1 }}>
+                <Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>Accounts Center</Text>
+                <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>Personal details, account access and security</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={MUTED}/>
+            </TouchableOpacity>
             {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical:18 }}/> : null}
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 48 : 12 }}>
-              {SECTIONS.map((section) => (
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 48 : 12 }}>
+              {visibleSections.length ? visibleSections.map((section) => (
                 <TouchableOpacity key={section.key} onPress={() => setActive(section.key)} activeOpacity={0.82} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderBottomWidth:1,borderBottomColor:BORDER,borderRadius:0,paddingHorizontal:2,paddingVertical:12,marginBottom:0 }}>
                   <View style={{ width:42,height:42,borderRadius:21,backgroundColor:"#1C1C1E",alignItems:"center",justifyContent:"center",marginRight:12 }}>
                     <Ionicons name={section.icon} size={22} color={GOLD}/>
@@ -444,7 +478,13 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                   </View>
                   <Ionicons name="chevron-forward" size={19} color={MUTED}/>
                 </TouchableOpacity>
-              ))}
+              )) : (
+                <View style={{ paddingVertical:28,alignItems:"center" }}>
+                  <Ionicons name="search-outline" size={28} color={MUTED}/>
+                  <Text style={{ color:TEXT,fontSize:14,fontWeight:"700",marginTop:10 }}>No settings found</Text>
+                  <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>Try another keyword</Text>
+                </View>
+              )}
               <TouchableOpacity onPress={onLogout} style={{ flexDirection:"row",alignItems:"center",justifyContent:"center",backgroundColor:"#35191D",borderWidth:1,borderColor:"#7C3039",borderRadius:14,padding:14,marginTop:5 }}>
                 <Ionicons name="log-out-outline" color="#F08080" size={20}/>
                 <Text style={{ color:"#F08080",fontWeight:"900",marginLeft:9 }}>Log Out</Text>
