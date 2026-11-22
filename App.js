@@ -22,7 +22,6 @@ import {
   Gesture,
   GestureDetector,
   ScrollView as GestureScrollView,
-  useNativeGesture,
 } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
@@ -989,24 +988,34 @@ function groupPostItems(items) {
 }
 
 function PostMediaTapSurface({ children, style, onSingleTap, onDoubleTap }) {
-  // A media tap must fail as soon as the finger moves into a scroll gesture.
-  // This prevents opening a post while the user is swiping through the feed.
-  const singleTap = Gesture.Tap()
-    .maxDistance(8)
-    .maxDuration(220)
-    .onEnd(() => onSingleTap?.())
-    .runOnJS(true);
-  const doubleTap = Gesture.Tap()
-    .numberOfTaps(2)
-    .maxDistance(8)
-    .maxDuration(260)
-    .onEnd(() => onDoubleTap?.())
-    .runOnJS(true);
-  const tapGesture = Gesture.Exclusive(doubleTap, singleTap);
+  // Native press handling lets FlatList cancel a press as soon as dragging starts.
+  // A stationary tap opens the post; a second quick tap likes it.
+  const tapTimer = React.useRef(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (tapTimer.current) clearTimeout(tapTimer.current);
+    };
+  }, []);
+
+  const handlePress = () => {
+    if (tapTimer.current) {
+      clearTimeout(tapTimer.current);
+      tapTimer.current = null;
+      onDoubleTap?.();
+      return;
+    }
+
+    tapTimer.current = setTimeout(() => {
+      tapTimer.current = null;
+      onSingleTap?.();
+    }, 260);
+  };
+
   return (
-    <GestureDetector gesture={tapGesture}>
-      <View style={style}>{children}</View>
-    </GestureDetector>
+    <TouchableOpacity activeOpacity={1} onPress={handlePress} style={style}>
+      {children}
+    </TouchableOpacity>
   );
 }
 
@@ -2262,7 +2271,6 @@ export default function App() {
   }, []);
 
   const [activeTab, setActiveTab] = React.useState("Home");
-  const feedScrollGesture = useNativeGesture();
   const [cameraOpen, setCameraOpen] = React.useState(false);
   const [cameraFacing, setCameraFacing] = React.useState("back");
   const [cameraMode, setCameraMode] = React.useState("video");
@@ -7622,7 +7630,6 @@ export default function App() {
         <View style={[styles.content, { flex: 1 }]}>
           {/* Keep the Instagram-style top bar fixed; only stories and feed content scroll. */}
           {renderAppHeader()}
-          <GestureDetector gesture={feedScrollGesture}>
             <FlatList
               ListHeaderComponent={
                 <View>
@@ -7795,7 +7802,6 @@ export default function App() {
                 </View>
               }
             />
-          </GestureDetector>
         </View>
       ) : activeTab === "Search" ? (
         <ScrollView
