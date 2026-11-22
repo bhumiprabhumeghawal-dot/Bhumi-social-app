@@ -10,7 +10,7 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import CreatorBusinessHub from "./CreatorBusinessHub";
-import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails, loadLoginHistory, loadActiveSessions, revokeActiveSession, logoutOtherSessions, loadLocationShares, createOrUpdateLocationShare, stopLocationShare } from "./api";
+import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails, loadLoginHistory, loadActiveSessions, revokeActiveSession, logoutOtherSessions, loadLocationShares, createOrUpdateLocationShare, stopLocationShare, loadFeedUserLists, addFeedUserList, removeFeedUserList } from "./api";
 
 const GOLD = "#0095F6";
 const BG = "#000000";
@@ -260,6 +260,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const [loginHistory, setLoginHistory] = React.useState([]);
   const [activeSessions, setActiveSessions] = React.useState([]);
   const [locationVisible, setLocationVisible] = React.useState(false);
+  const [feedListsVisible, setFeedListsVisible] = React.useState(false);
+  const [feedListsLoading, setFeedListsLoading] = React.useState(false);
+  const [feedLists, setFeedLists] = React.useState({ favorites:[], muted:[] });
+  const [feedListUsername, setFeedListUsername] = React.useState("");
+  const [feedListType, setFeedListType] = React.useState("favorite");
   const [locationLoading, setLocationLoading] = React.useState(false);
   const [locationShares, setLocationShares] = React.useState({ outgoing:[], incoming:[] });
   const [locationRecipient, setLocationRecipient] = React.useState("");
@@ -361,6 +366,61 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       setPreferences((current) => ({ ...current, [key]: previous }));
       setNotice({ title: "Save failed", message: error.message || "Could not save this setting." });
     } finally { setSavingKey(""); }
+  };
+
+  const refreshFeedLists = async () => {
+    setFeedListsLoading(true);
+    try {
+      setFeedLists(await loadFeedUserLists());
+    } catch (error) {
+      setNotice({ title:"Favorites & Muted", message:error?.message || "Could not load account lists." });
+    } finally {
+      setFeedListsLoading(false);
+    }
+  };
+
+  const openFeedLists = (type = "favorite") => {
+    setFeedListType(type);
+    setFeedListUsername("");
+    setActive(null);
+    setFeedListsVisible(true);
+    void refreshFeedLists();
+  };
+
+  const saveFeedListAccount = async () => {
+    const target = feedListUsername.trim().replace(/^@/, "");
+    if (!target) {
+      setNotice({ title:"Username required", message:"Enter the username of the account you want to add." });
+      return;
+    }
+    setFeedListsLoading(true);
+    try {
+      await addFeedUserList(feedListType, target);
+      setFeedListUsername("");
+      setFeedLists(await loadFeedUserLists());
+      setNotice({
+        title:feedListType === "favorite" ? "Added to Favorites" : "Account Muted",
+        message:feedListType === "favorite"
+          ? "This account will be prioritized near the top of your Posts and Reels feed."
+          : "Posts, Reels and Stories from this account will be hidden from your feed. You can unmute it here.",
+      });
+    } catch (error) {
+      setNotice({ title:"Could not update list", message:error?.message || "Please check the username and try again." });
+    } finally {
+      setFeedListsLoading(false);
+    }
+  };
+
+  const deleteFeedListAccount = async (type, target) => {
+    setFeedListsLoading(true);
+    try {
+      await removeFeedUserList(type, target);
+      setFeedLists(await loadFeedUserLists());
+    } catch (error) {
+      setNotice({ title:"Could not update list", message:error?.message || "Please try again." });
+    } finally {
+      setFeedListsLoading(false);
+    }
   };
 
   const refreshSecurityData = async () => {
@@ -643,7 +703,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       return;
     }
     if (key === "feed.favorites" || key === "feed.mutedAccounts") {
-      setNotice({ title: key === "feed.favorites" ? "Favorites Feed" : "Muted Accounts", message: "This dedicated list-management screen is not implemented yet. This control has not been enabled as a working feature." });
+      openFeedLists(key === "feed.favorites" ? "favorite" : "muted");
       return;
     }
     if (key === "location.history" || key === "location.liveSharing" || key === "location.nearbyFriends") {
@@ -1106,6 +1166,59 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               <Text style={{ color:MUTED,fontSize:10,lineHeight:15 }}>Location is shared only after you press Start, only with the selected mutual follower, and expires automatically. Background Location requires the separate switch, Always permission, and an ongoing system notification. You can stop sharing here at any time. Approximate Location rounds coordinates before sending.</Text>
             </View>
           </ScrollView>
+        </View>
+      </Modal>
+      <Modal visible={feedListsVisible && visible} transparent animationType="slide" onRequestClose={() => setFeedListsVisible(false)}>
+        <View style={{ flex:1,backgroundColor:"#000000",paddingTop:Platform.OS==="android"?35:55,paddingHorizontal:18,paddingBottom:20 }}>
+          <View style={{ flexDirection:"row",alignItems:"center",marginBottom:15 }}>
+            <TouchableOpacity onPress={()=>setFeedListsVisible(false)} style={{ width:38 }}><Ionicons name="arrow-back" size={24} color={TEXT}/></TouchableOpacity>
+            <Text style={{ color:TEXT,fontSize:20,fontWeight:"900",flex:1 }}>Favorites & Muted</Text>
+            <TouchableOpacity onPress={refreshFeedLists}><Ionicons name="refresh" size={21} color={GOLD}/></TouchableOpacity>
+          </View>
+          <View style={{ flexDirection:"row",backgroundColor:PANEL,borderRadius:12,padding:4,marginBottom:14 }}>
+            {[
+              { key:"favorite", label:"Favorites" },
+              { key:"muted", label:"Muted" },
+            ].map(item=>(
+              <TouchableOpacity key={item.key} onPress={()=>setFeedListType(item.key)} style={{ flex:1,backgroundColor:feedListType===item.key?"#17334A":"transparent",borderRadius:9,padding:10,alignItems:"center" }}>
+                <Text style={{ color:feedListType===item.key?GOLD:TEXT,fontWeight:"900",fontSize:12 }}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={{ color:MUTED,fontSize:11,lineHeight:16,marginBottom:10 }}>
+            {feedListType==="favorite"
+              ? "Favorite accounts appear first in your Posts and Reels feed. They are not notified."
+              : "Muted accounts' posts, reels and stories are hidden from your feed. They are not notified."}
+          </Text>
+          <View style={{ flexDirection:"row",alignItems:"center",marginBottom:14 }}>
+            <TextInput value={feedListUsername} onChangeText={setFeedListUsername} placeholder="Enter username" placeholderTextColor="#777777" autoCapitalize="none" autoCorrect={false} onSubmitEditing={saveFeedListAccount} returnKeyType="done" style={{ flex:1,color:TEXT,backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:11,padding:12,marginRight:8 }}/>
+            <TouchableOpacity disabled={feedListsLoading} onPress={saveFeedListAccount} style={{ backgroundColor:GOLD,borderRadius:11,paddingVertical:13,paddingHorizontal:16,opacity:feedListsLoading?0.6:1 }}>
+              <Text style={{ color:"#FFFFFF",fontWeight:"900",fontSize:12 }}>Add</Text>
+            </TouchableOpacity>
+          </View>
+          {feedListsLoading ? <ActivityIndicator color={GOLD} style={{ marginVertical:10 }}/> : null}
+          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            {(feedListType==="favorite"?feedLists.favorites:feedLists.muted).map(item=>(
+              <View key={item.username} style={{ flexDirection:"row",alignItems:"center",backgroundColor:PANEL,borderRadius:12,padding:12,marginBottom:8 }}>
+                <View style={{ width:38,height:38,borderRadius:19,backgroundColor:"#242424",alignItems:"center",justifyContent:"center",marginRight:10 }}>
+                  <Ionicons name="person" size={18} color={GOLD}/>
+                </View>
+                <View style={{ flex:1 }}>
+                  <Text style={{ color:TEXT,fontSize:13,fontWeight:"900" }}>{item.displayName || item.username}</Text>
+                  <Text style={{ color:MUTED,fontSize:11,marginTop:2 }}>@{item.username}</Text>
+                </View>
+                <TouchableOpacity disabled={feedListsLoading} onPress={()=>deleteFeedListAccount(feedListType,item.username)} style={{ borderWidth:1,borderColor:"#5B3035",borderRadius:9,paddingVertical:8,paddingHorizontal:11 }}>
+                  <Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>{feedListType==="favorite"?"Remove":"Unmute"}</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+            {!feedListsLoading && !(feedListType==="favorite"?feedLists.favorites:feedLists.muted).length
+              ? <Text style={{ color:MUTED,fontSize:12,textAlign:"center",marginTop:24 }}>No accounts in this list yet.</Text>
+              : null}
+          </ScrollView>
+          <TouchableOpacity onPress={()=>setFeedListsVisible(false)} style={{ backgroundColor:"#242424",borderRadius:12,padding:13,alignItems:"center",marginTop:10 }}>
+            <Text style={{ color:TEXT,fontWeight:"900" }}>Close</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
       <Modal visible={pinSetupVisible && visible} transparent animationType="fade" onRequestClose={() => setPinSetupVisible(false)}>
