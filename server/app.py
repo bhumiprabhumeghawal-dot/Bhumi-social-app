@@ -3108,6 +3108,8 @@ def auth_login_history():
     except (TypeError, ValueError):
         limit = 30
     with get_db() as db:
+        history_cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+        db.execute("DELETE FROM auth_login_history WHERE username=? AND created_at<?", (username, history_cutoff))
         rows = db.execute("""
             SELECT h.id, h.created_at, h.device_label,
                    CASE WHEN s.token_hash IS NULL THEN 0 ELSE 1 END AS session_active,
@@ -3187,6 +3189,7 @@ def list_location_shares():
             ORDER BY updated_at DESC
         """, (username,)).fetchall()
         history_since = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        db.execute("DELETE FROM location_shares WHERE created_at<?", (history_since,))
         history = db.execute("""
             SELECT share_id, owner_username, recipient_username, latitude, longitude,
                    accuracy, created_at, updated_at, expires_at, active
