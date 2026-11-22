@@ -174,9 +174,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     if (!pending || pending.uuid !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
     pendingCallKeepActionRef.current = null;
     callKeepEventBusyRef.current = true;
+    const activeCall = callRef.current;
+    const isIncomingCall = !!activeCall &&
+      String(activeCall.callee || "").toLowerCase() === String(currentUsername || "").toLowerCase();
     const handler = pending.type === "answer"
       ? answerHandlerRef.current
-      : (incomingRef.current ? declineHandlerRef.current : endHandlerRef.current);
+      : (isIncomingCall ? declineHandlerRef.current : endHandlerRef.current);
     Promise.resolve(handler?.()).finally(() => {
       callKeepEventBusyRef.current = false;
     });
