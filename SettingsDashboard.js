@@ -6,6 +6,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system/legacy";
 import * as SecureStore from "expo-secure-store";
+import * as LocalAuthentication from "expo-local-authentication";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import CreatorBusinessHub from "./CreatorBusinessHub";
@@ -300,12 +301,16 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         loadNotificationDetails(),
         SecureStore.getItemAsync("bhumi_app_lock_pin"),
         SecureStore.getItemAsync("bhumi_app_auto_lock"),
-      ]).then(([data, notificationsEnabled, notificationDetails, storedAppPin, storedAutoLock]) => {
+        SecureStore.getItemAsync("bhumi_app_biometric_fingerprint"),
+        SecureStore.getItemAsync("bhumi_app_biometric_face"),
+      ]).then(([data, notificationsEnabled, notificationDetails, storedAppPin, storedAutoLock, storedFingerprint, storedFace]) => {
         if (!alive) return;
         const merged = { ...(data || {}) };
         merged["security.appLock"] = !!storedAppPin;
         merged["security.pin"] = !!storedAppPin;
         if (storedAppPin) merged["security.autoLock"] = storedAutoLock !== "false";
+        merged["security.fingerprint"] = !!storedFingerprint;
+        merged["security.faceUnlock"] = !!storedFace;
         merged["notifications.enabled"] = notificationsEnabled;
         Object.entries(notificationDetails || {}).forEach(([name, enabled]) => {
           const key = ({ likes:"notifications.likes", comments:"notifications.comments", follows:"notifications.follows", messages:"notifications.messages" })[name];
@@ -527,6 +532,47 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   };
 
   React.useEffect(() => () => { void stopLocationWatcher(); }, []);
+  const toggleBiometricUnlock = async (key) => {
+    const isFingerprint = key === "security.fingerprint";
+    const secureKey = isFingerprint ? "bhumi_app_biometric_fingerprint" : "bhumi_app_biometric_face";
+    const label = isFingerprint ? "Fingerprint Unlock" : "Face Unlock";
+    try {
+      const enabled = await SecureStore.getItemAsync(secureKey);
+      if (enabled === "true") {
+        await SecureStore.deleteItemAsync(secureKey);
+        const saved = await saveSettingsPreferences({ [key]:false });
+        setPreferences((current)=>({...current,...saved,[key]:false}));
+        setNotice({ title:label+" disabled", message:label+" has been turned off on this device." });
+        return;
+      }
+      const pin = await SecureStore.getItemAsync("bhumi_app_lock_pin");
+      if (!pin) {
+        setActive(null);
+        setPinAlreadySet(false);
+        setPinValue("");
+        setPinConfirmValue("");
+        setPinSetupVisible(true);
+        setNotice({ title:"Set App PIN first", message:"Create an App PIN first. Fingerprint or Face Unlock will then work as a secure alternative to that PIN." });
+        return;
+      }
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      const supported = await LocalAuthentication.supportedAuthenticationTypesAsync();
+      const requiredType = isFingerprint ? LocalAuthentication.AuthenticationType.FINGERPRINT : LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION;
+      if (!hasHardware || !enrolled || !supported.includes(requiredType)) {
+        throw new Error(isFingerprint ? "इस डिवाइस में enrolled fingerprint उपलब्ध नहीं है।" : "इस डिवाइस में enrolled face unlock उपलब्ध नहीं है।");
+      }
+      const result = await LocalAuthentication.authenticateAsync({ promptMessage:"Enable "+label, cancelLabel:"Cancel", disableDeviceFallback:true });
+      if (!result.success) return;
+      await SecureStore.setItemAsync(secureKey,"true");
+      const saved = await saveSettingsPreferences({ [key]:true });
+      setPreferences((current)=>({...current,...saved,[key]:true}));
+      setNotice({ title:label+" enabled", message:"अब App Lock स्क्रीन पर "+label+" से भी ऐप खोल सकते हैं। App PIN backup के रूप में सुरक्षित रहेगा।" });
+    } catch (error) {
+      setNotice({ title:label, message:error?.message || "Biometric authentication could not be enabled." });
+    }
+  };
+
   const runSettingAction = (key) => {
     if (key === "security.appLock" || key === "security.pin") {
       setActive(null);
@@ -539,7 +585,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       return;
     }
     if (key === "security.fingerprint" || key === "security.faceUnlock") {
-      setNotice({ title:"Biometric Unlock", message:"Fingerprint and Face Unlock are not enabled in this build. App PIN protection is available here; biometric unlock will only be shown as available after native biometric support is integrated and tested." });
+      void toggleBiometricUnlock(key);
       return;
     }
     if (key === "security.twoFactor") {
@@ -1072,8 +1118,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {pinAlreadySet ? <TouchableOpacity onPress={async()=>{
               try{
                 await SecureStore.deleteItemAsync("bhumi_app_lock_pin");
+                await SecureStore.deleteItemAsync("bhumi_app_biometric_fingerprint");
+                await SecureStore.deleteItemAsync("bhumi_app_biometric_face");
                 await SecureStore.setItemAsync("bhumi_app_auto_lock","false");
-                const saved=await saveSettingsPreferences({"security.appLock":false,"security.pin":false});
+                const saved=await saveSettingsPreferences({"security.appLock":false,"security.pin":false,"security.fingerprint":false,"security.faceUnlock":false});
                 setPreferences((current)=>({...current,...saved,"security.appLock":false,"security.pin":false}));
                 setPinSetupVisible(false);
                 setNotice({title:"App Lock disabled",message:"The device PIN requirement has been removed."});
