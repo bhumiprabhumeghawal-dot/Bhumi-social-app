@@ -18,7 +18,7 @@ function parseIncomingCallPayload(taskData) {
     payload = taskData.notification.request.content.data;
   }
   if (payload?.data && typeof payload.data === "object") payload = payload.data;
-  if (payload?.type !== "incoming_call_headless" && payload?.type !== "incoming_call") return null;
+  if (payload?.type !== "incoming_call_headless") return null;
   if (!payload.callId || !payload.caller) return null;
   return payload;
 }
