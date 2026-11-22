@@ -104,9 +104,9 @@ jobs:
           let settings = fs.readFileSync(settingsPath, "utf8");
           const repositoryLine = 'maven { url = uri("' + repo.replace(/\\/g, "/") + '") }';
           if (!settings.includes(repositoryLine)) {
-            const block = /dependencyResolutionManagement\\s*\\{[\\s\\S]*?repositories\\s*\\{/;
+            const block = /dependencyResolutionManagement\s*\{[\s\S]*?repositories\s*\{/;
             if (!block.test(settings)) throw new Error("Could not find dependencyResolutionManagement.repositories in android/settings.gradle");
-            settings = settings.replace(block, match => match + "\\n        " + repositoryLine);
+            settings = settings.replace(block, match => match + "\n        " + repositoryLine);
             fs.writeFileSync(settingsPath, settings);
           }
           console.log("Registered Expo app-loader local Maven repository:", repo);
