@@ -3112,12 +3112,12 @@ def auth_login_history():
                    CASE WHEN s.token_hash IS NULL THEN 0 ELSE 1 END AS session_active,
                    CASE WHEN h.token_hash=? THEN 1 ELSE 0 END AS is_current
             FROM auth_login_history h
-            LEFT JOIN auth_sessions s ON s.token_hash=h.token_hash
+            LEFT JOIN auth_sessions s ON s.token_hash=h.token_hash AND s.expires_at>?
             WHERE h.username=?
             ORDER BY h.created_at DESC LIMIT ?
         """, (
             hashlib.sha256(request.headers.get("Authorization", "")[7:].strip().encode("utf-8")).hexdigest(),
-            username, limit
+            datetime.now(timezone.utc).isoformat(), username, limit
         )).fetchall()
     return jsonify({"ok": True, "items": [dict(row) for row in rows]})
 
