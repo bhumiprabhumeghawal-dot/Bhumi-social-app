@@ -9,9 +9,9 @@ on:
         required: true
         type: choice
         options:
-          - NO
-          - YES
-        default: NO
+          - "NO"
+          - "YES"
+        default: "NO"
 
 permissions:
   contents: read
