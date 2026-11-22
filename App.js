@@ -150,10 +150,10 @@ import {
 } from "react-native";
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
+  handleNotification: async (notification) => ({
     shouldShowBanner: true,
     shouldShowList: true,
-    shouldPlaySound: true,
+    shouldPlaySound: notification?.request?.content?.data?.soundEnabled !== false,
     shouldSetBadge: false,
   }),
 });
