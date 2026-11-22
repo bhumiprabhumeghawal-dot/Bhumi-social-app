@@ -37,13 +37,18 @@ if (!TaskManager.isTaskDefined(BACKGROUND_LOCATION_TASK)) {
       await createOrUpdateLocationShare({ share_id:shareId, recipient_username:recipient, latitude, longitude, accuracy:point.coords.accuracy, duration_minutes:Number(duration) || 60 });
     } catch (taskError) {
       console.warn("Background location update failed:", taskError?.message || taskError);
-      await Promise.all([
-        SecureStore.deleteItemAsync("bhumi_live_share_id"),
-        SecureStore.deleteItemAsync("bhumi_live_share_recipient"),
-        SecureStore.deleteItemAsync("bhumi_live_share_duration"),
-        SecureStore.deleteItemAsync("bhumi_live_share_approximate"),
-      ]).catch(() => {});
-      try { await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK); } catch (_) {}
+      // Keep the task registered after transient network/server errors so the
+      // next location event can retry. Clear it only when the share/session is
+      // no longer authorized or the share no longer exists.
+      if ([401, 403, 404, 410].includes(Number(taskError?.status))) {
+        await Promise.all([
+          SecureStore.deleteItemAsync("bhumi_live_share_id"),
+          SecureStore.deleteItemAsync("bhumi_live_share_recipient"),
+          SecureStore.deleteItemAsync("bhumi_live_share_duration"),
+          SecureStore.deleteItemAsync("bhumi_live_share_approximate"),
+        ]).catch(() => {});
+        try { await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK); } catch (_) {}
+      }
     }
   });
 }
