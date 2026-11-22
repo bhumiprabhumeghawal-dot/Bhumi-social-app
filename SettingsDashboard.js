@@ -1112,7 +1112,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.82)",justifyContent:"center",padding:24 }}>
           <View style={{ backgroundColor:"#121212",borderRadius:20,borderWidth:1,borderColor:"#303030",padding:20 }}>
             <Text style={{ color:TEXT,fontSize:19,fontWeight:"900" }}>{pinAlreadySet ? "Change App PIN" : "Set App PIN"}</Text>
-            <Text style={{ color:MUTED,fontSize:12,lineHeight:18,marginTop:7 }}>Choose a 4–6 digit PIN. It will be required when Bhumi Social AI is reopened or returns from the background.</Text>
+            <Text style={{ color:MUTED,fontSize:12,lineHeight:18,marginTop:7 }}>Choose a 4–6 digit PIN. It is required on app launch; Automatic Lock can also require it whenever the app returns from the background.</Text>
             <TextInput value={pinValue} onChangeText={(v)=>setPinValue(v.replace(/\D/g,"").slice(0,6))} placeholder="New 4–6 digit PIN" placeholderTextColor="#777777" keyboardType="number-pad" secureTextEntry maxLength={6} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:12,padding:13,marginTop:16,fontSize:18,letterSpacing:5 }} />
             <TextInput value={pinConfirmValue} onChangeText={(v)=>setPinConfirmValue(v.replace(/\D/g,"").slice(0,6))} placeholder="Confirm PIN" placeholderTextColor="#777777" keyboardType="number-pad" secureTextEntry maxLength={6} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:12,padding:13,marginTop:10,fontSize:18,letterSpacing:5 }} />
             <TouchableOpacity onPress={async()=>{
