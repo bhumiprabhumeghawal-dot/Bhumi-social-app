@@ -1377,7 +1377,7 @@ export async function loadLocationShares() {
   const response = await fetch(`${API_BASE_URL}/api/location/shares`, { headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Could not load location sharing.");
-  return { outgoing: data.outgoing || [], incoming: data.incoming || [] };
+  return { outgoing: data.outgoing || [], incoming: data.incoming || [], history: data.history || [] };
 }
 
 export async function createOrUpdateLocationShare(payload) {
