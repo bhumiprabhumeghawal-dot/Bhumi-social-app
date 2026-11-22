@@ -35,6 +35,7 @@ class NotificationPreferenceApiTests(unittest.TestCase):
         response = self.client.get("/api/settings/notifications/details")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.get_json()["requests"])
+        self.assertTrue(response.get_json()["reels"])
 
     def test_follow_request_preference_can_be_disabled_and_reloaded(self):
         saved = self.client.patch(
@@ -81,6 +82,18 @@ class NotificationPreferenceApiTests(unittest.TestCase):
         ).fetchone()["total"]
         self.assertEqual(count, 1)
         thread.assert_called_once()
+
+    def test_reel_notification_preference_can_be_disabled_and_reloaded(self):
+        saved = self.client.patch(
+            "/api/settings/notifications/details",
+            json={"reels": False},
+        )
+        self.assertEqual(saved.status_code, 200)
+        self.assertFalse(saved.get_json()["reels"])
+
+        loaded = self.client.get("/api/settings/notifications/details")
+        self.assertEqual(loaded.status_code, 200)
+        self.assertFalse(loaded.get_json()["reels"])
 
     def test_unknown_notification_preference_is_rejected(self):
         response = self.client.patch(
