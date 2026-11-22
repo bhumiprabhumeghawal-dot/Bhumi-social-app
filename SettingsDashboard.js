@@ -291,6 +291,17 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   };
 
   const runSettingAction = (key) => {
+    if (key === "premium.profileStudio") {
+      setActive(null);
+      onLegacyOpen?.("profile");
+      return;
+    }
+    if (key === "account.helpCenter") {
+      const subject = encodeURIComponent("Bhumi Social AI - Help Request");
+      Linking.openURL("mailto:bhumiprabhumeghawal@gmail.com?subject=" + subject)
+        .catch(() => setNotice({ title: "Help Center", message: "Contact support at bhumiprabhumeghawal@gmail.com." }));
+      return;
+    }
     if (key.startsWith("creator.")) {
       setActive(null);
       setHubVisible(true);
