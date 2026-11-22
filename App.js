@@ -5943,7 +5943,7 @@ export default function App() {
               <TextInput
                 value={authConfirmPassword}
                 onChangeText={setAuthConfirmPassword}
-                पासवर्ड फिर से लिखें
+                placeholder="पासवर्ड फिर से लिखें"
                 secureTextEntry
                 autoCapitalize="none"
                 editable={!authBusy}
