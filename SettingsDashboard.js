@@ -253,9 +253,14 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         loadSettingsPreferences(),
         loadNotificationPreference(),
         loadNotificationDetails(),
-      ]).then(([data, notificationsEnabled, notificationDetails]) => {
+        SecureStore.getItemAsync("bhumi_app_lock_pin"),
+        SecureStore.getItemAsync("bhumi_app_auto_lock"),
+      ]).then(([data, notificationsEnabled, notificationDetails, storedAppPin, storedAutoLock]) => {
         if (!alive) return;
         const merged = { ...(data || {}) };
+        merged["security.appLock"] = !!storedAppPin;
+        merged["security.pin"] = !!storedAppPin;
+        if (storedAppPin) merged["security.autoLock"] = storedAutoLock !== "false";
         merged["notifications.enabled"] = notificationsEnabled;
         Object.entries(notificationDetails || {}).forEach(([name, enabled]) => {
           const key = ({ likes:"notifications.likes", comments:"notifications.comments", follows:"notifications.follows", messages:"notifications.messages" })[name];
