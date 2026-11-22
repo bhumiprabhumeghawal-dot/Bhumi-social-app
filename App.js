@@ -2392,6 +2392,7 @@ export default function App() {
   const [storyQueue, setStoryQueue] = React.useState([]);
   const [storyIndex, setStoryIndex] = React.useState(0);
   const [storyImageZoomed, setStoryImageZoomed] = React.useState(false);
+  const [storyPaused, setStoryPaused] = React.useState(false);
   const [storyProgress, setStoryProgress] = React.useState(0);
   const [selectedPost, setSelectedPost] = React.useState(null);
   const [selectedPostMediaIndex, setSelectedPostMediaIndex] = React.useState(0);
@@ -3234,6 +3235,8 @@ export default function App() {
   const openStoryGroup = (items) => {
     if (!items || items.length === 0) return;
     setStoryImageZoomed(false);
+    setStoryPaused(false);
+    setStoryProgress(0);
     setStoryQueue(items);
     setStoryIndex(0);
     setSelectedStory(items[0]);
@@ -3242,6 +3245,7 @@ export default function App() {
   const moveStory = React.useCallback(
     (direction) => {
       setStoryImageZoomed(false);
+      setStoryPaused(false);
       const nextIndex = storyIndex + direction;
 
       if (nextIndex < 0) return;
@@ -3280,15 +3284,15 @@ export default function App() {
       return;
     }
 
-    setStoryProgress(0);
-    if (storyImageZoomed) return;
+    if (storyImageZoomed || storyPaused) return;
 
+    const initialProgress = storyProgress;
     const startedAt = Date.now();
     const duration = 5000;
     const timer = setInterval(() => {
       const progress = Math.min(
         100,
-        ((Date.now() - startedAt) / duration) * 100,
+        initialProgress + ((Date.now() - startedAt) / duration) * 100,
       );
       setStoryProgress(progress);
 
@@ -3299,7 +3303,7 @@ export default function App() {
     }, 50);
 
     return () => clearInterval(timer);
-  }, [selectedStory, storyIndex, storyImageZoomed, moveStory]);
+  }, [selectedStory, storyIndex, storyImageZoomed, storyPaused, moveStory]);
 
   // SOCIALAPP_PRIVACY_SCREEN_V1
   const [privacyOpen, setPrivacyOpen] = React.useState(false);
@@ -9371,6 +9375,7 @@ export default function App() {
                   height={Dimensions.get("window").height}
                   
                   loop={false}
+                  active={!storyPaused}
                   onPlayToEnd={() => moveStory(1)}
                   onTimeUpdate={(currentTime, duration) => {
                     if (Number.isFinite(duration) && duration > 0) {
@@ -9548,6 +9553,8 @@ export default function App() {
             <TouchableOpacity
               accessibilityLabel="Previous story"
               onPress={() => moveStory(-1)}
+              onPressIn={() => setStoryPaused(true)}
+              onPressOut={() => setStoryPaused(false)}
               style={{
                 position: "absolute",
                 left: 0,
@@ -9561,6 +9568,8 @@ export default function App() {
             <TouchableOpacity
               accessibilityLabel="Next story"
               onPress={() => moveStory(1)}
+              onPressIn={() => setStoryPaused(true)}
+              onPressOut={() => setStoryPaused(false)}
               style={{
                 position: "absolute",
                 right: 0,
