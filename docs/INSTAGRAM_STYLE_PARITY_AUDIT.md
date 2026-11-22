@@ -75,8 +75,9 @@ All measurements below are React Native density-independent pixels (dp), not raw
 
 ### Quality gates
 - [x] Correct a malformed confirm-password TextInput attribute discovered during source review.
-- [x] Python backend compile, backend unit tests, and media-storage checks passed in GitHub CI; npm install passed on Node 18/20/22.
-- [ ] JavaScript/React Native bundle syntax and dependency compatibility check still pending; package.json has no build/test scripts, and no Expo/Android build was run.
+- [x] Python backend compile, backend unit tests (including inbox-folder API coverage), and media-storage checks passed in GitHub CI.
+- [x] Babel parsed App.js and all major UI/API/editor modules successfully on Node 18/20/22; npm install passed on all three versions.
+- [ ] Expo bundle and device-level behavior remain unverified; package.json has no build/test scripts.
 - [ ] Android and iOS layout review at compact and large viewport sizes.
 - [ ] End-to-end checks for login persistence, post/story/reel publishing, likes/comments/saves, follow requests, DM delivery, and calls.
 - [ ] Confirm no regression in feed/reel scrolling, zoom coordination, and active-only reel playback.
@@ -88,7 +89,7 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - Build only after the full screen checklist, static checks, and device QA have been completed and the user is told the result.
 
 
-- Latest PR CI checks passed on the current branch head: Backend unit tests, Python compile/media-storage checks, and Node 18/20/22 install/build-if-present/test-if-present jobs. Since package.json defines no build/test scripts, this does not prove the Expo bundle or native app works; device QA remains required.
+- Latest PR CI source checks passed: backend unit tests, Python compile/media-storage checks, Babel syntax parsing of the main React Native modules, and Node 18/20/22 dependency installation. Since package.json defines no build/test scripts, this does not prove the Expo bundle or full native app works; device QA remains required.
 
 ## Current implementation notes
 
