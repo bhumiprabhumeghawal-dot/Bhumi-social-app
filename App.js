@@ -5442,6 +5442,55 @@ export default function App() {
     }
   };
 
+  // BHUMI_ANDROID_BACK_STACK_V1
+  // Close the most recently opened feature first. Only allow Android to leave
+  // the app after the user has returned to the Home tab.
+  React.useEffect(() => {
+    const onHardwareBack = () => {
+      if (headerCreateMenuOpen) { setHeaderCreateMenuOpen(false); return true; }
+      if (liveCameraOpen) { setLiveCameraOpen(false); return true; }
+      if (cameraOpen) { setCameraOpen(false); setIsRecording(false); return true; }
+      if (selectedStory) { setSelectedStory(null); setStoryImageZoomed(false); return true; }
+      if (profileConnectionsOpen) { setProfileConnectionsOpen(false); return true; }
+      if (viewedProfileMenuOpen) { setViewedProfileMenuOpen(false); return true; }
+      if (viewedProfileOpen) { setViewedProfileOpen(false); setViewedProfile(null); return true; }
+      if (selectedPost) { setSelectedPost(null); return true; }
+      if (reelCommentsOpen) { setReelCommentsOpen(false); return true; }
+      if (savedScreenOpen) { setSavedScreenOpen(false); return true; }
+      if (noteViewer) { setNoteViewer(null); return true; }
+      if (noteComposerOpen) { setNoteComposerOpen(false); return true; }
+      if (chatEmojiOpen) { setChatEmojiOpen(false); return true; }
+      if (chatPersonalizationOpen) { setChatPersonalizationOpen(false); return true; }
+      if (newChatComposerOpen) { setNewChatComposerOpen(false); return true; }
+      if (selectedChatUser) { setSelectedChatUser(null); return true; }
+      if (messagesOpen) { setMessagesOpen(false); return true; }
+      if (profileEditing) { setProfileEditing(false); return true; }
+      if (businessDirectoryOpen) { setBusinessDirectoryOpen(false); return true; }
+      if (businessProfileOpen) { setBusinessProfileOpen(false); return true; }
+      if (blockedAccountsOpen) { setBlockedAccountsOpen(false); return true; }
+      if (snapPrivacyOpen) { setSnapPrivacyOpen(false); return true; }
+      if (privacyOpen) { setPrivacyOpen(false); return true; }
+      if (passwordOpen) { setPasswordOpen(false); return true; }
+      if (accountSettingsOpen) { setAccountSettingsOpen(false); return true; }
+      if (aboutAppOpen) { setAboutAppOpen(false); return true; }
+      if (settingsHubOpen) { setSettingsHubOpen(false); return true; }
+      if (mediaDraft) { setMediaDraft(null); return true; }
+      if (activeTab !== "Home") { setActiveTab("Home"); return true; }
+      return false;
+    };
+
+    const subscription = BackHandler.addEventListener("hardwareBackPress", onHardwareBack);
+    return () => subscription.remove();
+  }, [
+    headerCreateMenuOpen, liveCameraOpen, cameraOpen, selectedStory, selectedPost,
+    reelCommentsOpen, savedScreenOpen, noteViewer, noteComposerOpen, chatEmojiOpen,
+    chatPersonalizationOpen, newChatComposerOpen, selectedChatUser, messagesOpen,
+    profileConnectionsOpen, viewedProfileMenuOpen, viewedProfileOpen, profileEditing,
+    businessDirectoryOpen, businessProfileOpen, blockedAccountsOpen, snapPrivacyOpen,
+    privacyOpen, passwordOpen, accountSettingsOpen, aboutAppOpen, settingsHubOpen,
+    mediaDraft, activeTab,
+  ]);
+
   if (!authReady) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
@@ -5727,54 +5776,7 @@ export default function App() {
     );
   }
 
-  // BHUMI_ANDROID_BACK_STACK_V1
-  // Close the most recently opened feature first. Only allow Android to leave
-  // the app after the user has returned to the Home tab.
-  React.useEffect(() => {
-    const onHardwareBack = () => {
-      if (headerCreateMenuOpen) { setHeaderCreateMenuOpen(false); return true; }
-      if (liveCameraOpen) { setLiveCameraOpen(false); return true; }
-      if (cameraOpen) { setCameraOpen(false); setIsRecording(false); return true; }
-      if (selectedStory) { setSelectedStory(null); setStoryImageZoomed(false); return true; }
-      if (profileConnectionsOpen) { setProfileConnectionsOpen(false); return true; }
-      if (viewedProfileMenuOpen) { setViewedProfileMenuOpen(false); return true; }
-      if (viewedProfileOpen) { setViewedProfileOpen(false); setViewedProfile(null); return true; }
-      if (selectedPost) { setSelectedPost(null); return true; }
-      if (reelCommentsOpen) { setReelCommentsOpen(false); return true; }
-      if (savedScreenOpen) { setSavedScreenOpen(false); return true; }
-      if (noteViewer) { setNoteViewer(null); return true; }
-      if (noteComposerOpen) { setNoteComposerOpen(false); return true; }
-      if (chatEmojiOpen) { setChatEmojiOpen(false); return true; }
-      if (chatPersonalizationOpen) { setChatPersonalizationOpen(false); return true; }
-      if (newChatComposerOpen) { setNewChatComposerOpen(false); return true; }
-      if (selectedChatUser) { setSelectedChatUser(null); return true; }
-      if (messagesOpen) { setMessagesOpen(false); return true; }
-      if (profileEditing) { setProfileEditing(false); return true; }
-      if (businessDirectoryOpen) { setBusinessDirectoryOpen(false); return true; }
-      if (businessProfileOpen) { setBusinessProfileOpen(false); return true; }
-      if (blockedAccountsOpen) { setBlockedAccountsOpen(false); return true; }
-      if (snapPrivacyOpen) { setSnapPrivacyOpen(false); return true; }
-      if (privacyOpen) { setPrivacyOpen(false); return true; }
-      if (passwordOpen) { setPasswordOpen(false); return true; }
-      if (accountSettingsOpen) { setAccountSettingsOpen(false); return true; }
-      if (aboutAppOpen) { setAboutAppOpen(false); return true; }
-      if (settingsHubOpen) { setSettingsHubOpen(false); return true; }
-      if (mediaDraft) { setMediaDraft(null); return true; }
-      if (activeTab !== "Home") { setActiveTab("Home"); return true; }
-      return false;
-    };
 
-    const subscription = BackHandler.addEventListener("hardwareBackPress", onHardwareBack);
-    return () => subscription.remove();
-  }, [
-    headerCreateMenuOpen, liveCameraOpen, cameraOpen, selectedStory, selectedPost,
-    reelCommentsOpen, savedScreenOpen, noteViewer, noteComposerOpen, chatEmojiOpen,
-    chatPersonalizationOpen, newChatComposerOpen, selectedChatUser, messagesOpen,
-    profileConnectionsOpen, viewedProfileMenuOpen, viewedProfileOpen, profileEditing,
-    businessDirectoryOpen, businessProfileOpen, blockedAccountsOpen, snapPrivacyOpen,
-    privacyOpen, passwordOpen, accountSettingsOpen, aboutAppOpen, settingsHubOpen,
-    mediaDraft, activeTab,
-  ]);
 
   if (authReady && welcomeChecked && !authSession && !welcomeSeen) {
     return (
