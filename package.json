@@ -43,7 +43,8 @@
     "expo-notifications": "~58.1.9",
     "@config-plugins/react-native-callkeep": "14.0.2",
     "react-native-callkeep": "4.6.1",
-    "expo-task-manager": "~58.0.14"
+    "expo-task-manager": "~58.0.14",
+    "unimodules-app-loader": "~58.0.2"
   },
   "scripts": {
     "start": "expo start",
