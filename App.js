@@ -12555,14 +12555,14 @@ export default function App() {
             paddingHorizontal: 14, borderBottomWidth: 0.5, borderBottomColor: "#262626"
           }}>
             <TouchableOpacity onPress={() => setViewedProfileOpen(false)} style={{ width: 42 }}>
-              <Ionicons name="arrow-back" size={25} color="#171717" />
+              <Ionicons name="arrow-back" size={25} color="#FFFFFF" />
             </TouchableOpacity>
             <Text numberOfLines={1} style={{ flex: 1, fontSize: 17, fontWeight: "800", color: "#FFFFFF" }}>
               {viewedProfile ? `@${viewedProfile.username}` : "Profile"}
             </Text>
             {viewedProfile && String(viewedProfile.username || "").toLowerCase() !== String(authSession?.username || "").toLowerCase() ? (
               <TouchableOpacity onPress={() => setViewedProfileMenuOpen(v => !v)} style={{ padding: 8 }}>
-                <Ionicons name="ellipsis-vertical" size={22} color="#171717" />
+                <Ionicons name="ellipsis-vertical" size={22} color="#FFFFFF" />
               </TouchableOpacity>
             ) : <View style={{ width: 38 }} />}
           </View>
@@ -12609,10 +12609,72 @@ export default function App() {
                   <Text style={{ fontSize: 15, fontWeight: "800", color: "#FFFFFF" }}>
                     {viewedProfile.displayName || viewedProfile.username}
                   </Text>
+                  <Text style={{ color: "#A8A8A8", marginTop: 2, fontSize: 12 }}>
+                    @{viewedProfile.username}
+                  </Text>
                   {!!viewedProfile.bio && (
-                    <Text style={{ color: "#FFFFFF", marginTop: 4, lineHeight: 20 }}>{viewedProfile.bio}</Text>
+                    <Text style={{ color: "#FFFFFF", marginTop: 6, lineHeight: 20 }}>{viewedProfile.bio}</Text>
                   )}
                 </View>
+
+                {viewedProfile.accountType === "business" && viewedProfile.businessProfile && (
+                  <View style={{ marginTop: 16, padding: 14, borderRadius: 14, backgroundColor: "#111111", borderWidth: 1, borderColor: "#292929" }}>
+                    <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900" }}>
+                      {viewedProfile.businessProfile.businessName || viewedProfile.displayName || "Business"}
+                    </Text>
+                    {!!viewedProfile.businessProfile.category && (
+                      <Text style={{ color: "#B7A5FF", fontSize: 12, fontWeight: "700", marginTop: 4 }}>
+                        {viewedProfile.businessProfile.category}
+                      </Text>
+                    )}
+                    {!!viewedProfile.businessProfile.description && (
+                      <Text style={{ color: "#E6E6E6", fontSize: 13, lineHeight: 19, marginTop: 8 }}>
+                        {viewedProfile.businessProfile.description}
+                      </Text>
+                    )}
+                    {!!(viewedProfile.businessProfile.area || viewedProfile.businessProfile.city || viewedProfile.businessProfile.state) && (
+                      <Text style={{ color: "#C8C8C8", fontSize: 12, marginTop: 9 }}>
+                        <Ionicons name="location-outline" size={13} color="#A8A8A8" /> {[viewedProfile.businessProfile.area, viewedProfile.businessProfile.city, viewedProfile.businessProfile.state, viewedProfile.businessProfile.pincode].filter(Boolean).join(", ")}
+                      </Text>
+                    )}
+                    {!!viewedProfile.businessProfile.serviceAreas && (
+                      <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 6 }}>Service areas: {viewedProfile.businessProfile.serviceAreas}</Text>
+                    )}
+                    {!!viewedProfile.businessProfile.openingHours && (
+                      <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 6 }}>Hours: {viewedProfile.businessProfile.openingHours}</Text>
+                    )}
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 11 }}>
+                      {!!viewedProfile.businessProfile.phone && (
+                        <TouchableOpacity onPress={() => Linking.openURL("tel:" + viewedProfile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#242424", paddingHorizontal: 11, paddingVertical: 8, borderRadius: 9 }}>
+                          <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>Call</Text>
+                        </TouchableOpacity>
+                      )}
+                      {!!viewedProfile.businessProfile.whatsapp && (
+                        <TouchableOpacity onPress={() => Linking.openURL("https://wa.me/" + viewedProfile.businessProfile.whatsapp.replace(/[^0-9]/g, ""))} style={{ backgroundColor: "#242424", paddingHorizontal: 11, paddingVertical: 8, borderRadius: 9 }}>
+                          <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>WhatsApp</Text>
+                        </TouchableOpacity>
+                      )}
+                      {!!viewedProfile.businessProfile.website && (
+                        <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(viewedProfile.businessProfile.website) ? viewedProfile.businessProfile.website : "https://" + viewedProfile.businessProfile.website)} style={{ backgroundColor: "#242424", paddingHorizontal: 11, paddingVertical: 8, borderRadius: 9 }}>
+                          <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>Website</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                )}
+
+                {!!viewedProfile.businessCatalog?.length && (
+                  <View style={{ marginTop: 13 }}>
+                    <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800", marginBottom: 8 }}>Products & Services</Text>
+                    {viewedProfile.businessCatalog.slice(0, 6).map((item) => (
+                      <View key={String(item.id)} style={{ padding: 11, marginBottom: 7, borderRadius: 10, backgroundColor: "#151515", borderWidth: 1, borderColor: "#292929" }}>
+                        <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{item.title}</Text>
+                        {!!item.description && <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 3 }}>{item.description}</Text>}
+                        {!!item.price && <Text style={{ color: "#B7A5FF", fontSize: 12, marginTop: 5 }}>{item.price}</Text>}
+                      </View>
+                    ))}
+                  </View>
+                )}
 
                 {String(viewedProfile.username || "").toLowerCase() !== String(authSession?.username || "").toLowerCase() && (
                   <View style={{ flexDirection: "row", gap: 8, marginTop: 15 }}>
