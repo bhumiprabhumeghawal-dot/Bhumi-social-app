@@ -344,7 +344,6 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     const labels = {
       "account.profileQr":"Profile QR generation is not connected yet.",
       "account.reportProblem":"The in-app support submission form is not connected yet.",
-      "advanced.clearCache":"Cache clearing needs the app storage service to be connected.",
       "advanced.reset":"Preference reset needs a confirmation and reset endpoint.",
       "advanced.storage":"Detailed storage reporting is not connected yet.",
       "creator.monetization":"Creator monetization is not enabled on the server yet.",
