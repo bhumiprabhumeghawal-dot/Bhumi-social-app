@@ -2862,6 +2862,7 @@ def auth_register():
                 "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at,device_label,last_seen_at) VALUES(?,?,?,?,?,?)",
                 (digest, username, now.isoformat(), expires, device_label, now.isoformat())
             )
+            db.execute("DELETE FROM auth_login_history WHERE created_at<?", ((now - timedelta(days=90)).isoformat(),))
             db.execute(
                 "INSERT INTO auth_login_history(token_hash,username,created_at,device_label) VALUES(?,?,?,?)",
                 (digest, username, now.isoformat(), device_label)
@@ -3076,6 +3077,7 @@ def auth_login():
             "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at,device_label,last_seen_at) VALUES(?,?,?,?,?,?)",
             (digest, row["username"], now.isoformat(), expires, device_label, now.isoformat())
         )
+        db.execute("DELETE FROM auth_login_history WHERE created_at<?", ((now - timedelta(days=90)).isoformat(),))
         db.execute(
             "INSERT INTO auth_login_history(token_hash,username,created_at,device_label) VALUES(?,?,?,?)",
             (digest, row["username"], now.isoformat(), device_label)
@@ -3230,6 +3232,7 @@ def create_or_update_location_share():
     now = datetime.now(timezone.utc)
     expires = (now + timedelta(minutes=duration)).isoformat()
     with get_db() as db:
+        db.execute("DELETE FROM location_shares WHERE created_at<?", ((now - timedelta(days=30)).isoformat(),))
         friend = db.execute("""
             SELECT 1 FROM follows a JOIN follows b
               ON a.follower=b.following AND a.following=b.follower
