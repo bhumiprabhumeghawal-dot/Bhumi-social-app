@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Modal, View, Text, TextInput, ScrollView, TouchableOpacity, Switch,
-  ActivityIndicator, Linking, Platform, StyleSheet
+  ActivityIndicator, Linking, Platform, StyleSheet, Share
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system/legacy";
@@ -14,6 +14,31 @@ const PANEL = "#121212";
 const BORDER = "#262626";
 const TEXT = "#F5F5F5";
 const MUTED = "#A8A8A8";
+
+async function measureDirectoryBytes(directory) {
+  if (!directory) return 0;
+  let total = 0;
+  let entries = [];
+  try { entries = await FileSystem.readDirectoryAsync(directory); } catch (_) { return 0; }
+  for (const entry of entries) {
+    const path = directory.endsWith("/") ? directory + entry : directory + "/" + entry;
+    try {
+      const info = await FileSystem.getInfoAsync(path);
+      if (!info.exists) continue;
+      if (info.isDirectory) total += await measureDirectoryBytes(path);
+      else total += Number(info.size || 0);
+    } catch (_) {}
+  }
+  return total;
+}
+
+function formatBytes(bytes) {
+  const value = Number(bytes || 0);
+  if (value < 1024) return value + " B";
+  if (value < 1024 * 1024) return (value / 1024).toFixed(1) + " KB";
+  if (value < 1024 * 1024 * 1024) return (value / (1024 * 1024)).toFixed(1) + " MB";
+  return (value / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+}
 
 const ACTION_KEYS = new Set([
   "profile.usernameChange","account.profileQr","account.multipleAccounts","account.verification",
@@ -330,6 +355,48 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       })();
       return;
     }
+    if (key === "advanced.storage") {
+      (async () => {
+        setSavingKey(key);
+        try {
+          const [cacheBytes, documentBytes] = await Promise.all([
+            measureDirectoryBytes(FileSystem.cacheDirectory),
+            measureDirectoryBytes(FileSystem.documentDirectory),
+          ]);
+          setNotice({
+            title: "Storage Usage",
+            message: "Temporary cache: " + formatBytes(cacheBytes) + "\\nApp documents: " + formatBytes(documentBytes) + "\\n\\nClearing cache removes temporary files only. Your account and uploaded content remain safe.",
+          });
+        } catch (error) {
+          setNotice({ title: "Storage Usage", message: error?.message || "Storage information could not be read." });
+        } finally { setSavingKey(""); }
+      })();
+      return;
+    }
+    if (key === "advanced.reset") {
+      (async () => {
+        setSavingKey(key);
+        try {
+          const defaults = {};
+          SECTIONS.forEach((section) => section.fields.forEach(([fieldKey, , , defaultValue]) => {
+            if (!ACTION_KEYS.has(fieldKey) && !fieldKey.startsWith("notifications.")) defaults[fieldKey] = defaultValue;
+          }));
+          const saved = await saveSettingsPreferences(defaults);
+          setPreferences((current) => ({ ...current, ...defaults, ...saved }));
+          setNotice({ title: "Preferences reset", message: "App preference switches were restored to their default values. Account, posts, messages and uploaded media were not deleted." });
+        } catch (error) {
+          setNotice({ title: "Reset failed", message: error?.message || "Preferences could not be reset." });
+        } finally { setSavingKey(""); }
+      })();
+      return;
+    }
+    if (key === "account.reportProblem") {
+      const subject = encodeURIComponent("Bhumi Social AI - Problem Report");
+      const body = encodeURIComponent("Username: " + (username || "Not available") + "\\n\\nPlease describe the problem below:\\n");
+      Linking.openURL("mailto:bhumiprabhumeghawal@gmail.com?subject=" + subject + "&body=" + body)
+        .catch(() => setNotice({ title: "Report a Problem", message: "Email support at bhumiprabhumeghawal@gmail.com." }));
+      return;
+    }
     if (key === "advanced.permissions") {
       Linking.openSettings();
       return;
@@ -343,9 +410,6 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     }
     const labels = {
       "account.profileQr":"Profile QR generation is not connected yet.",
-      "account.reportProblem":"The in-app support submission form is not connected yet.",
-      "advanced.reset":"Preference reset needs a confirmation and reset endpoint.",
-      "advanced.storage":"Detailed storage reporting is not connected yet.",
       "creator.monetization":"Creator monetization is not enabled on the server yet.",
       "creator.collaboration":"Brand collaboration tools are not connected yet.",
       "creator.promotions":"Promotion tools are not connected yet.",
