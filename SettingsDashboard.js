@@ -8,7 +8,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as SecureStore from "expo-secure-store";
 import * as Location from "expo-location";
 import CreatorBusinessHub from "./CreatorBusinessHub";
-import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails, loadLoginHistory, loadActiveSessions, revokeActiveSession, loadLocationShares, createOrUpdateLocationShare, stopLocationShare } from "./api";
+import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails, loadLoginHistory, loadActiveSessions, revokeActiveSession, logoutOtherSessions, loadLocationShares, createOrUpdateLocationShare, stopLocationShare } from "./api";
 
 const GOLD = "#0095F6";
 const BG = "#000000";
@@ -694,7 +694,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {section.key === "location" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderColor:GOLD,borderWidth:1,borderRadius:15,padding:14,marginBottom:14 }}>
                 <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>LOCATION SAFETY</Text>
-                <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Location sharing is off by default. Only share with people you choose. Live location and nearby discovery require device permission and server-side sharing controls before they can become active.</Text>
+                <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Location sharing is off by default. You must grant foreground permission and choose a mutual follower. Shares expire automatically and can be stopped at any time.</Text>
                 <TouchableOpacity onPress={() => Linking.openSettings()} style={{ alignSelf:"flex-start",marginTop:12,backgroundColor:GOLD,borderRadius:10,paddingHorizontal:13,paddingVertical:9 }}>
                   <Text style={{ color:"#FFFFFF",fontWeight:"900",fontSize:12 }}>Open App Permissions</Text>
                 </TouchableOpacity>
