@@ -9637,6 +9637,11 @@ export default function App() {
           else if (key === "blocked") openBlockedAccounts();
           else if (key === "restricted") openRestrictedAccounts();
           else if (key === "messages") openMessages();
+          else if (key === "profile") {
+            setActiveTab("Profile");
+            setProfileDraft({ displayName: profile?.displayName || authSession?.username || "", bio: profile?.bio || "" });
+            setProfileEditing(true);
+          }
         }}
       />
 
