@@ -6,8 +6,13 @@ on:
   push:
     branches:
       - master
+      - feature/callkeep-native-incoming-ui
     paths:
       - 'FINAL_APK_BUILD'
+      - 'App.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/android-apk.yml'
 
 permissions:
   contents: write
