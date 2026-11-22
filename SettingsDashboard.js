@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system/legacy";
+import * as SecureStore from "expo-secure-store";
 import CreatorBusinessHub from "./CreatorBusinessHub";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
 
@@ -218,6 +219,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const [active, setActive] = React.useState(null);
   const [hubVisible, setHubVisible] = React.useState(false);
   const [qrVisible, setQrVisible] = React.useState(false);
+  const [pinSetupVisible, setPinSetupVisible] = React.useState(false);
+  const [pinValue, setPinValue] = React.useState("");
+  const [pinConfirmValue, setPinConfirmValue] = React.useState("");
+  const [pinAlreadySet, setPinAlreadySet] = React.useState(false);
   const [preferences, setPreferences] = React.useState({});
   const [loading, setLoading] = React.useState(false);
   const [savingKey, setSavingKey] = React.useState("");
@@ -292,6 +297,65 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   };
 
   const runSettingAction = (key) => {
+    if (key === "security.appLock" || key === "security.pin") {
+      setActive(null);
+      SecureStore.getItemAsync("bhumi_app_lock_pin").then((storedPin) => {
+        setPinAlreadySet(!!storedPin);
+        setPinValue("");
+        setPinConfirmValue("");
+        setPinSetupVisible(true);
+      }).catch((error) => setNotice({ title:"App Lock", message:error?.message || "Secure storage is unavailable on this device." }));
+      return;
+    }
+    if (key === "security.fingerprint" || key === "security.faceUnlock") {
+      setNotice({ title:"Biometric Unlock", message:"Fingerprint and Face Unlock are not enabled in this build. App PIN protection is available here; biometric unlock will only be shown as available after native biometric support is integrated and tested." });
+      return;
+    }
+    if (key === "security.twoFactor") {
+      setNotice({ title:"Two-Factor Authentication", message:"Two-factor sign-in is not enabled on the account server yet. This option has not been switched on." });
+      return;
+    }
+    if (key === "security.loginHistory") {
+      setNotice({ title:"Login History", message:"The server does not currently record a user-visible sign-in history. New-device alert preferences alone are not a login history." });
+      return;
+    }
+    if (key === "security.activeDevices") {
+      setActive(null);
+      onLegacyOpen?.("security");
+      return;
+    }
+    if (key === "security.checkup") {
+      setActive(null);
+      onLegacyOpen?.("security");
+      return;
+    }
+    if (key === "account.verification" || key === "account.dataDownload" || key === "account.deactivation") {
+      const subjects = {
+        "account.verification":"Bhumi Social AI - Profile Verification Request",
+        "account.dataDownload":"Bhumi Social AI - Personal Data Export Request",
+        "account.deactivation":"Bhumi Social AI - Account Deactivation Request"
+      };
+      const body = encodeURIComponent("Username: @" + (username || "") + "\\n\\nPlease help me with this request. I understand identity verification may be required.\\n");
+      const mailto = "mailto:bhumiprabhumeghawal@gmail.com?subject=" + encodeURIComponent(subjects[key]) + "&body=" + body;
+      Linking.openURL(mailto).catch(() => setNotice({ title:"Account request", message:"Please email bhumiprabhumeghawal@gmail.com with your username and request. Never send your password or one-time code." }));
+      return;
+    }
+    if (key === "account.multipleAccounts") {
+      setNotice({ title:"Multiple Accounts", message:"Account switching is not yet available in this app. You can sign out and sign in to another account; each account remains separate." });
+      return;
+    }
+    if (key === "appearance.appIcon") {
+      setNotice({ title:"App Icon", message:"Only the official Bhumi Social AI icon is included in this build. Alternative icon packs are not available yet." });
+      return;
+    }
+    if (key === "appearance.display" || key === "appearance.language") {
+      setNotice({ title:"Display Settings", message:"The app currently uses its supported dark interface and English/Hindi text where provided. Per-user display and language switching is not fully implemented yet." });
+      return;
+    }
+    if (key === "location.history" || key === "location.liveSharing" || key === "location.nearbyFriends" || key === "location.background") {
+      setNotice({ title:"Location Sharing", message:"Location sharing, nearby discovery and location history are not active. No location is being shared or tracked by these settings." });
+      return;
+    }
     if (key === "account.profileQr") {
       setActive(null);
       setQrVisible(true);
@@ -635,6 +699,43 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       </Modal>
       {renderSection()}
 <CreatorBusinessHub visible={hubVisible && visible} username={username} onClose={() => setHubVisible(false)} />
+      <Modal visible={pinSetupVisible && visible} transparent animationType="fade" onRequestClose={() => setPinSetupVisible(false)}>
+        <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.82)",justifyContent:"center",padding:24 }}>
+          <View style={{ backgroundColor:"#121212",borderRadius:20,borderWidth:1,borderColor:"#303030",padding:20 }}>
+            <Text style={{ color:TEXT,fontSize:19,fontWeight:"900" }}>{pinAlreadySet ? "Change App PIN" : "Set App PIN"}</Text>
+            <Text style={{ color:MUTED,fontSize:12,lineHeight:18,marginTop:7 }}>Choose a 4–6 digit PIN. It will be required when Bhumi Social AI is reopened or returns from the background.</Text>
+            <TextInput value={pinValue} onChangeText={(v)=>setPinValue(v.replace(/\\D/g,"").slice(0,6))} placeholder="New 4–6 digit PIN" placeholderTextColor="#777777" keyboardType="number-pad" secureTextEntry maxLength={6} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:12,padding:13,marginTop:16,fontSize:18,letterSpacing:5 }} />
+            <TextInput value={pinConfirmValue} onChangeText={(v)=>setPinConfirmValue(v.replace(/\\D/g,"").slice(0,6))} placeholder="Confirm PIN" placeholderTextColor="#777777" keyboardType="number-pad" secureTextEntry maxLength={6} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:12,padding:13,marginTop:10,fontSize:18,letterSpacing:5 }} />
+            <TouchableOpacity onPress={async()=>{
+              if(pinValue.length<4||pinValue.length>6){setNotice({title:"Invalid PIN",message:"Enter a PIN containing 4 to 6 digits."});return;}
+              if(pinValue!==pinConfirmValue){setNotice({title:"PIN mismatch",message:"The two PIN entries do not match."});return;}
+              try{
+                await SecureStore.setItemAsync("bhumi_app_lock_pin",pinValue);
+                const saved=await saveSettingsPreferences({"security.appLock":true,"security.pin":true});
+                setPreferences((current)=>({...current,...saved,"security.appLock":true,"security.pin":true}));
+                setPinSetupVisible(false);
+                setNotice({title:"App Lock enabled",message:"Your PIN is saved securely on this device. The app will ask for it when reopened or resumed."});
+              }catch(error){setNotice({title:"Could not save PIN",message:error?.message||"Secure storage is unavailable."});}
+            }} style={{ backgroundColor:GOLD,borderRadius:12,padding:14,alignItems:"center",marginTop:15 }}>
+              <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Save App PIN</Text>
+            </TouchableOpacity>
+            {pinAlreadySet ? <TouchableOpacity onPress={async()=>{
+              try{
+                await SecureStore.deleteItemAsync("bhumi_app_lock_pin");
+                const saved=await saveSettingsPreferences({"security.appLock":false,"security.pin":false});
+                setPreferences((current)=>({...current,...saved,"security.appLock":false,"security.pin":false}));
+                setPinSetupVisible(false);
+                setNotice({title:"App Lock disabled",message:"The device PIN requirement has been removed."});
+              }catch(error){setNotice({title:"Could not disable App Lock",message:error?.message||"Please try again."});}
+            }} style={{ padding:13,alignItems:"center",marginTop:4 }}>
+              <Text style={{ color:"#F08080",fontWeight:"800" }}>Disable App Lock</Text>
+            </TouchableOpacity> : null}
+            <TouchableOpacity onPress={()=>setPinSetupVisible(false)} style={{ padding:10,alignItems:"center" }}>
+              <Text style={{ color:MUTED,fontWeight:"800" }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <Modal visible={qrVisible && visible} transparent animationType="fade" onRequestClose={() => setQrVisible(false)}>
         <View style={{ flex:1, backgroundColor:"rgba(0,0,0,0.82)", justifyContent:"center", alignItems:"center", padding:24 }}>
           <View style={{ width:"100%", maxWidth:340, backgroundColor:"#FFFFFF", borderRadius:22, padding:22, alignItems:"center" }}>
