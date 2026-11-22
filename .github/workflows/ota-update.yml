@@ -16,7 +16,6 @@ permissions:
 
 jobs:
   publish-update:
-    if: ${{ inputs.confirm_production == 'YES' }}
     runs-on: ubuntu-latest
     environment: Planning
     timeout-minutes: 30
@@ -52,7 +51,10 @@ jobs:
           npx eas-cli@latest project:info
           echo "Checking production branch permissions..."
           npx eas-cli@latest branch:list
+          echo "Checking production channel mapping..."
+          npx eas-cli@latest channel:list
       - name: Publish Android and iOS in-app update
+        if: ${{ inputs.confirm_production == 'YES' }}
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           CI: "1"
