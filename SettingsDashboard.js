@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  Modal, View, Text, ScrollView, TouchableOpacity, Switch,
+  Modal, View, Text, TextInput, ScrollView, TouchableOpacity, Switch,
   ActivityIndicator, Linking, Platform, StyleSheet
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -191,6 +191,7 @@ const SECTIONS = [
 
 export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen }) {
   const [active, setActive] = React.useState(null);
+  const [searchQuery, setSearchQuery] = React.useState("");
   const [hubVisible, setHubVisible] = React.useState(false);
   const [preferences, setPreferences] = React.useState({});
   const [loading, setLoading] = React.useState(false);
@@ -445,12 +446,21 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             <View style={{ alignSelf:"center",width:42,height:5,borderRadius:5,backgroundColor:"#0095F6",marginBottom:17 }}/>
             <View style={{ backgroundColor:"#121212",borderWidth:1,borderColor:BORDER,borderRadius:16,padding:18,marginBottom:15 }}>
               <Text style={{ color:GOLD,fontSize:11,fontWeight:"900",letterSpacing:2 }}>BHUMI SOCIAL AI</Text>
-              <Text style={{ color:TEXT,fontSize:25,fontWeight:"900",marginTop:6 }}>Settings</Text>
-              <Text style={{ color:MUTED,fontSize:12,marginTop:4 }}>Your account, privacy and app controls</Text>
+              <Text style={{ color:TEXT,fontSize:25,fontWeight:"900",marginTop:6 }}>Settings and activity</Text>
+              <Text style={{ color:MUTED,fontSize:12,marginTop:4 }}>Account, privacy, messages and app controls</Text>
+            </View>
+            <View style={{ flexDirection:"row",alignItems:"center",backgroundColor:"#1C1C1E",borderRadius:12,borderWidth:1,borderColor:BORDER,paddingHorizontal:12,marginBottom:12,minHeight:44 }}>
+              <Ionicons name="search" size={18} color={MUTED}/>
+              <TextInput value={searchQuery} onChangeText={setSearchQuery} placeholder="Search settings" placeholderTextColor="#8E8E93" returnKeyType="search" style={{ flex:1,color:TEXT,fontSize:14,paddingVertical:9,paddingHorizontal:9 }} accessibilityLabel="Search settings"/>
+              {!!searchQuery && <TouchableOpacity onPress={() => setSearchQuery("")} accessibilityLabel="Clear settings search"><Ionicons name="close-circle" size={18} color={MUTED}/></TouchableOpacity>}
             </View>
             {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical:18 }}/> : null}
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 48 : 12 }}>
-              {SECTIONS.map((section) => (
+              {SECTIONS.filter((section) => {
+                const query = searchQuery.trim().toLowerCase();
+                if (!query) return true;
+                return [section.title, section.subtitle, ...section.fields.flatMap((field) => field.slice(1, 3))].some((value) => String(value || "").toLowerCase().includes(query));
+              }).map((section) => (
                 <TouchableOpacity key={section.key} onPress={() => setActive(section.key)} activeOpacity={0.82} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderBottomWidth:1,borderBottomColor:BORDER,borderRadius:0,paddingHorizontal:2,paddingVertical:12,marginBottom:0 }}>
                   <View style={{ width:42,height:42,borderRadius:21,backgroundColor:"#1C1C1E",alignItems:"center",justifyContent:"center",marginRight:12 }}>
                     <Ionicons name={section.icon} size={22} color={GOLD}/>
@@ -462,6 +472,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                   <Ionicons name="chevron-forward" size={19} color={MUTED}/>
                 </TouchableOpacity>
               ))}
+              {searchQuery.trim() && !SECTIONS.some((section) => [section.title, section.subtitle, ...section.fields.flatMap((field) => field.slice(1, 3))].some((value) => String(value || "").toLowerCase().includes(searchQuery.trim().toLowerCase()))) ? <Text style={{ color:MUTED,textAlign:"center",paddingVertical:24,fontSize:13 }}>No settings found. Try another search.</Text> : null}
               <TouchableOpacity onPress={onLogout} style={{ flexDirection:"row",alignItems:"center",justifyContent:"center",backgroundColor:"#35191D",borderWidth:1,borderColor:"#7C3039",borderRadius:14,padding:14,marginTop:5 }}>
                 <Ionicons name="log-out-outline" color="#F08080" size={20}/>
                 <Text style={{ color:"#F08080",fontWeight:"900",marginLeft:9 }}>Log Out</Text>
