@@ -2532,7 +2532,7 @@ export default function App() {
       setAppPinInput("");
       setAppPinError("");
     }
-  }, [authSession]);
+  }, [authSession, authReady]);
 
   // Register this signed-in device for high-priority incoming-call push alerts.
   // The existing in-app call listener still handles the full LiveKit call UI.
