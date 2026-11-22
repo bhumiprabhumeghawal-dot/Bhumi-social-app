@@ -620,9 +620,9 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           <View style={{ width:"100%", maxWidth:340, backgroundColor:"#FFFFFF", borderRadius:22, padding:22, alignItems:"center" }}>
             <Text style={{ color:"#111111", fontSize:19, fontWeight:"900" }}>Your profile QR code</Text>
             <Text style={{ color:"#666666", fontSize:12, marginTop:5, marginBottom:18 }}>Scan to open this Bhumi Social AI profile</Text>
-            <Image source={{ uri:"https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=" + encodeURIComponent("https://bhumi-social-app-1.onrender.com/u/" + (username || "")) }} style={{ width:250, height:250 }} resizeMode="contain" accessibilityLabel="Profile QR code" />
+            <Image source={{ uri:"https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=" + encodeURIComponent("bhumisocial://profile/" + (username || "")) }} style={{ width:250, height:250 }} resizeMode="contain" accessibilityLabel="Profile QR code" />
             <Text style={{ color:"#222222", fontWeight:"800", marginTop:12 }}>@{username || "your-profile"}</Text>
-            <TouchableOpacity onPress={() => Share.share({ message:"Find me on Bhumi Social AI: https://bhumi-social-app-1.onrender.com/u/" + (username || "") })} style={{ backgroundColor:"#0095F6", borderRadius:13, paddingVertical:13, paddingHorizontal:22, marginTop:18, width:"100%", alignItems:"center" }}>
+            <TouchableOpacity onPress={() => Share.share({ message:"Find me on Bhumi Social AI: bhumisocial://profile/" + (username || "") + "\nGet Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download" })} style={{ backgroundColor:"#0095F6", borderRadius:13, paddingVertical:13, paddingHorizontal:22, marginTop:18, width:"100%", alignItems:"center" }}>
               <Text style={{ color:"#FFFFFF", fontWeight:"900" }}>Share Profile</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setQrVisible(false)} style={{ padding:13, marginTop:3 }}>
