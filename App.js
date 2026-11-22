@@ -2561,6 +2561,13 @@ export default function App() {
             lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
             bypassDnd: false,
           });
+          await Notifications.setNotificationChannelAsync("messages", {
+            name: "Direct messages",
+            importance: Notifications.AndroidImportance.HIGH,
+            vibrationPattern: [0, 250, 150, 250],
+            sound: "default",
+            lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
+          });
         }
         let permission = await Notifications.getPermissionsAsync();
         if (!permission.granted) permission = await Notifications.requestPermissionsAsync();
