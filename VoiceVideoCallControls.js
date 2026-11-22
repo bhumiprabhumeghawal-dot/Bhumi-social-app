@@ -5,10 +5,10 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import RNCallKeep from "react-native-callkeep";
-import { Platform } from "react-native";
 import { useCameraPermissions } from "expo-camera";
 import { requestRecordingPermissionsAsync } from "expo-audio";
 import {
@@ -361,6 +361,8 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           setIncoming(true);
           setCallMessage(next.type === "video" ? "आपको वीडियो कॉल आ रही है।" : "आपको वॉइस कॉल आ रही है।");
           if (Platform.OS === "android") {
+            try { if (callKeepSetupPromise) await callKeepSetupPromise; } catch (_) {}
+            if (!active || callRef.current?.id !== next.id) return;
             const uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); });
             callKeepUuidRef.current = uuid;
             callKeepCallIdRef.current = next.id;
