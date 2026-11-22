@@ -6012,14 +6012,14 @@ export default function App() {
     const term = chatSearchQuery.trim().toLowerCase();
     return messageConversations.filter((conversation) => {
       const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || "";
-      const folder = String(conversation.folder || conversation.inboxTab || conversation.category || "").toLowerCase();
+      const folder = String(conversation.folder || conversation.inboxTab || conversation.category || "primary").toLowerCase();
       const requestStatus = String(conversation.requestStatus || "").toLowerCase();
       const isRequest = Boolean(conversation.isRequest) || ["pending", "requested"].includes(requestStatus) || folder === "requests";
       const friendKey = String(username).toLowerCase();
       if (chatFriendFilter === "Favourite" && !chatFriendPrefs["messages.favorite." + friendKey]) return false;
       if (chatFriendFilter === "Close" && !chatFriendPrefs["messages.closeFriend." + friendKey]) return false;
       if (chatInboxTab === "Requests" && !isRequest) return false;
-      if ((chatInboxTab === "Primary" || chatInboxTab === "General") && folder && folder !== chatInboxTab.toLowerCase()) return false;
+      if ((chatInboxTab === "Primary" || chatInboxTab === "General") && folder !== chatInboxTab.toLowerCase()) return false;
       if (chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
       return !term ||
         String(username).toLowerCase().includes(term) ||
