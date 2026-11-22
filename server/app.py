@@ -3527,6 +3527,15 @@ def init_chat_tables():
                 PRIMARY KEY (sender_username, recipient_username)
             )
         """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS message_inbox_folders (
+                username TEXT NOT NULL,
+                peer_username TEXT NOT NULL,
+                folder TEXT NOT NULL CHECK(folder IN ('primary', 'general', 'requests')),
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY(username, peer_username)
+            )
+        """)
 
 def _chat_preferences(db, username):
     """Read persisted privacy preferences for an authenticated account."""
@@ -4100,15 +4109,6 @@ def get_message_conversations():
         return jsonify({"error": "Please log in to view messages."}), 401
 
     with get_db() as db:
-        db.execute("""
-            CREATE TABLE IF NOT EXISTS message_inbox_folders (
-                username TEXT NOT NULL,
-                peer_username TEXT NOT NULL,
-                folder TEXT NOT NULL CHECK(folder IN ('primary', 'general', 'requests')),
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY(username, peer_username)
-            )
-        """)
         now = datetime.now(timezone.utc).isoformat()
         db.execute(
             "DELETE FROM direct_messages WHERE expires_at IS NOT NULL AND expires_at <= ?",
@@ -4218,15 +4218,6 @@ def update_message_conversation_folder(username):
         return jsonify({"error": "Choose Primary, General or Requests."}), 400
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as db:
-        db.execute("""
-            CREATE TABLE IF NOT EXISTS message_inbox_folders (
-                username TEXT NOT NULL,
-                peer_username TEXT NOT NULL,
-                folder TEXT NOT NULL CHECK(folder IN ('primary', 'general', 'requests')),
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY(username, peer_username)
-            )
-        """)
         exists = db.execute("""
             SELECT 1 FROM direct_messages
             WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
