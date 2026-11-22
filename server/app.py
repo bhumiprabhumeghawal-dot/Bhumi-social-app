@@ -2431,7 +2431,7 @@ def toggle_reel_like(content_id):
             )
             liked = True
             if liked:
-                _people_notification(db, reel["username"], username, "like", content_id, now)
+                _people_notification(db, reel["username"], username, "reel_like", content_id, now)
 
         count = db.execute(
             "SELECT COUNT(*) AS total FROM reel_likes WHERE content_id=?",
@@ -2521,7 +2521,7 @@ def create_reel_comment(content_id):
         """, (cursor.lastrowid,)).fetchone()
 
         if approved:
-            _people_notification(db, reel["username"], username, "comment", content_id, now)
+            _people_notification(db, reel["username"], username, "reel_comment", content_id, now)
 
         comments_count = db.execute(
             "SELECT COUNT(*) AS total FROM reel_comments WHERE content_id=? AND approved=1",
@@ -3005,7 +3005,7 @@ def load_notification_details():
 
     defaults = {
         "likes": 1, "comments": 1, "follows": 1, "requests": 1,
-        "messages": 1, "system_alerts": 1,
+        "messages": 1, "reels": 1, "system_alerts": 1,
     }
     with get_db() as db:
         db.execute("""
@@ -3016,6 +3016,7 @@ def load_notification_details():
                 follows INTEGER NOT NULL DEFAULT 1,
                 requests INTEGER NOT NULL DEFAULT 1,
                 messages INTEGER NOT NULL DEFAULT 1,
+                reels INTEGER NOT NULL DEFAULT 1,
                 system_alerts INTEGER NOT NULL DEFAULT 1,
                 updated_at TEXT NOT NULL
             )
@@ -3026,7 +3027,7 @@ def load_notification_details():
             VALUES (?, 1, 1, 1, 1, 1, ?)
         """, (username, datetime.now(timezone.utc).isoformat()))
         row = db.execute("""
-            SELECT likes, comments, follows, requests, messages, system_alerts
+            SELECT likes, comments, follows, requests, messages, reels, system_alerts
             FROM notification_detail_preferences WHERE username=?
         """, (username,)).fetchone()
 
@@ -3043,7 +3044,7 @@ def save_notification_details():
     if not isinstance(data, dict) or not data:
         return jsonify({"error": "Provide notification preferences to update."}), 400
 
-    allowed = {"likes", "comments", "follows", "requests", "messages", "system_alerts"}
+    allowed = {"likes", "comments", "follows", "requests", "messages", "reels", "system_alerts"}
     if any(key not in allowed or not isinstance(value, bool)
            for key, value in data.items()):
         return jsonify({"error": "Use valid notification keys with true or false values."}), 400
@@ -3058,6 +3059,7 @@ def save_notification_details():
                 follows INTEGER NOT NULL DEFAULT 1,
                 requests INTEGER NOT NULL DEFAULT 1,
                 messages INTEGER NOT NULL DEFAULT 1,
+                reels INTEGER NOT NULL DEFAULT 1,
                 system_alerts INTEGER NOT NULL DEFAULT 1,
                 updated_at TEXT NOT NULL
             )
@@ -4964,6 +4966,8 @@ def _send_social_activity_push(recipient, actor, kind, reference_id=None, notifi
     messages = {
         "like": ("New like", f"@{actor} liked your post"),
         "comment": ("New comment", f"@{actor} commented on your post"),
+        "reel_like": ("New reel like", f"@{actor} liked your reel"),
+        "reel_comment": ("New reel comment", f"@{actor} commented on your reel"),
         "follow": ("New follower", f"@{actor} started following you"),
         "follow_request": ("Follow request", f"@{actor} requested to follow you"),
         "follow_accepted": ("Follow request accepted", f"@{actor} accepted your follow request"),
@@ -5029,6 +5033,7 @@ def _people_notification(db, recipient, actor, kind, reference_id, now):
         "message": "messages",
         "follow": "follows",
         "follow_request": "requests",
+        "reel_like": "reels", "reel_comment": "reels",
         "follow_accepted": "follows",
         "follow_rejected": "follows",
         "system_alert": "system_alerts",
@@ -5051,7 +5056,7 @@ def _people_notification(db, recipient, actor, kind, reference_id, now):
         (id, recipient, actor, kind, reference_id, created_at, is_read)
         VALUES (?, ?, ?, ?, ?, ?, 0)
     """, (notification_id, recipient, actor, kind, reference_id, now))
-    if kind in {"like", "comment", "follow", "follow_request", "follow_accepted", "follow_rejected"}:
+    if kind in {"like", "comment", "reel_like", "reel_comment", "follow", "follow_request", "follow_accepted", "follow_rejected"}:
         # Do not hold the request's database transaction open while contacting Expo.
         threading.Thread(
             target=_send_social_activity_push,
@@ -5078,6 +5083,7 @@ def init_people_connect_tables():
                 follows INTEGER NOT NULL DEFAULT 1,
                 requests INTEGER NOT NULL DEFAULT 1,
                 messages INTEGER NOT NULL DEFAULT 1,
+                reels INTEGER NOT NULL DEFAULT 1,
                 system_alerts INTEGER NOT NULL DEFAULT 1,
                 updated_at TEXT NOT NULL
             )
@@ -5088,6 +5094,7 @@ def init_people_connect_tables():
         except Exception:
             # The column already exists on upgraded databases.
             pass
+        db.execute("ALTER TABLE notification_detail_preferences ADD COLUMN reels INTEGER NOT NULL DEFAULT 1")
         db.execute("""
             CREATE TABLE IF NOT EXISTS follow_requests (
                 id TEXT PRIMARY KEY,
