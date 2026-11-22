@@ -1,7 +1,7 @@
 import React from "react";
 import {
   ActivityIndicator, Modal, ScrollView, Text, TextInput,
-  TouchableOpacity, View
+  TouchableOpacity, View, Linking, Share
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -69,6 +69,17 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
     } finally { setSaving(false); }
   };
 
+  const contactCreatorTeam = async (topic) => {
+    const subject = encodeURIComponent('Bhumi Social AI - ' + topic);
+    const body = encodeURIComponent('Username: ' + (username || 'Not available') + String.fromCharCode(10) + 'Account type: ' + accountType + String.fromCharCode(10,10) + 'Please share the next steps for ' + topic.toLowerCase() + '.');
+    try { await Linking.openURL('mailto:bhumiprabhumeghawal@gmail.com?subject=' + subject + '&body=' + body); }
+    catch (_) { setFeedback('Email is not available on this device. Contact bhumiprabhumeghawal@gmail.com.'); }
+  };
+
+  const createPromotionBrief = async () => {
+    try { await Share.share({ title: 'Promotion brief', message: 'Bhumi Social AI promotion brief' + String.fromCharCode(10) + 'Creator: @' + (username || '') + String.fromCharCode(10) + 'Campaign goal: [add goal]' + String.fromCharCode(10) + 'Target audience: [add audience]' + String.fromCharCode(10) + 'Content format: [post / reel / story]' + String.fromCharCode(10) + 'Budget: [add budget]' + String.fromCharCode(10) + 'Contact: bhumiprabhumeghawal@gmail.com' }); }
+    catch (error) { setFeedback(error.message || 'Promotion brief could not be shared.'); }
+  };
   const saveBusiness = async () => {
     setSaving(true);
     try {
@@ -198,7 +209,9 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
                   {card("Business Dashboard", "Manage your public business profile and product catalog.", "storefront-outline")}
                   {card("Catalog Items", String(items.length) + " products or services currently listed.", "pricetags-outline")}
                   {card("Orders & Payments", "Order checkout, payment settlement and refunds are not connected yet.", "receipt-outline")}
-                  {card("Promotions & Brand Deals", "Campaign booking and creator marketplace are planned next.", "megaphone-outline")}
+                  {card("Promotions & Brand Deals", "Prepare a campaign brief or contact the team. Automated campaign booking is not enabled.", "megaphone-outline")}
+                  {actionButton("REQUEST BRAND COLLABORATION", () => contactCreatorTeam("Business Brand Collaboration Request"))}
+                  {actionButton("CREATE PROMOTION BRIEF", createPromotionBrief)}
                   {actionButton("EDIT BUSINESS PROFILE", () => setTab("profile"))}
                   {actionButton("MANAGE PRODUCT CATALOG", () => setTab("catalog"))}
                 </>
@@ -257,7 +270,10 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
               {card("Content Analytics", "Post count is loaded from your existing profile content. Reach and audience metrics need dedicated event tracking.", "analytics-outline")}
               {card("Brand Collaboration", "Creator campaign matching and brand contracts are the next development stage.", "handshake-outline")}
               {card("Monetization", "Creator payouts will be enabled only after payment provider, eligibility and tax checks are configured.", "wallet-outline")}
-              {card("Promotions", "Sponsored content tools will be connected after ad billing and review controls are ready.", "megaphone-outline")}
+              {card("Promotions", "Prepare and share a campaign brief. Paid promotion checkout is not enabled yet.", "megaphone-outline")}
+              {actionButton("REQUEST BRAND COLLABORATION", () => contactCreatorTeam("Brand Collaboration Request"))}
+              {actionButton("ASK ABOUT MONETIZATION", () => contactCreatorTeam("Creator Monetization Eligibility"))}
+              {actionButton("CREATE PROMOTION BRIEF", createPromotionBrief)}
               {actionButton("REFRESH CREATOR DATA", refresh, loading)}
             </>
           ) : null}
