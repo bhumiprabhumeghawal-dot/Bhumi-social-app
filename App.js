@@ -988,9 +988,11 @@ function groupPostItems(items) {
 }
 
 function PostMediaTapSurface({ children, style, onSingleTap, onDoubleTap }) {
-  // Native press handling lets FlatList cancel a press as soon as dragging starts.
-  // A stationary tap opens the post; a second quick tap likes it.
+  // Keep native press handling so FlatList owns vertical scrolling.
+  // A moving finger is a scroll/swipe, never a request to open the post.
   const tapTimer = React.useRef(null);
+  const touchOrigin = React.useRef({ x: 0, y: 0 });
+  const movedDuringTouch = React.useRef(false);
 
   React.useEffect(() => {
     return () => {
@@ -998,7 +1000,31 @@ function PostMediaTapSurface({ children, style, onSingleTap, onDoubleTap }) {
     };
   }, []);
 
+  const handleTouchStart = (event) => {
+    const { pageX = 0, pageY = 0 } = event.nativeEvent || {};
+    touchOrigin.current = { x: pageX, y: pageY };
+    movedDuringTouch.current = false;
+  };
+
+  const handleTouchMove = (event) => {
+    const { pageX = 0, pageY = 0 } = event.nativeEvent || {};
+    const dx = Math.abs(pageX - touchOrigin.current.x);
+    const dy = Math.abs(pageY - touchOrigin.current.y);
+    if (dx > 10 || dy > 10) {
+      movedDuringTouch.current = true;
+      if (tapTimer.current) {
+        clearTimeout(tapTimer.current);
+        tapTimer.current = null;
+      }
+    }
+  };
+
   const handlePress = () => {
+    if (movedDuringTouch.current) {
+      movedDuringTouch.current = false;
+      return;
+    }
+
     if (tapTimer.current) {
       clearTimeout(tapTimer.current);
       tapTimer.current = null;
@@ -1013,7 +1039,13 @@ function PostMediaTapSurface({ children, style, onSingleTap, onDoubleTap }) {
   };
 
   return (
-    <TouchableOpacity activeOpacity={1} onPress={handlePress} style={style}>
+    <TouchableOpacity
+      activeOpacity={1}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onPress={handlePress}
+      style={style}
+    >
       {children}
     </TouchableOpacity>
   );
