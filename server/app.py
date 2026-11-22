@@ -3243,7 +3243,7 @@ def create_or_update_location_share():
         recipient = target["username"]
         share_id = str(data.get("share_id") or "").strip()
         if share_id:
-            existing = db.execute("SELECT share_id FROM location_shares WHERE share_id=? AND owner_username=? AND recipient_username=? AND active=1", (share_id, username, recipient)).fetchone()
+            existing = db.execute("SELECT share_id FROM location_shares WHERE share_id=? AND owner_username=? AND recipient_username=? AND active=1 AND expires_at>?", (share_id, username, recipient, now.isoformat())).fetchone()
             if not existing:
                 return jsonify({"error": "Active location share not found."}), 404
         else:
