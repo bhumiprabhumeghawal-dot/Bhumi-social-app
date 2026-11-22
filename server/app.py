@@ -4218,6 +4218,15 @@ def update_message_conversation_folder(username):
         return jsonify({"error": "Choose Primary, General or Requests."}), 400
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS message_inbox_folders (
+                username TEXT NOT NULL,
+                peer_username TEXT NOT NULL,
+                folder TEXT NOT NULL CHECK(folder IN ('primary', 'general', 'requests')),
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY(username, peer_username)
+            )
+        """)
         exists = db.execute("""
             SELECT 1 FROM direct_messages
             WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
