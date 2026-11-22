@@ -3,7 +3,6 @@ import { registerRootComponent } from 'expo';
 import * as SecureStore from 'expo-secure-store';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ActivityIndicator, Text, View } from 'react-native';
-import './incomingCallBackgroundTask';
 
 const crashErrorUtils = globalThis.ErrorUtils;
 let AppComponent = null;
