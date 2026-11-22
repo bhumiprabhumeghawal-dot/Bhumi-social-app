@@ -42,6 +42,7 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [x] Confirm inbox includes All, Primary, General, Requests, search, unread filter, Notes, and a separate conversation view in the current UI.
 - [x] Make empty states reflect the active search, unread-only toggle, and inbox folder instead of incorrectly showing an empty inbox only when the entire conversation list is empty.
 - [ ] Verify unread counts, request acceptance, conversation ordering, sent/received state, and message delivery errors.
+- [ ] Implement persisted Primary/General conversation assignment; the current API classifies followed users as Primary and non-followed users as Requests, so General has no server-backed assignment yet.
 - [ ] Verify image/video/document previews, download/open behavior, voice playback, and keyboard avoidance.
 - Note: sent messages belong inside their conversation thread; a separate outbox screen is not part of the usual Instagram DM navigation model.
 
