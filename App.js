@@ -13425,8 +13425,8 @@ export default function App() {
                 })}
                 {notificationsList.filter((item) => {
                   if (notificationFilter === "All") return true;
-                  if (notificationFilter === "Likes") return item.kind === "like";
-                  if (notificationFilter === "Comments") return item.kind === "comment";
+                  if (notificationFilter === "Likes") return item.kind === "like" || item.kind === "reel_like";
+                  if (notificationFilter === "Comments") return item.kind === "comment" || item.kind === "reel_comment";
                   return ["follow", "follow_request", "follow_accepted", "follow_rejected"].includes(item.kind);
                 }).length === 0 ? (
                   <View style={{ alignItems: "center", padding: 36 }}>
