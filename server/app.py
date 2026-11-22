@@ -4186,7 +4186,7 @@ def get_message_conversations():
             "displayName": row["other_display_name"] or other,
             "avatarUrl": row["other_avatar_url"],
             "folder": inbox_folder,
-            "isRequest": key not in connected_users,
+            "isRequest": inbox_folder == "requests",
             "lastMessage": row["body"] or (
                 "📷 Photo" if row["image_url"] or row["attachment_type"] == "image"
                 else "🎬 Video" if row["attachment_type"] == "video"
