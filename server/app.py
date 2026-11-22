@@ -3698,17 +3698,30 @@ def _send_incoming_call_push(username, caller, call_type, call_id):
     if not rows:
         return
 
-    payloads = [{
-        "to": row["expo_push_token"],
-        "title": "Incoming video call" if call_type == "video" else "Incoming voice call",
-        "body": f"@{caller} is calling you",
-        "sound": "default",
-        "priority": "high",
-        "ttl": 45,
-        "channelId": "incoming-calls",
-        "categoryId": "incoming_call",
-        "data": {"type": "incoming_call", "callId": call_id, "callType": call_type, "caller": caller},
-    } for row in rows]
+    call_data = {"type": "incoming_call", "callId": call_id, "callType": call_type, "caller": caller}
+    payloads = []
+    for row in rows:
+        token = row["expo_push_token"]
+        # Visible fallback alert remains available if Android defers headless work.
+        payloads.append({
+            "to": token,
+            "title": "Incoming video call" if call_type == "video" else "Incoming voice call",
+            "body": f"@{caller} is calling you",
+            "sound": "default",
+            "priority": "high",
+            "ttl": 45,
+            "channelId": "incoming-calls",
+            "categoryId": "incoming_call",
+            "data": call_data,
+        })
+        # A separate data-only push lets Expo TaskManager run when Android has
+        # terminated the React UI process. Do not add title/body to this payload.
+        payloads.append({
+            "to": token,
+            "priority": "high",
+            "ttl": 45,
+            "data": {**call_data, "type": "incoming_call_headless"},
+        })
 
     for payload in payloads:
         try:
@@ -3720,10 +3733,12 @@ def _send_incoming_call_push(username, caller, call_type, call_id):
             )
             with urllib.request.urlopen(request_obj, timeout=5) as response:
                 result = json.loads(response.read().decode("utf-8") or "{}")
-            ticket = (result.get("data") or {}) if isinstance(result, dict) else {}
-            if ticket.get("status") == "error" and ticket.get("details", {}).get("error") == "DeviceNotRegistered":
-                with get_db() as db:
-                    db.execute("DELETE FROM call_push_tokens WHERE expo_push_token=?", (payload["to"],))
+            tickets = result.get("data") if isinstance(result, dict) else None
+            ticket_list = tickets if isinstance(tickets, list) else [tickets]
+            for ticket in ticket_list:
+                if ticket and ticket.get("status") == "error" and ticket.get("details", {}).get("error") == "DeviceNotRegistered":
+                    with get_db() as db:
+                        db.execute("DELETE FROM call_push_tokens WHERE expo_push_token=?", (payload["to"],))
         except Exception:
             app.logger.exception("Could not send incoming-call push to %s", username)
 
