@@ -10,7 +10,7 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import CreatorBusinessHub from "./CreatorBusinessHub";
-import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails, loadLoginHistory, loadActiveSessions, revokeActiveSession, logoutOtherSessions, loadLocationShares, createOrUpdateLocationShare, stopLocationShare, loadFeedUserLists, addFeedUserList, removeFeedUserList } from "./api";
+import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails, loadLoginHistory, loadActiveSessions, revokeActiveSession, logoutOtherSessions, loadLocationShares, createOrUpdateLocationShare, stopLocationShare, loadFeedUserLists, addFeedUserList, removeFeedUserList, loadPrivacySettings, savePrivacySettings } from "./api";
 
 const GOLD = "#0095F6";
 const BG = "#000000";
@@ -310,11 +310,12 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         loadSettingsPreferences(),
         loadNotificationPreference(),
         loadNotificationDetails(),
+        loadPrivacySettings(username || "you").catch(() => null),
         SecureStore.getItemAsync("bhumi_app_lock_pin"),
         SecureStore.getItemAsync("bhumi_app_auto_lock"),
         SecureStore.getItemAsync("bhumi_app_biometric_fingerprint"),
         SecureStore.getItemAsync("bhumi_app_biometric_face"),
-      ]).then(([data, notificationsEnabled, notificationDetails, storedAppPin, storedAutoLock, storedFingerprint, storedFace]) => {
+      ]).then(([data, notificationsEnabled, notificationDetails, privacySettings, storedAppPin, storedAutoLock, storedFingerprint, storedFace]) => {
         if (!alive) return;
         const merged = { ...(data || {}) };
         merged["security.appLock"] = !!storedAppPin;
@@ -323,6 +324,15 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         merged["security.fingerprint"] = !!storedFingerprint;
         merged["security.faceUnlock"] = !!storedFace;
         merged["notifications.enabled"] = notificationsEnabled;
+        if (privacySettings) {
+          merged["privacy.onlineStatus"] = !!privacySettings.showActivity;
+          merged["privacy.lastSeen"] = !!privacySettings.showActivity;
+          merged["privacy.messageAccess"] = !!privacySettings.allowMessages;
+          merged["messages.allowMessages"] = !!privacySettings.allowMessages;
+        }
+        if (typeof merged["messages.readReceipts"] === "boolean") {
+          merged["privacy.readReceipts"] = merged["messages.readReceipts"];
+        }
         Object.entries(notificationDetails || {}).forEach(([name, enabled]) => {
           const key = ({ likes:"notifications.likes", comments:"notifications.comments", follows:"notifications.follows", requests:"notifications.requests", messages:"notifications.messages" })[name];
           if (key) merged[key] = enabled;
@@ -346,6 +356,32 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       if (key === "notifications.enabled") {
         const saved = await saveNotificationPreference(value);
         setPreferences((current) => ({ ...current, [key]: saved }));
+      } else if (["privacy.onlineStatus", "privacy.lastSeen", "privacy.messageAccess", "messages.allowMessages"].includes(key)) {
+        const field = key === "privacy.onlineStatus" || key === "privacy.lastSeen"
+          ? "showActivity"
+          : "allowMessages";
+        await savePrivacySettings({ [field]: value }, username || "you");
+        if (field === "allowMessages") {
+          await saveSettingsPreferences({ "messages.allowMessages": value });
+        }
+        setPreferences((current) => ({
+          ...current,
+          [key]: value,
+          ...(field === "showActivity" ? {
+            "privacy.onlineStatus": value,
+            "privacy.lastSeen": value,
+          } : {
+            "privacy.messageAccess": value,
+            "messages.allowMessages": value,
+          }),
+        }));
+      } else if (key === "privacy.readReceipts") {
+        await saveSettingsPreferences({ "messages.readReceipts": value });
+        setPreferences((current) => ({
+          ...current,
+          "privacy.readReceipts": value,
+          "messages.readReceipts": value,
+        }));
       } else {
         const detailKey = ({ "notifications.likes":"likes", "notifications.comments":"comments", "notifications.follows":"follows", "notifications.messages":"messages", "notifications.requests":"requests" })[key];
         if (detailKey) {
