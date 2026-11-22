@@ -6,8 +6,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system/legacy";
 import * as SecureStore from "expo-secure-store";
+import * as Location from "expo-location";
 import CreatorBusinessHub from "./CreatorBusinessHub";
-import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
+import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails, loadLoginHistory, loadActiveSessions, revokeActiveSession, loadLocationShares, createOrUpdateLocationShare, stopLocationShare } from "./api";
 
 const GOLD = "#0095F6";
 const BG = "#000000";
@@ -223,6 +224,19 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const [pinValue, setPinValue] = React.useState("");
   const [pinConfirmValue, setPinConfirmValue] = React.useState("");
   const [pinAlreadySet, setPinAlreadySet] = React.useState(false);
+  const [securityVisible, setSecurityVisible] = React.useState(false);
+  const [securityLoading, setSecurityLoading] = React.useState(false);
+  const [loginHistory, setLoginHistory] = React.useState([]);
+  const [activeSessions, setActiveSessions] = React.useState([]);
+  const [locationVisible, setLocationVisible] = React.useState(false);
+  const [locationLoading, setLocationLoading] = React.useState(false);
+  const [locationShares, setLocationShares] = React.useState({ outgoing:[], incoming:[] });
+  const [locationRecipient, setLocationRecipient] = React.useState("");
+  const [locationDuration, setLocationDuration] = React.useState(60);
+  const [locationStatus, setLocationStatus] = React.useState("");
+  const locationWatchRef = React.useRef(null);
+  const activeLocationShareRef = React.useRef(null);
+  const locationDurationRef = React.useRef(60);
   const [preferences, setPreferences] = React.useState({});
   const [loading, setLoading] = React.useState(false);
   const [savingKey, setSavingKey] = React.useState("");
@@ -304,6 +318,103 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     } finally { setSavingKey(""); }
   };
 
+  const refreshSecurityData = async () => {
+    setSecurityLoading(true);
+    try {
+      const [history, sessions] = await Promise.all([loadLoginHistory(50), loadActiveSessions()]);
+      setLoginHistory(history);
+      setActiveSessions(sessions);
+    } catch (error) {
+      setNotice({ title:"Login & Security", message:error?.message || "Security information could not be loaded." });
+    } finally { setSecurityLoading(false); }
+  };
+
+  const openSecurityPanel = () => {
+    setActive(null);
+    setSecurityVisible(true);
+    void refreshSecurityData();
+  };
+
+  const refreshLocationShares = async () => {
+    setLocationLoading(true);
+    try { setLocationShares(await loadLocationShares()); }
+    catch (error) { setLocationStatus(error?.message || "Location shares could not be loaded."); }
+    finally { setLocationLoading(false); }
+  };
+
+  const openLocationPanel = () => {
+    setActive(null);
+    setLocationVisible(true);
+    setLocationStatus("");
+    void refreshLocationShares();
+  };
+
+  const stopLocationWatcher = () => {
+    try { locationWatchRef.current?.remove?.(); } catch (_) {}
+    locationWatchRef.current = null;
+    activeLocationShareRef.current = null;
+  };
+
+  const startLiveLocationShare = async () => {
+    const recipient = locationRecipient.trim().replace(/^@/, "");
+    if (!recipient) { setLocationStatus("जिस दोस्त को लोकेशन भेजनी है उसका username लिखें।"); return; }
+    setLocationLoading(true);
+    setLocationStatus("Location permission माँगी जा रही है…");
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (permission.status !== "granted") throw new Error("Live location के लिए While Using the App location permission जरूरी है।");
+      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const approximate = !!preferences["location.approximate"];
+      const latitude = approximate ? Math.round(position.coords.latitude * 100) / 100 : position.coords.latitude;
+      const longitude = approximate ? Math.round(position.coords.longitude * 100) / 100 : position.coords.longitude;
+      const created = await createOrUpdateLocationShare({
+        recipient_username: recipient,
+        latitude,
+        longitude,
+        accuracy: position.coords.accuracy,
+        duration_minutes: locationDuration,
+      });
+      stopLocationWatcher();
+      activeLocationShareRef.current = { shareId:created.share_id, recipient:created.recipient_username };
+      locationDurationRef.current = locationDuration;
+      locationWatchRef.current = await Location.watchPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 15000,
+        distanceInterval: 30,
+      }, async (nextPosition) => {
+        const active = activeLocationShareRef.current;
+        if (!active) return;
+        const approx = !!preferences["location.approximate"];
+        try {
+          await createOrUpdateLocationShare({
+            share_id: active.shareId,
+            recipient_username: active.recipient,
+            latitude: approx ? Math.round(nextPosition.coords.latitude * 100) / 100 : nextPosition.coords.latitude,
+            longitude: approx ? Math.round(nextPosition.coords.longitude * 100) / 100 : nextPosition.coords.longitude,
+            accuracy: nextPosition.coords.accuracy,
+            duration_minutes: locationDurationRef.current,
+          });
+        } catch (error) {
+          setLocationStatus(error?.message || "Location update नहीं हो पाया।");
+        }
+      });
+      setLocationStatus("आपकी live location @" + created.recipient_username + " के साथ साझा हो रही है। App foreground में खुला रहने पर location update होगी।");
+      await refreshLocationShares();
+    } catch (error) {
+      setLocationStatus(error?.message || "Live location शुरू नहीं हो सकी।");
+    } finally { setLocationLoading(false); }
+  };
+
+  const endLocationShare = async (shareId) => {
+    try {
+      await stopLocationShare(shareId);
+      if (activeLocationShareRef.current?.shareId === shareId) stopLocationWatcher();
+      setLocationStatus("Location sharing बंद कर दी गई है।");
+      await refreshLocationShares();
+    } catch (error) { setLocationStatus(error?.message || "Location sharing बंद नहीं हुई।"); }
+  };
+
+  React.useEffect(() => () => stopLocationWatcher(), []);
   const runSettingAction = (key) => {
     if (key === "security.appLock" || key === "security.pin") {
       setActive(null);
@@ -323,8 +434,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       setNotice({ title:"Two-Factor Authentication", message:"Two-factor sign-in is not enabled on the account server yet. This option has not been switched on." });
       return;
     }
-    if (key === "security.loginHistory") {
-      setNotice({ title:"Login History", message:"The server does not currently record a user-visible sign-in history. New-device alert preferences alone are not a login history." });
+    if (key === "security.loginHistory" || key === "security.activeDevices" || key === "security.checkup") {
+      openSecurityPanel();
       return;
     }
     if (key === "security.activeDevices") {
@@ -364,8 +475,12 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       setNotice({ title: key === "feed.favorites" ? "Favorites Feed" : "Muted Accounts", message: "This dedicated list-management screen is not implemented yet. This control has not been enabled as a working feature." });
       return;
     }
-    if (key === "location.history" || key === "location.liveSharing" || key === "location.nearbyFriends" || key === "location.background") {
-      setNotice({ title:"Location Sharing", message:"Location sharing, nearby discovery and location history are not active. No location is being shared or tracked by these settings." });
+    if (key === "location.history" || key === "location.liveSharing" || key === "location.nearbyFriends") {
+      openLocationPanel();
+      return;
+    }
+    if (key === "location.background") {
+      setNotice({ title:"Background Location", message:"Live sharing updates only while Bhumi Social AI is open in the foreground. Background tracking is intentionally not enabled; you can stop sharing at any time and each share expires automatically." });
       return;
     }
     if (key === "account.profileQr") {
@@ -711,6 +826,95 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       </Modal>
       {renderSection()}
 <CreatorBusinessHub visible={hubVisible && visible} username={username} onClose={() => setHubVisible(false)} />
+      <Modal visible={securityVisible && visible} transparent animationType="slide" onRequestClose={() => setSecurityVisible(false)}>
+        <View style={{ flex:1,backgroundColor:"#000000",paddingTop:Platform.OS==="android"?35:55,paddingHorizontal:18,paddingBottom:20 }}>
+          <View style={{ flexDirection:"row",alignItems:"center",marginBottom:16 }}>
+            <TouchableOpacity onPress={()=>setSecurityVisible(false)} style={{ width:38 }}><Ionicons name="arrow-back" size={24} color={TEXT}/></TouchableOpacity>
+            <Text style={{ color:TEXT,fontSize:20,fontWeight:"900",flex:1 }}>Login & Security</Text>
+            <TouchableOpacity onPress={refreshSecurityData}><Ionicons name="refresh" size={21} color={GOLD}/></TouchableOpacity>
+          </View>
+          {securityLoading ? <ActivityIndicator color={GOLD}/> : null}
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={{ color:TEXT,fontSize:15,fontWeight:"900",marginBottom:8 }}>Recent Logins</Text>
+            {loginHistory.length ? loginHistory.map((item)=>(
+              <View key={String(item.id)} style={{ backgroundColor:PANEL,borderRadius:13,padding:13,marginBottom:8 }}>
+                <View style={{ flexDirection:"row",alignItems:"center" }}>
+                  <Ionicons name="phone-portrait-outline" size={20} color={GOLD}/>
+                  <Text style={{ color:TEXT,fontSize:12,fontWeight:"800",flex:1,marginLeft:9 }} numberOfLines={2}>{item.device_label || "Unknown device"}</Text>
+                  {item.is_current ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"900" }}>THIS DEVICE</Text> : null}
+                </View>
+                <Text style={{ color:MUTED,fontSize:11,marginTop:7 }}>{new Date(item.created_at).toLocaleString()}</Text>
+                <Text style={{ color:MUTED,fontSize:10,marginTop:3 }}>{item.session_active ? "Session active" : "Signed out / expired"}</Text>
+              </View>
+            )) : <Text style={{ color:MUTED,fontSize:12,marginBottom:15 }}>No login history is available yet. New successful logins will appear here.</Text>}
+            <Text style={{ color:TEXT,fontSize:15,fontWeight:"900",marginTop:15,marginBottom:8 }}>Active Devices</Text>
+            {activeSessions.length ? activeSessions.map((item)=>(
+              <View key={item.id} style={{ backgroundColor:PANEL,borderRadius:13,padding:13,marginBottom:8 }}>
+                <View style={{ flexDirection:"row",alignItems:"center" }}>
+                  <Ionicons name="laptop-outline" size={20} color={GOLD}/>
+                  <Text style={{ color:TEXT,fontSize:12,fontWeight:"800",flex:1,marginLeft:9 }} numberOfLines={2}>{item.device_label || "Unknown device"}</Text>
+                  {item.is_current ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"900" }}>CURRENT</Text> : null}
+                </View>
+                <Text style={{ color:MUTED,fontSize:10,marginTop:6 }}>Last active: {item.last_seen_at ? new Date(item.last_seen_at).toLocaleString() : new Date(item.created_at).toLocaleString()}</Text>
+                {!item.is_current ? <TouchableOpacity onPress={async()=>{try{await revokeActiveSession(item.id);await refreshSecurityData();}catch(error){setNotice({title:"Could not sign out device",message:error?.message||"Please try again."});}}} style={{ alignSelf:"flex-start",paddingVertical:8,marginTop:4 }}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>Sign out this device</Text></TouchableOpacity> : null}
+              </View>
+            )) : <Text style={{ color:MUTED,fontSize:12 }}>No active sessions found.</Text>}
+            <TouchableOpacity onPress={async()=>{try{await logoutOtherSessions();await refreshSecurityData();setNotice({title:"Other devices signed out",message:"All other active sessions have been ended. This device remains signed in."});}catch(error){setNotice({title:"Could not sign out other devices",message:error?.message||"Please try again."});}}} style={{ backgroundColor:"#35191D",borderRadius:12,padding:13,alignItems:"center",marginTop:15 }}>
+              <Text style={{ color:"#F08080",fontWeight:"900" }}>Sign Out All Other Devices</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </Modal>
+      <Modal visible={locationVisible && visible} transparent animationType="slide" onRequestClose={() => setLocationVisible(false)}>
+        <View style={{ flex:1,backgroundColor:"#000000",paddingTop:Platform.OS==="android"?35:55,paddingHorizontal:18,paddingBottom:20 }}>
+          <View style={{ flexDirection:"row",alignItems:"center",marginBottom:15 }}>
+            <TouchableOpacity onPress={()=>setLocationVisible(false)} style={{ width:38 }}><Ionicons name="arrow-back" size={24} color={TEXT}/></TouchableOpacity>
+            <Text style={{ color:TEXT,fontSize:20,fontWeight:"900",flex:1 }}>Live Location</Text>
+            <TouchableOpacity onPress={refreshLocationShares}><Ionicons name="refresh" size={21} color={GOLD}/></TouchableOpacity>
+          </View>
+          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            <View style={{ backgroundColor:PANEL,borderRadius:15,padding:15,marginBottom:14 }}>
+              <Text style={{ color:TEXT,fontSize:15,fontWeight:"900" }}>Share with a friend</Text>
+              <Text style={{ color:MUTED,fontSize:11,lineHeight:16,marginTop:5 }}>Only mutual followers can receive your location. Permission is requested only when you start sharing.</Text>
+              <TextInput value={locationRecipient} onChangeText={setLocationRecipient} placeholder="Friend's username" placeholderTextColor="#777777" autoCapitalize="none" autoCorrect={false} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:11,padding:12,marginTop:13 }}/>
+              <Text style={{ color:MUTED,fontSize:11,fontWeight:"800",marginTop:13,marginBottom:8 }}>SHARE DURATION</Text>
+              <View style={{ flexDirection:"row",flexWrap:"wrap",gap:7 }}>
+                {[15,60,240,1440].map((minutes)=>(
+                  <TouchableOpacity key={minutes} onPress={()=>setLocationDuration(minutes)} style={{ borderWidth:1,borderColor:locationDuration===minutes?GOLD:BORDER,backgroundColor:locationDuration===minutes?"#102A3C":"#1A1A1A",borderRadius:20,paddingVertical:8,paddingHorizontal:12 }}>
+                    <Text style={{ color:locationDuration===minutes?GOLD:TEXT,fontSize:11,fontWeight:"800" }}>{minutes===15?"15 min":minutes===60?"1 hour":minutes===240?"4 hours":"24 hours"}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TouchableOpacity disabled={locationLoading} onPress={startLiveLocationShare} style={{ backgroundColor:GOLD,borderRadius:12,padding:13,alignItems:"center",marginTop:14,opacity:locationLoading?0.6:1 }}>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{locationLoading?"Please wait…":"Start Live Sharing"}</Text>
+              </TouchableOpacity>
+              {locationStatus ? <Text style={{ color:"#8CCBFF",fontSize:11,lineHeight:16,marginTop:10 }}>{locationStatus}</Text> : null}
+            </View>
+            <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginBottom:8 }}>People sharing with you</Text>
+            {locationShares.incoming.map((item)=>(
+              <View key={item.share_id} style={{ backgroundColor:PANEL,borderRadius:12,padding:12,marginBottom:8 }}>
+                <Text style={{ color:TEXT,fontSize:12,fontWeight:"900" }}>@{item.owner_username}</Text>
+                <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>Updated {new Date(item.updated_at).toLocaleString()} · Expires {new Date(item.expires_at).toLocaleString()}</Text>
+                <TouchableOpacity onPress={()=>Linking.openURL("https://www.google.com/maps/search/?api=1&query="+item.latitude+","+item.longitude)} style={{ paddingVertical:8 }}><Text style={{ color:GOLD,fontSize:11,fontWeight:"900" }}>Open on Map</Text></TouchableOpacity>
+                <TouchableOpacity onPress={()=>endLocationShare(item.share_id)}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"800" }}>Stop receiving this share</Text></TouchableOpacity>
+              </View>
+            ))}
+            {!locationShares.incoming.length ? <Text style={{ color:MUTED,fontSize:11,marginBottom:12 }}>No friends are sharing their location with you.</Text> : null}
+            <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginTop:12,marginBottom:8 }}>Your active shares</Text>
+            {locationShares.outgoing.map((item)=>(
+              <View key={item.share_id} style={{ backgroundColor:PANEL,borderRadius:12,padding:12,marginBottom:8 }}>
+                <Text style={{ color:TEXT,fontSize:12,fontWeight:"900" }}>Shared with @{item.recipient_username}</Text>
+                <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>Updated {new Date(item.updated_at).toLocaleString()} · Expires {new Date(item.expires_at).toLocaleString()}</Text>
+                <TouchableOpacity onPress={()=>endLocationShare(item.share_id)} style={{ paddingVertical:8 }}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>Stop sharing now</Text></TouchableOpacity>
+              </View>
+            ))}
+            {!locationShares.outgoing.length ? <Text style={{ color:MUTED,fontSize:11 }}>You are not sharing your location with anyone.</Text> : null}
+            <View style={{ backgroundColor:"#1B1B1B",borderRadius:12,padding:12,marginTop:15,marginBottom:20 }}>
+              <Text style={{ color:MUTED,fontSize:10,lineHeight:15 }}>Location is shared only after you press Start, only with the selected mutual follower, and expires automatically. Live updates run while the app is open in the foreground; background tracking is not enabled. Approximate Location rounds coordinates before sending.</Text>
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
       <Modal visible={pinSetupVisible && visible} transparent animationType="fade" onRequestClose={() => setPinSetupVisible(false)}>
         <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.82)",justifyContent:"center",padding:24 }}>
           <View style={{ backgroundColor:"#121212",borderRadius:20,borderWidth:1,borderColor:"#303030",padding:20 }}>
