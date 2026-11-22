@@ -115,6 +115,7 @@ import {
   acceptFollowRequest,
   rejectFollowRequest,
   loadMessageConversations,
+  updateMessageConversationFolder,
   sendPresenceHeartbeat,
   getChatPresence,
   loadUserNotes,
@@ -2746,6 +2747,8 @@ export default function App() {
   const [chatSearchQuery, setChatSearchQuery] = React.useState("");
   const [chatUnreadOnly, setChatUnreadOnly] = React.useState(false);
   const [chatInboxTab, setChatInboxTab] = React.useState("All");
+  const [chatFolderSaving, setChatFolderSaving] = React.useState("");
+
   const [chatFriendFilter, setChatFriendFilter] = React.useState("All");
   const [newChatComposerOpen, setNewChatComposerOpen] = React.useState(false);
   const [ownNote, setOwnNote] = React.useState(null);
@@ -6007,6 +6010,27 @@ export default function App() {
       </SafeAreaView>
     );
   }
+
+  const moveConversationFolder = async (conversation) => {
+    const username = String(conversation?.username || "").trim();
+    if (!username || chatFolderSaving) return;
+    const currentFolder = String(conversation.folder || (conversation.isRequest ? "requests" : "primary")).toLowerCase();
+    const nextFolder = currentFolder === "requests" ? "primary" : currentFolder === "general" ? "primary" : "general";
+    setChatFolderSaving(username.toLowerCase());
+    setChatError("");
+    try {
+      await updateMessageConversationFolder(username, nextFolder);
+      setMessageConversations((current) => current.map((item) =>
+        String(item.username || "").toLowerCase() === username.toLowerCase()
+          ? { ...item, folder: nextFolder, isRequest: nextFolder === "requests" }
+          : item
+      ));
+    } catch (error) {
+      setChatError(error?.message || "Could not organize this conversation.");
+    } finally {
+      setChatFolderSaving("");
+    }
+  };
 
   const getVisibleMessageConversations = () => {
     const term = chatSearchQuery.trim().toLowerCase();
@@ -11465,16 +11489,20 @@ export default function App() {
                       if (!username) return null;
                       const unreadCount = Number(conversation.unreadCount || 0);
                       return (
-                        <TouchableOpacity
+                        <View
                           key={String(username) + index}
-                          onPress={() => openDirectChat(username)}
                           style={{
                             flexDirection: "row",
                             alignItems: "center",
                             paddingHorizontal: 18,
                             paddingVertical: 11,
-                            gap: 13,
+                            gap: 10,
                           }}
+                        >
+                        <TouchableOpacity
+                          onPress={() => openDirectChat(username)}
+                          activeOpacity={0.78}
+                          style={{ flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 13 }}
                         >
                           <View
                             style={{
@@ -11552,9 +11580,9 @@ export default function App() {
                                 : ""}
                             </Text>
                           </View>
-                          <View
-                            style={{ alignItems: "flex-end", minWidth: 35 }}
-                          >
+                        </TouchableOpacity>
+                          <View style={{ alignItems: "flex-end", minWidth: 38 }}>
+
                             <Text style={{ color: "#A8A8A8", fontSize: 13 }}>
                               {conversation.lastMessageAt
                                 ? (() => {
@@ -11602,8 +11630,19 @@ export default function App() {
                                 </Text>
                               </View>
                             ) : null}
+                            <TouchableOpacity
+                              onPress={() => moveConversationFolder(conversation)}
+                              disabled={chatFolderSaving === String(username).toLowerCase()}
+                              accessibilityRole="button"
+                              accessibilityLabel={conversation.folder === "general" ? "Move conversation to Primary" : conversation.isRequest ? "Accept message request to Primary" : "Move conversation to General"}
+                              style={{ marginTop: 6, padding: 5, borderRadius: 8, backgroundColor: "#1C1C1E" }}
+                            >
+                              {chatFolderSaving === String(username).toLowerCase()
+                                ? <ActivityIndicator size="small" color="#3797F0" />
+                                : <Ionicons name="folder-outline" size={17} color="#A8A8A8" />}
+                            </TouchableOpacity>
                           </View>
-                        </TouchableOpacity>
+                        </View>
                       );
                     })}
                   {!chatBusy &&
