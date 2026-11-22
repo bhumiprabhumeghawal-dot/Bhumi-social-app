@@ -1349,6 +1349,57 @@ export async function saveSettingsPreferences(changes) {
   return data.preferences || {};
 }
 
+
+export async function loadLoginHistory(limit = 30) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login-history?limit=${encodeURIComponent(limit)}`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not load login history.");
+  return data.items || [];
+}
+
+export async function loadActiveSessions() {
+  const response = await fetch(`${API_BASE_URL}/api/auth/sessions`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not load active devices.");
+  return data.items || [];
+}
+
+export async function revokeActiveSession(sessionId) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/sessions/${encodeURIComponent(sessionId)}`, {
+    method: "DELETE", headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not sign out this device.");
+  return data;
+}
+
+export async function loadLocationShares() {
+  const response = await fetch(`${API_BASE_URL}/api/location/shares`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not load location sharing.");
+  return { outgoing: data.outgoing || [], incoming: data.incoming || [] };
+}
+
+export async function createOrUpdateLocationShare(payload) {
+  const response = await fetch(`${API_BASE_URL}/api/location/shares`, {
+    method: "POST",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not share live location.");
+  return data;
+}
+
+export async function stopLocationShare(shareId) {
+  const response = await fetch(`${API_BASE_URL}/api/location/shares/${encodeURIComponent(shareId)}`, {
+    method: "DELETE", headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not stop location sharing.");
+  return data;
+}
+
 // SOCIALAPP_LIVEKIT_CALL_API_V1
 async function callApi(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
