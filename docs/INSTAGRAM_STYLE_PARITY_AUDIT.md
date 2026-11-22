@@ -134,3 +134,16 @@ The existing app is a large single-file React Native screen with supporting modu
 - Unsupported features are now explicitly identified rather than silently saved as if operational: biometric unlock, 2FA, login history, live location sharing, nearby discovery, account switching, and Favorites/Muted management.
 - Still not implemented: server-backed data export/deactivation, verification workflow, biometric authentication, 2FA, login-history/device-session list, Favorites/Muted management, live location services, and enforcement of several saved preference switches.
 - App PIN flow requires real-device verification before release; no APK build has been started.
+
+## Login, sessions and location implementation pass (2026-11-22)
+- [x] Record successful login and registration events with timestamp and device/browser label.
+- [x] Show the last 50 successful sign-ins (90-day server retention) and identify the current device/session.
+- [x] List active signed-in devices, show last activity (throttled to one server write per minute), revoke one other session, or sign out all other sessions.
+- [x] Add authenticated session-history and session-revocation API routes.
+- [x] Add consent-based live location sharing with foreground permission, selected mutual-follower recipient, 15-minute/1-hour/4-hour/24-hour expiry, update cadence, incoming/outgoing lists, map opening, and stop controls.
+- [x] Add 30-day location-share history, automatic expiry, recipient-side stop, and server validation of coordinates, duration, authentication and mutual-follow relationship.
+- [x] Add optional approximate sharing (coordinates rounded to about 1 km), foreground-only mode by default, and optional background updates requiring explicit preference, Always permission and a visible Android location foreground-service notification.
+- [x] Add nearby-friend distance sorting only for friends who have explicitly shared their location with the current user.
+- [x] Update the public privacy policy for location and sign-in history collection/retention.
+- [ ] Device QA required for OS permission prompts, background task persistence, battery restrictions, map links, and real multi-account mutual-follow sharing. Android background location also requires appropriate Google Play disclosure/review if publishing there.
+- [ ] 2FA, biometric unlock, location tagging in posts, and a general location-based discovery directory remain separate unfinished features; do not show them as enabled.
