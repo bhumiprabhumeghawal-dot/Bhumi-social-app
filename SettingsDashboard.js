@@ -509,7 +509,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const endLocationShare = async (shareId) => {
     try {
       await stopLocationShare(shareId);
-      const storedShareId = await SecureStore.getItemAsync("bhumi_live_share_id");\n      if (activeLocationShareRef.current?.shareId === shareId || storedShareId === shareId) await stopLocationWatcher();
+      const storedShareId = await SecureStore.getItemAsync("bhumi_live_share_id");
+      if (activeLocationShareRef.current?.shareId === shareId || storedShareId === shareId) await stopLocationWatcher();
       setLocationStatus("Location sharing बंद कर दी गई है।");
       await refreshLocationShares();
     } catch (error) { setLocationStatus(error?.message || "Location sharing बंद नहीं हुई।"); }
