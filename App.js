@@ -2393,6 +2393,7 @@ export default function App() {
   const [storyIndex, setStoryIndex] = React.useState(0);
   const [storyImageZoomed, setStoryImageZoomed] = React.useState(false);
   const [storyPaused, setStoryPaused] = React.useState(false);
+  const storyLongPressRef = React.useRef(false);
   const [storyProgress, setStoryProgress] = React.useState(0);
   const [selectedPost, setSelectedPost] = React.useState(null);
   const [selectedPostMediaIndex, setSelectedPostMediaIndex] = React.useState(0);
@@ -9552,8 +9553,19 @@ export default function App() {
 
             <TouchableOpacity
               accessibilityLabel="Previous story"
-              onPress={() => moveStory(-1)}
-              onPressIn={() => setStoryPaused(true)}
+              onPress={() => {
+                if (storyLongPressRef.current) {
+                  storyLongPressRef.current = false;
+                  return;
+                }
+                moveStory(-1);
+              }}
+              onPressIn={() => {
+                storyLongPressRef.current = false;
+                setStoryPaused(true);
+              }}
+              onLongPress={() => { storyLongPressRef.current = true; }}
+              delayLongPress={220}
               onPressOut={() => setStoryPaused(false)}
               style={{
                 position: "absolute",
@@ -9567,8 +9579,19 @@ export default function App() {
             />
             <TouchableOpacity
               accessibilityLabel="Next story"
-              onPress={() => moveStory(1)}
-              onPressIn={() => setStoryPaused(true)}
+              onPress={() => {
+                if (storyLongPressRef.current) {
+                  storyLongPressRef.current = false;
+                  return;
+                }
+                moveStory(1);
+              }}
+              onPressIn={() => {
+                storyLongPressRef.current = false;
+                setStoryPaused(true);
+              }}
+              onLongPress={() => { storyLongPressRef.current = true; }}
+              delayLongPress={220}
               onPressOut={() => setStoryPaused(false)}
               style={{
                 position: "absolute",
