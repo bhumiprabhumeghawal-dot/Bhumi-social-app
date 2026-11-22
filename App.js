@@ -2527,7 +2527,7 @@ export default function App() {
   const [authReady, setAuthReady] = React.useState(false);
   const [authSession, setAuthSession] = React.useState(null);
   React.useEffect(() => {
-    if (!authSession) {
+    if (authReady && !authSession) {
       setAppPinLocked(false);
       setAppPinInput("");
       setAppPinError("");
@@ -13549,7 +13549,7 @@ export default function App() {
             <Text style={{ color:"#A8A8A8",fontSize:12,textAlign:"center",lineHeight:18,marginTop:7 }}>Enter your device App PIN to continue.</Text>
             <TextInput
               value={appPinInput}
-              onChangeText={(value)=>{setAppPinInput(value.replace(/\\D/g,"").slice(0,6));setAppPinError("");}}
+              onChangeText={(value)=>{setAppPinInput(value.replace(/\D/g,"").slice(0,6));setAppPinError("");}}
               placeholder="Enter 4–6 digit PIN"
               placeholderTextColor="#777777"
               keyboardType="number-pad"
