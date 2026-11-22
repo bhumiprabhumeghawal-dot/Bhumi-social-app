@@ -12655,7 +12655,7 @@ export default function App() {
                         </TouchableOpacity>
                       )}
                       {!!viewedProfile.businessProfile.website && (
-                        <TouchableOpacity onPress={() => Linking.openURL(/^https?:\\/\\//i.test(viewedProfile.businessProfile.website) ? viewedProfile.businessProfile.website : "https://" + viewedProfile.businessProfile.website)} style={{ backgroundColor: "#242424", paddingHorizontal: 11, paddingVertical: 8, borderRadius: 9 }}>
+                        <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(viewedProfile.businessProfile.website) ? viewedProfile.businessProfile.website : "https://" + viewedProfile.businessProfile.website)} style={{ backgroundColor: "#242424", paddingHorizontal: 11, paddingVertical: 8, borderRadius: 9 }}>
                           <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>Website</Text>
                         </TouchableOpacity>
                       )}
