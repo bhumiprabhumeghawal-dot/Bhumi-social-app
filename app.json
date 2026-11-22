@@ -5,7 +5,7 @@
     "version": "1.0.8",
     "orientation": "portrait",
     "icon": "./assets/bhumi-social-ai-logo.jpg",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bhumi.socialapp",
@@ -61,7 +61,7 @@
     "scheme": "bhumisocial",
     "androidStatusBar": {
       "backgroundColor": "#08050D",
-      "barStyle": "dark-content",
+      "barStyle": "light-content",
       "hidden": false,
       "translucent": false
     },
