@@ -179,6 +179,8 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     listen("endCall", ({ callUUID }) => {
       if (!active || callUUID !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
       callKeepEventBusyRef.current = true;
+      callKeepUuidRef.current = null;
+      callKeepCallIdRef.current = null;
       const handler = incomingRef.current ? declineHandlerRef.current : endHandlerRef.current;
       Promise.resolve(handler?.()).finally(() => { callKeepEventBusyRef.current = false; });
     });
