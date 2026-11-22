@@ -197,12 +197,19 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const [notice, setNotice] = React.useState(null);
   const [settingsSearch, setSettingsSearch] = React.useState("");
   const normalizedSearch = settingsSearch.trim().toLowerCase();
-  const visibleSections = SECTIONS.map((section) => ({
-    ...section,
-    fields: section.fields.filter((field) => !normalizedSearch ||
-      field[1].toLowerCase().includes(normalizedSearch) ||
-      field[2].toLowerCase().includes(normalizedSearch)),
-  })).filter((section) => !normalizedSearch ||
+  const visibleSections = SECTIONS.map((section) => {
+    const sectionMatches = normalizedSearch &&
+      (section.title.toLowerCase().includes(normalizedSearch) ||
+       section.subtitle.toLowerCase().includes(normalizedSearch));
+    return {
+      ...section,
+      fields: !normalizedSearch || sectionMatches
+        ? section.fields
+        : section.fields.filter((field) =>
+            field[1].toLowerCase().includes(normalizedSearch) ||
+            field[2].toLowerCase().includes(normalizedSearch)),
+    };
+  }).filter((section) => !normalizedSearch ||
     section.title.toLowerCase().includes(normalizedSearch) ||
     section.subtitle.toLowerCase().includes(normalizedSearch) ||
     section.fields.length > 0);
