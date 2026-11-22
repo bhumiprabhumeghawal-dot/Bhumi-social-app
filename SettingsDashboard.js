@@ -458,8 +458,14 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {savingKey === key ? <Text style={{ color:GOLD, fontSize:10, marginTop:5 }}>Saving…</Text> : null}
           </View>
           {isAction ? (
-            <TouchableOpacity onPress={() => runSettingAction(key)} style={{ backgroundColor:"#1C1C1E",borderColor:"#303030",borderWidth:1,borderRadius:18,paddingHorizontal:15,paddingVertical:9 }}>
-              <Text style={{ color:GOLD,fontSize:11,fontWeight:"900" }}>Open</Text>
+            <TouchableOpacity
+              onPress={() => runSettingAction(key)}
+              accessibilityRole="button"
+              accessibilityLabel={"Open " + title}
+              hitSlop={10}
+              style={{ width:34,height:34,alignItems:"center",justifyContent:"center" }}
+            >
+              <Ionicons name="chevron-forward" size={20} color={MUTED}/>
             </TouchableOpacity>
           ) : (
             <Switch value={!!value} onValueChange={(next) => saveValue(key,next)} disabled={!!savingKey} trackColor={{ false:"#555555",true:"#0095F6" }} thumbColor={value ? GOLD : "#FFFFFF"} />
