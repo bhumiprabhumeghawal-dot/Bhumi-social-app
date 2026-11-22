@@ -1,17 +1,25 @@
 name: Publish In-App OTA Update
 on:
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - ".github/workflows/android-apk.yml"
   workflow_dispatch:
+    inputs:
+      confirm_production:
+        description: "Select YES only after explicitly approving a production OTA publish."
+        required: true
+        type: choice
+        options:
+          - NO
+          - YES
+        default: NO
+
 permissions:
   contents: read
+
 jobs:
   publish-update:
+    if: ${{ inputs.confirm_production == 'YES' }}
     runs-on: ubuntu-latest
     environment: Planning
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,7 +36,26 @@ jobs:
             exit 1
           fi
           echo "Expo token is present (value hidden)."
-      - name: Publish Android and iOS in-app update
-        run: npx eas-cli@latest update --branch production --platform all --message "Bhumi Social AI update ${{ github.sha }}" --non-interactive
+      - name: Verify Expo account and production branch access
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          CI: "1"
+        run: |
+          export EXPO_TOKEN="$(printf '%s' "$EXPO_TOKEN" | tr -d '[:space:]')"
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "ERROR: EXPO_TOKEN is empty after trimming whitespace."
+            exit 1
+          fi
+          echo "Checking which Expo account owns this token..."
+          npx eas-cli@latest whoami
+          echo "Checking access to the configured EAS project..."
+          npx eas-cli@latest project:info
+          echo "Checking production branch permissions..."
+          npx eas-cli@latest branch:list
+      - name: Publish Android and iOS in-app update
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          CI: "1"
+        run: |
+          export EXPO_TOKEN="$(printf '%s' "$EXPO_TOKEN" | tr -d '[:space:]')"
+          npx eas-cli@latest update --branch production --platform all --message "Bhumi Social AI update ${{ github.sha }}"
