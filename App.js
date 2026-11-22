@@ -2717,6 +2717,7 @@ export default function App() {
   const [messagesOpen, setMessagesOpen] = React.useState(false);
   const [messageConversations, setMessageConversations] = React.useState([]);
   const [selectedChatUser, setSelectedChatUser] = React.useState("");
+  const [chatImagePreviewUri, setChatImagePreviewUri] = React.useState(null);
   const [chatPersonalizationOpen, setChatPersonalizationOpen] = React.useState(false);
   const [chatPreferences, setChatPreferences] = React.useState({ name: "", theme: "royal", favorite: false, closeFriend: false });
   const [chatFriendPrefs, setChatFriendPrefs] = React.useState({});
@@ -11973,16 +11974,23 @@ export default function App() {
 
     if (attachmentType === "image") {
       return (
-        <Image
-          source={{ uri: attachmentUrl, headers: authHeaders }}
-          style={{
-            width: 230,
-            height: 230,
-            borderRadius: 16,
-            marginBottom: message.text ? 8 : 0,
-          }}
-          resizeMode="cover"
-        />
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => setChatImagePreviewUri(attachmentUrl)}
+          accessibilityRole="button"
+          accessibilityLabel="Open image attachment"
+        >
+          <Image
+            source={{ uri: attachmentUrl, headers: authHeaders }}
+            style={{
+              width: 230,
+              height: 230,
+              borderRadius: 16,
+              marginBottom: message.text ? 8 : 0,
+            }}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
       );
     }
 
@@ -12595,6 +12603,34 @@ export default function App() {
           </SafeAreaView>
         </KeyboardAvoidingView>
       </Modal>
+
+      <Modal
+        visible={!!chatImagePreviewUri}
+        animationType="fade"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setChatImagePreviewUri(null)}
+      >
+        <View style={{ flex:1, backgroundColor:"#000000" }}>
+          <View style={{ height:58, paddingHorizontal:18, flexDirection:"row", alignItems:"center", justifyContent:"flex-end" }}>
+            <TouchableOpacity
+              onPress={() => setChatImagePreviewUri(null)}
+              accessibilityRole="button"
+              accessibilityLabel="Close image preview"
+              style={{ width:42, height:42, borderRadius:21, alignItems:"center", justifyContent:"center", backgroundColor:"#1C1C1E" }}
+            >
+              <Ionicons name="close" size={26} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          {chatImagePreviewUri ? (
+            <Image
+              source={{ uri:chatImagePreviewUri, headers:authSession?.token ? { Authorization:"Bearer " + authSession.token } : {} }}
+              style={{ flex:1, width:"100%" }}
+              resizeMode="contain"
+            />
+          ) : null}
+        </View>
+      </Modal>
+
 
       <Modal
         visible={noteComposerOpen}
