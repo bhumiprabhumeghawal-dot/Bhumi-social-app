@@ -8110,9 +8110,9 @@ export default function App() {
                 >
                   <View
                     style={{
-                      width: 96,
-                      height: 96,
-                      borderRadius: 48,
+                      width: 86,
+                      height: 86,
+                      borderRadius: 43,
                       borderWidth: 3,
                       borderColor: "#0095F6",
                       padding: 2,
@@ -8137,18 +8137,18 @@ export default function App() {
                           )
                         }
                         style={{
-                          width: 90,
-                          height: 90,
-                          borderRadius: 45,
+                          width: 80,
+                          height: 80,
+                          borderRadius: 40,
                           backgroundColor: "#DDE7F5",
                         }}
                       />
                     ) : (
                       <View
                         style={{
-                          width: 108,
-                          height: 108,
-                          borderRadius: 54,
+                          width: 80,
+                          height: 80,
+                          borderRadius: 40,
                           backgroundColor: "#262626",
                           alignItems: "center",
                           justifyContent: "center",
