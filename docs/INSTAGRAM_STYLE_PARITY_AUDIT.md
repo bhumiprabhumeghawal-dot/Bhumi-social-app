@@ -125,3 +125,12 @@ The existing app is a large single-file React Native screen with supporting modu
 - This is a layout/code change only; device-level visual verification and the remaining feature-by-feature behavior checks are still pending.
 - Settings shortcuts for Story Highlights and Chat Appearance now open the existing Profile and Messages screens; Content Preferences is a persisted setting switch rather than a dead action button.
 - Profile screen now uses the native `settings-outline` icon in the Settings row; the top profile header retains the Instagram-style top-right menu entry.
+
+## Security and Settings implementation pass (2026-11-22)
+- Implemented device App PIN setup/change/disable using Expo SecureStore (4–6 numeric digits).
+- Added an app-level lock gate: a configured PIN is required after cold launch; when Automatic Lock is enabled, background/resume also requires the PIN. The lock screen includes a sign-out recovery action.
+- Connected the Automatic Lock preference to the device-local lock behavior.
+- Account verification, data-export and deactivation entries now open prefilled support requests rather than pretending those server workflows already exist.
+- Unsupported features are now explicitly identified rather than silently saved as if operational: biometric unlock, 2FA, login history, live location sharing, nearby discovery, account switching, and Favorites/Muted management.
+- Still not implemented: server-backed data export/deactivation, verification workflow, biometric authentication, 2FA, login-history/device-session list, Favorites/Muted management, live location services, and enforcement of several saved preference switches.
+- App PIN flow requires real-device verification before release; no APK build has been started.
