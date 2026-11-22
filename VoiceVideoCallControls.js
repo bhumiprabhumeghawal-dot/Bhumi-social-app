@@ -398,8 +398,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
             const uuid = stableCallUuid(next.id);
             callKeepUuidRef.current = uuid;
             callKeepCallIdRef.current = next.id;
-            processPendingCallKeepAction();
-            Promise.resolve(RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video")).catch((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
+            const hasRecoveredNativeAction = pendingCallKeepActionRef.current?.uuid === uuid;
+            if (hasRecoveredNativeAction) {
+              processPendingCallKeepAction();
+            } else {
+              Promise.resolve(RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video")).catch((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
+            }
           }
           return;
         }
