@@ -1002,28 +1002,28 @@ export async function rejectFollowRequest(requestId) {
 }
 
 export async function loadNotifications() {
-  const response = await fetch(`${API_BASE_URL}/api/notifications`);
+  const response = await fetch(`${API_BASE_URL}/api/notifications`, { headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Notifications load नहीं हुईं।');
   return data;
 }
 
 export async function markNotificationRead(notificationId) {
-  const response = await fetch(`${API_BASE_URL}/api/notifications/${encodeURIComponent(notificationId)}/read`, { method: 'PATCH' });
+  const response = await fetch(`${API_BASE_URL}/api/notifications/${encodeURIComponent(notificationId)}/read`, { method: 'PATCH', headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Notification read नहीं हुई।');
   return data;
 }
 
 export async function markAllNotificationsRead() {
-  const response = await fetch(`${API_BASE_URL}/api/notifications/read-all`, { method: 'PATCH' });
+  const response = await fetch(`${API_BASE_URL}/api/notifications/read-all`, { method: 'PATCH', headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Notifications update नहीं हुईं।');
   return data;
 }
 
 export async function loadUserNotes() {
-  const response = await fetch(`${API_BASE_URL}/api/notes`);
+  const response = await fetch(`${API_BASE_URL}/api/notes`, { headers: await authHeaders() });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not load notes.');
   return data;
@@ -1032,7 +1032,7 @@ export async function loadUserNotes() {
 export async function saveUserNote(text) {
   const response = await fetch(`${API_BASE_URL}/api/notes`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ text }),
   });
   const data = await response.json();
@@ -1043,6 +1043,7 @@ export async function saveUserNote(text) {
 export async function deleteUserNote() {
   const response = await fetch(`${API_BASE_URL}/api/notes`, {
     method: 'DELETE',
+    headers: await authHeaders(),
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not delete note.');
@@ -1258,7 +1259,7 @@ export async function sendDirectMessage(username, text, attachment = null, reply
     `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         text,
         imageUrl: attachmentType === 'image' ? attachmentUrl : null,
