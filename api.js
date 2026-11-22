@@ -1432,7 +1432,11 @@ export async function createOrUpdateLocationShare(payload) {
     body: JSON.stringify(payload),
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Could not share live location.");
+  if (!response.ok) {
+    const error = new Error(data.error || "Could not share live location.");
+    error.status = response.status;
+    throw error;
+  }
   return data;
 }
 
