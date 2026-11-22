@@ -29,6 +29,13 @@ jobs:
           fi
           echo "Expo token is present (value hidden)."
       - name: Publish Android and iOS in-app update
-        run: npx eas-cli@latest update --branch production --platform all --message "Bhumi Social AI update ${{ github.sha }}" --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          # Remove accidental whitespace/newlines from a pasted GitHub secret.
+          export EXPO_TOKEN="$(printf '%s' "$EXPO_TOKEN" | tr -d '[:space:]')"
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "ERROR: EXPO_TOKEN is empty after trimming whitespace."
+            exit 1
+          fi
+          npx eas-cli@latest update --branch production --platform all --message "Bhumi Social AI update ${{ github.sha }}" --non-interactive
