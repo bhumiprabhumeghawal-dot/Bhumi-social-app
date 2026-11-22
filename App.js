@@ -2568,6 +2568,27 @@ export default function App() {
             sound: "default",
             lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
           });
+          await Notifications.setNotificationChannelAsync("messages-silent", {
+            name: "Direct messages (silent)",
+            importance: Notifications.AndroidImportance.HIGH,
+            vibrationPattern: [],
+            sound: null,
+            lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
+          });
+          await Notifications.setNotificationChannelAsync("social-activity", {
+            name: "Social activity",
+            importance: Notifications.AndroidImportance.DEFAULT,
+            vibrationPattern: [0, 180],
+            sound: "default",
+            lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
+          });
+          await Notifications.setNotificationChannelAsync("social-activity-silent", {
+            name: "Social activity (silent)",
+            importance: Notifications.AndroidImportance.DEFAULT,
+            vibrationPattern: [],
+            sound: null,
+            lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
+          });
         }
         let permission = await Notifications.getPermissionsAsync();
         if (!permission.granted) permission = await Notifications.requestPermissionsAsync();
