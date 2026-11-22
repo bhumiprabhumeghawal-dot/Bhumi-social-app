@@ -3069,7 +3069,7 @@ def save_notification_details():
                 (int(value), now, username),
             )
         row = db.execute("""
-            SELECT likes, comments, follows, messages, system_alerts
+            SELECT likes, comments, follows, requests, messages, system_alerts
             FROM notification_detail_preferences WHERE username=?
         """, (username,)).fetchone()
 
