@@ -68,6 +68,9 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [x] Align Creator & Business Hub colors with the app-wide dark surface and blue accent system.
 - [x] Replace Creator & Business Hub system alerts with inline feedback and an in-app catalog-delete confirmation.
 - [ ] Verify all setting actions are functional and do not merely show placeholder notices.
+- [x] Add recursive cache/document storage usage reporting in Settings.
+- [x] Add server-backed reset for preference switches while preserving account content.
+- [x] Connect Report a Problem to the device email composer with a prefilled support address.
 
 - [x] Add a dedicated Messages notification filter so DM alerts are visible without mixing them into Likes, Comments, or Follows.
 
@@ -80,7 +83,8 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [x] Correct a malformed confirm-password TextInput attribute discovered during source review.
 - [x] Python backend compile, backend unit tests (including inbox-folder API coverage), and media-storage checks passed in GitHub CI.
 - [x] Babel parsed App.js and all major UI/API/editor modules successfully on Node 18/20/22; npm install passed on all three versions.
-- [ ] Expo bundle and device-level behavior remain unverified; package.json has no build/test scripts.
+- [x] Add an Android JavaScript bundle export check to Node 22 CI; this exports the JS bundle only and does not create an APK.
+- [ ] Device-level behavior remains unverified; package.json has no dedicated build/test scripts.
 - [ ] Android and iOS layout review at compact and large viewport sizes.
 - [ ] End-to-end checks for login persistence, post/story/reel publishing, likes/comments/saves, follow requests, DM delivery, and calls.
 - [ ] Confirm no regression in feed/reel scrolling, zoom coordination, and active-only reel playback.
@@ -97,3 +101,12 @@ All measurements below are React Native density-independent pixels (dp), not raw
 ## Current implementation notes
 
 The existing app is a large single-file React Native screen with supporting modules. Changes should be small, isolated, and tested against the existing API and gesture logic. Do not replace the app shell or rewrite the backend as part of a visual-only pass.
+
+
+## Latest non-OTA implementation pass
+
+- Settings now reports cache and app-document storage sizes by recursively walking the app directories.
+- Reset Preferences restores switch defaults through the authenticated settings API; it does not delete account content or media.
+- Report a Problem opens the native email composer with a prefilled support address and diagnostic context.
+- Node.js CI now runs npx expo export --platform android on Node 22 to catch Metro/JS bundle failures without building an APK.
+- OTA publishing is intentionally excluded from this workstream at the user's request.
