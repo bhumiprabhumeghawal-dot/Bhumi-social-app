@@ -8723,15 +8723,7 @@ export default function App() {
                     justifyContent: "center",
                   }}
                 >
-                  <Text
-                    style={{
-                      color: "#F5F5F5",
-                      fontSize: 23,
-                      fontWeight: "800",
-                    }}
-                  >
-                    ⚙
-                  </Text>
+                  <Ionicons name="settings-outline" size={23} color="#F5F5F5" />
                 </TouchableOpacity>
               </View>
               {privacySettings.accountType === "business" && (
