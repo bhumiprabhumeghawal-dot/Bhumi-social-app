@@ -4048,6 +4048,7 @@ def _send_direct_message_push(username, sender, message_text="", attachment_type
                 return
             prefs = _chat_preferences(db, username)
             preview = prefs.get("notifications.preview", True) is not False
+            sound_enabled = prefs.get("notifications.sound", True) is not False
             rows = db.execute(
                 "SELECT expo_push_token FROM call_push_tokens WHERE LOWER(username)=LOWER(?)",
                 (username,),
@@ -4064,9 +4065,9 @@ def _send_direct_message_push(username, sender, message_text="", attachment_type
                 "to": token,
                 "title": f"New message from @{sender}",
                 "body": snippet,
-                "sound": "default",
+                "sound": "default" if sound_enabled else None,
                 "priority": "high",
-                "channelId": "messages",
+                "channelId": "messages" if sound_enabled else "messages-silent",
                 "data": {"type": "direct_message", "username": sender},
             }
             request_obj = urllib.request.Request(
@@ -4969,6 +4970,8 @@ def _send_social_activity_push(recipient, actor, kind, reference_id=None):
         return
     try:
         with get_db() as db:
+            preferences = _chat_preferences(db, recipient)
+            sound_enabled = preferences.get("notifications.sound", True) is not False
             rows = db.execute(
                 "SELECT expo_push_token FROM call_push_tokens WHERE LOWER(username)=LOWER(?)",
                 (recipient,),
@@ -4978,9 +4981,9 @@ def _send_social_activity_push(recipient, actor, kind, reference_id=None):
                 "to": row["expo_push_token"],
                 "title": title_body[0],
                 "body": title_body[1],
-                "sound": "default",
+                "sound": "default" if sound_enabled else None,
                 "priority": "high",
-                "channelId": "default",
+                "channelId": "social-activity" if sound_enabled else "social-activity-silent",
                 "data": {
                     "type": kind,
                     "actor": actor,
