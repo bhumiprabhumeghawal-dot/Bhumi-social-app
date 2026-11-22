@@ -252,7 +252,7 @@ const SECTIONS = [
   ]},
 ];
 
-export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen }) {
+export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen, onPreferencesChange }) {
   const [active, setActive] = React.useState(null);
   const [hubVisible, setHubVisible] = React.useState(false);
   const [qrVisible, setQrVisible] = React.useState(false);
@@ -403,6 +403,20 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           setPreferences(saved);
         }
       }
+      const updates = { [key]: value };
+      if (key === "privacy.onlineStatus" || key === "privacy.lastSeen") {
+        updates["privacy.onlineStatus"] = value;
+        updates["privacy.lastSeen"] = value;
+      }
+      if (key === "privacy.messageAccess" || key === "messages.allowMessages") {
+        updates["privacy.messageAccess"] = value;
+        updates["messages.allowMessages"] = value;
+      }
+      if (key === "privacy.readReceipts" || key === "messages.readReceipts") {
+        updates["privacy.readReceipts"] = value;
+        updates["messages.readReceipts"] = value;
+      }
+      onPreferencesChange?.((current) => ({ ...current, ...updates }));
     } catch (error) {
       setPreferences((current) => ({ ...current, [key]: previous }));
       setNotice({ title: "Save failed", message: error.message || "Could not save this setting." });
