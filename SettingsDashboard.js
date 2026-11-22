@@ -24,6 +24,7 @@ if (!TaskManager.isTaskDefined(BACKGROUND_LOCATION_TASK)) {
     if (error) return;
     const point = data?.locations?.[0];
     if (!point) return;
+    let taskShareId = null;
     try {
       const [shareId, recipient, duration, approximate] = await Promise.all([
         SecureStore.getItemAsync("bhumi_live_share_id"),
@@ -32,11 +33,13 @@ if (!TaskManager.isTaskDefined(BACKGROUND_LOCATION_TASK)) {
         SecureStore.getItemAsync("bhumi_live_share_approximate"),
       ]);
       if (!shareId || !recipient) return;
+      taskShareId = shareId;
       const latitude = approximate === "true" ? Math.round(point.coords.latitude * 100) / 100 : point.coords.latitude;
       const longitude = approximate === "true" ? Math.round(point.coords.longitude * 100) / 100 : point.coords.longitude;
       await createOrUpdateLocationShare({ share_id:shareId, recipient_username:recipient, latitude, longitude, accuracy:point.coords.accuracy, duration_minutes:Number(duration) || 60 });
     } catch (taskError) {
       console.warn("Background location update failed:", taskError?.message || taskError);
+      if (taskShareId) await stopLocationShare(taskShareId).catch(() => {});
       await Promise.all([
         SecureStore.deleteItemAsync("bhumi_live_share_id"),
         SecureStore.deleteItemAsync("bhumi_live_share_recipient"),
@@ -507,7 +510,12 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               duration_minutes: locationDurationRef.current,
             });
           } catch (error) {
-            setLocationStatus(error?.message || "Location update नहीं हो पाया।");
+            const message = error?.message || "Location update नहीं हो पाया।";
+            if (/not found|mutual followers|permission/i.test(message)) {
+              await stopLocationShare(active.shareId).catch(() => {});
+              await stopLocationWatcher();
+            }
+            setLocationStatus(message);
           }
         });
       }
