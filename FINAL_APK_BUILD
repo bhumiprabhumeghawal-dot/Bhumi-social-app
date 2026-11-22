@@ -10,3 +10,5 @@ Profile privacy update: add authenticated Block Account action to viewed profile
 Final consolidated APK build trigger: 2026-11-21.
 
 Startup crash capture: install global JS handler before lazy-loading App and show a visible error screen with saved report instead of silently exiting. Android version 1.0.8 (versionCode 9).
+
+Final APK build trigger: include Chat bottom-tab navigation using the Paper Plane icon and keep Chat active while the inbox is open. Build from current master: 2026-11-22.
