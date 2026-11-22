@@ -11236,6 +11236,63 @@ export default function App() {
                   ))}
                 </ScrollView>
 
+                {/* INSTAGRAM_STYLE_INBOX_STORIES_V1 */}
+                <View style={{ paddingTop: 10, paddingBottom: 8 }}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: 12, alignItems: "flex-start" }}
+                  >
+                    {(() => {
+                      const ownGroup = groupedStories.find((group) => group.own);
+                      return (
+                        <View style={{ width: 72, alignItems: "center" }}>
+                          <Story
+                            item={{
+                              name: "Your story",
+                              color: "#DDE7F5",
+                              own: true,
+                              uri: profile?.avatarUrl,
+                            }}
+                            onPress={() => {
+                              if (ownGroup) openStoryGroup(ownGroup.items);
+                              else createStory();
+                            }}
+                          />
+                          <TouchableOpacity
+                            onPress={createStory}
+                            accessibilityLabel="Add story"
+                            style={{
+                              position: "absolute",
+                              right: 5,
+                              bottom: 17,
+                              width: 22,
+                              height: 22,
+                              borderRadius: 11,
+                              backgroundColor: "#0095F6",
+                              borderWidth: 2,
+                              borderColor: "#000000",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Ionicons name="add" size={15} color="#FFFFFF" />
+                          </TouchableOpacity>
+                        </View>
+                      );
+                    })()}
+                    {groupedStories
+                      .filter((group) => !group.own)
+                      .map((group) => (
+                        <Story
+                          key={"inbox-" + group.key}
+                          item={{ ...group.items[0], name: group.name, own: false }}
+                          onPress={() => openStoryGroup(group.items)}
+                        />
+                      ))}
+                  </ScrollView>
+                </View>
+
                 <View
                   style={{
                     flexDirection: "row",
