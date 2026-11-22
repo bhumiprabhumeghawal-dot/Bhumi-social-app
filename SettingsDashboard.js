@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Linking, Platform, StyleSheet
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system/legacy";
 import CreatorBusinessHub from "./CreatorBusinessHub";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
 
@@ -289,6 +290,23 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       onAbout?.();
       return;
     }
+    if (key === "advanced.clearCache") {
+      (async () => {
+        const cacheDirectory = FileSystem.cacheDirectory;
+        if (!cacheDirectory) {
+          setNotice({ title: "Cache unavailable", message: "This device does not expose an app cache directory." });
+          return;
+        }
+        try {
+          await FileSystem.deleteAsync(cacheDirectory, { idempotent: true });
+          await FileSystem.makeDirectoryAsync(cacheDirectory, { intermediates: true });
+          setNotice({ title: "Cache cleared", message: "Temporary app cache files were cleared. Your account, posts and messages were not deleted." });
+        } catch (error) {
+          setNotice({ title: "Could not clear cache", message: error?.message || "Temporary files could not be cleared." });
+        }
+      })();
+      return;
+    }
     if (key === "advanced.permissions") {
       Linking.openSettings();
       return;
@@ -303,7 +321,6 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     const labels = {
       "account.profileQr":"Profile QR generation is not connected yet.",
       "account.reportProblem":"The in-app support submission form is not connected yet.",
-      "advanced.clearCache":"Cache clearing needs the app storage service to be connected.",
       "advanced.reset":"Preference reset needs a confirmation and reset endpoint.",
       "advanced.storage":"Detailed storage reporting is not connected yet.",
       "creator.monetization":"Creator monetization is not enabled on the server yet.",
