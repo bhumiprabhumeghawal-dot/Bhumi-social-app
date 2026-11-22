@@ -3942,7 +3942,7 @@ export default function App() {
     const kind = String(item.kind || "");
     const actor = String(item.actor || "").trim();
 
-    if (kind === "like" || kind === "comment") {
+    if (kind === "like" || kind === "comment" || kind === "reel_like" || kind === "reel_comment") {
       if (!item.referenceId) {
         Alert.alert(
           "Post unavailable",
@@ -3950,18 +3950,21 @@ export default function App() {
         );
         return;
       }
+      const isReelActivity = kind === "reel_like" || kind === "reel_comment";
       let post = null;
-      try {
-        post = await loadPostById(item.referenceId);
-      } catch (_) {
-        // Reel comments use the same notification kind; try the Reels feed next.
+      if (!isReelActivity) {
+        try {
+          post = await loadPostById(item.referenceId);
+        } catch (_) {
+          // Reel activity uses the Reels feed.
+        }
       }
       if (post) {
         setSelectedPostMediaIndex(0);
         setSelectedPost(post);
         return;
       }
-      if (kind === "comment" || kind === "like") {
+      if (kind === "comment" || kind === "like" || isReelActivity) {
         try {
           let reelItems = reels || [];
           if (!reelItems.some((entry) => Number(entry.id) === Number(item.referenceId))) {
@@ -3974,7 +3977,7 @@ export default function App() {
           if (reelIndex >= 0) {
             setActiveTab("Reels");
             setActiveReelIndex(reelIndex);
-            if (kind === "comment") await handleOpenReelComments(reelItems[reelIndex]);
+            if (kind === "comment" || kind === "reel_comment") await handleOpenReelComments(reelItems[reelIndex]);
             return;
           }
         } catch (error) {
@@ -4030,7 +4033,7 @@ export default function App() {
         }
 
         if (type === "like" || type === "comment" || type === "follow" ||
-            type === "follow_request" || data.referenceId || data.postId) {
+            type === "follow_request" || type === "reel_like" || type === "reel_comment" || data.referenceId || data.postId) {
           const item = {
             id: data.notificationId || data.id,
             kind: type,
