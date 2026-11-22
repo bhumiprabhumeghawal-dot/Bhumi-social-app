@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Modal, View, Text, TextInput, ScrollView, TouchableOpacity, Switch,
-  ActivityIndicator, Linking, Platform, StyleSheet
+  ActivityIndicator, Linking, Platform, StyleSheet, Image, Share
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system/legacy";
@@ -217,6 +217,7 @@ const SECTIONS = [
 export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen }) {
   const [active, setActive] = React.useState(null);
   const [hubVisible, setHubVisible] = React.useState(false);
+  const [qrVisible, setQrVisible] = React.useState(false);
   const [preferences, setPreferences] = React.useState({});
   const [loading, setLoading] = React.useState(false);
   const [savingKey, setSavingKey] = React.useState("");
@@ -291,6 +292,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   };
 
   const runSettingAction = (key) => {
+    if (key === "account.profileQr") {
+      setActive(null);
+      setQrVisible(true);
+      return;
+    }
     if (key === "premium.profileStudio") {
       setActive(null);
       onLegacyOpen?.("profile");
@@ -420,7 +426,6 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       return;
     }
     const labels = {
-      "account.profileQr":"Profile QR generation is not connected yet.",
       "creator.monetization":"Creator monetization is not enabled on the server yet.",
       "creator.collaboration":"Brand collaboration tools are not connected yet.",
       "creator.promotions":"Promotion tools are not connected yet.",
@@ -609,7 +614,23 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         </View>
       </Modal>
       {renderSection()}
-      <CreatorBusinessHub visible={hubVisible && visible} username={username} onClose={() => setHubVisible(false)} />
+<CreatorBusinessHub visible={hubVisible && visible} username={username} onClose={() => setHubVisible(false)} />
+      <Modal visible={qrVisible && visible} transparent animationType="fade" onRequestClose={() => setQrVisible(false)}>
+        <View style={{ flex:1, backgroundColor:"rgba(0,0,0,0.82)", justifyContent:"center", alignItems:"center", padding:24 }}>
+          <View style={{ width:"100%", maxWidth:340, backgroundColor:"#FFFFFF", borderRadius:22, padding:22, alignItems:"center" }}>
+            <Text style={{ color:"#111111", fontSize:19, fontWeight:"900" }}>Your profile QR code</Text>
+            <Text style={{ color:"#666666", fontSize:12, marginTop:5, marginBottom:18 }}>Scan to open this Bhumi Social AI profile</Text>
+            <Image source={{ uri:"https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=" + encodeURIComponent("https://bhumi-social-app-1.onrender.com/u/" + (username || "")) }} style={{ width:250, height:250 }} resizeMode="contain" accessibilityLabel="Profile QR code" />
+            <Text style={{ color:"#222222", fontWeight:"800", marginTop:12 }}>@{username || "your-profile"}</Text>
+            <TouchableOpacity onPress={() => Share.share({ message:"Find me on Bhumi Social AI: https://bhumi-social-app-1.onrender.com/u/" + (username || "") })} style={{ backgroundColor:"#0095F6", borderRadius:13, paddingVertical:13, paddingHorizontal:22, marginTop:18, width:"100%", alignItems:"center" }}>
+              <Text style={{ color:"#FFFFFF", fontWeight:"900" }}>Share Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setQrVisible(false)} style={{ padding:13, marginTop:3 }}>
+              <Text style={{ color:"#555555", fontWeight:"800" }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <Modal
         visible={!!notice && visible}
         transparent
