@@ -7698,7 +7698,7 @@ export default function App() {
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons name="add" size={17} color="#262626" />
+                            <Ionicons name="add" size={17} color="#FFFFFF" />
                           </TouchableOpacity>
                         </View>
                       );
@@ -13449,9 +13449,9 @@ const styles = StyleSheet.create({
   stories: { paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   story: { width: 68, alignItems: "center" },
   storyRing: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     padding: 0,
     borderWidth: 2,
     borderColor: "#F56040",
@@ -13459,20 +13459,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   storyInnerRing: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     borderWidth: 2,
-    borderColor: "#F56040",
+    borderColor: "#C13584",
     alignItems: "center",
     justifyContent: "center",
   },
   ownRing: { borderColor: "#404040" },
   ownStoryInnerRing: { borderColor: "#404040" },
   storyAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     alignItems: "center",
     justifyContent: "center",
   },
