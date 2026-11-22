@@ -26,7 +26,9 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_PHONE_CALL",
         "android.permission.FOREGROUND_SERVICE_MICROPHONE",
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "softwareKeyboardLayoutMode": "resize"
     },
@@ -51,7 +53,13 @@
       "expo-status-bar",
       "@livekit/react-native-expo-plugin",
       "expo-notifications",
-      "@config-plugins/react-native-callkeep"
+      "@config-plugins/react-native-callkeep",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Bhumi Social AI to share your live location with friends you choose."
+        }
+      ]
     ],
     "extra": {
       "eas": {
