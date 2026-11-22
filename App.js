@@ -3915,6 +3915,71 @@ export default function App() {
     if (actor) await openUserProfile(actor);
   };
 
+  const notificationResponseIds = React.useRef(new Set());
+
+  React.useEffect(() => {
+    let active = true;
+
+    const openNotificationResponse = async (response) => {
+      const request = response?.notification?.request;
+      const identifier = request?.identifier;
+      if (!request || (identifier && notificationResponseIds.current.has(identifier))) return;
+      if (identifier) notificationResponseIds.current.add(identifier);
+
+      const data = request.content?.data || {};
+      const type = String(data.type || data.kind || "").toLowerCase();
+      const actor = String(data.actor || data.username || data.caller || "").replace(/^@/, "").trim();
+      if (!active) return;
+
+      try {
+        if (type === "direct_message" || type === "message") {
+          if (!actor) return;
+          setMessagesOpen(true);
+          await openDirectChat(actor);
+          return;
+        }
+
+        if (type === "incoming_call" || type === "incoming_call_headless" || type === "call") {
+          // Opening the caller's conversation lets the existing pending-call
+          // poller and CallKeep integration resolve the live call state.
+          if (actor) {
+            setMessagesOpen(true);
+            await openDirectChat(actor);
+          }
+          return;
+        }
+
+        if (type === "like" || type === "comment" || type === "follow" ||
+            type === "follow_request" || data.referenceId || data.postId) {
+          const item = {
+            id: data.notificationId || data.id,
+            kind: type,
+            actor,
+            referenceId: data.referenceId || data.postId || data.post_id,
+            isRead: false,
+          };
+          if (item.kind === "direct_message") item.kind = "message";
+          if (item.kind === "follow_request") item.kind = "follow";
+          await handleNotificationPress(item);
+        }
+      } catch (error) {
+        console.warn("Notification navigation failed:", error?.message || error);
+      }
+    };
+
+    Notifications.getLastNotificationResponseAsync()
+      .then(openNotificationResponse)
+      .catch(() => {});
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      openNotificationResponse,
+    );
+
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, [authSession?.username]);
+
   const handleReadAllNotifications = async () => {
     try {
       await markAllNotificationsRead();
