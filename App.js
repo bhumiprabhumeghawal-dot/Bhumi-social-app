@@ -9410,7 +9410,7 @@ export default function App() {
             accessibilityLabel={tab.name}
           >
             <Ionicons
-              name={activeTab === tab.name ? tab.activeIcon : tab.icon}
+              name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
               size={tab.name === "Create" ? 29 : 26}
               color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
             />
@@ -12703,13 +12703,17 @@ export default function App() {
                   key={tab.name}
                   style={styles.navItem}
                   onPress={() => {
+                    if (tab.name === "Chat") {
+                      if (!messagesOpen) openMessages();
+                      return;
+                    }
                     closeMessages();
                     handleTab(tab.name);
                   }}
                   accessibilityLabel={tab.name}
                 >
                   <Ionicons
-                    name={activeTab === tab.name ? tab.activeIcon : tab.icon}
+                    name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
                     size={25}
                     color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
                   />
