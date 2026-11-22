@@ -27,5 +27,31 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm install
+    - name: Parse React Native JavaScript sources
+      run: |
+        node <<'NODE'
+        const fs = require('fs');
+        const parser = require('@babel/parser');
+        const files = [
+          'App.js',
+          'api.js',
+          'SettingsDashboard.js',
+          'CreatorBusinessHub.js',
+          'ChatPersonalization.js',
+          'VoiceVideoCallControls.js',
+          'photoEditor.js',
+          'videoEditor.js',
+        ];
+        for (const file of files) {
+          parser.parse(fs.readFileSync(file, 'utf8'), {
+            sourceType: 'unambiguous',
+            plugins: ['jsx'],
+          });
+          process.stdout.write('Parsed ' + file + '\\n');
+        }
+        NODE
+    - name: Bundle the Android JavaScript app (no APK build)
+      if: matrix.node-version == '22.x'
+      run: npx expo export --platform android --output-dir /tmp/bhumi-social-export
     - run: npm run build --if-present
     - run: npm test --if-present

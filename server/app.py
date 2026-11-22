@@ -627,7 +627,8 @@ def privacy_policy_page():
     <li><strong>Technical and activity information:</strong> session identifiers stored as hashes, login/session expiry, presence/last-seen signals, and basic server/security logs needed to operate and protect the service.</li>
     <li><strong>Permissions and media:</strong> camera, microphone and selected media are accessed when you use features that need them. The app does not need access to your camera or microphone when you are not using those features.</li>
     </ul>
-    <h2>Location</h2><p>Do not assume that location history or continuous background tracking is active. Location-sharing controls are not currently offered as an operational feature. If location features are introduced, this policy and the in-app permission prompts will be updated before collection begins.</p>
+    <h2>Location</h2><p>Live location is off by default. If you choose to share it, Bhumi Social AI requests device location permission and sends your coordinates to the specific mutual follower you select. Sharing expires after the duration you choose (15 minutes, 1 hour, 4 hours, or 24 hours), and either participant can stop it. Recent share records are retained in the app for up to 30 days. Approximate Location rounds coordinates before sending. If you separately enable Background Location and grant the operating system's Always/background permission, the app may continue location updates while backgrounded and displays an ongoing system notification where required. You can stop sharing at any time; disabling permission in system settings also prevents further device location access.</p>
+    <h2>Account security history</h2><p>Successful sign-ins are recorded with the sign-in time and device/browser label for up to 90 days to help you review account access. Active session records are used to show and revoke signed-in devices. Failed password attempts are not displayed in this history. If you enable fingerprint or face unlock, authentication is performed by your device operating system; Bhumi Social AI receives only the authentication result and does not receive or store your fingerprint or face data.</p>
     <h2>How information is used</h2><p>We use information to create and secure accounts, show profiles and social content, deliver messages and calls, provide notifications, prevent abuse, troubleshoot errors, and maintain service performance. We do not sell personal information.</p>
     <h2>Service providers and sharing</h2><p>Information is processed by infrastructure providers needed to run the service, which may include Render (application hosting), Neon (database hosting), LiveKit (real-time voice/video infrastructure), and configured S3-compatible media storage providers. These providers process information to provide their services. We do not publish private messages or account credentials to other users.</p>
     <h2>Retention and security</h2><p>Information is retained while needed to provide the service, meet security and legal obligations, resolve disputes, and process deletion requests. Passwords are stored as hashes, and session tokens are stored as hashes. We use access controls and encrypted connections where supported, but no internet service can guarantee absolute security.</p>
@@ -2668,6 +2669,49 @@ def init_auth_tables():
             )
         """)
 
+        session_columns = {row["name"] for row in db.execute("PRAGMA table_info(auth_sessions)").fetchall()}
+        if "device_label" not in session_columns:
+            db.execute("ALTER TABLE auth_sessions ADD COLUMN device_label TEXT NOT NULL DEFAULT 'Unknown device'")
+        if "last_seen_at" not in session_columns:
+            db.execute("ALTER TABLE auth_sessions ADD COLUMN last_seen_at TEXT")
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS auth_login_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                token_hash TEXT NOT NULL,
+                username TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                device_label TEXT NOT NULL DEFAULT 'Unknown device'
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_auth_login_history_user_time
+            ON auth_login_history(username, created_at DESC)
+        """)
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS location_shares (
+                share_id TEXT PRIMARY KEY,
+                owner_username TEXT NOT NULL,
+                recipient_username TEXT NOT NULL,
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL,
+                accuracy REAL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                active INTEGER NOT NULL DEFAULT 1
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_location_shares_recipient_active
+            ON location_shares(recipient_username, active, expires_at)
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_location_shares_owner_active
+            ON location_shares(owner_username, active, expires_at)
+        """)
+
         db.execute("""
             CREATE TABLE IF NOT EXISTS password_reset_otps (
                 email TEXT PRIMARY KEY COLLATE NOCASE,
@@ -2701,6 +2745,12 @@ def _auth_user():
             JOIN users u ON u.username=s.username
             WHERE s.token_hash=? AND s.expires_at>?
         """, (digest, now)).fetchone()
+        if row:
+            stale_before = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
+            db.execute(
+                "UPDATE auth_sessions SET last_seen_at=? WHERE token_hash=? AND (last_seen_at IS NULL OR last_seen_at<?)",
+                (now, digest, stale_before),
+            )
     return row["username"] if row else None
 
 @app.before_request
@@ -2807,9 +2857,15 @@ def auth_register():
                 "INSERT INTO users(username,password_hash,created_at,phone_number,email) VALUES(?,?,?,?,?)",
                 (username, generate_password_hash(password), now.isoformat(), phone_number, email)
             )
+            device_label = str(request.headers.get("X-Device-Name") or request.headers.get("User-Agent") or "Unknown device").strip()[:180]
             db.execute(
-                "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
-                (digest, username, now.isoformat(), expires)
+                "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at,device_label,last_seen_at) VALUES(?,?,?,?,?,?)",
+                (digest, username, now.isoformat(), expires, device_label, now.isoformat())
+            )
+            db.execute("DELETE FROM auth_login_history WHERE created_at<?", ((now - timedelta(days=90)).isoformat(),))
+            db.execute(
+                "INSERT INTO auth_login_history(token_hash,username,created_at,device_label) VALUES(?,?,?,?)",
+                (digest, username, now.isoformat(), device_label)
             )
             profile_json(db, username)
             db.execute(
@@ -3016,9 +3072,15 @@ def auth_login():
         token = secrets.token_urlsafe(32)
         digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
         expires = "9999-12-31T23:59:59+00:00"
+        device_label = str(request.headers.get("X-Device-Name") or request.headers.get("User-Agent") or "Unknown device").strip()[:180]
         db.execute(
-            "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
-            (digest, row["username"], now.isoformat(), expires)
+            "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at,device_label,last_seen_at) VALUES(?,?,?,?,?,?)",
+            (digest, row["username"], now.isoformat(), expires, device_label, now.isoformat())
+        )
+        db.execute("DELETE FROM auth_login_history WHERE created_at<?", ((now - timedelta(days=90)).isoformat(),))
+        db.execute(
+            "INSERT INTO auth_login_history(token_hash,username,created_at,device_label) VALUES(?,?,?,?)",
+            (digest, row["username"], now.isoformat(), device_label)
         )
 
     return jsonify({"ok": True, "username": row["username"], "token": token})
@@ -3040,6 +3102,180 @@ def auth_logout():
             db.execute("DELETE FROM auth_sessions WHERE token_hash=?", (digest,))
     return jsonify({"ok": True})
 
+
+
+@app.get("/api/auth/login-history")
+def auth_login_history():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+    try:
+        limit = max(1, min(int(request.args.get("limit", 30)), 100))
+    except (TypeError, ValueError):
+        limit = 30
+    with get_db() as db:
+        history_cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+        db.execute("DELETE FROM auth_login_history WHERE created_at<?", (history_cutoff,))
+        rows = db.execute("""
+            SELECT h.id, h.created_at, h.device_label,
+                   CASE WHEN s.token_hash IS NULL THEN 0 ELSE 1 END AS session_active,
+                   CASE WHEN h.token_hash=? THEN 1 ELSE 0 END AS is_current
+            FROM auth_login_history h
+            LEFT JOIN auth_sessions s ON s.token_hash=h.token_hash AND s.expires_at>?
+            WHERE h.username=?
+            ORDER BY h.created_at DESC LIMIT ?
+        """, (
+            hashlib.sha256(request.headers.get("Authorization", "")[7:].strip().encode("utf-8")).hexdigest(),
+            datetime.now(timezone.utc).isoformat(), username, limit
+        )).fetchall()
+    return jsonify({"ok": True, "items": [dict(row) for row in rows]})
+
+
+@app.get("/api/auth/sessions")
+def auth_list_sessions():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+    header = request.headers.get("Authorization", "")
+    token = header[7:].strip() if header.startswith("Bearer ") else ""
+    current_digest = hashlib.sha256(token.encode("utf-8")).hexdigest() if token else ""
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT token_hash, created_at, COALESCE(device_label, 'Unknown device') AS device_label,
+                   last_seen_at
+            FROM auth_sessions
+            WHERE username=? AND expires_at>?
+            ORDER BY COALESCE(last_seen_at, created_at) DESC
+        """, (username, datetime.now(timezone.utc).isoformat())).fetchall()
+    return jsonify({"ok": True, "items": [
+        {"id": hashlib.sha256(row["token_hash"].encode("utf-8")).hexdigest()[:16],
+         "created_at": row["created_at"], "device_label": row["device_label"],
+         "last_seen_at": row["last_seen_at"], "is_current": row["token_hash"] == current_digest}
+        for row in rows
+    ]})
+
+
+@app.delete("/api/auth/sessions/<session_id>")
+def auth_revoke_session(session_id):
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+    header = request.headers.get("Authorization", "")
+    token = header[7:].strip() if header.startswith("Bearer ") else ""
+    current_digest = hashlib.sha256(token.encode("utf-8")).hexdigest() if token else ""
+    with get_db() as db:
+        rows = db.execute("SELECT token_hash FROM auth_sessions WHERE username=?", (username,)).fetchall()
+        target = next((row["token_hash"] for row in rows if hashlib.sha256(row["token_hash"].encode("utf-8")).hexdigest()[:16] == session_id), None)
+        if not target:
+            return jsonify({"error": "Session not found."}), 404
+        if target == current_digest:
+            return jsonify({"error": "Use Sign Out to end the current session."}), 400
+        db.execute("DELETE FROM auth_sessions WHERE token_hash=? AND username=?", (target, username))
+    return jsonify({"ok": True})
+
+
+@app.get("/api/location/shares")
+def list_location_shares():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        db.execute("UPDATE location_shares SET active=0 WHERE expires_at<=?", (now,))
+        outgoing = db.execute("""
+            SELECT share_id, recipient_username, latitude, longitude, accuracy,
+                   created_at, updated_at, expires_at
+            FROM location_shares WHERE owner_username=? AND active=1
+            ORDER BY updated_at DESC
+        """, (username,)).fetchall()
+        incoming = db.execute("""
+            SELECT share_id, owner_username, latitude, longitude, accuracy,
+                   created_at, updated_at, expires_at
+            FROM location_shares WHERE recipient_username=? AND active=1
+            ORDER BY updated_at DESC
+        """, (username,)).fetchall()
+        history_since = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        db.execute("DELETE FROM location_shares WHERE created_at<?", (history_since,))
+        history = db.execute("""
+            SELECT share_id, owner_username, recipient_username, latitude, longitude,
+                   accuracy, created_at, updated_at, expires_at, active
+            FROM location_shares
+            WHERE (owner_username=? COLLATE NOCASE OR recipient_username=? COLLATE NOCASE)
+              AND created_at>=?
+            ORDER BY created_at DESC LIMIT 50
+        """, (username, username, history_since)).fetchall()
+    return jsonify({"ok": True, "outgoing": [dict(row) for row in outgoing], "incoming": [dict(row) for row in incoming], "history": [dict(row) for row in history]})
+
+
+@app.post("/api/location/shares")
+def create_or_update_location_share():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+    data = request.get_json(silent=True) or {}
+    recipient = str(data.get("recipient_username") or "").strip().lstrip("@")
+    try:
+        latitude = float(data.get("latitude"))
+        longitude = float(data.get("longitude"))
+        accuracy = float(data.get("accuracy")) if data.get("accuracy") is not None else None
+        duration = int(data.get("duration_minutes", 60))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Valid location coordinates and duration are required."}), 400
+    if not recipient or recipient.lower() == username.lower():
+        return jsonify({"error": "Choose another account to share your location with."}), 400
+    if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+        return jsonify({"error": "Location coordinates are invalid."}), 400
+    if accuracy is not None and not (0 <= accuracy <= 100000):
+        return jsonify({"error": "Location accuracy is invalid."}), 400
+    if duration not in (15, 60, 240, 1440):
+        return jsonify({"error": "Choose a supported sharing duration."}), 400
+    now = datetime.now(timezone.utc)
+    expires = (now + timedelta(minutes=duration)).isoformat()
+    with get_db() as db:
+        db.execute("DELETE FROM location_shares WHERE created_at<?", ((now - timedelta(days=30)).isoformat(),))
+        friend = db.execute("""
+            SELECT 1 FROM follows a JOIN follows b
+              ON a.follower=b.following AND a.following=b.follower
+            WHERE a.follower=? COLLATE NOCASE AND a.following=? COLLATE NOCASE
+        """, (username, recipient)).fetchone()
+        if not friend:
+            return jsonify({"error": "Live location can only be shared with mutual followers."}), 403
+        target = db.execute("SELECT username FROM users WHERE username=? COLLATE NOCASE", (recipient,)).fetchone()
+        if not target:
+            return jsonify({"error": "Account not found."}), 404
+        recipient = target["username"]
+        share_id = str(data.get("share_id") or "").strip()
+        if share_id:
+            existing = db.execute("SELECT share_id FROM location_shares WHERE share_id=? AND owner_username=? AND recipient_username=? AND active=1 AND expires_at>?", (share_id, username, recipient, now.isoformat())).fetchone()
+            if not existing:
+                return jsonify({"error": "Active location share not found."}), 404
+        else:
+            share_id = secrets.token_urlsafe(18)
+            db.execute("""
+                INSERT INTO location_shares(share_id, owner_username, recipient_username, latitude, longitude, accuracy, created_at, updated_at, expires_at, active)
+                VALUES(?,?,?,?,?,?,?,?,?,1)
+            """, (share_id, username, recipient, latitude, longitude, accuracy, now.isoformat(), now.isoformat(), expires))
+        db.execute("""
+            UPDATE location_shares
+            SET latitude=?, longitude=?, accuracy=?, updated_at=?, expires_at=?, active=1
+            WHERE share_id=? AND owner_username=?
+        """, (latitude, longitude, accuracy, now.isoformat(), expires, share_id, username))
+    return jsonify({"ok": True, "share_id": share_id, "recipient_username": recipient, "expires_at": expires})
+
+
+@app.delete("/api/location/shares/<share_id>")
+def stop_location_share(share_id):
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+    with get_db() as db:
+        cursor = db.execute("""
+            UPDATE location_shares SET active=0
+            WHERE share_id=? AND (owner_username=? COLLATE NOCASE OR recipient_username=? COLLATE NOCASE)
+        """, (share_id, username, username))
+        if cursor.rowcount == 0:
+            return jsonify({"error": "Location share not found."}), 404
+    return jsonify({"ok": True})
 
 
 @app.post("/api/auth/logout-other-sessions")
@@ -3525,6 +3761,15 @@ def init_chat_tables():
                 recipient_username TEXT NOT NULL,
                 expires_at TEXT NOT NULL,
                 PRIMARY KEY (sender_username, recipient_username)
+            )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS message_inbox_folders (
+                username TEXT NOT NULL,
+                peer_username TEXT NOT NULL,
+                folder TEXT NOT NULL CHECK(folder IN ('primary', 'general', 'requests')),
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY(username, peer_username)
             )
         """)
 
@@ -4150,6 +4395,12 @@ def get_message_conversations():
             WHERE LOWER(follower)=LOWER(?) OR LOWER(following)=LOWER(?)
         """, (current, current, current)).fetchall()
         connected_users = {str(item["peer"]).lower() for item in connected_rows}
+        folder_rows = db.execute("""
+            SELECT peer_username, folder
+            FROM message_inbox_folders
+            WHERE LOWER(username)=LOWER(?)
+        """, (current,)).fetchall()
+        saved_folders = {str(item["peer_username"]).lower(): str(item["folder"]) for item in folder_rows}
 
     conversations = []
     seen = set()
@@ -4164,13 +4415,14 @@ def get_message_conversations():
         if key in seen:
             continue
         seen.add(key)
-        inbox_folder = "primary" if key in connected_users else "requests"
+        default_folder = "primary" if key in connected_users else "requests"
+        inbox_folder = saved_folders.get(key, default_folder)
         conversations.append({
             "username": other,
             "displayName": row["other_display_name"] or other,
             "avatarUrl": row["other_avatar_url"],
             "folder": inbox_folder,
-            "isRequest": key not in connected_users,
+            "isRequest": inbox_folder == "requests",
             "lastMessage": row["body"] or (
                 "📷 Photo" if row["image_url"] or row["attachment_type"] == "image"
                 else "🎬 Video" if row["attachment_type"] == "video"
@@ -4186,6 +4438,37 @@ def get_message_conversations():
         })
 
     return jsonify({"conversations": conversations})
+
+
+@app.patch("/api/messages/conversations/<username>/folder")
+def update_message_conversation_folder(username):
+    current = _chat_current_user()
+    if not current:
+        return jsonify({"error": "Please log in to organize messages."}), 401
+    peer = str(username or "").strip().lstrip("@")
+    if not peer or peer.lower() == current.lower():
+        return jsonify({"error": "Choose a valid conversation."}), 400
+    data = request.get_json(silent=True) or {}
+    folder = str(data.get("folder") or "").strip().lower()
+    if folder not in {"primary", "general", "requests"}:
+        return jsonify({"error": "Choose Primary, General or Requests."}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        exists = db.execute("""
+            SELECT 1 FROM direct_messages
+            WHERE (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+               OR (LOWER(sender_username)=LOWER(?) AND LOWER(recipient_username)=LOWER(?))
+            LIMIT 1
+        """, (current, peer, peer, current)).fetchone()
+        if not exists:
+            return jsonify({"error": "Conversation not found."}), 404
+        db.execute("""
+            INSERT INTO message_inbox_folders (username, peer_username, folder, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(username, peer_username) DO UPDATE SET
+                folder=excluded.folder, updated_at=excluded.updated_at
+        """, (current, peer, folder, now))
+    return jsonify({"ok": True, "username": peer, "folder": folder})
 
 
 @app.get("/api/messages/<username>")

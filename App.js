@@ -7,6 +7,7 @@ import ChatPersonalization from "./ChatPersonalization";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import { registerCallPushToken } from "./api";
 import * as SecureStore from "expo-secure-store";
+import * as LocalAuthentication from "expo-local-authentication";
 import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
 import * as Updates from "expo-updates";
@@ -35,7 +36,8 @@ import {Alert as NativeAlert,
   ActivityIndicator,
   KeyboardAvoidingView,
   BackHandler,
-  Platform } from "react-native";
+  Platform,
+  AppState } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
 import {
   applyZoomEffect,
@@ -115,6 +117,7 @@ import {
   acceptFollowRequest,
   rejectFollowRequest,
   loadMessageConversations,
+  updateMessageConversationFolder,
   sendPresenceHeartbeat,
   getChatPresence,
   loadUserNotes,
@@ -1379,7 +1382,7 @@ function PostCard({
             <Ionicons name="chatbubble-outline" size={24} color="#0095F6" />
           </TouchableOpacity>
           <TouchableOpacity onPress={sharePost}>
-            <Ionicons name="paper-plane-outline" size={25} color="#262626" />
+            <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
           </TouchableOpacity>
           <View style={styles.actionSpacer} />
           <TouchableOpacity onPress={() => setSaved(!saved)}>
@@ -2271,6 +2274,40 @@ export default function App() {
   }, []);
 
   const [activeTab, setActiveTab] = React.useState("Home");
+  const [appPinLocked, setAppPinLocked] = React.useState(false);
+  const [appBiometricEnabled, setAppBiometricEnabled] = React.useState(false);
+  const [appPinInput, setAppPinInput] = React.useState("");
+  const [appPinError, setAppPinError] = React.useState("");
+  const appLockPinRef = React.useRef(null);
+
+  React.useEffect(() => {
+    let alive = true;
+    const refreshLock = async (onLaunch = false) => {
+      try {
+        const [pin, autoLock, fingerprint, faceUnlock] = await Promise.all([
+          SecureStore.getItemAsync("bhumi_app_lock_pin"),
+          SecureStore.getItemAsync("bhumi_app_auto_lock"),
+          SecureStore.getItemAsync("bhumi_app_biometric_fingerprint"),
+          SecureStore.getItemAsync("bhumi_app_biometric_face"),
+        ]);
+        if (!alive) return;
+        appLockPinRef.current = pin || null;
+        setAppBiometricEnabled(fingerprint === "true" || faceUnlock === "true");
+        if (pin && (onLaunch || autoLock !== "false")) setAppPinLocked(true);
+      } catch (error) {
+        console.warn("App Lock could not read secure PIN:", error?.message || error);
+      }
+    };
+    void refreshLock(true);
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "inactive" || nextState === "background") void refreshLock(false);
+    });
+    return () => {
+      alive = false;
+      subscription?.remove();
+    };
+  }, []);
+
   const [cameraOpen, setCameraOpen] = React.useState(false);
   const [cameraFacing, setCameraFacing] = React.useState("back");
   const [cameraMode, setCameraMode] = React.useState("video");
@@ -2494,6 +2531,17 @@ export default function App() {
 
   const [authReady, setAuthReady] = React.useState(false);
   const [authSession, setAuthSession] = React.useState(null);
+  React.useEffect(() => {
+    if (authReady && authSession && appLockPinRef.current) {
+      setAppPinLocked(true);
+      setAppPinInput("");
+      setAppPinError("");
+    } else if (authReady && !authSession) {
+      setAppPinLocked(false);
+      setAppPinInput("");
+      setAppPinError("");
+    }
+  }, [authSession, authReady]);
 
   // Register this signed-in device for high-priority incoming-call push alerts.
   // The existing in-app call listener still handles the full LiveKit call UI.
@@ -2652,7 +2700,7 @@ export default function App() {
     return scoreB - scoreA;
   });
   const chatThemeColors = ({
-    royal: { bg: "#000000", mine: "#262626", other: "#1C1C1E", accent: "#0095F6" },
+    royal: { bg: "#000000", mine: "#3797F0", other: "#262626", accent: "#FFFFFF" },
     midnight: { bg: "#080B12", mine: "#253044", other: "#151B27", accent: "#8FA8D8" },
     ocean: { bg: "#071521", mine: "#12415A", other: "#102A3A", accent: "#61C5E8" },
     rose: { bg: "#1B0B16", mine: "#63304A", other: "#321A29", accent: "#F0A0C0" },
@@ -2746,6 +2794,8 @@ export default function App() {
   const [chatSearchQuery, setChatSearchQuery] = React.useState("");
   const [chatUnreadOnly, setChatUnreadOnly] = React.useState(false);
   const [chatInboxTab, setChatInboxTab] = React.useState("All");
+  const [chatFolderSaving, setChatFolderSaving] = React.useState("");
+
   const [chatFriendFilter, setChatFriendFilter] = React.useState("All");
   const [newChatComposerOpen, setNewChatComposerOpen] = React.useState(false);
   const [ownNote, setOwnNote] = React.useState(null);
@@ -5139,12 +5189,6 @@ export default function App() {
     }
     setActiveTab(name);
     if (name === "Home") refreshContent();
-    if (name === "Reels" && reels.length === 0) {
-      Alert.alert("Reels", "No reels yet.", [
-        { text: "रील अपलोड करें", onPress: createReel },
-        { text: "ठीक है", style: "cancel" },
-      ]);
-    }
   };
 
   React.useEffect(() => {
@@ -5244,7 +5288,7 @@ export default function App() {
   if (!authReady) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
-        <StatusBar style="dark" hidden={false} translucent={false} />
+        <StatusBar style="light" hidden={false} translucent={false} />
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
           <View style={{ width: 92, height: 92, borderRadius: 28, backgroundColor: "#121212", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", padding: 6 }}>
             <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 78, height: 78, borderRadius: 22 }} resizeMode="contain" />
@@ -5332,7 +5376,7 @@ export default function App() {
 
     return (
       <SafeAreaView style={styles.screen}>
-        <StatusBar style="dark" hidden={false} translucent={false} />
+        <StatusBar style="light" hidden={false} translucent={false} />
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -5748,7 +5792,7 @@ export default function App() {
   if (!authSession) {
     return (
       <SafeAreaView style={styles.screen}>
-        <StatusBar style="dark" hidden={false} translucent={false} />
+        <StatusBar style="light" hidden={false} translucent={false} />
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -5949,7 +5993,7 @@ export default function App() {
               <TextInput
                 value={authConfirmPassword}
                 onChangeText={setAuthConfirmPassword}
-                पासवर्ड फिर से लिखें
+                placeholder="पासवर्ड फिर से लिखें"
                 secureTextEntry
                 autoCapitalize="none"
                 editable={!authBusy}
@@ -6014,9 +6058,50 @@ export default function App() {
     );
   }
 
+  const moveConversationFolder = async (conversation) => {
+    const username = String(conversation?.username || "").trim();
+    if (!username || chatFolderSaving) return;
+    const currentFolder = String(conversation.folder || (conversation.isRequest ? "requests" : "primary")).toLowerCase();
+    const nextFolder = currentFolder === "requests" ? "primary" : currentFolder === "general" ? "primary" : "general";
+    setChatFolderSaving(username.toLowerCase());
+    setChatError("");
+    try {
+      await updateMessageConversationFolder(username, nextFolder);
+      setMessageConversations((current) => current.map((item) =>
+        String(item.username || "").toLowerCase() === username.toLowerCase()
+          ? { ...item, folder: nextFolder, isRequest: nextFolder === "requests" }
+          : item
+      ));
+    } catch (error) {
+      setChatError(error?.message || "Could not organize this conversation.");
+    } finally {
+      setChatFolderSaving("");
+    }
+  };
+
+  const getVisibleMessageConversations = () => {
+    const term = chatSearchQuery.trim().toLowerCase();
+    return messageConversations.filter((conversation) => {
+      const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || "";
+      const folder = String(conversation.folder || conversation.inboxTab || conversation.category || "primary").toLowerCase();
+      const requestStatus = String(conversation.requestStatus || "").toLowerCase();
+      const isRequest = Boolean(conversation.isRequest) || ["pending", "requested"].includes(requestStatus) || folder === "requests";
+      const friendKey = String(username).toLowerCase();
+      if (chatFriendFilter === "Favourite" && !chatFriendPrefs["messages.favorite." + friendKey]) return false;
+      if (chatFriendFilter === "Close" && !chatFriendPrefs["messages.closeFriend." + friendKey]) return false;
+      if (chatInboxTab === "Requests" && !isRequest) return false;
+      if ((chatInboxTab === "Primary" || chatInboxTab === "General") && folder !== chatInboxTab.toLowerCase()) return false;
+      if (chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
+      return !term ||
+        String(username).toLowerCase().includes(term) ||
+        String(conversation.displayName || "").toLowerCase().includes(term) ||
+        String(conversation.lastMessage || "").toLowerCase().includes(term);
+    });
+  };
+
   return (
     <SafeAreaView style={styles.screen}>
-      <StatusBar style="dark" hidden={false} translucent={false} />
+      <StatusBar style="light" hidden={false} translucent={false} />
       <VoiceVideoCallControls username={selectedChatUser} currentUsername={authSession?.username} enableOutgoing={false} showButtons={false} />
 
 
@@ -7698,7 +7783,7 @@ export default function App() {
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons name="add" size={17} color="#262626" />
+                            <Ionicons name="add" size={17} color="#FFFFFF" />
                           </TouchableOpacity>
                         </View>
                       );
@@ -8116,9 +8201,9 @@ export default function App() {
                 >
                   <View
                     style={{
-                      width: 96,
-                      height: 96,
-                      borderRadius: 48,
+                      width: 86,
+                      height: 86,
+                      borderRadius: 43,
                       borderWidth: 3,
                       borderColor: "#0095F6",
                       padding: 2,
@@ -8143,18 +8228,18 @@ export default function App() {
                           )
                         }
                         style={{
-                          width: 90,
-                          height: 90,
-                          borderRadius: 45,
+                          width: 80,
+                          height: 80,
+                          borderRadius: 40,
                           backgroundColor: "#DDE7F5",
                         }}
                       />
                     ) : (
                       <View
                         style={{
-                          width: 108,
-                          height: 108,
-                          borderRadius: 54,
+                          width: 80,
+                          height: 80,
+                          borderRadius: 40,
                           backgroundColor: "#262626",
                           alignItems: "center",
                           justifyContent: "center",
@@ -8685,15 +8770,7 @@ export default function App() {
                     justifyContent: "center",
                   }}
                 >
-                  <Text
-                    style={{
-                      color: "#F5F5F5",
-                      fontSize: 23,
-                      fontWeight: "800",
-                    }}
-                  >
-                    ⚙
-                  </Text>
+                  <Ionicons name="settings-outline" size={23} color="#F5F5F5" />
                 </TouchableOpacity>
               </View>
               {privacySettings.accountType === "business" && (
@@ -9006,7 +9083,7 @@ export default function App() {
                               <Ionicons
                                 name="play-circle"
                                 size={34}
-                                color="#262626"
+                                color="#FFFFFF"
                               />
                             ) : (
                               <Text style={{ fontSize: 38 }}>
@@ -9029,7 +9106,7 @@ export default function App() {
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons name="play" size={15} color="#262626" />
+                            <Ionicons name="play" size={15} color="#FFFFFF" />
                           </View>
                         ) : null}
                         {hasMultiple ? (
@@ -9049,7 +9126,7 @@ export default function App() {
                             <Ionicons
                               name="copy-outline"
                               size={15}
-                              color="#262626"
+                              color="#FFFFFF"
                             />
                           </View>
                         ) : null}
@@ -9598,7 +9675,12 @@ export default function App() {
           else if (key === "account") openAccountSettings();
           else if (key === "blocked") openBlockedAccounts();
           else if (key === "restricted") openRestrictedAccounts();
-          else if (key === "messages") setMessagesOpen(true);
+          else if (key === "messages") openMessages();
+          else if (key === "profile") {
+            setActiveTab("Profile");
+            setProfileDraft({ displayName: profile?.displayName || authSession?.username || "", bio: profile?.bio || "" });
+            setProfileEditing(true);
+          }
         }}
       />
 
@@ -10816,14 +10898,19 @@ export default function App() {
                   }}
                   style={{ paddingRight: 14 }}
                 >
-                  <Ionicons name="arrow-back" size={25} color="#262626" />
+                  <Ionicons name="arrow-back" size={25} color="#F5F5F5" />
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity style={{ paddingRight: 18 }}>
+                <TouchableOpacity
+                  onPress={() => setChatInboxTab("Requests")}
+                  accessibilityRole="button"
+                  accessibilityLabel="Open message requests"
+                  style={{ paddingRight: 18 }}
+                >
                   <Ionicons
-                    name="briefcase-outline"
-                    size={27}
-                    color="#262626"
+                    name="mail-unread-outline"
+                    size={25}
+                    color="#F5F5F5"
                   />
                 </TouchableOpacity>
               )}
@@ -10907,7 +10994,7 @@ export default function App() {
                   </View>
                   <VoiceVideoCallControls username={selectedChatUser} enableIncoming={false} />
                   <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel="Chat personalization" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "transparent", borderWidth: 0, borderColor: "transparent", alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="color-palette-outline" size={21} color="#262626" />
+                    <Ionicons name="color-palette-outline" size={21} color="#F5F5F5" />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -10926,7 +11013,7 @@ export default function App() {
                     <Ionicons
                       name="trending-up-outline"
                       size={29}
-                      color="#262626"
+                      color="#F5F5F5"
                     />
                   </TouchableOpacity>
                   <View
@@ -10951,7 +11038,7 @@ export default function App() {
                     <Ionicons
                       name="chevron-down"
                       size={21}
-                      color="#262626"
+                      color="#F5F5F5"
                       style={{ marginLeft: 7 }}
                     />
                     <View
@@ -10974,7 +11061,7 @@ export default function App() {
                     accessibilityLabel="New message"
                     style={{ paddingHorizontal: 9 }}
                   >
-                    <Ionicons name="create-outline" size={25} color="#262626" />
+                    <Ionicons name="create-outline" size={25} color="#F5F5F5" />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={closeMessages}
@@ -10983,7 +11070,7 @@ export default function App() {
                     <Ionicons
                       name="ellipsis-horizontal"
                       size={27}
-                      color="#262626"
+                      color="#F5F5F5"
                     />
                   </TouchableOpacity>
                 </View>
@@ -11017,7 +11104,7 @@ export default function App() {
                     backgroundColor: "#1C1C1E",
                   }}
                 >
-                  <Ionicons name="search" size={23} color="#262626" />
+                  <Ionicons name="search" size={23} color="#F5F5F5" />
                   <TextInput
                     value={chatSearchQuery}
                     onChangeText={setChatSearchQuery}
@@ -11053,7 +11140,7 @@ export default function App() {
                     <Ionicons
                       name="options-outline"
                       size={21}
-                      color="#262626"
+                      color="#F5F5F5"
                     />
                   </TouchableOpacity>
                 </View>
@@ -11146,7 +11233,7 @@ export default function App() {
                           borderColor: "#303030",
                         }}
                       >
-                        <Ionicons name="add" size={17} color="#262626" />
+                        <Ionicons name="add" size={17} color="#F5F5F5" />
                       </View>
                     </View>
                     <Text
@@ -11323,7 +11410,7 @@ export default function App() {
                       >
                         <Text
                           style={{
-                            color: active ? "#262626" : "#737373",
+                            color: active ? "#F5F5F5" : "#A8A8A8",
                             fontSize: 14,
                             fontWeight: active ? "800" : "600",
                           }}
@@ -11484,51 +11571,16 @@ export default function App() {
                 ) : null}
 
                 {chatBusy ? (
-                  <Text
-                    style={{
-                      color: "#A8A8A8",
-                      paddingHorizontal: 20,
-                      paddingVertical: 8,
-                    }}
-                  >
-                    
-                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", paddingHorizontal: 20, paddingVertical: 12, gap: 9 }}>
+                    <ActivityIndicator color="#3797F0" size="small" />
+                    <Text style={{ color: "#A8A8A8", fontSize: 12 }}>Updating inbox…</Text>
+                  </View>
                 ) : null}
                 <ScrollView
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={{ paddingBottom: 10 }}
                 >
-                  {messageConversations
-                    .filter((conversation) => {
-                      const username =
-                        conversation.username ||
-                        conversation.peer ||
-                        conversation.otherUsername ||
-                        conversation.user?.username ||
-                        "";
-                      const term = chatSearchQuery.trim().toLowerCase();
-                      const folder = String(
-                        conversation.folder || conversation.inboxTab || conversation.category || ""
-                      ).toLowerCase();
-                      const requestStatus = String(conversation.requestStatus || "").toLowerCase();
-                      const isRequest = Boolean(conversation.isRequest) || ["pending", "requested"].includes(requestStatus) || folder === "requests";
-                      const friendKey = String(username).toLowerCase();
-                      if (chatFriendFilter === "Favourite" && !chatFriendPrefs["messages.favorite." + friendKey]) return false;
-                      if (chatFriendFilter === "Close" && !chatFriendPrefs["messages.closeFriend." + friendKey]) return false;
-                      if (chatInboxTab === "Requests" && !isRequest) return false;
-                      if ((chatInboxTab === "Primary" || chatInboxTab === "General") && folder && folder !== chatInboxTab.toLowerCase()) return false;
-                      if (chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
-                      return (
-                        !term ||
-                        String(username).toLowerCase().includes(term) ||
-                        String(conversation.displayName || "")
-                          .toLowerCase()
-                          .includes(term) ||
-                        String(conversation.lastMessage || "")
-                          .toLowerCase()
-                          .includes(term)
-                      );
-                    })
+                  {getVisibleMessageConversations()
                     .map((conversation, index) => {
                       const username =
                         conversation.username ||
@@ -11539,16 +11591,20 @@ export default function App() {
                       if (!username) return null;
                       const unreadCount = Number(conversation.unreadCount || 0);
                       return (
-                        <TouchableOpacity
+                        <View
                           key={String(username) + index}
-                          onPress={() => openDirectChat(username)}
                           style={{
                             flexDirection: "row",
                             alignItems: "center",
                             paddingHorizontal: 18,
                             paddingVertical: 11,
-                            gap: 13,
+                            gap: 10,
                           }}
+                        >
+                        <TouchableOpacity
+                          onPress={() => openDirectChat(username)}
+                          activeOpacity={0.78}
+                          style={{ flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 13 }}
                         >
                           <View
                             style={{
@@ -11626,9 +11682,9 @@ export default function App() {
                                 : ""}
                             </Text>
                           </View>
-                          <View
-                            style={{ alignItems: "flex-end", minWidth: 35 }}
-                          >
+                        </TouchableOpacity>
+                          <View style={{ alignItems: "flex-end", minWidth: 38 }}>
+
                             <Text style={{ color: "#A8A8A8", fontSize: 13 }}>
                               {conversation.lastMessageAt
                                 ? (() => {
@@ -11676,13 +11732,24 @@ export default function App() {
                                 </Text>
                               </View>
                             ) : null}
+                            <TouchableOpacity
+                              onPress={() => moveConversationFolder(conversation)}
+                              disabled={chatFolderSaving === String(username).toLowerCase()}
+                              accessibilityRole="button"
+                              accessibilityLabel={conversation.folder === "general" ? "Move conversation to Primary" : conversation.isRequest ? "Accept message request to Primary" : "Move conversation to General"}
+                              style={{ marginTop: 6, padding: 5, borderRadius: 8, backgroundColor: "#1C1C1E" }}
+                            >
+                              {chatFolderSaving === String(username).toLowerCase()
+                                ? <ActivityIndicator size="small" color="#3797F0" />
+                                : <Ionicons name="folder-outline" size={17} color="#A8A8A8" />}
+                            </TouchableOpacity>
                           </View>
-                        </TouchableOpacity>
+                        </View>
                       );
                     })}
                   {!chatBusy &&
                   !chatError &&
-                  messageConversations.length === 0 ? (
+                  getVisibleMessageConversations().length === 0 ? (
                     <Text
                       style={{
                         color: "#A8A8A8",
@@ -11690,7 +11757,13 @@ export default function App() {
                         padding: 28,
                       }}
                     >
-                      No conversations yet. Start a new chat.
+                      {messageConversations.length === 0
+                        ? "No conversations yet. Start a new chat."
+                        : chatUnreadOnly
+                          ? "No unread messages here."
+                          : chatInboxTab === "Requests"
+                            ? "No message requests."
+                            : "No conversations match these filters."}
                     </Text>
                   ) : null}
                 </ScrollView>
@@ -11715,15 +11788,12 @@ export default function App() {
                   }}
                 >
                   {chatBusy && directMessages.length === 0 ? (
-                    <Text
-                      style={{
-                        color: "#A8A8A8",
-                        textAlign: "center",
-                        padding: 24,
-                      }}
-                    >
-                      
-                    </Text>
+                    <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 28 }}>
+                      <ActivityIndicator color="#3797F0" size="small" />
+                      <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 10 }}>
+                        Loading messages…
+                      </Text>
+                    </View>
                   ) : null}
                   {directMessages.map((message, index) => {
                     const mine =
@@ -11918,7 +11988,7 @@ export default function App() {
         <Ionicons
           name="document-text"
           size={30}
-          color="#262626"
+          color="#F5F5F5"
         />
         <View style={{ flex: 1 }}>
           <Text numberOfLines={2} style={{
@@ -11943,7 +12013,7 @@ export default function App() {
                           {message.text ? (
                             <Text
                               style={{
-                                color: mine ? chatThemeColors.accent : "#262626",
+                                color: mine ? chatThemeColors.accent : "#F5F5F5",
                                 fontSize: 15,
                                 lineHeight: 21,
                               }}
@@ -12240,7 +12310,7 @@ export default function App() {
                           {isPhoto ? (
                             <Image source={{ uri: chatMediaDraft.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
                           ) : (
-                            <Ionicons name={isVideo ? "videocam" : isAudio ? "mic" : "document-text"} size={32} color="#262626" />
+                            <Ionicons name={isVideo ? "videocam" : isAudio ? "mic" : "document-text"} size={32} color="#F5F5F5" />
                           )}
                         </View>
                         <View style={{ flex: 1, justifyContent: "center", gap: 5 }}>
@@ -12327,7 +12397,7 @@ export default function App() {
                       <Ionicons
                         name="images-outline"
                         size={25}
-                        color="#262626"
+                        color="#F5F5F5"
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -12337,11 +12407,11 @@ export default function App() {
                       <Ionicons
                         name="camera-outline"
                         size={25}
-                        color="#262626"
+                        color="#F5F5F5"
                       />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={chooseChatDocument} accessibilityLabel="Attach document">
-                      <Ionicons name="document-attach-outline" size={23} color="#262626" />
+                      <Ionicons name="document-attach-outline" size={23} color="#F5F5F5" />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={isChatRecording ? stopChatVoiceRecording : startChatVoiceRecording}
@@ -12358,7 +12428,7 @@ export default function App() {
                       <Ionicons
                         name="happy-outline"
                         size={25}
-                        color="#262626"
+                        color="#F5F5F5"
                       />
                     </TouchableOpacity>
                     <TextInput
@@ -12880,7 +12950,7 @@ export default function App() {
             paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#303030"
           }}>
             <TouchableOpacity onPress={() => setProfileConnectionsOpen(false)} style={{ padding: 8, marginRight: 8 }}>
-              <Ionicons name="arrow-back" size={24} color="#262626" />
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
               <Text style={{ color: "#F5F5F5", fontSize: 17, fontWeight: "800" }}>
@@ -12998,26 +13068,23 @@ export default function App() {
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
-              {["All", "Likes", "Comments", "Follows"].map((filter) => (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
+              {["All", "Likes", "Comments", "Follows", "Messages"].map((filter) => (
                 <TouchableOpacity key={filter} onPress={() => setNotificationFilter(filter)}
-                  style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 18, backgroundColor: notificationFilter === filter ? "#0095F6" : "#F5F5F5" }}>
-                  <Text style={{ color: notificationFilter === filter ? "#FFFFFF" : "#262626", fontSize: 12, fontWeight: "800" }}>{filter}</Text>
+                  style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 18, backgroundColor: notificationFilter === filter ? "#0095F6" : "#262626" }}>
+                  <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "800" }}>{filter}</Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
             {notificationsLoading ? (
-              <Text
-                style={{ textAlign: "center", color: "#A8A8A8", padding: 25 }}
-              >
-                
-              </Text>
+              <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 28 }} />
             ) : (
               <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
                 {notificationsList.filter((item) => {
                   if (notificationFilter === "All") return true;
                   if (notificationFilter === "Likes") return item.kind === "like";
                   if (notificationFilter === "Comments") return item.kind === "comment";
+                  if (notificationFilter === "Messages") return item.kind === "message";
                   return ["follow", "follow_request", "follow_accepted", "follow_rejected"].includes(item.kind);
                 }).map((item, index) => {
                   const actor = item.actor ? "@" + item.actor : "Someone";
@@ -13042,7 +13109,7 @@ export default function App() {
                         alignItems: "center",
                         paddingHorizontal: 18,
                         paddingVertical: 16,
-                        backgroundColor: item.isRead ? "#FFFFFF" : "#F5F5F5",
+                        backgroundColor: item.isRead ? "#000000" : "#121212",
                         borderBottomWidth: 1,
                         borderBottomColor: "#303030",
                       }}
@@ -13109,16 +13176,18 @@ export default function App() {
                     </TouchableOpacity>
                   );
                 })}
-                {!notificationsList.length ? (
-                  <Text
-                    style={{
-                      textAlign: "center",
-                      color: "#A8A8A8",
-                      padding: 35,
-                    }}
-                  >
-                    No notifications yet.
-                  </Text>
+                {notificationsList.filter((item) => {
+                  if (notificationFilter === "All") return true;
+                  if (notificationFilter === "Likes") return item.kind === "like";
+                  if (notificationFilter === "Comments") return item.kind === "comment";
+                  return ["follow", "follow_request", "follow_accepted", "follow_rejected"].includes(item.kind);
+                }).length === 0 ? (
+                  <View style={{ alignItems: "center", padding: 36 }}>
+                    <Ionicons name="notifications-outline" size={34} color="#A8A8A8" />
+                    <Text style={{ color: "#F5F5F5", fontSize: 14, fontWeight: "700", marginTop: 10 }}>
+                      {notificationsList.length === 0 ? "No notifications yet." : "No " + notificationFilter.toLowerCase() + " notifications."}
+                    </Text>
+                  </View>
                 ) : null}
               </ScrollView>
             )}
@@ -13167,7 +13236,7 @@ export default function App() {
                 Reel comments
               </Text>
               <TouchableOpacity onPress={() => setReelCommentsOpen(false)}>
-                <Ionicons name="close" size={27} color="#262626" />
+                <Ionicons name="close" size={27} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
             {reelCommentsBusy && reelComments.length === 0 ? (
@@ -13473,6 +13542,85 @@ export default function App() {
         </SafeAreaView>
       </Modal>
 
+      <Modal
+        visible={appPinLocked && !!authSession}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => {}}
+      >
+        <View style={{ flex:1,backgroundColor:"#000000",justifyContent:"center",paddingHorizontal:28 }}>
+          <View style={{ backgroundColor:"#121212",borderWidth:1,borderColor:"#303030",borderRadius:22,padding:22,alignItems:"center" }}>
+            <View style={{ width:64,height:64,borderRadius:32,backgroundColor:"#1C1C1E",alignItems:"center",justifyContent:"center",marginBottom:14 }}>
+              <Ionicons name="lock-closed" size={29} color="#0095F6"/>
+            </View>
+            <Text style={{ color:"#FFFFFF",fontSize:21,fontWeight:"900" }}>Bhumi Social AI Locked</Text>
+            <Text style={{ color:"#A8A8A8",fontSize:12,textAlign:"center",lineHeight:18,marginTop:7 }}>Enter your device App PIN to continue.</Text>
+            <TextInput
+              value={appPinInput}
+              onChangeText={(value)=>{setAppPinInput(value.replace(/\D/g,"").slice(0,6));setAppPinError("");}}
+              placeholder="Enter 4–6 digit PIN"
+              placeholderTextColor="#777777"
+              keyboardType="number-pad"
+              secureTextEntry
+              maxLength={6}
+              autoFocus
+              style={{ width:"100%",color:"#FFFFFF",borderWidth:1,borderColor:"#3A3A3A",borderRadius:13,padding:14,marginTop:18,fontSize:20,textAlign:"center",letterSpacing:8 }}
+            />
+            {appPinError ? <Text style={{ color:"#F08080",fontSize:12,marginTop:9 }}>{appPinError}</Text> : null}
+            {appBiometricEnabled ? (
+              <TouchableOpacity
+                onPress={async()=>{
+                  try {
+                    const result = await LocalAuthentication.authenticateAsync({
+                      promptMessage:"Unlock Bhumi Social AI",
+                      cancelLabel:"Use App PIN",
+                      disableDeviceFallback:true,
+                    });
+                    if (result.success) {
+                      setAppPinLocked(false);
+                      setAppPinInput("");
+                      setAppPinError("");
+                    }
+                  } catch (error) {
+                    setAppPinError(error?.message || "Biometric unlock failed. Use your App PIN.");
+                  }
+                }}
+                style={{ width:"100%",backgroundColor:"#17354A",borderRadius:13,padding:13,alignItems:"center",marginTop:14,flexDirection:"row",justifyContent:"center" }}
+              >
+                <Ionicons name="finger-print" size={19} color="#8CCBFF"/>
+                <Text style={{ color:"#8CCBFF",fontWeight:"900",marginLeft:8 }}>Unlock with Biometrics</Text>
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity
+              onPress={()=>{
+                if (appLockPinRef.current && appPinInput === appLockPinRef.current) {
+                  setAppPinLocked(false);
+                  setAppPinInput("");
+                  setAppPinError("");
+                } else {
+                  setAppPinError("PIN सही नहीं है। दोबारा कोशिश करें।");
+                  setAppPinInput("");
+                }
+              }}
+              style={{ width:"100%",backgroundColor:"#0095F6",borderRadius:13,padding:14,alignItems:"center",marginTop:15 }}
+            >
+              <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Unlock App</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={async()=>{
+                try { await clearAuthSession(); } catch (_) {}
+                setAuthSession(null);
+                setAppPinLocked(false);
+                setAppPinInput("");
+              }}
+              style={{ padding:13,marginTop:4 }}
+            >
+              <Text style={{ color:"#A8A8A8",fontWeight:"800" }}>Sign out instead</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <CustomAlertHost />
     </SafeAreaView>
   );
@@ -13507,30 +13655,30 @@ const styles = StyleSheet.create({
   stories: { paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   story: { width: 68, alignItems: "center" },
   storyRing: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     padding: 0,
     borderWidth: 2,
-    borderColor: "#8B3DFF",
+    borderColor: "#F56040",
     alignItems: "center",
     justifyContent: "center",
   },
   storyInnerRing: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     borderWidth: 2,
-    borderColor: "#8B3DFF",
+    borderColor: "#C13584",
     alignItems: "center",
     justifyContent: "center",
   },
   ownRing: { borderColor: "#404040" },
   ownStoryInnerRing: { borderColor: "#404040" },
   storyAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     alignItems: "center",
     justifyContent: "center",
   },

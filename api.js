@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
 const API_BASE_URL = 'https://bhumi-social-app-1.onrender.com';
@@ -78,7 +79,7 @@ async function authHeaders(extra = {}) {
 export async function registerAccount(username, password, phoneNumber, email, fullName) {
   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Device-Name': `${Platform.OS} device · ${Platform.Version}` },
     body: JSON.stringify({
       username: username.trim(),
       full_name: fullName.trim(),
@@ -96,7 +97,7 @@ export async function registerAccount(username, password, phoneNumber, email, fu
 export async function loginAccount(username, password) {
   const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Device-Name': `${Platform.OS} device · ${Platform.Version}` },
     body: JSON.stringify({ username: username.trim(), password }),
   });
   const data = await response.json();
@@ -1079,6 +1080,17 @@ export async function loadMessageConversations() {
   });
 }
 
+export async function updateMessageConversationFolder(username, folder) {
+  const response = await fetch(`${API_BASE_URL}/api/messages/conversations/${encodeURIComponent(username)}/folder`, {
+    method: "PATCH",
+    headers: { ...(await authHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ folder }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not organize this conversation.");
+  return data;
+}
+
 export async function loadDirectMessages(username) {
   const peer = String(username || '').trim().toLowerCase();
   return coalesceChatRead(`messages:${peer}`, async () => {
@@ -1336,6 +1348,57 @@ export async function saveSettingsPreferences(changes) {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Could not save settings.");
   return data.preferences || {};
+}
+
+
+export async function loadLoginHistory(limit = 30) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login-history?limit=${encodeURIComponent(limit)}`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not load login history.");
+  return data.items || [];
+}
+
+export async function loadActiveSessions() {
+  const response = await fetch(`${API_BASE_URL}/api/auth/sessions`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not load active devices.");
+  return data.items || [];
+}
+
+export async function revokeActiveSession(sessionId) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/sessions/${encodeURIComponent(sessionId)}`, {
+    method: "DELETE", headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not sign out this device.");
+  return data;
+}
+
+export async function loadLocationShares() {
+  const response = await fetch(`${API_BASE_URL}/api/location/shares`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not load location sharing.");
+  return { outgoing: data.outgoing || [], incoming: data.incoming || [], history: data.history || [] };
+}
+
+export async function createOrUpdateLocationShare(payload) {
+  const response = await fetch(`${API_BASE_URL}/api/location/shares`, {
+    method: "POST",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not share live location.");
+  return data;
+}
+
+export async function stopLocationShare(shareId) {
+  const response = await fetch(`${API_BASE_URL}/api/location/shares/${encodeURIComponent(shareId)}`, {
+    method: "DELETE", headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not stop location sharing.");
+  return data;
 }
 
 // SOCIALAPP_LIVEKIT_CALL_API_V1
