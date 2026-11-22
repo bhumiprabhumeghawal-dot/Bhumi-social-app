@@ -401,7 +401,30 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Open Messages, enter any conversation, then tap the palette icon. Choose a separate chat theme, set a private name for that friend, and add or remove them from Favourite Friends or Close Friends. Favourite and Close Friends filters appear above your chat list.</Text>
               </View>
             ) : null}
-            {section.fields.map(renderField)}
+            {section.fields
+              .filter((field) => {
+                const query = searchQuery.trim().toLowerCase();
+                if (!query) return true;
+                const sectionMatches = [section.title, section.subtitle].some((value) =>
+                  String(value || "").toLowerCase().includes(query)
+                );
+                if (sectionMatches) return true;
+                return field.slice(1, 3).some((value) =>
+                  String(value || "").toLowerCase().includes(query)
+                );
+              })
+              .map(renderField)}
+            {searchQuery.trim() && !section.fields.some((field) =>
+              field.slice(1, 3).some((value) =>
+                String(value || "").toLowerCase().includes(searchQuery.trim().toLowerCase())
+              )
+            ) && ![section.title, section.subtitle].some((value) =>
+              String(value || "").toLowerCase().includes(searchQuery.trim().toLowerCase())
+            ) ? (
+              <Text style={{ color:MUTED,textAlign:"center",paddingVertical:24,fontSize:13 }}>
+                No matching settings in this section.
+              </Text>
+            ) : null}
             {section.key === "privacy" ? (
               <View style={{ marginTop:4 }}>
                 {["blocked","restricted"].map((legacyKey) => (
