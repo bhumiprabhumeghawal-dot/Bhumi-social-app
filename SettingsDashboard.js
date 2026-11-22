@@ -366,11 +366,38 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     finally { setLocationLoading(false); }
   };
 
-  const openLocationPanel = () => {
+  const openLocationPanel = async () => {
     setActive(null);
     setLocationVisible(true);
     setLocationStatus("");
+    const [shareId, recipient] = await Promise.all([
+      SecureStore.getItemAsync("bhumi_live_share_id"),
+      SecureStore.getItemAsync("bhumi_live_share_recipient"),
+    ]);
+    if (shareId && recipient) activeLocationShareRef.current = { shareId, recipient };
     void refreshLocationShares();
+  };
+
+  const findNearbyFriends = async () => {
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (permission.status !== "granted") throw new Error("Nearby friends देखने के लिए foreground location permission दें।");
+      const current = await Location.getCurrentPositionAsync({ accuracy:Location.Accuracy.Balanced });
+      const toRad = (value) => value * Math.PI / 180;
+      const distanceKm = (lat, lon) => {
+        const dLat = toRad(lat-current.coords.latitude);
+        const dLon = toRad(lon-current.coords.longitude);
+        const a = Math.sin(dLat/2)**2 + Math.cos(toRad(current.coords.latitude))*Math.cos(toRad(lat))*Math.sin(dLon/2)**2;
+        return 6371 * 2 * Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+      };
+      const distances = {};
+      (locationShares.incoming || []).forEach((share) => {
+        distances[share.share_id] = distanceKm(share.latitude,share.longitude);
+      });
+      setNearbyDistances(distances);
+    } catch (error) {
+      setLocationStatus(error?.message || "Nearby friends नहीं दिख सके।");
+    }
   };
 
   const stopLocationWatcher = async () => {
@@ -469,7 +496,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const endLocationShare = async (shareId) => {
     try {
       await stopLocationShare(shareId);
-      if (activeLocationShareRef.current?.shareId === shareId) await stopLocationWatcher();
+      const storedShareId = await SecureStore.getItemAsync("bhumi_live_share_id");\n      if (activeLocationShareRef.current?.shareId === shareId || storedShareId === shareId) await stopLocationWatcher();
       setLocationStatus("Location sharing बंद कर दी गई है।");
       await refreshLocationShares();
     } catch (error) { setLocationStatus(error?.message || "Location sharing बंद नहीं हुई।"); }
@@ -874,7 +901,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                   <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>Try another keyword</Text>
                 </View>
               )}
-              <TouchableOpacity onPress={onLogout} style={{ flexDirection:"row",alignItems:"center",justifyContent:"center",backgroundColor:"#35191D",borderWidth:1,borderColor:"#7C3039",borderRadius:14,padding:14,marginTop:5 }}>
+              <TouchableOpacity onPress={async()=>{await stopLocationWatcher();onLogout?.();}} style={{ flexDirection:"row",alignItems:"center",justifyContent:"center",backgroundColor:"#35191D",borderWidth:1,borderColor:"#7C3039",borderRadius:14,padding:14,marginTop:5 }}>
                 <Ionicons name="log-out-outline" color="#F08080" size={20}/>
                 <Text style={{ color:"#F08080",fontWeight:"900",marginLeft:9 }}>Log Out</Text>
               </TouchableOpacity>
@@ -951,6 +978,19 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               </TouchableOpacity>
               {locationStatus ? <Text style={{ color:"#8CCBFF",fontSize:11,lineHeight:16,marginTop:10 }}>{locationStatus}</Text> : null}
             </View>
+            <View style={{ flexDirection:"row",alignItems:"center",marginBottom:8 }}>
+              <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",flex:1 }}>Nearby Friends</Text>
+              <TouchableOpacity onPress={findNearbyFriends} style={{ backgroundColor:"#102A3C",borderRadius:18,paddingHorizontal:11,paddingVertical:7 }}>
+                <Text style={{ color:GOLD,fontSize:10,fontWeight:"900" }}>Find Nearby</Text>
+              </TouchableOpacity>
+            </View>
+            {Object.keys(nearbyDistances).length ? [...(locationShares.incoming || [])].sort((a,b)=>(nearbyDistances[a.share_id]??Infinity)-(nearbyDistances[b.share_id]??Infinity)).map((item)=>(
+              <View key={"nearby-"+item.share_id} style={{ flexDirection:"row",alignItems:"center",backgroundColor:PANEL,borderRadius:10,padding:10,marginBottom:6 }}>
+                <Ionicons name="location" color={GOLD} size={17}/>
+                <Text style={{ color:TEXT,fontSize:11,fontWeight:"800",flex:1,marginLeft:8 }}>@{item.owner_username}</Text>
+                <Text style={{ color:MUTED,fontSize:10 }}>{nearbyDistances[item.share_id].toFixed(1)} km</Text>
+              </View>
+            )) : <Text style={{ color:MUTED,fontSize:10,marginBottom:13 }}>Only friends actively sharing their location with you can appear here.</Text>}
             <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginBottom:8 }}>People sharing with you</Text>
             {locationShares.incoming.map((item)=>(
               <View key={item.share_id} style={{ backgroundColor:PANEL,borderRadius:12,padding:12,marginBottom:8 }}>
