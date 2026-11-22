@@ -1032,6 +1032,7 @@ function PostCard({
   onDelete = () => {},
   pageHeight = 0,
   active = true,
+  autoPlay = true,
 }) {
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
@@ -1271,7 +1272,7 @@ function PostCard({
                   <ReelVideo
                     uri={media.uri}
                     height={mediaHeight}
-                    active={active && mediaIndex === index}
+                    active={active && mediaIndex === index && autoPlay}
                     contentFit="cover"
                     zoomEnabled={false}
                   />
@@ -2384,6 +2385,20 @@ export default function App() {
   };
 
   const [feedPosts, setFeedPosts] = React.useState([]);
+  const [appSettingsPreferences, setAppSettingsPreferences] = React.useState({});
+  React.useEffect(() => {
+    let active = true;
+    if (!authSession?.token) {
+      setAppSettingsPreferences({});
+      return () => { active = false; };
+    }
+    loadSettingsPreferences()
+      .then((preferences) => {
+        if (active) setAppSettingsPreferences(preferences || {});
+      })
+      .catch((error) => console.warn("App settings load failed:", error?.message || error));
+    return () => { active = false; };
+  }, [authSession?.username, authSession?.token]);
   const [feedViewportHeight, setFeedViewportHeight] = React.useState(0);
   const [feedHeaderHeight, setFeedHeaderHeight] = React.useState(0);
   const [activeFeedIndex, setActiveFeedIndex] = React.useState(0);
@@ -2450,10 +2465,15 @@ export default function App() {
   const [activeReelIndex, setActiveReelIndex] = React.useState(0);
   const [headerCreateMenuOpen, setHeaderCreateMenuOpen] = React.useState(false);
   const [reelZoomed, setReelZoomed] = React.useState(false);
+  const [manualReelPlay, setManualReelPlay] = React.useState(false);
 
   React.useEffect(() => {
     setReelZoomed(false);
   }, [activeTab]);
+
+  React.useEffect(() => {
+    setManualReelPlay(false);
+  }, [activeReelIndex]);
   const [reelViewportHeight, setReelViewportHeight] = React.useState(0);
   const [pendingSavedReelIndex, setPendingSavedReelIndex] = React.useState(null);
 
@@ -7601,13 +7621,36 @@ export default function App() {
                         uri={r.uri}
                         height={rowHeight}
                         active={
-                          activeTab === "Reels" && index === activeReelIndex
+                          activeTab === "Reels" &&
+                          index === activeReelIndex &&
+                          (appSettingsPreferences["feed.reelsAutoPlay"] !== false || manualReelPlay)
                         }
                         muted={mutedReels}
                         contentFit="cover"
                         zoomEnabled
                         onZoomChange={(level) => setReelZoomed(level > 1.01)}
                       />
+                    ) : null}
+                    {appSettingsPreferences["feed.reelsAutoPlay"] === false && !manualReelPlay && index === activeReelIndex ? (
+                      <TouchableOpacity
+                        onPress={() => setManualReelPlay(true)}
+                        accessibilityRole="button"
+                        accessibilityLabel="Play reel"
+                        style={{
+                          position: "absolute",
+                          top: "43%",
+                          left: "43%",
+                          width: 58,
+                          height: 58,
+                          borderRadius: 29,
+                          backgroundColor: "rgba(0,0,0,0.55)",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          zIndex: 3,
+                        }}
+                      >
+                        <Ionicons name="play" size={28} color="#FFFFFF" />
+                      </TouchableOpacity>
                     ) : null}
                     <View
                       pointerEvents="box-none"
@@ -8006,6 +8049,7 @@ export default function App() {
                   onDelete={(item, kind) => requestDeleteContent(kind, item)}
                   pageHeight={feedViewportHeight}
                   active={activeTab === "Home" && index === activeFeedIndex}
+                  autoPlay={appSettingsPreferences["feed.autoPlay"] !== false}
                   onOpen={() => {
                     setSelectedPostMediaIndex(0);
                     setSelectedPost(post);
@@ -9819,6 +9863,7 @@ export default function App() {
         username={authSession?.username || ""}
         onClose={() => setSettingsHubOpen(false)}
         onLogout={handleSettingsLogout}
+        onPreferencesChange={setAppSettingsPreferences}
         onAbout={() => { setSettingsHubOpen(false); openAboutApp(); }}
         onLegacyOpen={(key) => {
           setSettingsHubOpen(false);
