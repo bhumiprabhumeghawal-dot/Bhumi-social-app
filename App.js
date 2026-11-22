@@ -5241,7 +5241,7 @@ export default function App() {
   if (!authReady) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
-        <StatusBar style="dark" hidden={false} translucent={false} />
+        <StatusBar style="light" hidden={false} translucent={false} />
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
           <View style={{ width: 92, height: 92, borderRadius: 28, backgroundColor: "#121212", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", padding: 6 }}>
             <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 78, height: 78, borderRadius: 22 }} resizeMode="contain" />
@@ -5329,7 +5329,7 @@ export default function App() {
 
     return (
       <SafeAreaView style={styles.screen}>
-        <StatusBar style="dark" hidden={false} translucent={false} />
+        <StatusBar style="light" hidden={false} translucent={false} />
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -5745,7 +5745,7 @@ export default function App() {
   if (!authSession) {
     return (
       <SafeAreaView style={styles.screen}>
-        <StatusBar style="dark" hidden={false} translucent={false} />
+        <StatusBar style="light" hidden={false} translucent={false} />
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -6054,7 +6054,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <StatusBar style="dark" hidden={false} translucent={false} />
+      <StatusBar style="light" hidden={false} translucent={false} />
       <VoiceVideoCallControls username={selectedChatUser} currentUsername={authSession?.username} enableOutgoing={false} showButtons={false} />
 
 
