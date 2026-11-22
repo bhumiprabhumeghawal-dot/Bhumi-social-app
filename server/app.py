@@ -367,10 +367,24 @@ def list_content(kind):
             (kind,),
         ).fetchall()
         viewer = getattr(g, "auth_username", None)
+        favorite_accounts = set()
+        muted_accounts = set()
+        if viewer:
+            for entry in db.execute(
+                "SELECT target_username, list_type FROM feed_user_lists WHERE LOWER(owner_username)=LOWER(?)",
+                (viewer,),
+            ).fetchall():
+                target_key = str(entry["target_username"]).casefold()
+                if entry["list_type"] == "favorite":
+                    favorite_accounts.add(target_key)
+                elif entry["list_type"] == "muted":
+                    muted_accounts.add(target_key)
 
         visible_rows = []
         for row in rows:
             owner = row["username"]
+            if viewer and owner.casefold() in muted_accounts and owner.casefold() != viewer.casefold():
+                continue
             if not can_view_content(db, owner, viewer):
                 continue
             if kind == "stories" and viewer and owner.casefold() != viewer.casefold():
@@ -394,6 +408,11 @@ def list_content(kind):
             visible_rows.append(row)
 
         rows = visible_rows
+        if viewer and kind in ("posts", "reels") and favorite_accounts:
+            rows.sort(key=lambda row: (
+                0 if str(row["username"]).casefold() in favorite_accounts else 1,
+                -int(row["id"]),
+            ))
 
         items = [content_json(row, viewer, db) for row in rows]
 
@@ -4957,6 +4976,20 @@ def init_people_connect_tables():
             )
         """)
         db.execute("""
+            CREATE TABLE IF NOT EXISTS feed_user_lists (
+                owner_username TEXT NOT NULL,
+                target_username TEXT NOT NULL,
+                list_type TEXT NOT NULL CHECK(list_type IN ('favorite','muted')),
+                created_at TEXT NOT NULL,
+                PRIMARY KEY(owner_username, target_username, list_type),
+                CHECK(LOWER(owner_username) <> LOWER(target_username))
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_feed_user_lists_owner_type
+            ON feed_user_lists(owner_username, list_type, created_at DESC)
+        """)
+        db.execute("""
             CREATE TABLE IF NOT EXISTS people_notifications (
                 id TEXT PRIMARY KEY,
                 recipient TEXT NOT NULL,
@@ -4982,6 +5015,92 @@ init_call_tables()
 init_notes_tables()
 init_people_connect_tables()
 
+
+
+# SOCIALAPP_FEED_USER_LISTS_V1
+@app.get("/api/feed/lists")
+def get_feed_user_lists():
+    owner = getattr(g, "auth_username", None)
+    if not owner:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT l.target_username, l.list_type, l.created_at,
+                   COALESCE(NULLIF(p.display_name, ''), u.username) AS display_name,
+                   p.avatar_url
+            FROM feed_user_lists l
+            JOIN users u ON LOWER(u.username)=LOWER(l.target_username)
+            LEFT JOIN profiles p ON LOWER(p.username)=LOWER(l.target_username)
+            WHERE LOWER(l.owner_username)=LOWER(?)
+            ORDER BY l.created_at DESC
+        """, (owner,)).fetchall()
+    items = {"favorites": [], "muted": []}
+    for row in rows:
+        key = "favorites" if row["list_type"] == "favorite" else "muted"
+        items[key].append({
+            "username": row["target_username"],
+            "displayName": row["display_name"],
+            "avatarUrl": row["avatar_url"],
+            "createdAt": row["created_at"],
+        })
+    response = jsonify(items)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@app.post("/api/feed/lists")
+def add_feed_user_list():
+    owner = getattr(g, "auth_username", None)
+    if not owner:
+        return jsonify({"error": "Please log in first."}), 401
+    data = request.get_json(silent=True) or {}
+    list_type = str(data.get("list_type") or "").strip().lower()
+    target = str(data.get("username") or "").strip().lstrip("@")
+    if list_type not in ("favorite", "muted"):
+        return jsonify({"error": "Choose Favorites or Muted."}), 400
+    if not target or len(target) > 50 or target.casefold() == owner.casefold():
+        return jsonify({"error": "Enter another valid username."}), 400
+    with get_db() as db:
+        user = db.execute(
+            "SELECT username FROM users WHERE LOWER(username)=LOWER(?)",
+            (target,),
+        ).fetchone()
+        if not user:
+            return jsonify({"error": "Account not found."}), 404
+        target = user["username"]
+        now = datetime.now(timezone.utc).isoformat()
+        db.execute("""
+            DELETE FROM feed_user_lists
+            WHERE LOWER(owner_username)=LOWER(?) AND LOWER(target_username)=LOWER(?)
+              AND list_type=?
+        """, (owner, target, "muted" if list_type == "favorite" else "favorite"))
+        db.execute("""
+            INSERT INTO feed_user_lists(owner_username, target_username, list_type, created_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(owner_username, target_username, list_type) DO NOTHING
+        """, (owner, target, list_type, now))
+    return jsonify({"ok": True, "username": target, "list_type": list_type})
+
+
+@app.delete("/api/feed/lists/<list_type>/<username>")
+def remove_feed_user_list(list_type, username):
+    owner = getattr(g, "auth_username", None)
+    if not owner:
+        return jsonify({"error": "Please log in first."}), 401
+    if list_type not in ("favorite", "muted"):
+        return jsonify({"error": "Invalid list."}), 400
+    target = username.strip().lstrip("@")
+    if not target or len(target) > 50:
+        return jsonify({"error": "Invalid username."}), 400
+    with get_db() as db:
+        result = db.execute("""
+            DELETE FROM feed_user_lists
+            WHERE LOWER(owner_username)=LOWER(?) AND LOWER(target_username)=LOWER(?)
+              AND list_type=?
+        """, (owner, target, list_type))
+        if result.rowcount == 0:
+            return jsonify({"error": "Account was not in this list."}), 404
+    return jsonify({"ok": True, "username": target, "list_type": list_type})
 
 
 # SOCIALAPP_SETTINGS_PREFERENCES_V1
