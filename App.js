@@ -9398,10 +9398,10 @@ export default function App() {
       <View style={styles.bottomNav}>
         {[
           { name: "Home", icon: "home-outline", activeIcon: "home" },
+          { name: "Reels", icon: "play-outline", activeIcon: "play" },
+          { name: "Chat", icon: "paper-plane-outline", activeIcon: "paper-plane" },
           { name: "Search", icon: "search-outline", activeIcon: "search" },
-          { name: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
-          { name: "Reels", icon: "videocam-outline", activeIcon: "videocam" },
-          { name: "Profile", icon: "person-circle-outline", activeIcon: "person-circle" },
+          { name: "Profile", icon: "person-outline", activeIcon: "person" },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.name}
@@ -12693,12 +12693,12 @@ export default function App() {
             )}
             <View style={[styles.bottomNav, selectedChatUser && { display: "none" }]}>
               {[
-          { name: "Home", icon: "home-outline", activeIcon: "home" },
-          { name: "Search", icon: "search-outline", activeIcon: "search" },
-          { name: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
-          { name: "Reels", icon: "videocam-outline", activeIcon: "videocam" },
-          { name: "Profile", icon: "person-circle-outline", activeIcon: "person-circle" },
-        ].map((tab) => (
+                { name: "Home", icon: "home-outline", activeIcon: "home" },
+                { name: "Reels", icon: "play-outline", activeIcon: "play" },
+                { name: "Chat", icon: "paper-plane-outline", activeIcon: "paper-plane" },
+                { name: "Search", icon: "search-outline", activeIcon: "search" },
+                { name: "Profile", icon: "person-outline", activeIcon: "person" },
+              ].map((tab) => (
                 <TouchableOpacity
                   key={tab.name}
                   style={styles.navItem}
@@ -14011,8 +14011,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   bottomNav: {
-    height: Platform.OS === "android" ? 68 : 58,
-    paddingBottom: Platform.OS === "android" ? 12 : 4,
+    height: Platform.OS === "android" ? 72 : 62,
+    paddingBottom: Platform.OS === "android" ? 16 : 8,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#262626",
     flexDirection: "row",
