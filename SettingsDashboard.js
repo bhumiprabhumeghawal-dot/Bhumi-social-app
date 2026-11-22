@@ -361,11 +361,14 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     if (!active) return null;
     const section = SECTIONS.find((item) => item.key === active);
     if (!section) return null;
-    const displayedFields = normalizedSearch
-      ? section.fields.filter((field) =>
+    const sectionMatches = normalizedSearch &&
+      (section.title.toLowerCase().includes(normalizedSearch) ||
+       section.subtitle.toLowerCase().includes(normalizedSearch));
+    const displayedFields = !normalizedSearch || sectionMatches
+      ? section.fields
+      : section.fields.filter((field) =>
           field[1].toLowerCase().includes(normalizedSearch) ||
-          field[2].toLowerCase().includes(normalizedSearch))
-      : section.fields;
+          field[2].toLowerCase().includes(normalizedSearch));
     return (
       <Modal visible={!!active && visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setActive(null)}>
         <View style={{ flex:1, backgroundColor:BG, paddingTop:16, paddingBottom: Platform.OS === "android" ? 36 : 0 }}>
