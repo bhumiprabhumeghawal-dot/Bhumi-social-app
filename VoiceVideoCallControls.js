@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import RNCallKeep from "react-native-callkeep";
+import { ensureCallKeepSetup } from "./incomingCallBackgroundTask";
 import { useCameraPermissions } from "expo-camera";
 import { requestRecordingPermissionsAsync } from "expo-audio";
 import {
@@ -29,7 +30,6 @@ import {
   getVoiceVideoCallStatus,
 } from "./api";
 
-let callKeepSetupPromise = null;
 function stableCallUuid(callId) {
   const raw = String(callId).replace(/[^a-f0-9]/gi, "").toLowerCase();
   if (raw.length === 32) {
@@ -201,28 +201,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       const handler = incomingRef.current ? declineHandlerRef.current : endHandlerRef.current;
       Promise.resolve(handler?.()).finally(() => { callKeepEventBusyRef.current = false; });
     });
-    if (!callKeepSetupPromise) {
-      callKeepSetupPromise = RNCallKeep.setup({
-        ios: { appName: "Bhumi Social AI" },
-        android: {
-          alertTitle: "कॉल की अनुमति जरूरी है",
-          alertDescription: "Bhumi Social AI को लॉक स्क्रीन पर कॉल दिखाने के लिए Phone Account की अनुमति दें।",
-          cancelButton: "बाद में",
-          okButton: "अनुमति दें",
-          additionalPermissions: [],
-        },
-        foregroundService: {
-          channelId: "bhumi-social-calls",
-          channelName: "Bhumi Social Calls",
-          notificationTitle: "Bhumi Social कॉल चालू है",
-        },
-      }).catch((error) => {
-        callKeepSetupPromise = null;
-        console.warn("CallKeep setup failed:", error?.message || error);
-        throw error;
-      });
-    }
-    callKeepSetupPromise.catch(() => {});
+    ensureCallKeepSetup().catch(() => {});
     return () => { active = false; subscriptions.forEach((item) => item.remove()); };
   }, [currentUsername, enableIncoming]);
 
