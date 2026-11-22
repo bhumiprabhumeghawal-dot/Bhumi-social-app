@@ -340,6 +340,14 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           if (key === "security.autoLock") {
             await SecureStore.setItemAsync("bhumi_app_auto_lock", value ? "true" : "false");
           }
+          if (key === "location.background" && !value) {
+            const activeId = activeLocationShareRef.current?.shareId || await SecureStore.getItemAsync("bhumi_live_share_id");
+            if (activeId) {
+              await stopLocationShare(activeId).catch(() => {});
+              await stopLocationWatcher();
+              setNotice({ title:"Background Location disabled", message:"Background updates have stopped and the active share was ended. Start a new share to continue in foreground-only mode." });
+            }
+          }
           setPreferences(saved);
         }
       }
