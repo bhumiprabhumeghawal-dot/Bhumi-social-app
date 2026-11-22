@@ -11464,15 +11464,10 @@ export default function App() {
                 ) : null}
 
                 {chatBusy ? (
-                  <Text
-                    style={{
-                      color: "#A8A8A8",
-                      paddingHorizontal: 20,
-                      paddingVertical: 8,
-                    }}
-                  >
-                    
-                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", paddingHorizontal: 20, paddingVertical: 12, gap: 9 }}>
+                    <ActivityIndicator color="#3797F0" size="small" />
+                    <Text style={{ color: "#A8A8A8", fontSize: 12 }}>Updating inbox…</Text>
+                  </View>
                 ) : null}
                 <ScrollView
                   keyboardShouldPersistTaps="handled"
