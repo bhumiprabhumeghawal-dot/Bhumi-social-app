@@ -2300,13 +2300,6 @@ export default function App() {
     };
   }, []);
 
-  React.useEffect(() => {
-    if (!authSession) {
-      setAppPinLocked(false);
-      setAppPinInput("");
-      setAppPinError("");
-    }
-  }, [authSession]);
   const [cameraOpen, setCameraOpen] = React.useState(false);
   const [cameraFacing, setCameraFacing] = React.useState("back");
   const [cameraMode, setCameraMode] = React.useState("video");
@@ -2530,6 +2523,13 @@ export default function App() {
 
   const [authReady, setAuthReady] = React.useState(false);
   const [authSession, setAuthSession] = React.useState(null);
+  React.useEffect(() => {
+    if (!authSession) {
+      setAppPinLocked(false);
+      setAppPinInput("");
+      setAppPinError("");
+    }
+  }, [authSession]);
 
   // Register this signed-in device for high-priority incoming-call push alerts.
   // The existing in-app call listener still handles the full LiveKit call UI.
