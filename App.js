@@ -1379,7 +1379,7 @@ function PostCard({
             <Ionicons name="chatbubble-outline" size={24} color="#0095F6" />
           </TouchableOpacity>
           <TouchableOpacity onPress={sharePost}>
-            <Ionicons name="paper-plane-outline" size={25} color="#262626" />
+            <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
           </TouchableOpacity>
           <View style={styles.actionSpacer} />
           <TouchableOpacity onPress={() => setSaved(!saved)}>
@@ -9006,7 +9006,7 @@ export default function App() {
                               <Ionicons
                                 name="play-circle"
                                 size={34}
-                                color="#262626"
+                                color="#FFFFFF"
                               />
                             ) : (
                               <Text style={{ fontSize: 38 }}>
@@ -9029,7 +9029,7 @@ export default function App() {
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons name="play" size={15} color="#262626" />
+                            <Ionicons name="play" size={15} color="#FFFFFF" />
                           </View>
                         ) : null}
                         {hasMultiple ? (
@@ -9049,7 +9049,7 @@ export default function App() {
                             <Ionicons
                               name="copy-outline"
                               size={15}
-                              color="#262626"
+                              color="#FFFFFF"
                             />
                           </View>
                         ) : null}
@@ -12822,7 +12822,7 @@ export default function App() {
             paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: "#303030"
           }}>
             <TouchableOpacity onPress={() => setProfileConnectionsOpen(false)} style={{ padding: 8, marginRight: 8 }}>
-              <Ionicons name="arrow-back" size={24} color="#262626" />
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
               <Text style={{ color: "#F5F5F5", fontSize: 17, fontWeight: "800" }}>
@@ -13109,7 +13109,7 @@ export default function App() {
                 Reel comments
               </Text>
               <TouchableOpacity onPress={() => setReelCommentsOpen(false)}>
-                <Ionicons name="close" size={27} color="#262626" />
+                <Ionicons name="close" size={27} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
             {reelCommentsBusy && reelComments.length === 0 ? (
