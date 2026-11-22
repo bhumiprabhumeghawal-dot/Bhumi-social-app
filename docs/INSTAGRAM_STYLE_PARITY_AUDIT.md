@@ -58,7 +58,7 @@ All measurements below are React Native density-independent pixels (dp), not raw
 
 ### Notifications, settings, privacy, and account
 - [ ] Verify notification list, unread state, navigation to the related post/profile, and empty state.
-- [x] Add settings search and filtered category results; verify category navigation and close behavior during device QA.
+- [x] Add settings search and filtered category results; category-name searches preserve the full category list when opened.
 - [ ] Verify privacy, blocked/restricted accounts, login/security, notifications, appearance, account controls, and logout.
 - [x] Align Creator & Business Hub colors with the app-wide dark surface and blue accent system.
 - [ ] Verify all setting actions are functional and do not merely show placeholder notices.
