@@ -108,7 +108,7 @@ const SECTIONS = [
     ["location.nearbyFriends","Nearby Friends","See approximate distance to friends who shared their location with you",false],
     ["location.approximate","Approximate Location","Share an approximate area instead of exact coordinates",true],
     ["location.locationTag","Location Tags","Allow adding a location to posts and stories",true],
-    ["location.background","Background Location","Continue sharing while the app is backgrounded; requires Always permission and a visible system notification",false],
+    ["location.background","Background Location","Continue sharing while the app is backgrounded; requires Always permission and a visible system notification",true],
     ["location.history","Location Sharing History","Keep a list of active and recent shares",false],
   ]},
   { key:"privacy", title:"Privacy Settings", subtitle:"Control who can see and contact you", icon:"shield-checkmark-outline", legacy:"privacy", fields:[
