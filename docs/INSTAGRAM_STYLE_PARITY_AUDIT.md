@@ -73,7 +73,8 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [x] Add server-backed reset for preference switches while preserving account content.
 - [x] Connect Report a Problem to the device email composer with a prefilled support address.
 - [x] Add a scannable profile QR code and native share action using the existing profile deep link.
-- [x] Add creator collaboration and monetization inquiry email actions plus a shareable promotion brief; automated payouts, ad billing, campaign booking, and marketplace matching remain unavailable until payment/provider and backend services are configured.
+- [x] Add creator collaboration and monetization inquiry actions plus a shareable promotion brief; automated payouts, ad billing, campaign booking, and marketplace matching remain unavailable until payment/provider and backend services are configured.
+- [x] Show live creator post, follower, and following totals from existing profile APIs; reach, impressions, watch time, and engagement trends still need event analytics.
 
 - [x] Add a dedicated Messages notification filter so DM alerts are visible without mixing them into Likes, Comments, or Follows.
 
