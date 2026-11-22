@@ -550,14 +550,18 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
 
   return (
     <>
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-        <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.72)",justifyContent:"flex-end",paddingBottom: Platform.OS === "android" ? 38 : 0 }}>
-          <View style={{ backgroundColor:BG,borderTopLeftRadius:22,borderTopRightRadius:22,borderWidth:1,borderColor:BORDER,paddingTop:18,paddingHorizontal:17,paddingBottom: Platform.OS === "android" ? 22 : 25,maxHeight:"94%" }}>
-            <View style={{ alignSelf:"center",width:42,height:5,borderRadius:5,backgroundColor:"#0095F6",marginBottom:17 }}/>
-            <View style={{ paddingHorizontal:2, marginBottom:15 }}>
-              <Text style={{ color:TEXT,fontSize:25,fontWeight:"900",letterSpacing:-0.6 }}>Settings and activity</Text>
-              <Text style={{ color:MUTED,fontSize:12,marginTop:4 }}>Manage your account, privacy and how you use Bhumi Social AI</Text>
+      <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
+        <View style={{ flex:1,backgroundColor:BG,paddingTop: Platform.OS === "android" ? 28 : 48 }}>
+          <View style={{ flexDirection:"row",alignItems:"center",paddingHorizontal:18,paddingBottom:16,borderBottomWidth:1,borderBottomColor:BORDER }}>
+            <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close settings" style={{ width:40,height:40,alignItems:"flex-start",justifyContent:"center" }}>
+              <Ionicons name="arrow-back" size={25} color={TEXT}/>
+            </TouchableOpacity>
+            <View style={{ flex:1 }}>
+              <Text style={{ color:TEXT,fontSize:22,fontWeight:"900",letterSpacing:-0.5 }}>Settings and activity</Text>
+              <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>Your account, privacy and app preferences</Text>
             </View>
+          </View>
+          <View style={{ flex:1,paddingHorizontal:17,paddingTop:15,paddingBottom: Platform.OS === "android" ? 20 : 12 }}>
             <View style={{ flexDirection:"row",alignItems:"center",backgroundColor:PANEL,borderRadius:12,paddingHorizontal:12,height:44,marginBottom:14 }}>
               <Ionicons name="search" size={19} color={MUTED}/>
               <TextInput
