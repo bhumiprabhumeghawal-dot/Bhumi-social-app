@@ -77,40 +77,12 @@ jobs:
         env:
           CI: "1"
 
-      - name: Register local Expo app-loader Maven repository
+      - name: Trace missing Expo app-loader dependency
         run: |
-          node <<'NODE'
-          const fs = require("fs");
-          const path = require("path");
-          const root = path.join(process.cwd(), "node_modules");
-          const target = path.join("host", "exp", "exponent", "org.unimodules.apploader", "58.0.2");
-          const matches = [];
-          function walk(dir) {
-            let entries;
-            try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
-            for (const entry of entries) {
-              if (!entry.isDirectory()) continue;
-              const full = path.join(dir, entry.name);
-              if (full.endsWith(target)) matches.push(path.resolve(full.slice(0, -target.length)));
-              else if (entry.name !== ".cache") walk(full);
-            }
-          }
-          walk(root);
-          const repo = matches.find(p => fs.existsSync(path.join(p, "host/exp/exponent/org.unimodules.apploader/58.0.2/org.unimodules.apploader-58.0.2.pom")));
-          if (!repo) {
-            throw new Error("Expo SDK 58 app-loader 58.0.2 local Maven artifact is missing from node_modules; inspect Expo SDK/package versions before building.");
-          }
-          const settingsPath = path.join("android", "settings.gradle");
-          let settings = fs.readFileSync(settingsPath, "utf8");
-          const repositoryLine = 'maven { url = uri("' + repo.replace(/\\/g, "/") + '") }';
-          if (!settings.includes(repositoryLine)) {
-            const block = /dependencyResolutionManagement\s*\{[\s\S]*?repositories\s*\{/;
-            if (!block.test(settings)) throw new Error("Could not find dependencyResolutionManagement.repositories in android/settings.gradle");
-            settings = settings.replace(block, match => match + "\n        " + repositoryLine);
-            fs.writeFileSync(settingsPath, settings);
-          }
-          console.log("Registered Expo app-loader local Maven repository:", repo);
-          NODE
+          echo "Searching generated Android files and installed packages for the invalid Maven coordinate..."
+          grep -R -n -B 5 -A 5 "org.unimodules.apploader\\|host.exp.exponent" android node_modules --include="*.gradle" --include="*.gradle.kts" --include="*.pom" --include="*.json" --exclude-dir=".cache" | head -n 240 || true
+          echo "Relevant Expo package versions:"
+          npm ls expo expo-dev-client expo-updates expo-modules-core --depth=1 || true
 
       - name: Build release APK
         timeout-minutes: 40
