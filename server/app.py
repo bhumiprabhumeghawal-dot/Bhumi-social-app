@@ -3446,6 +3446,26 @@ def upload_chat_attachment():
 # SOCIALAPP_CHAT_API_V1
 def init_chat_tables():
     with get_db() as db:
+        # Presence is read by profile/admin endpoints before a user's first
+        # heartbeat, so these tables must exist at application startup.
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS user_presence (
+                username TEXT PRIMARY KEY,
+                last_seen_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS user_presence_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                event TEXT NOT NULL,
+                changed_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_presence_history_user_time
+            ON user_presence_history(LOWER(username), changed_at DESC)
+        """)
         db.execute("""
             CREATE TABLE IF NOT EXISTS direct_messages (
                 id TEXT PRIMARY KEY,
