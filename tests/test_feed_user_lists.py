@@ -76,7 +76,7 @@ class FeedUserListsApiTests(unittest.TestCase):
         self.db.commit()
         self.client.post("/api/feed/lists", json={"list_type": "favorite", "username": "bob"})
         feed = self.client.get("/api/posts")
-        self.assertEqual([item["username"] for item in feed.get_json()["items"]], ["bob", "charlie"])
+        self.assertEqual([item["user"] for item in feed.get_json()["items"]], ["bob", "charlie"])
 
     def test_remove_account_from_list(self):
         self.client.post("/api/feed/lists", json={"list_type": "muted", "username": "bob"})
