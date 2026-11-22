@@ -3,6 +3,15 @@ run-name: Bhumi Social AI Android APK
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Select YES only after approving a public latest APK release from master."
+        required: true
+        type: choice
+        options:
+          - "NO"
+          - "YES"
+        default: "NO"
   push:
     branches:
       - master
@@ -132,6 +141,7 @@ jobs:
           retention-days: 7
 
       - name: Publish APK to GitHub Releases
+        if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' && inputs.publish_release == 'YES' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: socialapp-latest
