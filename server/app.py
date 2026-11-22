@@ -3000,7 +3000,7 @@ def load_notification_details():
         return jsonify({"error": "Please log in first."}), 401
 
     defaults = {
-        "likes": 1, "comments": 1, "follows": 1,
+        "likes": 1, "comments": 1, "follows": 1, "requests": 1,
         "messages": 1, "system_alerts": 1,
     }
     with get_db() as db:
@@ -3010,6 +3010,7 @@ def load_notification_details():
                 likes INTEGER NOT NULL DEFAULT 1,
                 comments INTEGER NOT NULL DEFAULT 1,
                 follows INTEGER NOT NULL DEFAULT 1,
+                requests INTEGER NOT NULL DEFAULT 1,
                 messages INTEGER NOT NULL DEFAULT 1,
                 system_alerts INTEGER NOT NULL DEFAULT 1,
                 updated_at TEXT NOT NULL
@@ -3021,7 +3022,7 @@ def load_notification_details():
             VALUES (?, 1, 1, 1, 1, 1, ?)
         """, (username, datetime.now(timezone.utc).isoformat()))
         row = db.execute("""
-            SELECT likes, comments, follows, messages, system_alerts
+            SELECT likes, comments, follows, requests, messages, system_alerts
             FROM notification_detail_preferences WHERE username=?
         """, (username,)).fetchone()
 
@@ -3038,7 +3039,7 @@ def save_notification_details():
     if not isinstance(data, dict) or not data:
         return jsonify({"error": "Provide notification preferences to update."}), 400
 
-    allowed = {"likes", "comments", "follows", "messages", "system_alerts"}
+    allowed = {"likes", "comments", "follows", "requests", "messages", "system_alerts"}
     if any(key not in allowed or not isinstance(value, bool)
            for key, value in data.items()):
         return jsonify({"error": "Use valid notification keys with true or false values."}), 400
@@ -3051,6 +3052,7 @@ def save_notification_details():
                 likes INTEGER NOT NULL DEFAULT 1,
                 comments INTEGER NOT NULL DEFAULT 1,
                 follows INTEGER NOT NULL DEFAULT 1,
+                requests INTEGER NOT NULL DEFAULT 1,
                 messages INTEGER NOT NULL DEFAULT 1,
                 system_alerts INTEGER NOT NULL DEFAULT 1,
                 updated_at TEXT NOT NULL
@@ -5017,7 +5019,7 @@ def _people_notification(db, recipient, actor, kind, reference_id, now):
         "comment": "comments",
         "message": "messages",
         "follow": "follows",
-        "follow_request": "follows",
+        "follow_request": "requests",
         "follow_accepted": "follows",
         "follow_rejected": "follows",
         "system_alert": "system_alerts",
@@ -5064,12 +5066,18 @@ def init_people_connect_tables():
                 likes INTEGER NOT NULL DEFAULT 1,
                 comments INTEGER NOT NULL DEFAULT 1,
                 follows INTEGER NOT NULL DEFAULT 1,
+                requests INTEGER NOT NULL DEFAULT 1,
                 messages INTEGER NOT NULL DEFAULT 1,
                 system_alerts INTEGER NOT NULL DEFAULT 1,
                 updated_at TEXT NOT NULL
             )
         """)
     with get_db() as db:
+        try:
+            db.execute("ALTER TABLE notification_detail_preferences ADD COLUMN requests INTEGER NOT NULL DEFAULT 1")
+        except Exception:
+            # The column already exists on upgraded databases.
+            pass
         db.execute("""
             CREATE TABLE IF NOT EXISTS follow_requests (
                 id TEXT PRIMARY KEY,
