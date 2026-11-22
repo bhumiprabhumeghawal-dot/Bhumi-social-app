@@ -1353,6 +1353,24 @@ async function callApi(path, options = {}) {
   return data;
 }
 
+export async function registerCallPushToken(expoPushToken) {
+  const token = String(expoPushToken || "").trim();
+  if (!token) return;
+  await callApi('/api/calls/push-token', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}
+
+export async function removeCallPushToken(expoPushToken) {
+  const token = String(expoPushToken || "").trim();
+  if (!token) return;
+  await callApi('/api/calls/push-token', {
+    method: 'DELETE',
+    body: JSON.stringify({ token }),
+  });
+}
+
 export async function createVoiceVideoCall(username, type = 'audio') {
   const target = String(username || '').trim().replace(/^@/, '');
   const callType = String(type || '').toLowerCase();

@@ -45,7 +45,8 @@
       ],
       "expo-font",
       "expo-status-bar",
-      "@livekit/react-native-expo-plugin"
+      "@livekit/react-native-expo-plugin",
+      "expo-notifications"
     ],
     "extra": {
       "eas": {
