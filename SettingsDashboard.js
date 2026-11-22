@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system/legacy";
 import * as SecureStore from "expo-secure-store";
 import * as Location from "expo-location";
+import * as TaskManager from "expo-task-manager";
 import CreatorBusinessHub from "./CreatorBusinessHub";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails, loadLoginHistory, loadActiveSessions, revokeActiveSession, logoutOtherSessions, loadLocationShares, createOrUpdateLocationShare, stopLocationShare } from "./api";
 
@@ -16,6 +17,28 @@ const PANEL = "#121212";
 const BORDER = "#262626";
 const TEXT = "#F5F5F5";
 const MUTED = "#A8A8A8";
+const BACKGROUND_LOCATION_TASK = "BHUMI_SOCIAL_LIVE_LOCATION";
+if (!TaskManager.isTaskDefined(BACKGROUND_LOCATION_TASK)) {
+  TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
+    if (error) return;
+    const point = data?.locations?.[0];
+    if (!point) return;
+    try {
+      const [shareId, recipient, duration, approximate] = await Promise.all([
+        SecureStore.getItemAsync("bhumi_live_share_id"),
+        SecureStore.getItemAsync("bhumi_live_share_recipient"),
+        SecureStore.getItemAsync("bhumi_live_share_duration"),
+        SecureStore.getItemAsync("bhumi_live_share_approximate"),
+      ]);
+      if (!shareId || !recipient) return;
+      const latitude = approximate === "true" ? Math.round(point.coords.latitude * 100) / 100 : point.coords.latitude;
+      const longitude = approximate === "true" ? Math.round(point.coords.longitude * 100) / 100 : point.coords.longitude;
+      await createOrUpdateLocationShare({ share_id:shareId, recipient_username:recipient, latitude, longitude, accuracy:point.coords.accuracy, duration_minutes:Number(duration) || 60 });
+    } catch (taskError) {
+      console.warn("Background location update failed:", taskError?.message || taskError);
+    }
+  });
+}
 
 async function measureDirectoryBytes(directory) {
   if (!directory) return 0;
@@ -72,7 +95,7 @@ const SECTIONS = [
     ["location.nearbyFriends","Nearby Friends","Show you to friends who also enable this feature",false],
     ["location.approximate","Approximate Location","Share an approximate area instead of exact coordinates",true],
     ["location.locationTag","Location Tags","Allow adding a location to posts and stories",true],
-    ["location.background","Background Location","Allow location updates while the app is in use in the background",false],
+    ["location.background","Background Location","Continue sharing while the app is backgrounded; requires Always permission and a visible system notification",false],
     ["location.history","Location Sharing History","Keep a list of active and recent shares",false],
   ]},
   { key:"privacy", title:"Privacy Settings", subtitle:"Control who can see and contact you", icon:"shield-checkmark-outline", legacy:"privacy", fields:[
@@ -234,6 +257,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const [locationRecipient, setLocationRecipient] = React.useState("");
   const [locationDuration, setLocationDuration] = React.useState(60);
   const [locationStatus, setLocationStatus] = React.useState("");
+  const [nearbyDistances, setNearbyDistances] = React.useState({});
   const locationWatchRef = React.useRef(null);
   const activeLocationShareRef = React.useRef(null);
   const locationDurationRef = React.useRef(60);
@@ -349,10 +373,21 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     void refreshLocationShares();
   };
 
-  const stopLocationWatcher = () => {
+  const stopLocationWatcher = async () => {
     try { locationWatchRef.current?.remove?.(); } catch (_) {}
     locationWatchRef.current = null;
     activeLocationShareRef.current = null;
+    try {
+      if (await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK)) {
+        await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+      }
+    } catch (_) {}
+    await Promise.all([
+      SecureStore.deleteItemAsync("bhumi_live_share_id"),
+      SecureStore.deleteItemAsync("bhumi_live_share_recipient"),
+      SecureStore.deleteItemAsync("bhumi_live_share_duration"),
+      SecureStore.deleteItemAsync("bhumi_live_share_approximate"),
+    ]).catch(() => {});
   };
 
   const startLiveLocationShare = async () => {
@@ -367,6 +402,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       const approximate = !!preferences["location.approximate"];
       const latitude = approximate ? Math.round(position.coords.latitude * 100) / 100 : position.coords.latitude;
       const longitude = approximate ? Math.round(position.coords.longitude * 100) / 100 : position.coords.longitude;
+      await stopLocationWatcher();
       const created = await createOrUpdateLocationShare({
         recipient_username: recipient,
         latitude,
@@ -374,31 +410,56 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         accuracy: position.coords.accuracy,
         duration_minutes: locationDuration,
       });
-      stopLocationWatcher();
       activeLocationShareRef.current = { shareId:created.share_id, recipient:created.recipient_username };
       locationDurationRef.current = locationDuration;
-      locationWatchRef.current = await Location.watchPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-        timeInterval: 15000,
-        distanceInterval: 30,
-      }, async (nextPosition) => {
-        const active = activeLocationShareRef.current;
-        if (!active) return;
-        const approx = !!preferences["location.approximate"];
-        try {
-          await createOrUpdateLocationShare({
-            share_id: active.shareId,
-            recipient_username: active.recipient,
-            latitude: approx ? Math.round(nextPosition.coords.latitude * 100) / 100 : nextPosition.coords.latitude,
-            longitude: approx ? Math.round(nextPosition.coords.longitude * 100) / 100 : nextPosition.coords.longitude,
-            accuracy: nextPosition.coords.accuracy,
-            duration_minutes: locationDurationRef.current,
-          });
-        } catch (error) {
-          setLocationStatus(error?.message || "Location update नहीं हो पाया।");
+      if (preferences["location.background"]) {
+        const backgroundPermission = await Location.requestBackgroundPermissionsAsync();
+        if (backgroundPermission.status !== "granted") {
+          await stopLocationShare(created.share_id);
+          activeLocationShareRef.current = null;
+          throw new Error("Background permission नहीं मिली। Location sharing शुरू नहीं की गई। Android Settings में Allow all the time चुनें, या Background Location बंद करके foreground sharing करें।");
         }
-      });
-      setLocationStatus("आपकी live location @" + created.recipient_username + " के साथ साझा हो रही है। App foreground में खुला रहने पर location update होगी।");
+        await Promise.all([
+          SecureStore.setItemAsync("bhumi_live_share_id", created.share_id),
+          SecureStore.setItemAsync("bhumi_live_share_recipient", created.recipient_username),
+          SecureStore.setItemAsync("bhumi_live_share_duration", String(locationDuration)),
+          SecureStore.setItemAsync("bhumi_live_share_approximate", approximate ? "true" : "false"),
+        ]);
+        await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 15000,
+          distanceInterval: 30,
+          pausesUpdatesAutomatically: true,
+          foregroundService: {
+            notificationTitle: "Bhumi Social AI location sharing",
+            notificationBody: "Your live location is being shared with @" + created.recipient_username + ".",
+            notificationColor: "#0095F6",
+          },
+        });
+      } else {
+        locationWatchRef.current = await Location.watchPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 15000,
+          distanceInterval: 30,
+        }, async (nextPosition) => {
+          const active = activeLocationShareRef.current;
+          if (!active) return;
+          const approx = !!preferences["location.approximate"];
+          try {
+            await createOrUpdateLocationShare({
+              share_id: active.shareId,
+              recipient_username: active.recipient,
+              latitude: approx ? Math.round(nextPosition.coords.latitude * 100) / 100 : nextPosition.coords.latitude,
+              longitude: approx ? Math.round(nextPosition.coords.longitude * 100) / 100 : nextPosition.coords.longitude,
+              accuracy: nextPosition.coords.accuracy,
+              duration_minutes: locationDurationRef.current,
+            });
+          } catch (error) {
+            setLocationStatus(error?.message || "Location update नहीं हो पाया।");
+          }
+        });
+      }
+      setLocationStatus("आपकी live location @" + created.recipient_username + " के साथ साझा हो रही है। " + (preferences["location.background"] ? "Background location service चालू है।" : "Updates app foreground में होंगी।"));
       await refreshLocationShares();
     } catch (error) {
       setLocationStatus(error?.message || "Live location शुरू नहीं हो सकी।");
@@ -408,13 +469,13 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const endLocationShare = async (shareId) => {
     try {
       await stopLocationShare(shareId);
-      if (activeLocationShareRef.current?.shareId === shareId) stopLocationWatcher();
+      if (activeLocationShareRef.current?.shareId === shareId) await stopLocationWatcher();
       setLocationStatus("Location sharing बंद कर दी गई है।");
       await refreshLocationShares();
     } catch (error) { setLocationStatus(error?.message || "Location sharing बंद नहीं हुई।"); }
   };
 
-  React.useEffect(() => () => stopLocationWatcher(), []);
+  React.useEffect(() => () => { void stopLocationWatcher(); }, []);
   const runSettingAction = (key) => {
     if (key === "security.appLock" || key === "security.pin") {
       setActive(null);
@@ -918,7 +979,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             ))}
             {!(locationShares.history || []).length ? <Text style={{ color:MUTED,fontSize:11 }}>No location sharing history in the last 30 days.</Text> : null}
             <View style={{ backgroundColor:"#1B1B1B",borderRadius:12,padding:12,marginTop:15,marginBottom:20 }}>
-              <Text style={{ color:MUTED,fontSize:10,lineHeight:15 }}>Location is shared only after you press Start, only with the selected mutual follower, and expires automatically. Live updates run while the app is open in the foreground; background tracking is not enabled. Approximate Location rounds coordinates before sending.</Text>
+              <Text style={{ color:MUTED,fontSize:10,lineHeight:15 }}>Location is shared only after you press Start, only with the selected mutual follower, and expires automatically. Foreground sharing works while the app is open. If Background Location is enabled, Android/iOS may continue updates with an ongoing system location notification/permission. Stop sharing here to end it. Approximate Location rounds coordinates before sending.</Text>
             </View>
           </ScrollView>
         </View>
