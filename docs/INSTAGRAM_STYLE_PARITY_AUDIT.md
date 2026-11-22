@@ -67,6 +67,8 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [x] Replace Creator & Business Hub system alerts with inline feedback and an in-app catalog-delete confirmation.
 - [ ] Verify all setting actions are functional and do not merely show placeholder notices.
 
+- [x] Add a dedicated Messages notification filter so DM alerts are visible without mixing them into Likes, Comments, or Follows.
+
 ### Quality gates
 - [x] Correct a malformed confirm-password TextInput attribute discovered during source review.
 - [x] Python backend compile, backend unit tests, and media-storage checks passed in GitHub CI; npm install passed on Node 18/20/22.
