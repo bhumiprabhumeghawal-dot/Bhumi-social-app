@@ -117,6 +117,34 @@ class AuthLocationSecurityApiTests(unittest.TestCase):
         self.assertEqual(refreshed.get_json()["outgoing"], [])
         self.assertEqual(len(refreshed.get_json()["history"]), 1)
 
+    def test_expired_location_share_cannot_be_resumed(self):
+        token = self._auth()
+        now = datetime.now(timezone.utc).isoformat()
+        self.db.executemany(
+            "INSERT INTO follows(follower,following,created_at) VALUES(?,?,?)",
+            [("alice", "bob", now), ("bob", "alice", now)],
+        )
+        self.db.commit()
+        headers = {"Authorization": "Bearer " + token}
+        created = self.client.post(
+            "/api/location/shares",
+            json={"recipient_username": "bob", "latitude": 23.02, "longitude": 72.57, "duration_minutes": 15},
+            headers=headers,
+        )
+        self.assertEqual(created.status_code, 200)
+        share_id = created.get_json()["share_id"]
+        self.db.execute(
+            "UPDATE location_shares SET expires_at=? WHERE share_id=?",
+            ((datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat(), share_id),
+        )
+        self.db.commit()
+        resumed = self.client.post(
+            "/api/location/shares",
+            json={"share_id": share_id, "recipient_username": "bob", "latitude": 23.03, "longitude": 72.58, "duration_minutes": 15},
+            headers=headers,
+        )
+        self.assertEqual(resumed.status_code, 404)
+
     def test_invalid_location_coordinates_are_rejected(self):
         token = self._auth()
         now = datetime.now(timezone.utc).isoformat()
