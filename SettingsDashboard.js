@@ -354,6 +354,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     if (!active) return null;
     const section = SECTIONS.find((item) => item.key === active);
     if (!section) return null;
+    const displayedFields = normalizedSearch
+      ? section.fields.filter((field) =>
+          field[1].toLowerCase().includes(normalizedSearch) ||
+          field[2].toLowerCase().includes(normalizedSearch))
+      : section.fields;
     return (
       <Modal visible={!!active && visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setActive(null)}>
         <View style={{ flex:1, backgroundColor:BG, paddingTop:16, paddingBottom: Platform.OS === "android" ? 36 : 0 }}>
@@ -394,7 +399,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Open Messages, enter any conversation, then tap the palette icon. Choose a separate chat theme, set a private name for that friend, and add or remove them from Favourite Friends or Close Friends. Favourite and Close Friends filters appear above your chat list.</Text>
               </View>
             ) : null}
-            {section.fields.map(renderField)}
+            {displayedFields.map(renderField)}
             {section.key === "privacy" ? (
               <View style={{ marginTop:4 }}>
                 {["blocked","restricted"].map((legacyKey) => (
