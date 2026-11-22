@@ -9636,7 +9636,7 @@ export default function App() {
           else if (key === "account") openAccountSettings();
           else if (key === "blocked") openBlockedAccounts();
           else if (key === "restricted") openRestrictedAccounts();
-          else if (key === "messages") setMessagesOpen(true);
+          else if (key === "messages") openMessages();
         }}
       />
 
