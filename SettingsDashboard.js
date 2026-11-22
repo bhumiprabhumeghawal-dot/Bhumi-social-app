@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Linking, Platform, StyleSheet
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system/legacy";
 import CreatorBusinessHub from "./CreatorBusinessHub";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails } from "./api";
 
@@ -20,7 +21,7 @@ const ACTION_KEYS = new Set([
   "security.twoFactor","security.loginHistory","security.activeDevices","security.appLock",
   "security.fingerprint","security.faceUnlock","security.pin","security.checkup",
   "privacy.profileVisitors","privacy.hiddenWords",
-  "story.hideFrom","story.highlights","feed.mutedAccounts","feed.favorites","feed.notInterested",
+  "story.hideFrom","story.highlights","story.closeFriends","feed.mutedAccounts","feed.favorites","feed.notInterested",
   "appearance.appIcon","appearance.display","appearance.chat",
   "advanced.permissions","advanced.reset","advanced.storage","advanced.clearCache",
   "creator.accountType","creator.businessAccount","creator.dashboard","creator.insights","creator.followerAnalytics","creator.contentAnalytics","creator.audience","creator.monetization","creator.collaboration","creator.promotions","premium.profileStudio",
@@ -305,6 +306,28 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         key === "account.openSource" || key === "account.helpCenter") {
       setActive(null);
       onAbout?.();
+      return;
+    }
+    if (key === "story.closeFriends") {
+      setActive(null);
+      onLegacyOpen?.("messages");
+      return;
+    }
+    if (key === "advanced.clearCache") {
+      (async () => {
+        const cacheDirectory = FileSystem.cacheDirectory;
+        if (!cacheDirectory) {
+          setNotice({ title: "Cache unavailable", message: "This device does not expose an app cache directory." });
+          return;
+        }
+        try {
+          await FileSystem.deleteAsync(cacheDirectory, { idempotent: true });
+          await FileSystem.makeDirectoryAsync(cacheDirectory, { intermediates: true });
+          setNotice({ title: "Cache cleared", message: "Temporary app cache files were cleared. Your account, posts and messages were not deleted." });
+        } catch (error) {
+          setNotice({ title: "Could not clear cache", message: error?.message || "Temporary files could not be cleared." });
+        }
+      })();
       return;
     }
     if (key === "advanced.permissions") {
