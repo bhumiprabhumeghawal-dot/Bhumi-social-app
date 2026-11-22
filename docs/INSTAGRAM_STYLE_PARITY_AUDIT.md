@@ -39,13 +39,15 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [x] Direct conversation with presence, typing, attachments, voice recording, and call controls.
 - [x] Fixed dark-mode contrast problems in inbox controls and received-message text.
 - [x] Updated default chat bubble styling and theme preview.
+- [x] Confirm inbox includes All, Primary, General, Requests, search, unread filter, Notes, and a separate conversation view in the current UI.
 - [ ] Verify unread counts, request acceptance, conversation ordering, sent/received state, message delivery errors, and empty states.
 - [ ] Verify image/video/document previews, download/open behavior, voice playback, and keyboard avoidance.
 - Note: sent messages belong inside their conversation thread; a separate outbox screen is not part of the usual Instagram DM navigation model.
 
 ### Search and profiles
 - [ ] Verify search field, recent searches, people discovery, result rows, follow/request states, and profile navigation.
-- [ ] Verify profile header, avatar, counts, bio, edit profile, story highlights, post/reel/tagged tabs, saved posts, and overflow menu.
+- [x] Normalize the profile avatar and fallback-image dimensions so they share one consistent circular frame.
+- [ ] Verify profile header, counts, bio, edit profile, story highlights, post/reel/tagged tabs, saved posts, and overflow menu.
 - [ ] Verify followers/following lists and private-account request states.
 
 ### Create, camera, and editors
