@@ -9161,18 +9161,10 @@ export default function App() {
             accessibilityLabel={tab.name}
           >
             <Ionicons
-              name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
-              size={25}
+              name={activeTab === tab.name ? tab.activeIcon : tab.icon}
+              size={tab.name === "Create" ? 29 : 26}
               color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
             />
-            <Text
-              style={[
-                styles.navLabel,
-                activeTab === tab.name && styles.activeNavLabel,
-              ]}
-            >
-              {tab.label || tab.name}
-            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -12384,16 +12376,8 @@ export default function App() {
                   <Ionicons
                     name={activeTab === tab.name ? tab.activeIcon : tab.icon}
                     size={25}
-                    color={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? "#0095F6" : "#737373"}
+                    color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
                   />
-                  <Text
-                    style={[
-                      styles.navLabel,
-                      activeTab === tab.name && styles.activeNavLabel,
-                    ]}
-                  >
-                    {tab.label || tab.name}
-                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -13450,9 +13434,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#000000" },
   content: { flex: 1 },
   header: {
-    height: 82,
-    marginTop: 20,
-    paddingTop: 12,
+    height: 58,
+    marginTop: 0,
+    paddingTop: 0,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
