@@ -64,7 +64,7 @@ class FeedUserListsApiTests(unittest.TestCase):
         self.db.commit()
         feed = self.client.get("/api/posts")
         self.assertEqual(feed.status_code, 200)
-        self.assertEqual([item["username"] for item in feed.get_json()["items"]], ["charlie"])
+        self.assertEqual([item["user"] for item in feed.get_json()["items"]], ["charlie"])
 
     def test_favorite_accounts_are_prioritized_without_hiding_others(self):
         now = datetime.now(timezone.utc).isoformat()
