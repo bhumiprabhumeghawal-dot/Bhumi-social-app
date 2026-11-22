@@ -6,7 +6,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import {
   loadPrivacySettings, savePrivacySettings, loadProfilePosts,
-  loadBusinessProfile, saveBusinessProfile, loadBusinessCatalog,
+  loadBusinessProfile, saveBusinessProfile, loadBusinessCatalog, loadProfileConnections,
   createBusinessCatalogItem, deleteBusinessCatalogItem
 } from "./api";
 
@@ -28,6 +28,8 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [posts, setPosts] = React.useState([]);
+  const [followerCount, setFollowerCount] = React.useState(0);
+  const [followingCount, setFollowingCount] = React.useState(0);
   const [business, setBusiness] = React.useState({});
   const [items, setItems] = React.useState([]);
   const [form, setForm] = React.useState({ title: "", price: "", description: "", category: "product" });
@@ -45,8 +47,14 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
         setBusiness(profile || {});
         setItems(Array.isArray(catalog) ? catalog : []);
       } else {
-        const creatorPosts = await loadProfilePosts(username, username, 100);
+        const [creatorPosts, followers, following] = await Promise.all([
+          loadProfilePosts(username, username, 100),
+          loadProfileConnections(username, "followers"),
+          loadProfileConnections(username, "following"),
+        ]);
         setPosts(Array.isArray(creatorPosts) ? creatorPosts : []);
+        setFollowerCount(Array.isArray(followers?.users) ? followers.users.length : 0);
+        setFollowingCount(Array.isArray(following?.users) ? following.users.length : 0);
       }
     } catch (error) {
       setFeedback(error.message || "Data could not be loaded.");
@@ -258,16 +266,14 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
             <>
               {card("Creator Studio", "Your creator workspace and content performance.", "sparkles-outline")}
               <View style={{ flexDirection: "row", marginBottom: 12 }}>
-                <View style={{ flex: 1, backgroundColor: PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 13, padding: 14, marginRight: 7 }}>
-                  <Text style={{ color: MUTED, fontSize: 10 }}>YOUR POSTS</Text>
-                  <Text style={{ color: GOLD, fontSize: 24, fontWeight: "900", marginTop: 5 }}>{posts.length}</Text>
-                </View>
-                <View style={{ flex: 1, backgroundColor: PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 13, padding: 14 }}>
-                  <Text style={{ color: MUTED, fontSize: 10 }}>ACCOUNT TYPE</Text>
-                  <Text style={{ color: GOLD, fontSize: 16, fontWeight: "900", marginTop: 8 }}>{accountType.toUpperCase()}</Text>
-                </View>
+                {[[ "POSTS", posts.length ], [ "FOLLOWERS", followerCount ], [ "FOLLOWING", followingCount ]].map(([label, value]) => (
+                  <View key={label} style={{ flex: 1, backgroundColor: PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 13, padding: 11, marginRight: 6 }}>
+                    <Text style={{ color: MUTED, fontSize: 9 }}>{label}</Text>
+                    <Text style={{ color: GOLD, fontSize: 22, fontWeight: "900", marginTop: 5 }}>{value}</Text>
+                  </View>
+                ))}
               </View>
-              {card("Content Analytics", "Post count is loaded from your existing profile content. Reach and audience metrics need dedicated event tracking.", "analytics-outline")}
+              {card("Content Analytics", "Live totals from your profile: published posts, followers and following. Views, reach, watch time and engagement trends require impression analytics.", "analytics-outline")}
               {card("Brand Collaboration", "Creator campaign matching and brand contracts are the next development stage.", "handshake-outline")}
               {card("Monetization", "Creator payouts will be enabled only after payment provider, eligibility and tax checks are configured.", "wallet-outline")}
               {card("Promotions", "Prepare and share a campaign brief. Paid promotion checkout is not enabled yet.", "megaphone-outline")}
