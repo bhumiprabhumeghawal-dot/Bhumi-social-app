@@ -113,7 +113,7 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
         value={String(business[key] || "")}
         onChangeText={value => setBusiness(current => ({ ...current, [key]: value }))}
         placeholder={label}
-        placeholderTextColor="#786B88"
+        placeholderTextColor="#8E8E8E"
         multiline={multiline}
         style={[inputStyle, multiline ? { minHeight: 76, textAlignVertical: "top" } : null]}
       />
@@ -132,7 +132,7 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
 
   const actionButton = (label, onPress, disabled = false) => (
     <TouchableOpacity disabled={disabled} onPress={onPress} style={{ backgroundColor: GOLD, borderRadius: 11, paddingVertical: 12, paddingHorizontal: 14, alignItems: "center", opacity: disabled ? 0.6 : 1, marginTop: 8 }}>
-      <Text style={{ color: "#170F20", fontWeight: "900", fontSize: 12 }}>{label}</Text>
+      <Text style={{ color: "#FFFFFF", fontWeight: "900", fontSize: 12 }}>{label}</Text>
     </TouchableOpacity>
   );
 
@@ -150,7 +150,7 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
           <TouchableOpacity onPress={refresh}><Ionicons name="refresh" size={21} color={GOLD}/></TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 17, paddingBottom: 50 }} keyboardShouldPersistTaps="handled">
-          <View style={{ backgroundColor: "#1A1028", borderColor: GOLD, borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 14 }}>
+          <View style={{ backgroundColor: "#121212", borderColor: GOLD, borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 14 }}>
             <Text style={{ color: GOLD, fontWeight: "900", fontSize: 12 }}>ACCOUNT TYPE</Text>
             <Text style={{ color: MUTED, fontSize: 11, marginTop: 4 }}>Choose the tools that match how you use Bhumi Social AI.</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 12 }}>
@@ -159,7 +159,7 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
                 ["business", "Business"]
               ].map(([value, label]) => (
                 <TouchableOpacity key={value} disabled={saving} onPress={() => changeAccountType(value)} style={{ backgroundColor: accountType === value ? GOLD : PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, marginRight: 7, marginBottom: 7 }}>
-                  <Text style={{ color: accountType === value ? "#170F20" : TEXT, fontSize: 10, fontWeight: "900" }}>{label}</Text>
+                  <Text style={{ color: accountType === value ? "#FFFFFF" : TEXT, fontSize: 10, fontWeight: "900" }}>{label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -171,7 +171,7 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
             <>
               <View style={{ flexDirection: "row", marginBottom: 12 }}>
                 {["overview", "profile", "catalog"].map(value => (
-                  <TouchableOpacity key={value} onPress={() => setTab(value)} style={{ flex: 1, padding: 10, marginRight: 5, borderRadius: 9, backgroundColor: tab === value ? "#3A2850" : PANEL, borderWidth: 1, borderColor: tab === value ? GOLD : BORDER, alignItems: "center" }}>
+                  <TouchableOpacity key={value} onPress={() => setTab(value)} style={{ flex: 1, padding: 10, marginRight: 5, borderRadius: 9, backgroundColor: tab === value ? "#102A3C" : PANEL, borderWidth: 1, borderColor: tab === value ? GOLD : BORDER, alignItems: "center" }}>
                     <Text style={{ color: tab === value ? GOLD : MUTED, fontSize: 11, fontWeight: "800" }}>{value.toUpperCase()}</Text>
                   </TouchableOpacity>
                 ))}
@@ -205,9 +205,9 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
               {tab === "catalog" ? (
                 <>
                   <Text style={{ color: TEXT, fontWeight: "900", fontSize: 15, marginBottom: 10 }}>Add product or service</Text>
-                  <TextInput value={form.title} onChangeText={title => setForm(current => ({ ...current, title }))} placeholder="Product / service name" placeholderTextColor="#786B88" style={inputStyle}/>
-                  <TextInput value={form.price} onChangeText={price => setForm(current => ({ ...current, price }))} placeholder="Price (e.g. 499)" placeholderTextColor="#786B88" keyboardType="decimal-pad" style={inputStyle}/>
-                  <TextInput value={form.description} onChangeText={description => setForm(current => ({ ...current, description }))} placeholder="Description" placeholderTextColor="#786B88" multiline style={[inputStyle, { minHeight: 70, textAlignVertical: "top" }]}/>
+                  <TextInput value={form.title} onChangeText={title => setForm(current => ({ ...current, title }))} placeholder="Product / service name" placeholderTextColor="#8E8E8E" style={inputStyle}/>
+                  <TextInput value={form.price} onChangeText={price => setForm(current => ({ ...current, price }))} placeholder="Price (e.g. 499)" placeholderTextColor="#8E8E8E" keyboardType="decimal-pad" style={inputStyle}/>
+                  <TextInput value={form.description} onChangeText={description => setForm(current => ({ ...current, description }))} placeholder="Description" placeholderTextColor="#8E8E8E" multiline style={[inputStyle, { minHeight: 70, textAlignVertical: "top" }]}/>
                   {actionButton(saving ? "ADDING..." : "ADD TO CATALOG", addItem, saving)}
                   <Text style={{ color: GOLD, fontWeight: "900", fontSize: 14, marginTop: 22, marginBottom: 10 }}>YOUR CATALOG ({items.length})</Text>
                   {items.map(item => (
