@@ -12961,14 +12961,14 @@ export default function App() {
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
-              {["All", "Likes", "Comments", "Follows"].map((filter) => (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
+              {["All", "Likes", "Comments", "Follows", "Messages"].map((filter) => (
                 <TouchableOpacity key={filter} onPress={() => setNotificationFilter(filter)}
                   style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 18, backgroundColor: notificationFilter === filter ? "#0095F6" : "#262626" }}>
                   <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "800" }}>{filter}</Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
             {notificationsLoading ? (
               <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 28 }} />
             ) : (
@@ -12977,6 +12977,7 @@ export default function App() {
                   if (notificationFilter === "All") return true;
                   if (notificationFilter === "Likes") return item.kind === "like";
                   if (notificationFilter === "Comments") return item.kind === "comment";
+                  if (notificationFilter === "Messages") return item.kind === "message";
                   return ["follow", "follow_request", "follow_accepted", "follow_rejected"].includes(item.kind);
                 }).map((item, index) => {
                   const actor = item.actor ? "@" + item.actor : "Someone";
