@@ -1,13 +1,6 @@
 name: LiveKit Native Compatibility Check
 
 on:
-  pull_request:
-    branches: [master]
-    paths:
-      - "package.json"
-      - "package-lock.json"
-      - "app.json"
-      - ".github/workflows/livekit-native-compat-check.yml"
   workflow_dispatch:
 
 permissions:
