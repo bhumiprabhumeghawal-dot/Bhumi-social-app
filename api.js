@@ -1079,6 +1079,17 @@ export async function loadMessageConversations() {
   });
 }
 
+export async function updateMessageConversationFolder(username, folder) {
+  const response = await fetch(`${API_BASE_URL}/api/messages/conversations/${encodeURIComponent(username)}/folder`, {
+    method: "PATCH",
+    headers: { ...(await authHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ folder }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not organize this conversation.");
+  return data;
+}
+
 export async function loadDirectMessages(username) {
   const peer = String(username || '').trim().toLowerCase();
   return coalesceChatRead(`messages:${peer}`, async () => {
