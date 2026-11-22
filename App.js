@@ -5063,26 +5063,44 @@ export default function App() {
 
   const renderAppHeader = () => (
     <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative" }]}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flex: 1 }}>
-        <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 32, height: 32 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
-        <Text style={styles.brand} numberOfLines={1}>Bhumi Social AI</Text>
-      </View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 17 }}>
-        <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel="Create menu" style={{ padding: 3 }}>
-          <Ionicons name="add-circle-outline" size={27} color="#262626" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={openNotifications} accessibilityLabel="Notifications" style={{ position: "relative", padding: 3 }}>
-          <Ionicons name="heart-outline" size={26} color="#262626" />
-          {unreadNotificationCount > 0 ? (
-            <View style={{ position: "absolute", right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#E1306C", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text>
-            </View>
-          ) : null}
-        </TouchableOpacity>
-        <TouchableOpacity onPress={openMessages} accessibilityLabel="Messages" style={{ padding: 3 }}>
-          <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+      {activeTab === "Profile" ? (
+        <>
+          <Text style={[styles.brand, { flex: 1, fontSize: 20 }]} numberOfLines={1}>
+            {profile?.username ? `@${profile.username}` : "Profile"}
+          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
+            <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel="Create post" style={{ padding: 3 }}>
+              <Ionicons name="add-square-outline" size={26} color="#F5F5F5" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setSettingsHubOpen(true)} accessibilityLabel="Settings and activity" style={{ padding: 3 }}>
+              <Ionicons name="menu" size={29} color="#F5F5F5" />
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : (
+        <>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flex: 1 }}>
+            <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 32, height: 32 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
+            <Text style={styles.brand} numberOfLines={1}>Bhumi Social AI</Text>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 19 }}>
+            <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel="Create menu" style={{ padding: 3 }}>
+              <Ionicons name="add-circle-outline" size={27} color="#F5F5F5" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={openNotifications} accessibilityLabel="Notifications" style={{ position: "relative", padding: 3 }}>
+              <Ionicons name="heart-outline" size={26} color="#F5F5F5" />
+              {unreadNotificationCount > 0 ? (
+                <View style={{ position: "absolute", right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#E1306C", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}>
+                  <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text>
+                </View>
+              ) : null}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={openMessages} accessibilityLabel="Messages" style={{ padding: 3 }}>
+              <Ionicons name="paper-plane-outline" size={25} color="#F5F5F5" />
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
       {headerCreateMenuOpen ? (
         <Modal visible={headerCreateMenuOpen} transparent animationType="fade" statusBarTranslucent={false} onRequestClose={() => setHeaderCreateMenuOpen(false)}>
           <View style={{ flex: 1 }}>
@@ -9131,10 +9149,10 @@ export default function App() {
       <View style={styles.bottomNav}>
         {[
           { name: "Home", icon: "home-outline", activeIcon: "home" },
-          { name: "Reels", icon: "play-outline", activeIcon: "play" },
-          { name: "Chat", label: "Messages", icon: "chatbubble-outline", activeIcon: "chatbubble" },
           { name: "Search", icon: "search-outline", activeIcon: "search" },
-          { name: "Profile", icon: "person-outline", activeIcon: "person" },
+          { name: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
+          { name: "Reels", icon: "videocam-outline", activeIcon: "videocam" },
+          { name: "Profile", icon: "person-circle-outline", activeIcon: "person-circle" },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.name}
@@ -9145,7 +9163,7 @@ export default function App() {
             <Ionicons
               name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
               size={25}
-              color={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? "#0095F6" : "#737373"}
+              color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
             />
             <Text
               style={[
@@ -12348,12 +12366,12 @@ export default function App() {
             )}
             <View style={[styles.bottomNav, selectedChatUser && { display: "none" }]}>
               {[
-                { name: "Home", icon: "home-outline", activeIcon: "home" },
-                { name: "Reels", icon: "play-outline", activeIcon: "play" },
-                { name: "Chat", label: "Messages", icon: "chatbubble-outline", activeIcon: "chatbubble" },
-                { name: "Search", icon: "search-outline", activeIcon: "search" },
-                { name: "Profile", icon: "person-outline", activeIcon: "person" },
-              ].map((tab) => (
+          { name: "Home", icon: "home-outline", activeIcon: "home" },
+          { name: "Search", icon: "search-outline", activeIcon: "search" },
+          { name: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
+          { name: "Reels", icon: "videocam-outline", activeIcon: "videocam" },
+          { name: "Profile", icon: "person-circle-outline", activeIcon: "person-circle" },
+        ].map((tab) => (
                 <TouchableOpacity
                   key={tab.name}
                   style={styles.navItem}
@@ -13566,8 +13584,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   bottomNav: {
-    height: Platform.OS === "android" ? 86 : 70,
-    paddingBottom: Platform.OS === "android" ? 36 : 16,
+    height: Platform.OS === "android" ? 68 : 58,
+    paddingBottom: Platform.OS === "android" ? 12 : 4,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#262626",
     flexDirection: "row",
