@@ -3280,10 +3280,11 @@ export default function App() {
   );
 
   React.useEffect(() => {
-    if (!selectedStory || selectedStory.mediaType === "video") {
+    if (!selectedStory) {
       setStoryProgress(0);
       return;
     }
+    if (selectedStory.mediaType === "video") return;
 
     if (storyImageZoomed || storyPaused) return;
 
