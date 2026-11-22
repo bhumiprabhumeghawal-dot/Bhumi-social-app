@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Modal, View, Text, TextInput, ScrollView, TouchableOpacity, Switch,
-  ActivityIndicator, Linking, Platform, StyleSheet, Share
+  ActivityIndicator, Linking, Platform, StyleSheet
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system/legacy";
