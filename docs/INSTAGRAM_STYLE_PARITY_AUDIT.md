@@ -57,10 +57,13 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [ ] Verify permissions and graceful failure states without breaking existing upload APIs.
 
 ### Notifications, settings, privacy, and account
-- [ ] Verify notification list, unread state, navigation to the related post/profile, and empty state.
+- [x] Fix notification dark-mode row and filter-chip contrast.
+- [x] Add visible notification loading feedback and filter-specific empty states.
+- [ ] Verify notification unread state, navigation to the related post/profile, and server synchronization.
 - [x] Add settings search and filtered category results; category-name searches preserve the full category list when opened.
 - [ ] Verify privacy, blocked/restricted accounts, login/security, notifications, appearance, account controls, and logout.
 - [x] Align Creator & Business Hub colors with the app-wide dark surface and blue accent system.
+- [x] Replace Creator & Business Hub system alerts with inline feedback and an in-app catalog-delete confirmation.
 - [ ] Verify all setting actions are functional and do not merely show placeholder notices.
 
 ### Quality gates
