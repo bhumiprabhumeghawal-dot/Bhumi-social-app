@@ -2469,11 +2469,18 @@ export default function App() {
 
   React.useEffect(() => {
     setReelZoomed(false);
+    setManualReelPlay(false);
   }, [activeTab]);
 
   React.useEffect(() => {
     setManualReelPlay(false);
   }, [activeReelIndex]);
+
+  React.useEffect(() => {
+    if (appSettingsPreferences["feed.reelsAutoPlay"] === false) {
+      setManualReelPlay(false);
+    }
+  }, [appSettingsPreferences["feed.reelsAutoPlay"]]);
   const [reelViewportHeight, setReelViewportHeight] = React.useState(0);
   const [pendingSavedReelIndex, setPendingSavedReelIndex] = React.useState(null);
 
