@@ -4027,6 +4027,62 @@ def _send_incoming_call_push(username, caller, call_type, call_id):
             app.logger.exception("Could not send incoming-call push to %s", username)
 
 
+def _send_direct_message_push(username, sender, message_text="", attachment_type=None):
+    """Deliver a private-message push to registered devices when message alerts are enabled."""
+    try:
+        with get_db() as db:
+            enabled = db.execute(
+                "SELECT enabled FROM notification_preferences WHERE LOWER(username)=LOWER(?)",
+                (username,),
+            ).fetchone()
+            if enabled and not bool(enabled["enabled"]):
+                return
+            detail = db.execute(
+                "SELECT messages FROM notification_detail_preferences WHERE LOWER(username)=LOWER(?)",
+                (username,),
+            ).fetchone()
+            if detail and not bool(detail["messages"]):
+                return
+            prefs = _chat_preferences(db, username)
+            preview = prefs.get("notifications.preview", True) is not False
+            rows = db.execute(
+                "SELECT expo_push_token FROM call_push_tokens WHERE LOWER(username)=LOWER(?)",
+                (username,),
+            ).fetchall()
+        if not rows:
+            return
+        snippet = str(message_text or "").strip()
+        if not preview or not snippet:
+            snippet = "Sent you a photo" if attachment_type == "image" else "Sent you an attachment" if attachment_type else "You have a new message"
+        snippet = snippet[:140]
+        for row in rows:
+            token = row["expo_push_token"]
+            payload = {
+                "to": token,
+                "title": f"New message from @{sender}",
+                "body": snippet,
+                "sound": "default",
+                "priority": "high",
+                "channelId": "messages",
+                "data": {"type": "direct_message", "username": sender},
+            }
+            request_obj = urllib.request.Request(
+                "https://exp.host/--/api/v2/push/send",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Accept": "application/json", "Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(request_obj, timeout=5) as response:
+                result = json.loads(response.read().decode("utf-8") or "{}")
+            tickets = result.get("data") if isinstance(result, dict) else None
+            ticket_list = tickets if isinstance(tickets, list) else [tickets]
+            if any(ticket and ticket.get("status") == "error" and ticket.get("details", {}).get("error") == "DeviceNotRegistered" for ticket in ticket_list):
+                with get_db() as db:
+                    db.execute("DELETE FROM call_push_tokens WHERE expo_push_token=? AND LOWER(username)=LOWER(?)", (token, username))
+    except Exception:
+        app.logger.exception("Could not send direct-message push to %s", username)
+
+
 def _call_user():
     return _chat_current_user()
 
@@ -4739,6 +4795,8 @@ def send_direct_message(username):
             expires_at,
         ))
         _people_notification(db, target, current, "message", message_id, now)
+
+    _send_direct_message_push(target, current, body, attachment_type)
 
     return jsonify({
         "ok": True,
