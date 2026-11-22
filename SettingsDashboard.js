@@ -804,6 +804,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           <View style={{ flex:1, paddingRight:12 }}>
             <Text style={{ color:TEXT, fontSize:14, fontWeight:"800" }}>{title}</Text>
             <Text style={{ color:MUTED, fontSize:11, marginTop:4, lineHeight:16 }}>{subtitle}</Text>
+            {((key === "security.fingerprint" || key === "security.faceUnlock") && value) ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"800",marginTop:5 }}>Enabled on this device</Text> : null}
             {savingKey === key ? <Text style={{ color:GOLD, fontSize:10, marginTop:5 }}>Saving…</Text> : null}
           </View>
           {isAction ? (
