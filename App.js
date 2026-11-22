@@ -7632,7 +7632,14 @@ export default function App() {
           {renderAppHeader()}
             <FlatList
               ListHeaderComponent={
-                <View>
+                <View
+                  onLayout={(event) => {
+                    const height = event.nativeEvent.layout.height;
+                    if (height > 0 && height !== feedHeaderHeight) {
+                      setFeedHeaderHeight(height);
+                    }
+                  }}
+                >
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -7717,7 +7724,7 @@ export default function App() {
                 feedViewportHeight > 0
                   ? (_, index) => ({
                       length: feedViewportHeight,
-                      offset: feedViewportHeight * index,
+                      offset: feedHeaderHeight + feedViewportHeight * index,
                       index,
                     })
                   : undefined
@@ -7730,7 +7737,7 @@ export default function App() {
                     0,
                     Math.min(
                       Math.round(
-                        event.nativeEvent.contentOffset.y / feedViewportHeight,
+                        (event.nativeEvent.contentOffset.y - feedHeaderHeight) / feedViewportHeight,
                       ),
                       Math.max(0, count - 1),
                     ),
@@ -7744,7 +7751,7 @@ export default function App() {
                 if (feedViewportHeight > 0) {
                   const count = groupPostItems(feedPosts).length;
                   const nextIndex = Math.round(
-                    (event.nativeEvent.contentOffset.y) /
+                    (event.nativeEvent.contentOffset.y - feedHeaderHeight) /
                       feedViewportHeight,
                   );
                   setActiveFeedIndex(
