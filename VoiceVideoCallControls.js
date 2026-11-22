@@ -163,10 +163,24 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const callKeepUuidRef = useRef(null);
   const callKeepCallIdRef = useRef(null);
   const callKeepEventBusyRef = useRef(false);
+  const pendingCallKeepActionRef = useRef(null);
   const incomingRef = useRef(false);
   const answerHandlerRef = useRef(null);
   const declineHandlerRef = useRef(null);
   const endHandlerRef = useRef(null);
+
+  const processPendingCallKeepAction = () => {
+    const pending = pendingCallKeepActionRef.current;
+    if (!pending || pending.uuid !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
+    pendingCallKeepActionRef.current = null;
+    callKeepEventBusyRef.current = true;
+    const handler = pending.type === "answer"
+      ? answerHandlerRef.current
+      : (incomingRef.current ? declineHandlerRef.current : endHandlerRef.current);
+    Promise.resolve(handler?.()).finally(() => {
+      callKeepEventBusyRef.current = false;
+    });
+  };
 
   useEffect(() => {
     callRef.current = call;
@@ -201,7 +215,26 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       const handler = incomingRef.current ? declineHandlerRef.current : endHandlerRef.current;
       Promise.resolve(handler?.()).finally(() => { callKeepEventBusyRef.current = false; });
     });
-    ensureCallKeepSetup().catch(() => {});
+    ensureCallKeepSetup().then(async () => {
+      try {
+        const initialEvents = await RNCallKeep.getInitialEvents?.();
+        const queued = Array.isArray(initialEvents) ? initialEvents : [];
+        const action = [...queued].reverse().find((event) =>
+          event?.name === "RNCallKeepPerformAnswerCallAction" ||
+          event?.name === "RNCallKeepPerformEndCallAction"
+        );
+        if (action?.data?.callUUID) {
+          pendingCallKeepActionRef.current = {
+            type: action.name === "RNCallKeepPerformAnswerCallAction" ? "answer" : "end",
+            uuid: action.data.callUUID,
+          };
+          processPendingCallKeepAction();
+        }
+        await RNCallKeep.clearInitialEvents?.();
+      } catch (error) {
+        console.warn("Initial CallKeep event recovery failed:", error?.message || error);
+      }
+    }).catch(() => {});
     return () => { active = false; subscriptions.forEach((item) => item.remove()); };
   }, [currentUsername, enableIncoming]);
 
@@ -357,11 +390,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           setIncoming(true);
           setCallMessage(next.type === "video" ? "आपको वीडियो कॉल आ रही है।" : "आपको वॉइस कॉल आ रही है।");
           if (Platform.OS === "android") {
-            try { if (callKeepSetupPromise) await callKeepSetupPromise; } catch (_) {}
+            try { await ensureCallKeepSetup(); } catch (_) {}
             if (!active || callRef.current?.id !== next.id) return;
             const uuid = stableCallUuid(next.id);
             callKeepUuidRef.current = uuid;
             callKeepCallIdRef.current = next.id;
+            processPendingCallKeepAction();
             Promise.resolve(RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video")).catch((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
           }
           return;
