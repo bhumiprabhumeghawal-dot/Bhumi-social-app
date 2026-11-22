@@ -36,7 +36,7 @@ class MessageInboxFolderApiTests(unittest.TestCase):
         self.assertIsNotNone(row)
 
     def test_authenticated_user_can_save_general_folder(self):
-        with patch.object(server_app, "_chat_current_user", return_value="alice"):
+        with patch.object(server_app, "_auth_user", return_value="alice"):
             response = self.client.patch(
                 "/api/messages/conversations/bob/folder",
                 json={"folder": "general"},
@@ -53,7 +53,7 @@ class MessageInboxFolderApiTests(unittest.TestCase):
         self.assertEqual(row["folder"], "general")
 
     def test_conversation_list_returns_saved_folder(self):
-        with patch.object(server_app, "_chat_current_user", return_value="alice"):
+        with patch.object(server_app, "_auth_user", return_value="alice"):
             saved = self.client.patch(
                 "/api/messages/conversations/bob/folder",
                 json={"folder": "general"},
@@ -67,7 +67,7 @@ class MessageInboxFolderApiTests(unittest.TestCase):
         self.assertFalse(conversation["isRequest"])
 
     def test_unclassified_non_followed_conversation_defaults_to_requests(self):
-        with patch.object(server_app, "_chat_current_user", return_value="alice"):
+        with patch.object(server_app, "_auth_user", return_value="alice"):
             response = self.client.get("/api/messages/conversations")
         self.assertEqual(response.status_code, 200)
         conversation = response.get_json()["conversations"][0]
@@ -75,7 +75,7 @@ class MessageInboxFolderApiTests(unittest.TestCase):
         self.assertTrue(conversation["isRequest"])
 
     def test_folder_update_rejects_unknown_folder(self):
-        with patch.object(server_app, "_chat_current_user", return_value="alice"):
+        with patch.object(server_app, "_auth_user", return_value="alice"):
             response = self.client.patch(
                 "/api/messages/conversations/bob/folder",
                 json={"folder": "archive"},
@@ -83,7 +83,7 @@ class MessageInboxFolderApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_folder_update_rejects_nonexistent_conversation(self):
-        with patch.object(server_app, "_chat_current_user", return_value="alice"):
+        with patch.object(server_app, "_auth_user", return_value="alice"):
             response = self.client.patch(
                 "/api/messages/conversations/charlie/folder",
                 json={"folder": "primary"},
@@ -91,7 +91,7 @@ class MessageInboxFolderApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_folder_update_requires_authentication(self):
-        with patch.object(server_app, "_chat_current_user", return_value=None):
+        with patch.object(server_app, "_auth_user", return_value=None):
             response = self.client.patch(
                 "/api/messages/conversations/bob/folder",
                 json={"folder": "primary"},
