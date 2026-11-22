@@ -264,6 +264,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const [locationShares, setLocationShares] = React.useState({ outgoing:[], incoming:[] });
   const [locationRecipient, setLocationRecipient] = React.useState("");
   const [locationDuration, setLocationDuration] = React.useState(60);
+  const previousUsernameRef = React.useRef(username);
   const [locationStatus, setLocationStatus] = React.useState("");
   const [nearbyDistances, setNearbyDistances] = React.useState({});
   const locationWatchRef = React.useRef(null);
@@ -530,6 +531,18 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       await refreshLocationShares();
     } catch (error) { setLocationStatus(error?.message || "Location sharing बंद नहीं हुई।"); }
   };
+
+  React.useEffect(() => {
+    const previousUsername = previousUsernameRef.current;
+    previousUsernameRef.current = username;
+    if (previousUsername && !username) {
+      (async () => {
+        const shareId = activeLocationShareRef.current?.shareId || await SecureStore.getItemAsync("bhumi_live_share_id");
+        if (shareId) await stopLocationShare(shareId).catch(() => {});
+        await stopLocationWatcher();
+      })();
+    }
+  }, [username]);
 
   React.useEffect(() => () => { void stopLocationWatcher(); }, []);
   const toggleBiometricUnlock = async (key) => {
