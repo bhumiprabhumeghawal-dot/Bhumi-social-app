@@ -34,13 +34,14 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [ ] Verify swipe/zoom interaction and safe-area placement across Android devices.
 
 ### Inbox and direct messages
-- [x] Full-screen inbox with All, Primary, General, and Requests filters.
+- [x] Full-screen inbox with All, Primary, General, and Requests filters; unclassified conversations now default to Primary.
 - [x] Notes row, search, unread filter, and new-message entry.
 - [x] Direct conversation with presence, typing, attachments, voice recording, and call controls.
 - [x] Fixed dark-mode contrast problems in inbox controls and received-message text.
 - [x] Updated default chat bubble styling and theme preview.
 - [x] Confirm inbox includes All, Primary, General, Requests, search, unread filter, Notes, and a separate conversation view in the current UI.
-- [ ] Verify unread counts, request acceptance, conversation ordering, sent/received state, message delivery errors, and empty states.
+- [x] Make empty states reflect the active search, unread-only toggle, and inbox folder instead of incorrectly showing an empty inbox only when the entire conversation list is empty.
+- [ ] Verify unread counts, request acceptance, conversation ordering, sent/received state, and message delivery errors.
 - [ ] Verify image/video/document previews, download/open behavior, voice playback, and keyboard avoidance.
 - Note: sent messages belong inside their conversation thread; a separate outbox screen is not part of the usual Instagram DM navigation model.
 
@@ -62,7 +63,8 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [ ] Verify all setting actions are functional and do not merely show placeholder notices.
 
 ### Quality gates
-- [ ] Static syntax and dependency checks.
+- [x] Correct a malformed confirm-password TextInput attribute discovered during source review.
+- [ ] Run static syntax and dependency checks (not run yet; no build triggered).
 - [ ] Android and iOS layout review at compact and large viewport sizes.
 - [ ] End-to-end checks for login persistence, post/story/reel publishing, likes/comments/saves, follow requests, DM delivery, and calls.
 - [ ] Confirm no regression in feed/reel scrolling, zoom coordination, and active-only reel playback.
