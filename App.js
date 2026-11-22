@@ -5072,7 +5072,7 @@ export default function App() {
             <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel="Create post" style={{ padding: 3 }}>
               <Ionicons name="add-square-outline" size={26} color="#F5F5F5" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setSettingsHubOpen(true)} accessibilityLabel="Settings and activity" style={{ padding: 3 }}>
+            <TouchableOpacity onPress={() => setSettingsHubOpen(true)} accessibilityLabel="Settings and activity" hitSlop={8} style={{ width:44,height:44,borderRadius:22,alignItems:"center",justifyContent:"center",marginRight:-5 }}>
               <Ionicons name="menu" size={29} color="#F5F5F5" />
             </TouchableOpacity>
           </View>
