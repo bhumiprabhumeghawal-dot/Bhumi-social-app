@@ -507,7 +507,12 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               duration_minutes: locationDurationRef.current,
             });
           } catch (error) {
-            setLocationStatus(error?.message || "Location update नहीं हो पाया।");
+            const message = error?.message || "Location update नहीं हो पाया।";
+            if (/not found|mutual followers|permission/i.test(message)) {
+              await stopLocationShare(active.shareId).catch(() => {});
+              await stopLocationWatcher();
+            }
+            setLocationStatus(message);
           }
         });
       }
