@@ -92,9 +92,9 @@ jobs:
           const repoLine = '        maven { url = uri("../node_modules/unimodules-app-loader/local-maven-repo") }';
           if (!source.includes(repoLine)) {
             if (source.includes("allprojects {")) {
-              source = source.replace(/allprojects\\s*\\{\\s*repositories\\s*\\{/, match => match + "\\n" + repoLine);
+              source = source.replace(/allprojects\s*\{\s*repositories\s*\{/, match => match + "\n" + repoLine);
             } else {
-              source += "\\nallprojects { repositories {\\n" + repoLine + "\\n} }\\n";
+              source += "\nallprojects { repositories {\n" + repoLine + "\n} }\n";
             }
           }
           fs.writeFileSync(gradle, source);
