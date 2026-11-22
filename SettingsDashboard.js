@@ -319,7 +319,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         merged["security.faceUnlock"] = !!storedFace;
         merged["notifications.enabled"] = notificationsEnabled;
         Object.entries(notificationDetails || {}).forEach(([name, enabled]) => {
-          const key = ({ likes:"notifications.likes", comments:"notifications.comments", follows:"notifications.follows", messages:"notifications.messages" })[name];
+          const key = ({ likes:"notifications.likes", comments:"notifications.comments", follows:"notifications.follows", requests:"notifications.requests", messages:"notifications.messages" })[name];
           if (key) merged[key] = enabled;
         });
         setPreferences(merged);
@@ -342,7 +342,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         const saved = await saveNotificationPreference(value);
         setPreferences((current) => ({ ...current, [key]: saved }));
       } else {
-        const detailKey = ({ "notifications.likes":"likes", "notifications.comments":"comments", "notifications.follows":"follows", "notifications.messages":"messages" })[key];
+        const detailKey = ({ "notifications.likes":"likes", "notifications.comments":"comments", "notifications.follows":"follows", "notifications.messages":"messages", "notifications.requests":"requests" })[key];
         if (detailKey) {
           await saveNotificationDetails({ [detailKey]: value });
           setPreferences((current) => ({ ...current, [key]: value }));
