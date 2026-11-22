@@ -57,7 +57,11 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow Bhumi Social AI to share your live location with friends you choose."
+          "locationWhenInUsePermission": "Allow Bhumi Social AI to share your live location with friends you choose.",
+          "locationAlwaysAndWhenInUsePermission": "Allow Bhumi Social AI to keep sharing your live location with the friend you selected, including while the app is in the background.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ]
     ],
