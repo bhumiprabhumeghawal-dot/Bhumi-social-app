@@ -14,3 +14,5 @@ Startup crash capture: install global JS handler before lazy-loading App and sho
 Final APK build trigger: include Chat bottom-tab navigation using the Paper Plane icon and keep Chat active while the inbox is open. Build from current master: 2026-11-22.
 
 Verification build trigger: rebuild Android APK after moving the incoming-call background-task side effect behind the startup crash handler. Build from current master: 2026-11-23.
+
+Crash fix APK build requested: move Android BackHandler useEffect above all conditional returns; source commit 98ebfb0. Triggered 2026-11-23.
