@@ -1359,6 +1359,7 @@ export async function addFeedUserList(listType, username) {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Could not update account list.");
+  CONTENT_MEMORY_CACHE.clear();
   return data;
 }
 
@@ -1369,6 +1370,7 @@ export async function removeFeedUserList(listType, username) {
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Could not remove account from list.");
+  CONTENT_MEMORY_CACHE.clear();
   return data;
 }
 
