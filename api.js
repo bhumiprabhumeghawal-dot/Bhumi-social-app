@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
 const API_BASE_URL = 'https://bhumi-social-app-1.onrender.com';
@@ -78,7 +79,7 @@ async function authHeaders(extra = {}) {
 export async function registerAccount(username, password, phoneNumber, email, fullName) {
   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Device-Name': `${Platform.OS} device · ${Platform.Version}` },
     body: JSON.stringify({
       username: username.trim(),
       full_name: fullName.trim(),
@@ -96,7 +97,7 @@ export async function registerAccount(username, password, phoneNumber, email, fu
 export async function loginAccount(username, password) {
   const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Device-Name': `${Platform.OS} device · ${Platform.Version}` },
     body: JSON.stringify({ username: username.trim(), password }),
   });
   const data = await response.json();
