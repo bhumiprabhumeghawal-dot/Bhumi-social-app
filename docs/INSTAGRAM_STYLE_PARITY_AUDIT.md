@@ -110,3 +110,6 @@ The existing app is a large single-file React Native screen with supporting modu
 - Report a Problem opens the native email composer with a prefilled support address and diagnostic context.
 - Node.js CI now runs npx expo export --platform android on Node 22 to catch Metro/JS bundle failures without building an APK.
 - OTA publishing is intentionally excluded from this workstream at the user's request.
+
+- [x] Connect Profile Studio to the existing profile editor instead of a placeholder notice.
+- [x] Connect Help Center to the native support email composer.
