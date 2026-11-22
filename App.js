@@ -5,6 +5,7 @@ import appConfig from "./app.json";
 import SettingsDashboard from "./SettingsDashboard";
 import ChatPersonalization from "./ChatPersonalization";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
+import { ensureCallKeepSetup } from "./incomingCallBackgroundTask";
 import { registerCallPushToken } from "./api";
 import * as SecureStore from "expo-secure-store";
 import * as LocalAuthentication from "expo-local-authentication";
@@ -2553,6 +2554,9 @@ export default function App() {
     (async () => {
       try {
         if (Platform.OS === "android") {
+          await ensureCallKeepSetup().catch((setupError) => {
+            console.warn("Incoming call UI setup failed:", setupError?.message || setupError);
+          });
           await Notifications.setNotificationChannelAsync("incoming-calls", {
             name: "Incoming calls",
             importance: Notifications.AndroidImportance.MAX,
