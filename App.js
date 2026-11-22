@@ -11885,7 +11885,7 @@ export default function App() {
                           {message.text ? (
                             <Text
                               style={{
-                                color: mine ? chatThemeColors.accent : "#262626",
+                                color: mine ? chatThemeColors.accent : "#F5F5F5",
                                 fontSize: 15,
                                 lineHeight: 21,
                               }}
@@ -13454,7 +13454,7 @@ const styles = StyleSheet.create({
     borderRadius: 34,
     padding: 0,
     borderWidth: 2,
-    borderColor: "#8B3DFF",
+    borderColor: "#F56040",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -13463,7 +13463,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 2,
-    borderColor: "#8B3DFF",
+    borderColor: "#F56040",
     alignItems: "center",
     justifyContent: "center",
   },
