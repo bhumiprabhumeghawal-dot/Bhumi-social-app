@@ -6008,6 +6008,26 @@ export default function App() {
     );
   }
 
+  const getVisibleMessageConversations = () => {
+    const term = chatSearchQuery.trim().toLowerCase();
+    return messageConversations.filter((conversation) => {
+      const username = conversation.username || conversation.peer || conversation.otherUsername || conversation.user?.username || "";
+      const folder = String(conversation.folder || conversation.inboxTab || conversation.category || "").toLowerCase();
+      const requestStatus = String(conversation.requestStatus || "").toLowerCase();
+      const isRequest = Boolean(conversation.isRequest) || ["pending", "requested"].includes(requestStatus) || folder === "requests";
+      const friendKey = String(username).toLowerCase();
+      if (chatFriendFilter === "Favourite" && !chatFriendPrefs["messages.favorite." + friendKey]) return false;
+      if (chatFriendFilter === "Close" && !chatFriendPrefs["messages.closeFriend." + friendKey]) return false;
+      if (chatInboxTab === "Requests" && !isRequest) return false;
+      if ((chatInboxTab === "Primary" || chatInboxTab === "General") && folder && folder !== chatInboxTab.toLowerCase()) return false;
+      if (chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
+      return !term ||
+        String(username).toLowerCase().includes(term) ||
+        String(conversation.displayName || "").toLowerCase().includes(term) ||
+        String(conversation.lastMessage || "").toLowerCase().includes(term);
+    });
+  };
+
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="dark" hidden={false} translucent={false} />
@@ -11434,37 +11454,7 @@ export default function App() {
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={{ paddingBottom: 10 }}
                 >
-                  {messageConversations
-                    .filter((conversation) => {
-                      const username =
-                        conversation.username ||
-                        conversation.peer ||
-                        conversation.otherUsername ||
-                        conversation.user?.username ||
-                        "";
-                      const term = chatSearchQuery.trim().toLowerCase();
-                      const folder = String(
-                        conversation.folder || conversation.inboxTab || conversation.category || ""
-                      ).toLowerCase();
-                      const requestStatus = String(conversation.requestStatus || "").toLowerCase();
-                      const isRequest = Boolean(conversation.isRequest) || ["pending", "requested"].includes(requestStatus) || folder === "requests";
-                      const friendKey = String(username).toLowerCase();
-                      if (chatFriendFilter === "Favourite" && !chatFriendPrefs["messages.favorite." + friendKey]) return false;
-                      if (chatFriendFilter === "Close" && !chatFriendPrefs["messages.closeFriend." + friendKey]) return false;
-                      if (chatInboxTab === "Requests" && !isRequest) return false;
-                      if ((chatInboxTab === "Primary" || chatInboxTab === "General") && folder && folder !== chatInboxTab.toLowerCase()) return false;
-                      if (chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
-                      return (
-                        !term ||
-                        String(username).toLowerCase().includes(term) ||
-                        String(conversation.displayName || "")
-                          .toLowerCase()
-                          .includes(term) ||
-                        String(conversation.lastMessage || "")
-                          .toLowerCase()
-                          .includes(term)
-                      );
-                    })
+                  {getVisibleMessageConversations()
                     .map((conversation, index) => {
                       const username =
                         conversation.username ||
@@ -11618,7 +11608,7 @@ export default function App() {
                     })}
                   {!chatBusy &&
                   !chatError &&
-                  messageConversations.length === 0 ? (
+                  getVisibleMessageConversations().length === 0 ? (
                     <Text
                       style={{
                         color: "#A8A8A8",
@@ -11626,7 +11616,13 @@ export default function App() {
                         padding: 28,
                       }}
                     >
-                      No conversations yet. Start a new chat.
+                      {messageConversations.length === 0
+                        ? "No conversations yet. Start a new chat."
+                        : chatUnreadOnly
+                          ? "No unread messages here."
+                          : chatInboxTab === "Requests"
+                            ? "No message requests."
+                            : "No conversations match these filters."}
                     </Text>
                   ) : null}
                 </ScrollView>
