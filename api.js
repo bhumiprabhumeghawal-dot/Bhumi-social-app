@@ -257,10 +257,20 @@ export async function checkServer() {
 
 const CONTENT_CACHE_PREFIX = 'socialapp-content-cache-v1-';
 
+async function contentCachePath(type) {
+  const session = await getAuthSession();
+  const accountScope = session?.username ? encodeURIComponent(session.username.toLowerCase()) : "guest";
+  return `${FileSystem.documentDirectory}${CONTENT_CACHE_PREFIX}${accountScope}-${type}.json`;
+}
+
 export async function getCachedContent(type) {
   if (!['posts', 'stories', 'reels'].includes(type)) return null;
   try {
-    const path = `${FileSystem.documentDirectory}${CONTENT_CACHE_PREFIX}${type}.json`;
+    // Remove legacy unscoped cache files so one signed-in account cannot see
+    // another account's previously cached private feed.
+    const legacyPath = `${FileSystem.documentDirectory}${CONTENT_CACHE_PREFIX}${type}.json`;
+    await FileSystem.deleteAsync(legacyPath, { idempotent: true }).catch(() => {});
+    const path = await contentCachePath(type);
     const raw = await FileSystem.readAsStringAsync(path);
     const cached = JSON.parse(raw);
     return Array.isArray(cached.items) ? cached.items : null;
@@ -272,7 +282,7 @@ export async function getCachedContent(type) {
 async function saveCachedContent(type, items) {
   if (!['posts', 'stories', 'reels'].includes(type)) return;
   try {
-    const path = `${FileSystem.documentDirectory}${CONTENT_CACHE_PREFIX}${type}.json`;
+    const path = await contentCachePath(type);
     await FileSystem.writeAsStringAsync(
       path,
       JSON.stringify({ savedAt: Date.now(), items })
@@ -309,26 +319,28 @@ async function loadContentOnce(type) {
   void saveCachedContent(type, normalizedItems);
   return normalizedItems;
 }
-export function loadContent(type, options = {}) {
+export async function loadContent(type, options = {}) {
   if (!['posts', 'stories', 'reels'].includes(type)) {
     return loadContentOnce(type);
   }
+  const session = await getAuthSession();
+  const cacheKey = `${session?.username?.toLowerCase() || "guest"}:${type}`;
   const forceRefresh = options?.force === true;
-  const cached = CONTENT_MEMORY_CACHE.get(type);
+  const cached = CONTENT_MEMORY_CACHE.get(cacheKey);
   if (!forceRefresh && cached && Date.now() - cached.savedAt < CONTENT_CACHE_TTL_MS) {
-    return Promise.resolve(cached.items);
+    return cached.items;
   }
-  const pending = CONTENT_REQUESTS_IN_FLIGHT.get(type);
+  const pending = CONTENT_REQUESTS_IN_FLIGHT.get(cacheKey);
   if (pending) return pending;
   const request = loadContentOnce(type).then((items) => {
-    CONTENT_MEMORY_CACHE.set(type, { items, savedAt: Date.now() });
+    CONTENT_MEMORY_CACHE.set(cacheKey, { items, savedAt: Date.now() });
     return items;
   }).finally(() => {
-    if (CONTENT_REQUESTS_IN_FLIGHT.get(type) === request) {
-      CONTENT_REQUESTS_IN_FLIGHT.delete(type);
+    if (CONTENT_REQUESTS_IN_FLIGHT.get(cacheKey) === request) {
+      CONTENT_REQUESTS_IN_FLIGHT.delete(cacheKey);
     }
   });
-  CONTENT_REQUESTS_IN_FLIGHT.set(type, request);
+  CONTENT_REQUESTS_IN_FLIGHT.set(cacheKey, request);
   return request;
 }
 
