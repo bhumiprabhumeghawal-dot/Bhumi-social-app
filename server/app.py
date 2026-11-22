@@ -4068,7 +4068,7 @@ def _send_direct_message_push(username, sender, message_text="", attachment_type
                 "sound": "default" if sound_enabled else None,
                 "priority": "high",
                 "channelId": "messages" if sound_enabled else "messages-silent",
-                "data": {"type": "direct_message", "username": sender},
+                "data": {"type": "direct_message", "username": sender, "soundEnabled": sound_enabled},
             }
             request_obj = urllib.request.Request(
                 "https://exp.host/--/api/v2/push/send",
@@ -4989,6 +4989,7 @@ def _send_social_activity_push(recipient, actor, kind, reference_id=None, notifi
                     "actor": actor,
                     "referenceId": reference_id,
                     "notificationId": notification_id,
+                    "soundEnabled": sound_enabled,
                 },
             }
             req = urllib.request.Request(
