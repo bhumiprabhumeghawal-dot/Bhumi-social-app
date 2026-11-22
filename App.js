@@ -7,6 +7,7 @@ import ChatPersonalization from "./ChatPersonalization";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import { registerCallPushToken } from "./api";
 import * as SecureStore from "expo-secure-store";
+import * as LocalAuthentication from "expo-local-authentication";
 import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
 import * as Updates from "expo-updates";
@@ -2274,6 +2275,7 @@ export default function App() {
 
   const [activeTab, setActiveTab] = React.useState("Home");
   const [appPinLocked, setAppPinLocked] = React.useState(false);
+  const [appBiometricEnabled, setAppBiometricEnabled] = React.useState(false);
   const [appPinInput, setAppPinInput] = React.useState("");
   const [appPinError, setAppPinError] = React.useState("");
   const appLockPinRef = React.useRef(null);
@@ -2282,12 +2284,15 @@ export default function App() {
     let alive = true;
     const refreshLock = async (onLaunch = false) => {
       try {
-        const [pin, autoLock] = await Promise.all([
+        const [pin, autoLock, fingerprint, faceUnlock] = await Promise.all([
           SecureStore.getItemAsync("bhumi_app_lock_pin"),
           SecureStore.getItemAsync("bhumi_app_auto_lock"),
+          SecureStore.getItemAsync("bhumi_app_biometric_fingerprint"),
+          SecureStore.getItemAsync("bhumi_app_biometric_face"),
         ]);
         if (!alive) return;
         appLockPinRef.current = pin || null;
+        setAppBiometricEnabled(fingerprint === "true" || faceUnlock === "true");
         if (pin && (onLaunch || autoLock !== "false")) setAppPinLocked(true);
       } catch (error) {
         console.warn("App Lock could not read secure PIN:", error?.message || error);
@@ -13563,6 +13568,30 @@ export default function App() {
               style={{ width:"100%",color:"#FFFFFF",borderWidth:1,borderColor:"#3A3A3A",borderRadius:13,padding:14,marginTop:18,fontSize:20,textAlign:"center",letterSpacing:8 }}
             />
             {appPinError ? <Text style={{ color:"#F08080",fontSize:12,marginTop:9 }}>{appPinError}</Text> : null}
+            {appBiometricEnabled ? (
+              <TouchableOpacity
+                onPress={async()=>{
+                  try {
+                    const result = await LocalAuthentication.authenticateAsync({
+                      promptMessage:"Unlock Bhumi Social AI",
+                      cancelLabel:"Use App PIN",
+                      disableDeviceFallback:true,
+                    });
+                    if (result.success) {
+                      setAppPinLocked(false);
+                      setAppPinInput("");
+                      setAppPinError("");
+                    }
+                  } catch (error) {
+                    setAppPinError(error?.message || "Biometric unlock failed. Use your App PIN.");
+                  }
+                }}
+                style={{ width:"100%",backgroundColor:"#17354A",borderRadius:13,padding:13,alignItems:"center",marginTop:14,flexDirection:"row",justifyContent:"center" }}
+              >
+                <Ionicons name="finger-print" size={19} color="#8CCBFF"/>
+                <Text style={{ color:"#8CCBFF",fontWeight:"900",marginLeft:8 }}>Unlock with Biometrics</Text>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity
               onPress={()=>{
                 if (appLockPinRef.current && appPinInput === appLockPinRef.current) {
