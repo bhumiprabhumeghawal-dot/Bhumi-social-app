@@ -2746,7 +2746,11 @@ def _auth_user():
             WHERE s.token_hash=? AND s.expires_at>?
         """, (digest, now)).fetchone()
         if row:
-            db.execute("UPDATE auth_sessions SET last_seen_at=? WHERE token_hash=?", (now, digest))
+            stale_before = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
+            db.execute(
+                "UPDATE auth_sessions SET last_seen_at=? WHERE token_hash=? AND (last_seen_at IS NULL OR last_seen_at<?)",
+                (now, digest, stale_before),
+            )
     return row["username"] if row else None
 
 @app.before_request
