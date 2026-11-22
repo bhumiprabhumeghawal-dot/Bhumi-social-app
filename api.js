@@ -1332,6 +1332,35 @@ export async function toggleSavedContent(kind, contentId) {
 }
 
 
+export async function loadFeedUserLists() {
+  const response = await fetch(`${API_BASE_URL}/api/feed/lists`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not load Favorites and Muted accounts.");
+  return { favorites: data.favorites || [], muted: data.muted || [] };
+}
+
+export async function addFeedUserList(listType, username) {
+  const response = await fetch(`${API_BASE_URL}/api/feed/lists`, {
+    method: "POST",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ list_type: listType, username }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not update account list.");
+  return data;
+}
+
+export async function removeFeedUserList(listType, username) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/feed/lists/${encodeURIComponent(listType)}/${encodeURIComponent(username)}`,
+    { method: "DELETE", headers: await authHeaders() }
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Could not remove account from list.");
+  return data;
+}
+
+
 export async function loadSettingsPreferences() {
   const response = await fetch(`${API_BASE_URL}/api/settings/preferences`, { headers: await authHeaders() });
   const data = await response.json();
