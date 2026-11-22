@@ -72,6 +72,8 @@ All measurements below are React Native density-independent pixels (dp), not raw
 - [x] Add recursive cache/document storage usage reporting in Settings.
 - [x] Add server-backed reset for preference switches while preserving account content.
 - [x] Connect Report a Problem to the device email composer with a prefilled support address.
+- [x] Add a scannable profile QR code and native share action using the existing profile deep link.
+- [x] Add creator collaboration and monetization inquiry email actions plus a shareable promotion brief; automated payouts, ad billing, campaign booking, and marketplace matching remain unavailable until payment/provider and backend services are configured.
 
 - [x] Add a dedicated Messages notification filter so DM alerts are visible without mixing them into Likes, Comments, or Follows.
 
