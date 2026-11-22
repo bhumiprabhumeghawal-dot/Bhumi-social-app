@@ -2744,6 +2744,8 @@ def _auth_user():
             JOIN users u ON u.username=s.username
             WHERE s.token_hash=? AND s.expires_at>?
         """, (digest, now)).fetchone()
+        if row:
+            db.execute("UPDATE auth_sessions SET last_seen_at=? WHERE token_hash=?", (now, digest))
     return row["username"] if row else None
 
 @app.before_request
@@ -2850,9 +2852,14 @@ def auth_register():
                 "INSERT INTO users(username,password_hash,created_at,phone_number,email) VALUES(?,?,?,?,?)",
                 (username, generate_password_hash(password), now.isoformat(), phone_number, email)
             )
+            device_label = str(request.headers.get("X-Device-Name") or request.headers.get("User-Agent") or "Unknown device").strip()[:180]
             db.execute(
-                "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at) VALUES(?,?,?,?)",
-                (digest, username, now.isoformat(), expires)
+                "INSERT INTO auth_sessions(token_hash,username,created_at,expires_at,device_label,last_seen_at) VALUES(?,?,?,?,?,?)",
+                (digest, username, now.isoformat(), expires, device_label, now.isoformat())
+            )
+            db.execute(
+                "INSERT INTO auth_login_history(token_hash,username,created_at,device_label) VALUES(?,?,?,?)",
+                (digest, username, now.isoformat(), device_label)
             )
             profile_json(db, username)
             db.execute(
@@ -3178,7 +3185,16 @@ def list_location_shares():
             FROM location_shares WHERE recipient_username=? AND active=1
             ORDER BY updated_at DESC
         """, (username,)).fetchall()
-    return jsonify({"ok": True, "outgoing": [dict(row) for row in outgoing], "incoming": [dict(row) for row in incoming]})
+        history_since = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        history = db.execute("""
+            SELECT share_id, owner_username, recipient_username, latitude, longitude,
+                   accuracy, created_at, updated_at, expires_at, active
+            FROM location_shares
+            WHERE (owner_username=? COLLATE NOCASE OR recipient_username=? COLLATE NOCASE)
+              AND created_at>=?
+            ORDER BY created_at DESC LIMIT 50
+        """, (username, username, history_since)).fetchall()
+    return jsonify({"ok": True, "outgoing": [dict(row) for row in outgoing], "incoming": [dict(row) for row in incoming], "history": [dict(row) for row in history]})
 
 
 @app.post("/api/location/shares")
