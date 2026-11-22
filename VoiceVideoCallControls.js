@@ -159,6 +159,50 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   }, [connection]);
 
   useEffect(() => {
+    if (Platform.OS !== "android" || !enableIncoming || !currentUsername) return undefined;
+    let active = true;
+    const subscriptions = [];
+    const listen = (event, handler) => {
+      const subscription = RNCallKeep.addEventListener(event, handler);
+      if (subscription?.remove) subscriptions.push(subscription);
+    };
+    listen("answerCall", ({ callUUID }) => {
+      if (!active || callUUID !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
+      callKeepEventBusyRef.current = true;
+      Promise.resolve(answerHandlerRef.current?.()).finally(() => { callKeepEventBusyRef.current = false; });
+    });
+    listen("endCall", ({ callUUID }) => {
+      if (!active || callUUID !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
+      callKeepEventBusyRef.current = true;
+      const handler = incoming ? declineHandlerRef.current : endHandlerRef.current;
+      Promise.resolve(handler?.()).finally(() => { callKeepEventBusyRef.current = false; });
+    });
+    if (!callKeepSetupPromise) {
+      callKeepSetupPromise = RNCallKeep.setup({
+        ios: { appName: "Bhumi Social AI" },
+        android: {
+          alertTitle: "कॉल की अनुमति जरूरी है",
+          alertDescription: "Bhumi Social AI को लॉक स्क्रीन पर कॉल दिखाने के लिए Phone Account की अनुमति दें।",
+          cancelButton: "बाद में",
+          okButton: "अनुमति दें",
+          additionalPermissions: [],
+        },
+        foregroundService: {
+          channelId: "bhumi-social-calls",
+          channelName: "Bhumi Social Calls",
+          notificationTitle: "Bhumi Social कॉल चालू है",
+        },
+      }).catch((error) => {
+        callKeepSetupPromise = null;
+        console.warn("CallKeep setup failed:", error?.message || error);
+        throw error;
+      });
+    }
+    callKeepSetupPromise.catch(() => {});
+    return () => { active = false; subscriptions.forEach((item) => item.remove()); };
+  }, [currentUsername, enableIncoming, incoming]);
+
+  useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
@@ -375,9 +419,14 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   };
 
   answerHandlerRef.current = answerCall;
-\n  const declineCall = async () => {
+
+  const declineCall = async () => {
     if (!call) return;
     try { await respondToCall(call.id, "reject"); } catch (_) {}
+    const nativeUuid = callKeepUuidRef.current;
+    callKeepUuidRef.current = null;
+    callKeepCallIdRef.current = null;
+    if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     resetCall();
   };
 
@@ -388,6 +437,10 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     if (current) {
       try { await respondToCall(current.id, "end"); } catch (_) {}
     }
+    const nativeUuid = callKeepUuidRef.current;
+    callKeepUuidRef.current = null;
+    callKeepCallIdRef.current = null;
+    if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     resetCall();
   };
 
