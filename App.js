@@ -7287,7 +7287,7 @@ export default function App() {
         </SafeAreaView>
       </Modal>
 
-      {activeTab !== "Reels" && activeTab !== "Home" && renderAppHeader()}
+      {activeTab !== "Reels" && activeTab !== "Home" && activeTab !== "Search" && renderAppHeader()}
 
       {activeTab !== "Reels" && !serverOnline && (
         <Text
@@ -7832,18 +7832,8 @@ export default function App() {
         <ScrollView
           style={styles.content}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ padding: 16, paddingBottom: 30 }}
+          contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: 30 }}
         >
-          <Text
-            style={{
-              color: "#F5F5F5",
-              fontSize: 26,
-              fontWeight: "800",
-              marginBottom: 16,
-            }}
-          >
-            Search
-          </Text>
           <View
             style={{
               flexDirection: "row",
