@@ -12,6 +12,8 @@ class MessageInboxFolderApiTests(unittest.TestCase):
         self.db_patch = patch.object(server_app, "get_db", return_value=self.db)
         self.db_patch.start()
         server_app.init_chat_tables()
+        self.db.execute("CREATE TABLE follows (follower TEXT NOT NULL, following TEXT NOT NULL)")
+        self.db.execute("CREATE TABLE profiles (username TEXT PRIMARY KEY, display_name TEXT, avatar_url TEXT)")
         self.db.execute(
             """
             INSERT INTO direct_messages
@@ -49,6 +51,28 @@ class MessageInboxFolderApiTests(unittest.TestCase):
             ("alice", "bob"),
         ).fetchone()
         self.assertEqual(row["folder"], "general")
+
+    def test_conversation_list_returns_saved_folder(self):
+        with patch.object(server_app, "_chat_current_user", return_value="alice"):
+            saved = self.client.patch(
+                "/api/messages/conversations/bob/folder",
+                json={"folder": "general"},
+            )
+            listed = self.client.get("/api/messages/conversations")
+        self.assertEqual(saved.status_code, 200)
+        self.assertEqual(listed.status_code, 200)
+        conversation = listed.get_json()["conversations"][0]
+        self.assertEqual(conversation["username"], "bob")
+        self.assertEqual(conversation["folder"], "general")
+        self.assertFalse(conversation["isRequest"])
+
+    def test_unclassified_non_followed_conversation_defaults_to_requests(self):
+        with patch.object(server_app, "_chat_current_user", return_value="alice"):
+            response = self.client.get("/api/messages/conversations")
+        self.assertEqual(response.status_code, 200)
+        conversation = response.get_json()["conversations"][0]
+        self.assertEqual(conversation["folder"], "requests")
+        self.assertTrue(conversation["isRequest"])
 
     def test_folder_update_rejects_unknown_folder(self):
         with patch.object(server_app, "_chat_current_user", return_value="alice"):
