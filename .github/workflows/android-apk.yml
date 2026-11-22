@@ -77,6 +77,30 @@ jobs:
         env:
           CI: "1"
 
+      - name: Register Expo app-loader local Maven repository
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const path = require("path");
+          const repo = path.join(process.cwd(), "node_modules/unimodules-app-loader/local-maven-repo");
+          const pom = path.join(repo, "host/exp/exponent/org.unimodules.apploader/58.0.2/org.unimodules.apploader-58.0.2.pom");
+          if (!fs.existsSync(pom)) {
+            throw new Error("Expo 58 app-loader Maven POM is missing: " + pom);
+          }
+          const gradle = path.join(process.cwd(), "android/build.gradle");
+          let source = fs.readFileSync(gradle, "utf8");
+          const repoLine = '        maven { url = uri("../node_modules/unimodules-app-loader/local-maven-repo") }';
+          if (!source.includes(repoLine)) {
+            if (source.includes("allprojects {")) {
+              source = source.replace(/allprojects\\s*\\{\\s*repositories\\s*\\{/, match => match + "\\n" + repoLine);
+            } else {
+              source += "\\nallprojects { repositories {\\n" + repoLine + "\\n} }\\n";
+            }
+          }
+          fs.writeFileSync(gradle, source);
+          console.log("Registered local Expo app-loader Maven repository.");
+          NODE
+
       - name: Trace missing Expo app-loader dependency
         run: |
           echo "Searching generated Android files and installed packages for the invalid Maven coordinate..."
