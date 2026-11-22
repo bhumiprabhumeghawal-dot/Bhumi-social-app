@@ -117,3 +117,9 @@ The existing app is a large single-file React Native screen with supporting modu
 
 - [x] Connect Profile Studio to the existing profile editor instead of a placeholder notice.
 - [x] Connect Help Center to the native support email composer.
+
+
+## Latest layout pass (2026-11-22)
+- Settings entry screen changed from a bottom-sheet overlay to a full-screen page with a native back header, matching Instagram's full-page Settings and activity navigation pattern.
+- Profile QR deep link route is present in App.js (`bhumisocial://profile/<username>`), so QR scan routing is wired to the profile opener.
+- This is a layout/code change only; device-level visual verification and the remaining feature-by-feature behavior checks are still pending.
