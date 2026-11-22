@@ -77,7 +77,7 @@ const ACTION_KEYS = new Set([
   "creator.accountType","creator.businessAccount","creator.dashboard","creator.insights","creator.followerAnalytics","creator.contentAnalytics","creator.audience","creator.monetization","creator.collaboration","creator.promotions","premium.profileStudio",
   "account.reportProblem","account.helpCenter","account.appUpdates",
   "account.appVersionInfo","account.terms","account.privacyPolicy","account.openSource",
-  "location.history"
+  "location.history","location.liveSharing","location.nearbyFriends"
 ]);
 
 const SECTIONS = [
