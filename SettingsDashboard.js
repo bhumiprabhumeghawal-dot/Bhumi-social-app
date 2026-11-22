@@ -972,7 +972,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                   <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>Try another keyword</Text>
                 </View>
               )}
-              <TouchableOpacity onPress={async()=>{await stopLocationWatcher();onLogout?.();}} style={{ flexDirection:"row",alignItems:"center",justifyContent:"center",backgroundColor:"#35191D",borderWidth:1,borderColor:"#7C3039",borderRadius:14,padding:14,marginTop:5 }}>
+              <TouchableOpacity onPress={async()=>{const shareId=activeLocationShareRef.current?.shareId||await SecureStore.getItemAsync("bhumi_live_share_id");if(shareId)await stopLocationShare(shareId).catch(()=>{});await stopLocationWatcher();onLogout?.();}} style={{ flexDirection:"row",alignItems:"center",justifyContent:"center",backgroundColor:"#35191D",borderWidth:1,borderColor:"#7C3039",borderRadius:14,padding:14,marginTop:5 }}>
                 <Ionicons name="log-out-outline" color="#F08080" size={20}/>
                 <Text style={{ color:"#F08080",fontWeight:"900",marginLeft:9 }}>Log Out</Text>
               </TouchableOpacity>
