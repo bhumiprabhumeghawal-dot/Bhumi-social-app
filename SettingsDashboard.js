@@ -287,6 +287,9 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           setPreferences((current) => ({ ...current, [key]: value }));
         } else {
           const saved = await saveSettingsPreferences({ [key]: value });
+          if (key === "security.autoLock") {
+            await SecureStore.setItemAsync("bhumi_app_auto_lock", value ? "true" : "false");
+          }
           setPreferences(saved);
         }
       }
@@ -711,7 +714,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               if(pinValue!==pinConfirmValue){setNotice({title:"PIN mismatch",message:"The two PIN entries do not match."});return;}
               try{
                 await SecureStore.setItemAsync("bhumi_app_lock_pin",pinValue);
-                const saved=await saveSettingsPreferences({"security.appLock":true,"security.pin":true});
+                await SecureStore.setItemAsync("bhumi_app_auto_lock","true");
+                const saved=await saveSettingsPreferences({"security.appLock":true,"security.pin":true,"security.autoLock":true});
                 setPreferences((current)=>({...current,...saved,"security.appLock":true,"security.pin":true}));
                 setPinSetupVisible(false);
                 setNotice({title:"App Lock enabled",message:"Your PIN is saved securely on this device. The app will ask for it when reopened or resumed."});
@@ -722,6 +726,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {pinAlreadySet ? <TouchableOpacity onPress={async()=>{
               try{
                 await SecureStore.deleteItemAsync("bhumi_app_lock_pin");
+                await SecureStore.setItemAsync("bhumi_app_auto_lock","false");
                 const saved=await saveSettingsPreferences({"security.appLock":false,"security.pin":false});
                 setPreferences((current)=>({...current,...saved,"security.appLock":false,"security.pin":false}));
                 setPinSetupVisible(false);
