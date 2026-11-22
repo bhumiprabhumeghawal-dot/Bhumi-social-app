@@ -12939,11 +12939,7 @@ export default function App() {
               ))}
             </View>
             {notificationsLoading ? (
-              <Text
-                style={{ textAlign: "center", color: "#A8A8A8", padding: 25 }}
-              >
-                
-              </Text>
+              <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 28 }} />
             ) : (
               <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
                 {notificationsList.filter((item) => {
