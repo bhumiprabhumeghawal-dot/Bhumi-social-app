@@ -7599,7 +7599,8 @@ export default function App() {
                         }
                         muted={mutedReels}
                         contentFit="cover"
-                        zoomEnabled={false}
+                        zoomEnabled
+                        onZoomChange={(level) => setReelZoomed(level > 1.01)}
                       />
                     ) : null}
                     <View
