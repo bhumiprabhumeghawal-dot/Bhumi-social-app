@@ -11647,15 +11647,12 @@ export default function App() {
                   }}
                 >
                   {chatBusy && directMessages.length === 0 ? (
-                    <Text
-                      style={{
-                        color: "#A8A8A8",
-                        textAlign: "center",
-                        padding: 24,
-                      }}
-                    >
-                      
-                    </Text>
+                    <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 28 }}>
+                      <ActivityIndicator color="#3797F0" size="small" />
+                      <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 10 }}>
+                        Loading messages…
+                      </Text>
+                    </View>
                   ) : null}
                   {directMessages.map((message, index) => {
                     const mine =
