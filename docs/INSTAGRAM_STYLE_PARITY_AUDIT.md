@@ -123,3 +123,4 @@ The existing app is a large single-file React Native screen with supporting modu
 - Settings entry screen changed from a bottom-sheet overlay to a full-screen page with a native back header, matching Instagram's full-page Settings and activity navigation pattern.
 - Profile QR deep link route is present in App.js (`bhumisocial://profile/<username>`), so QR scan routing is wired to the profile opener.
 - This is a layout/code change only; device-level visual verification and the remaining feature-by-feature behavior checks are still pending.
+- Settings shortcuts for Story Highlights and Chat Appearance now open the existing Profile and Messages screens; Content Preferences is a persisted setting switch rather than a dead action button.
