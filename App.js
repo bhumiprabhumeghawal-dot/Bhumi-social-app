@@ -1078,7 +1078,7 @@ function PostCard({
       const message = `${post?.user || "Bhumi Social"}: ${post?.caption || "Check out this post on Bhumi Social AI"}${postLink ? `\\n\\nOpen post: ${postLink}` : ""}`;
       await Share.share({ message });
     } catch (error) {
-      Alert.alert("Share", error.message || "Could not share this post.");
+      Alert.alert(appText("profileShare"), appText("alertTryAgain"));
     }
   };
 
@@ -1104,7 +1104,7 @@ function PostCard({
       setLiked(Boolean(result.liked));
       setLikeCount(Number(result.likes) || 0);
     } catch (error) {
-      Alert.alert("Like failed", error.message || "Could not update like.");
+      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
     } finally {
       setInteractionBusy(false);
     }
@@ -1126,7 +1126,7 @@ function PostCard({
       const result = await loadPostComments(post.id);
       setComments(result);
     } catch (error) {
-      Alert.alert("Comments", error.message || "Could not load comments.");
+      Alert.alert(appText("commentsTitle"), appText("alertLoadFailed"));
     }
   };
 
@@ -1673,7 +1673,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
       setLiked(Boolean(result.liked));
       setLikeCount(Number(result.likes) || 0);
     } catch (error) {
-      Alert.alert("Like failed", error.message || "Could not update like.");
+      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
     } finally {
       setBusy(false);
     }
@@ -1693,7 +1693,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
       setComments(loadedComments);
       setCommentCount(loadedComments.length);
     } catch (error) {
-      Alert.alert("Comments", error.message || "Could not load comments.");
+      Alert.alert(appText("commentsTitle"), appText("alertLoadFailed"));
     }
   };
 
@@ -1728,7 +1728,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
       setCommentCount((count) => count + 1);
       setDraft("");
     } catch (error) {
-      Alert.alert("Comment failed", error.message || "Could not post comment.");
+      Alert.alert(appText("commentFailed"), appText("couldNotPostComment"));
     } finally {
       setBusy(false);
     }
@@ -1762,7 +1762,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
       const message = `${post?.user || "Bhumi Social"}: ${post?.caption || "Check out this post on Bhumi Social AI"}${postLink ? `\n\nOpen post: ${postLink}` : ""}`;
       await Share.share({ message });
     } catch (error) {
-      Alert.alert("Share", error.message || "Could not share this post.");
+      Alert.alert(appText("profileShare"), appText("alertTryAgain"));
     }
   };
 
@@ -2408,7 +2408,7 @@ export default function App() {
         await Updates.reloadAsync();
       } else {
         setUpdatePromptVisible(false);
-        Alert.alert("Bhumi Social AI", "Your app is already up to date.");
+        Alert.alert(appText("alertUpdate"), appText("alertSaved"));
       }
     } catch (error) {
       Alert.alert(
@@ -2462,7 +2462,7 @@ export default function App() {
           const username = decodeURIComponent(profileMatch[1]);
           if (active && username) await openUserProfile(username);
         } catch (error) {
-          if (active) Alert.alert(appText("alertProfileUnavailable"), error?.message || "Could not open this profile.");
+          if (active) Alert.alert(appText("alertProfileUnavailable"), appText("alertTryAgain"));
         }
         return;
       }
@@ -3495,7 +3495,7 @@ export default function App() {
     try {
       await saveAccountSettings(accountEmail, accountPhone);
       setAccountSettingsOpen(false);
-      Alert.alert(appText("alertSuccess"), "Account details saved.");
+      Alert.alert(appText("alertSuccess"), appText("alertSaved"));
     } catch (e) {
       Alert.alert(
         appText("alertSaveFailed"),
@@ -3588,7 +3588,7 @@ export default function App() {
         ),
       );
     } catch (e) {
-      Alert.alert(appText("alertSaveFailed"), e.message || "Could not update like.");
+      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
     } finally {
       setReelBusyState((prev) => ({ ...prev, [id]: false }));
     }
@@ -3608,7 +3608,7 @@ export default function App() {
         ),
       );
     } catch (e) {
-      Alert.alert(appText("alertSaved"), e.message || "Could not update Saved.");
+      Alert.alert(appText("alertSaved"), appText("alertTryAgain"));
     } finally {
       setReelBusyState((prev) => ({ ...prev, [`save-${id}`]: false }));
     }
@@ -3648,7 +3648,7 @@ export default function App() {
         ),
       );
     } catch (e) {
-      Alert.alert(appText("alertFollow"), e.message || "Could not update follow.");
+      Alert.alert(appText("alertFollow"), appText("alertTryAgain"));
     } finally {
       setReelBusyState((prev) => ({ ...prev, [`follow-${username}`]: false }));
     }
@@ -3660,7 +3660,7 @@ export default function App() {
         message: `${reel.caption || "Watch this reel"}\n${reel.uri || ""}`,
       });
     } catch (e) {
-      Alert.alert(appText("profileShare"), e.message || "Could not share this reel.");
+      Alert.alert(appText("profileShare"), appText("alertTryAgain"));
     }
   };
 
@@ -3708,7 +3708,7 @@ export default function App() {
       const rows = await loadReelComments(id);
       setReelComments(Array.isArray(rows) ? rows : []);
     } catch (e) {
-      Alert.alert(appText("commentsTitle"), e.message || "Could not load comments.");
+      Alert.alert(appText("commentsTitle"), appText("alertLoadFailed"));
     } finally {
       setReelCommentsBusy(false);
     }
@@ -3739,7 +3739,7 @@ export default function App() {
       }
       setReelCommentDraft("");
     } catch (e) {
-      Alert.alert(appText("commentsTitle"), e.message || "Could not post comment.");
+      Alert.alert(appText("commentFailed"), appText("couldNotPostComment"));
     } finally {
       setReelCommentsBusy(false);
     }
@@ -3788,7 +3788,7 @@ export default function App() {
       const items = await loadSavedContent();
       setSavedContent(Array.isArray(items) ? items : []);
     } catch (e) {
-      Alert.alert(appText("alertSaved"), e.message || "Could not load Saved items.");
+      Alert.alert(appText("alertSaved"), appText("alertLoadFailed"));
     } finally {
       setSavedContentBusy(false);
     }
@@ -3875,7 +3875,7 @@ export default function App() {
         setReelSavedState((current) => ({ ...current, [id]: false }));
       }
     } catch (e) {
-      Alert.alert(appText("alertSaved"), e.message || "Could not remove this item.");
+      Alert.alert(appText("alertSaved"), appText("alertTryAgain"));
     }
   };
 
@@ -3969,7 +3969,7 @@ export default function App() {
     } catch (e) {
       if (!cachedLoaded) {
         setViewedProfileOpen(false);
-        Alert.alert("Profile", e.message || "Could not load profile.");
+        Alert.alert(appText("profileTab"), appText("alertLoadFailed"));
       }
     } finally {
       setViewedProfileBusy(false);
@@ -4270,7 +4270,7 @@ export default function App() {
         };
       });
     } catch (e) {
-      Alert.alert(appText("alertFollow"), e.message || "Could not update follow.");
+      Alert.alert(appText("alertFollow"), appText("alertTryAgain"));
     } finally {
       setViewedProfileFollowBusy(false);
     }
@@ -4294,7 +4294,7 @@ export default function App() {
         (item) => String(item.username || item.requester || "").toLowerCase() !== username.toLowerCase()
       ));
     } catch (error) {
-      Alert.alert("Block failed", error.message || "Could not block this account.");
+      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
     } finally {
       setViewedProfileBlockBusy(false);
     }
@@ -4365,7 +4365,7 @@ export default function App() {
       });
       setSnapPrivacyOpen(true);
     } catch (error) {
-      Alert.alert("Privacy settings unavailable", error.message || appText("alertTryAgain"));
+      Alert.alert(appText("privacy"), appText("alertLoadFailed"));
     } finally {
       setSnapPrivacyBusy(false);
     }
@@ -4390,7 +4390,7 @@ export default function App() {
       await saveSettingsPreferences({ [serverKey]: value });
     } catch (error) {
       setSnapPrivacy((current) => ({ ...current, [key]: previous }));
-      Alert.alert("Could not save", error.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
     } finally {
       setSnapPrivacyBusy(false);
     }
@@ -4430,7 +4430,7 @@ export default function App() {
       );
       setPrivacySettings(settings);
       setPrivacyOpen(false);
-      Alert.alert(appText("alertSaved"), "Privacy settings have been saved.");
+      Alert.alert(appText("alertSaved"), appText("alertSaved"));
     } catch (e) {
       Alert.alert(appText("alertSaveFailed"), e.message || appText("alertCheckConnection"));
     } finally {
@@ -4474,7 +4474,7 @@ export default function App() {
         );
       }
     } catch (error) {
-      Alert.alert("Could not change account", error.message || appText("alertTryAgain"));
+      Alert.alert(appText("account"), appText("alertTryAgain"));
     } finally {
       setPrivacyBusy(false);
     }
@@ -4501,7 +4501,7 @@ export default function App() {
       setBusinessProfile((current) => ({ ...current, ...saved }));
       setBusinessProfileOpen(false);
       await refreshProfile();
-      Alert.alert("Business profile saved", "Your business details and service area are now published.");
+      Alert.alert(appText("alertSuccess"), appText("alertSaved"));
     } catch (error) {
       Alert.alert(appText("alertSaveFailed"), error.message || appText("alertTryAgain"));
     } finally {
@@ -4518,14 +4518,14 @@ export default function App() {
       const item = await createBusinessCatalogItem(catalogDraft);
       setBusinessCatalog((items) => [item, ...items]);
       setCatalogDraft({ itemType: "product", title: "", description: "", price: "", category: "" });
-    } catch (error) { Alert.alert("Catalog", error.message || "Could not save item."); }
+    } catch (error) { Alert.alert(appText("catalogTab"), appText("alertSaveFailed")); }
   };
 
   const removeBusinessCatalogItem = async (id) => {
     try {
       await deleteBusinessCatalogItem(id);
       setBusinessCatalog((items) => items.filter((item) => item.id !== id));
-    } catch (error) { Alert.alert("Catalog", error.message || "Could not delete item."); }
+    } catch (error) { Alert.alert(appText("catalogTab"), appText("alertDelete")); }
   };
 
   const addBusinessQuickReply = async () => {
@@ -4535,14 +4535,14 @@ export default function App() {
       const item = await createBusinessQuickReply(quickReplyDraft);
       setBusinessQuickReplies((items) => [item, ...items]);
       setQuickReplyDraft({ shortcut: "", message: "" });
-    } catch (error) { Alert.alert("Quick Replies", error.message || "Could not save reply."); }
+    } catch (error) { Alert.alert(appText("customerQuickReplies"), appText("alertSaveFailed")); }
   };
 
   const removeBusinessQuickReply = async (id) => {
     try {
       await deleteBusinessQuickReply(id);
       setBusinessQuickReplies((items) => items.filter((item) => item.id !== id));
-    } catch (error) { Alert.alert("Quick Replies", error.message || "Could not delete reply."); }
+    } catch (error) { Alert.alert(appText("customerQuickReplies"), appText("alertDelete")); }
   };
 
   const searchBusinessDirectory = async () => {
@@ -4556,7 +4556,7 @@ export default function App() {
       const results = await discoverBusinesses(businessDirectoryFilters);
       setBusinessDirectoryResults(results);
     } catch (error) {
-      Alert.alert("Business search failed", error.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertLoadFailed"), appText("alertTryAgain"));
     } finally {
       setBusinessDirectoryBusy(false);
     }
@@ -4592,7 +4592,7 @@ export default function App() {
       });
     } catch (e) {
       if (!cachedLoaded) {
-        Alert.alert("Profile could not be loaded", e.message || appText("alertCheckConnection"));
+        Alert.alert(appText("alertProfileUnavailable"), appText("alertCheckConnection"));
       }
     }
   }, [authSession]);
@@ -4616,7 +4616,7 @@ export default function App() {
         bio: item.bio || "",
       });
       setProfileEditing(false);
-      Alert.alert("successful", "Profile saved.");
+      Alert.alert(appText("alertSuccess"), appText("alertSaved"));
     } catch (e) {
       Alert.alert(appText("alertSaveFailed"), e.message || appText("alertCheckConnection"));
     } finally {
@@ -4643,9 +4643,9 @@ export default function App() {
       setProfileBusy(true);
       await uploadProfileAvatar(result.assets[0], authSession.username);
       await refreshProfile();
-      Alert.alert("successful", "Profile photo updated.");
+      Alert.alert(appText("alertSuccess"), appText("alertSaved"));
     } catch (e) {
-      Alert.alert("Photo upload failed", e.message || appText("alertCheckConnection"));
+      Alert.alert(appText("alertSaveFailed"), appText("alertCheckConnection"));
     } finally {
       setProfileBusy(false);
     }
@@ -4663,7 +4663,7 @@ export default function App() {
             await deleteProfileAvatar(authSession.username);
             await refreshProfile();
           } catch (e) {
-            Alert.alert("Photo was not deleted", e.message || appText("alertTryAgain"));
+            Alert.alert(appText("alertDelete"), appText("alertTryAgain"));
           } finally {
             setProfileBusy(false);
           }
@@ -4702,7 +4702,7 @@ export default function App() {
     try {
       setFollowRequests(await loadFollowRequests());
     } catch (e) {
-      Alert.alert("Follow Requests", e.message || "Requests could not be loaded.");
+      Alert.alert(appText("followRequestsTitle"), appText("alertLoadFailed"));
     } finally {
       setFollowRequestsBusy(false);
     }
@@ -4730,7 +4730,7 @@ export default function App() {
           : "Follow request rejected.",
       );
     } catch (e) {
-      Alert.alert("Follow Request", e.message || "The action could not be completed.");
+      Alert.alert(appText("followRequestsTitle"), appText("alertTryAgain"));
     } finally {
       setFollowRequestAction((prev) => ({ ...prev, [requestId]: false }));
     }
@@ -4797,11 +4797,11 @@ export default function App() {
     const itemId = Number(item?.id);
     const owner = String(item?.user || item?.username || "").replace(/^@/, "");
     if (!authSession?.token || !owner || owner.toLowerCase() !== String(authSession.username || "").toLowerCase()) {
-      Alert.alert("Delete unavailable", "You can delete only your own uploaded content.");
+      Alert.alert(appText("alertDelete"), appText("alertPermissionRequired"));
       return;
     }
     if (!Number.isSafeInteger(itemId) || itemId <= 0 || item?.isStarterPost || item?.isStarterReel) {
-      Alert.alert("Delete unavailable", "This sample item cannot be deleted.");
+      Alert.alert(appText("alertDelete"), appText("alertPermissionRequired"));
       return;
     }
 
@@ -4830,7 +4830,7 @@ export default function App() {
               }
               await refreshContent(true);
             } catch (error) {
-              Alert.alert("Delete failed", error?.message || "Could not delete this content.");
+              Alert.alert(appText("alertDelete"), appText("alertTryAgain"));
             }
           },
         },
@@ -4847,12 +4847,12 @@ export default function App() {
       let permission = cameraPermission;
       if (!permission?.granted) permission = await requestCameraPermission();
       if (!permission?.granted) {
-        Alert.alert("Camera permission required", "Allow camera access to start Live.");
+        Alert.alert(appText("alertPermissionRequired"), appText("alertTryAgain"));
         return;
       }
       setLiveCameraOpen(true);
     } catch (e) {
-      Alert.alert("Camera unavailable", e.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertPermissionRequired"), appText("alertTryAgain"));
     }
   };
 
@@ -4875,7 +4875,7 @@ export default function App() {
       setCameraTargetKind("reels");
       setCameraOpen(true);
     } catch (e) {
-      Alert.alert("Camera unavailable", e.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertPermissionRequired"), appText("alertTryAgain"));
     }
   };
 
@@ -4887,7 +4887,7 @@ export default function App() {
       const result = await cameraRef.current.recordAsync({ maxDuration: 1200 });
       if (result?.uri) setRecordedVideo(result.uri);
     } catch (e) {
-      Alert.alert("Recording failed", e.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
     } finally {
       setIsRecording(false);
     }
@@ -4922,7 +4922,7 @@ export default function App() {
         setRecordedPhoto(photo.uri);
       }
     } catch (e) {
-      Alert.alert("Photo capture failed", e.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
     }
   };
 
@@ -4977,7 +4977,7 @@ export default function App() {
       setRecordedVideo(null);
       setCameraOpen(true);
     } catch (e) {
-      Alert.alert("Camera unavailable", e.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertPermissionRequired"), appText("alertTryAgain"));
     }
   };
 
@@ -5006,7 +5006,7 @@ export default function App() {
   const chooseMedia = async (kind, mediaMode = "default") => {
     if (busy || mediaDraft) return;
     if (kind === "reels" && mediaMode === "default") {
-      Alert.alert("Create Reel", "Choose your media", [
+      Alert.alert(appText("createRecordReel"), appText("createReelPhotos"), [
         { text: "Record with Camera", onPress: openReelCamera },
         { text: "Select Video", onPress: () => chooseMedia("reels", "video") },
         { text: "Create Video from Photos", onPress: createReelFromPhotos },
@@ -5061,7 +5061,7 @@ export default function App() {
       setMediaDraftCaption("");
     } catch (e) {
       console.error("Media selection failed:", e);
-      Alert.alert("Media could not be opened", e.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertContentUnavailable"), appText("alertTryAgain"));
     }
   };
 
@@ -5077,7 +5077,7 @@ export default function App() {
     try {
       await Linking.openURL(buildGoogleMusicSearchUrl(query));
     } catch (error) {
-      Alert.alert("Google Search Could not open", error?.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertLoadFailed"), appText("alertTryAgain"));
     } finally {
       setMusicSearchLoading(false);
     }
@@ -5097,7 +5097,7 @@ export default function App() {
       setMusicPlayingId(selectedAudio.id);
       setMusicSearchOpen(false);
     } catch (e) {
-      Alert.alert("Music selection failed", e.message || appText("alertTryAgain"));
+      Alert.alert(appText("musicStudioTitle"), appText("alertTryAgain"));
     } finally {
       setMusicSearchLoading(false);
     }
@@ -5170,7 +5170,7 @@ export default function App() {
       setMusicStart(0);
     } catch (e) {
       console.error("Photo video creation failed:", e);
-      Alert.alert("Video creation failed", e.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
     } finally {
       setBusy(false);
     }
@@ -5201,7 +5201,7 @@ export default function App() {
           : current,
       );
     } catch (e) {
-      Alert.alert("Photo editing failed", e.message || appText("alertTryAgain"));
+      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
     } finally {
       setBusy(false);
     }
@@ -5357,7 +5357,7 @@ export default function App() {
       );
     } catch (e) {
       console.error("Upload failed:", e);
-      Alert.alert("Upload failed", e.message || appText("alertCheckConnection"));
+      Alert.alert(appText("alertSaveFailed"), appText("alertCheckConnection"));
     } finally {
       setBusy(false);
     }
