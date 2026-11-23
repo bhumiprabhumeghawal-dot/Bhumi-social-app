@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import appConfig from "./app.json";
 import SettingsDashboard from "./SettingsDashboard";
-import { translateAppText } from "./localization";
+import { translateAppText, translateAppTextValue } from "./localization";
 import ChatPersonalization from "./ChatPersonalization";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import { ensureCallKeepSetup } from "./incomingCallBackgroundTask";
@@ -2000,10 +2000,15 @@ function CustomAlertHost({ appLanguage = "en" }) {
   React.useEffect(() => {
     const handler = (title, message, buttons, options) => {
       setAlertData({
-        title: String(title || "Bhumi Social AI"),
-        message: message == null ? "" : String(message),
+        title: translateAppTextValue(appLanguage, String(title || "Bhumi Social AI")),
+        message: message == null ? "" : translateAppTextValue(appLanguage, String(message)),
         buttons:
-          Array.isArray(buttons) && buttons.length ? buttons : [{ text: translateAppText(appLanguage, "close") }],
+          Array.isArray(buttons) && buttons.length
+            ? buttons.map((button) => ({
+                ...button,
+                text: translateAppTextValue(appLanguage, String(button?.text || translateAppText(appLanguage, "close"))),
+              }))
+            : [{ text: translateAppText(appLanguage, "close") }],
         options: options || {},
       });
     };
