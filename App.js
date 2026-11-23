@@ -2534,6 +2534,8 @@ export default function App() {
   const [musicSearchLoading, setMusicSearchLoading] = React.useState(false);
   const [musicVolume, setMusicVolume] = React.useState(0.8);
   const [musicStart, setMusicStart] = React.useState(0);
+  const [musicFadeIn, setMusicFadeIn] = React.useState(0.6);
+  const [musicFadeOut, setMusicFadeOut] = React.useState(1.2);
   const [keepOriginalAudio, setKeepOriginalAudio] = React.useState(true);
   const [videoFilterIndex, setVideoFilterIndex] = React.useState(0);
   const [voiceEffect, setVoiceEffect] = React.useState("Original");
@@ -5248,6 +5250,8 @@ export default function App() {
           uploadAsset = await addMusicToVideo(uploadAsset.uri, musicAsset.uri, {
             musicVolume,
             musicStart,
+            musicFadeIn,
+            musicFadeOut,
             keepOriginalAudio,
           });
         }
@@ -5270,6 +5274,8 @@ export default function App() {
       setZoomEffectDuration(3);
       setMusicAsset(null);
       setMusicStart(0);
+      setMusicFadeIn(0.6);
+      setMusicFadeOut(1.2);
       setMusicVolume(0.8);
       setKeepOriginalAudio(true);
       setVideoFilterIndex(0);
@@ -5317,6 +5323,8 @@ export default function App() {
     setZoomEffectDuration(3);
     setMusicAsset(null);
     setMusicStart(0);
+    setMusicFadeIn(0.6);
+    setMusicFadeOut(1.2);
     setMusicVolume(0.8);
     setKeepOriginalAudio(true);
     setVideoFilterIndex(0);
@@ -7466,6 +7474,18 @@ export default function App() {
                             >
                               <Text style={{ color: "#0095F6" }}>＋5s</Text>
                             </TouchableOpacity>
+                          </View>
+                          <View style={{ paddingTop: 10, gap: 8 }}>
+                            <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>Music fade in: {musicFadeIn.toFixed(1)}s</Text>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                              <TouchableOpacity onPress={() => setMusicFadeIn((v) => Math.max(0, Number((v - 0.2).toFixed(1))))} style={{ paddingHorizontal: 13, paddingVertical: 7, borderWidth: 1, borderColor: "#333333", borderRadius: 8 }}><Text style={{ color: "#0095F6" }}>−</Text></TouchableOpacity>
+                              <TouchableOpacity onPress={() => setMusicFadeIn((v) => Math.min(5, Number((v + 0.2).toFixed(1))))} style={{ paddingHorizontal: 13, paddingVertical: 7, borderWidth: 1, borderColor: "#333333", borderRadius: 8 }}><Text style={{ color: "#0095F6" }}>＋</Text></TouchableOpacity>
+                            </View>
+                            <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>Music fade out: {musicFadeOut.toFixed(1)}s</Text>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                              <TouchableOpacity onPress={() => setMusicFadeOut((v) => Math.max(0, Number((v - 0.2).toFixed(1))))} style={{ paddingHorizontal: 13, paddingVertical: 7, borderWidth: 1, borderColor: "#333333", borderRadius: 8 }}><Text style={{ color: "#0095F6" }}>−</Text></TouchableOpacity>
+                              <TouchableOpacity onPress={() => setMusicFadeOut((v) => Math.min(5, Number((v + 0.2).toFixed(1))))} style={{ paddingHorizontal: 13, paddingVertical: 7, borderWidth: 1, borderColor: "#333333", borderRadius: 8 }}><Text style={{ color: "#0095F6" }}>＋</Text></TouchableOpacity>
+                            </View>
                           </View>
                           <TouchableOpacity
                             onPress={() => setKeepOriginalAudio((v) => !v)}
