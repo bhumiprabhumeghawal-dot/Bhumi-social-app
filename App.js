@@ -6654,7 +6654,7 @@ export default function App() {
                   }}
                   style={{ padding: 14 }}
                 >
-                  <Text style={{ color: "#FFFFFF", fontSize: 16 }}>{appText("retry")}</Text>
+                  <Text style={{ color: "#FFFFFF", fontSize: 16 }}>{appText("retryAction")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={recordedPhoto ? useRecordedPhoto : useRecordedVideo}
