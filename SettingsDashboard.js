@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Linking, Platform, StyleSheet, Image, Share
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { translateAppText } from "./localization";
+import { translateAppText, translateAppTextValue } from "./localization";
 import * as FileSystem from "expo-file-system/legacy";
 import * as SecureStore from "expo-secure-store";
 import * as LocalAuthentication from "expo-local-authentication";
@@ -1051,7 +1051,9 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     const locationLabels = LOCATION_FIELD_LABELS[appLanguage] || LOCATION_FIELD_LABELS.en;
     const sectionKey = key.startsWith("profile.") ? "account" : key.startsWith("protection.") ? "appLock" : key.split(".")[0];
     const localizedSectionTitle = appLanguage === "en" ? originalTitle : t("section_" + sectionKey);
-    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : accountIndex >= 0 ? accountLabels[accountIndex] : locationIndex >= 0 ? locationLabels[locationIndex] : appLanguage === "en" ? originalTitle : (localizedSectionTitle || t("settings"));
+    const translatedFieldTitle = translateAppTextValue(appLanguage, originalTitle);
+    const hasFieldTranslation = translatedFieldTitle && translatedFieldTitle !== originalTitle;
+    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : accountIndex >= 0 ? accountLabels[accountIndex] : locationIndex >= 0 ? locationLabels[locationIndex] : appLanguage === "en" ? originalTitle : hasFieldTranslation ? translatedFieldTitle : (localizedSectionTitle || t("settings"));
     const fieldSubtitle = appLanguage === "en" ? subtitle : "";
     const value = preferences[key] ?? defaultValue;
     const isAction = ACTION_KEYS.has(key);
