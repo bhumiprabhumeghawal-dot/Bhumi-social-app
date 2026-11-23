@@ -1237,7 +1237,7 @@ function PostCard({
           )}
         </View>
         {String(post.user || "").replace(/^@/, "").toLowerCase() === String(authSession?.username || "").toLowerCase() && !post.isStarterPost && !post.isStarterReel ? (
-          <TouchableOpacity onPress={() => onDelete(post, "posts")} accessibilityLabel="Delete your post" style={{ padding: 9 }}>
+          <TouchableOpacity onPress={() => onDelete(post, "posts")} accessibilityLabel={appText("alertDelete")} style={{ padding: 9 }}>
             <Ionicons name="trash-outline" size={20} color="#0095F6" />
           </TouchableOpacity>
         ) : (
@@ -5407,10 +5407,10 @@ export default function App() {
             {profile?.username ? `@${profile.username}` : "Profile"}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
-            <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel="Create post" style={{ padding: 3 }}>
+            <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("create")} style={{ padding: 3 }}>
               <Ionicons name="add-square-outline" size={26} color="#F5F5F5" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setSettingsHubOpen(true)} accessibilityLabel="Settings and activity" hitSlop={8} style={{ width:44,height:44,borderRadius:22,alignItems:"center",justifyContent:"center",marginRight:-5 }}>
+            <TouchableOpacity onPress={() => setSettingsHubOpen(true)} accessibilityLabel={appText("settings")} hitSlop={8} style={{ width:44,height:44,borderRadius:22,alignItems:"center",justifyContent:"center",marginRight:-5 }}>
               <Ionicons name="menu" size={29} color="#F5F5F5" />
             </TouchableOpacity>
           </View>
@@ -6529,7 +6529,7 @@ export default function App() {
 
           <TouchableOpacity
             accessibilityRole="button"
-            accessibilityLabel="Choose photo or video from gallery"
+            accessibilityLabel={appText("createPostGallery")}
             onPress={() => {
               const target = cameraTargetKind;
               setCameraOpen(false);
@@ -7941,7 +7941,7 @@ export default function App() {
                       <TouchableOpacity
                         onPress={() => setManualReelPlay(true)}
                         accessibilityRole="button"
-                        accessibilityLabel="Play reel"
+                        accessibilityLabel={appText("reels")}
                         style={{
                           position: "absolute",
                           top: "43%",
@@ -7979,7 +7979,7 @@ export default function App() {
                         }}
                       >
                         {username.toLowerCase() === String(authSession?.username || "").toLowerCase() && hasServerId ? (
-                          <TouchableOpacity onPress={() => requestDeleteContent("reels", r)} accessibilityLabel="Delete your reel" style={{ width: 42, height: 42, borderRadius: 22, backgroundColor: "rgba(0,0,0,0.48)", alignItems: "center", justifyContent: "center", marginRight: 8 }}>
+                          <TouchableOpacity onPress={() => requestDeleteContent("reels", r)} accessibilityLabel={appText("alertDelete")} style={{ width: 42, height: 42, borderRadius: 22, backgroundColor: "rgba(0,0,0,0.48)", alignItems: "center", justifyContent: "center", marginRight: 8 }}>
                             <Ionicons name="trash-outline" size={20} color="#0095F6" />
                           </TouchableOpacity>
                         ) : null}
@@ -9234,7 +9234,7 @@ export default function App() {
                 </Text>
                 <TouchableOpacity
                   accessibilityRole="button"
-                  accessibilityLabel="Open Settings"
+                  accessibilityLabel={appText("settings")}
                   onPress={() => setSettingsHubOpen(true)}
                   style={{
                     width: 42,
@@ -9861,7 +9861,7 @@ export default function App() {
               </View>
 
               {String(selectedStory?.user || selectedStory?.username || "").replace(/^@/, "").toLowerCase() === String(authSession?.username || "").toLowerCase() && !selectedStory?.isStarterStory ? (
-                <TouchableOpacity onPress={() => requestDeleteContent("stories", selectedStory)} accessibilityLabel="Delete your story" style={{ padding: 9 }}>
+                <TouchableOpacity onPress={() => requestDeleteContent("stories", selectedStory)} accessibilityLabel={appText("alertDelete")} style={{ padding: 9 }}>
                   <Ionicons name="trash-outline" size={21} color="#0095F6" />
                 </TouchableOpacity>
               ) : null}
@@ -9905,7 +9905,7 @@ export default function App() {
             )}
 
             <TouchableOpacity
-              accessibilityLabel="Previous story"
+              accessibilityLabel={appText("back")}
               onPress={() => {
                 if (storyLongPressRef.current) {
                   storyLongPressRef.current = false;
@@ -9931,7 +9931,7 @@ export default function App() {
               activeOpacity={1}
             />
             <TouchableOpacity
-              accessibilityLabel="Next story"
+              accessibilityLabel={appText("retryAction")}
               onPress={() => {
                 if (storyLongPressRef.current) {
                   storyLongPressRef.current = false;
@@ -10013,7 +10013,7 @@ export default function App() {
               </View>
             </View>
             <TouchableOpacity
-              accessibilityLabel="Close post"
+              accessibilityLabel={appText("close")}
               onPress={() => setSelectedPost(null)}
               style={{
                 width: 40,
@@ -12395,7 +12395,7 @@ export default function App() {
           activeOpacity={0.9}
           onPress={() => setChatImagePreviewUri(attachmentUrl)}
           accessibilityRole="button"
-          accessibilityLabel="Open image attachment"
+          accessibilityLabel={appText("viewProfile")}
         >
           <Image
             source={{ uri: attachmentUrl, headers: authHeaders }}
@@ -12788,7 +12788,7 @@ export default function App() {
                     </View>
                     <TouchableOpacity
                       onPress={() => setChatReplyTo(null)}
-                      accessibilityLabel="Cancel reply"
+                      accessibilityLabel={appText("cancel")}
                     >
                       <Ionicons name="close-circle" size={22} color="#737373" />
                     </TouchableOpacity>
@@ -12839,7 +12839,7 @@ export default function App() {
                             {draftName} · Ready to share
                           </Text>
                         </View>
-                        <TouchableOpacity onPress={() => setChatMediaDraft(null)} accessibilityLabel="Remove attachment"
+                        <TouchableOpacity onPress={() => setChatMediaDraft(null)} accessibilityLabel={appText("removePhoto")}
                           style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: "#1C1C1E" }}>
                           <Ionicons name="close" size={19} color="#B42318" />
                         </TouchableOpacity>
@@ -12910,7 +12910,7 @@ export default function App() {
                   >
                     <TouchableOpacity
                       onPress={() => chooseChatMedia(false)}
-                      accessibilityLabel="Choose photo from gallery"
+                      accessibilityLabel={appText("createPostGallery")}
                     >
                       <Ionicons
                         name="images-outline"
@@ -12920,7 +12920,7 @@ export default function App() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => chooseChatMedia(true)}
-                      accessibilityLabel="Take a photo"
+                      accessibilityLabel={appText("createPhotoPost")}
                     >
                       <Ionicons
                         name="camera-outline"
@@ -12928,7 +12928,7 @@ export default function App() {
                         color="#F5F5F5"
                       />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={chooseChatDocument} accessibilityLabel="Attach document">
+                    <TouchableOpacity onPress={chooseChatDocument} accessibilityLabel={appText("createPostGallery")}>
                       <Ionicons name="document-attach-outline" size={23} color="#F5F5F5" />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -12941,7 +12941,7 @@ export default function App() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setChatEmojiOpen((v) => !v)}
-                      accessibilityLabel="Open emoji picker"
+                      accessibilityLabel={appText("chatPersonalization")}
                     >
                       <Ionicons
                         name="happy-outline"
@@ -12975,7 +12975,7 @@ export default function App() {
                       disabled={
                         chatBusy || isChatRecording || (!chatDraft.trim() && !chatMediaDraft)
                       }
-                      accessibilityLabel="Send message"
+                      accessibilityLabel={appText("postComment")}
                       style={{
                         width: 42,
                         height: 42,
@@ -13036,7 +13036,7 @@ export default function App() {
             <TouchableOpacity
               onPress={() => setChatImagePreviewUri(null)}
               accessibilityRole="button"
-              accessibilityLabel="Close image preview"
+              accessibilityLabel={appText("close")}
               style={{ width:42, height:42, borderRadius:21, alignItems:"center", justifyContent:"center", backgroundColor:"#1C1C1E" }}
             >
               <Ionicons name="close" size={26} color="#FFFFFF" />
