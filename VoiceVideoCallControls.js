@@ -25,33 +25,33 @@ import { Track, VideoPresets } from "livekit-client";
 import { translateAppText } from "./localization";
 
 const CALL_LABELS = {
-  en: ["Voice call","Video call","VOICE CALL","VIDEO CALL","Incoming call","Answer call","Cancel call","Reconnect","Reconnecting…","Mute","Unmute","Camera","Camera off","End","Call connected.","Connecting call…"],
-  hi: ["वॉइस कॉल","वीडियो कॉल","वॉइस कॉल","वीडियो कॉल","आने वाली कॉल","कॉल उठाएँ","कॉल काटें","फिर से कनेक्ट करें","फिर से कनेक्ट हो रहा है…","माइक बंद करें","माइक चालू करें","कैमरा","कैमरा बंद","समाप्त करें","कॉल कनेक्ट हो गई।","कॉल कनेक्ट हो रही है…"],
-  gu: ["વૉઇસ કૉલ","વિડિયો કૉલ","વૉઇસ કૉલ","વિડિયો કૉલ","આવતો કૉલ","કૉલ ઉપાડો","કૉલ કાપો","ફરીથી કનેક્ટ કરો","ફરીથી કનેક્ટ થઈ રહ્યું છે…","માઇક બંધ","માઇક ચાલુ","કૅમેરા","કૅમેરા બંધ","સમાપ્ત","કૉલ કનેક્ટ થઈ ગયો.","કૉલ કનેક્ટ થઈ રહ્યો છે…"],
-  bn: ["ভয়েস কল","ভিডিও কল","ভয়েস কল","ভিডিও কল","ইনকামিং কল","কল ধরুন","কল কেটে দিন","আবার সংযোগ করুন","আবার সংযোগ হচ্ছে…","মাইক বন্ধ","মাইক চালু","ক্যামেরা","ক্যামেরা বন্ধ","শেষ করুন","কল সংযুক্ত হয়েছে।","কল সংযোগ হচ্ছে…"],
-  mr: ["व्हॉइस कॉल","व्हिडिओ कॉल","व्हॉइस कॉल","व्हिडिओ कॉल","येणारा कॉल","कॉल उचला","कॉल कट करा","पुन्हा कनेक्ट करा","पुन्हा कनेक्ट होत आहे…","माइक बंद","माइक सुरू","कॅमेरा","कॅमेरा बंद","समाप्त","कॉल जोडला गेला.","कॉल जोडला जात आहे…"],
-  ta: ["குரல் அழைப்பு","வீடியோ அழைப்பு","குரல் அழைப்பு","வீடியோ அழைப்பு","உள்வரும் அழைப்பு","அழைப்பை ஏற்கவும்","அழைப்பை நிராகரிக்கவும்","மீண்டும் இணைக்கவும்","மீண்டும் இணைக்கிறது…","ஒலிவாங்கியை அணை","ஒலிவாங்கியை இயக்கு","கேமரா","கேமரா அணை","முடி","அழைப்பு இணைக்கப்பட்டது.","அழைப்பு இணைக்கப்படுகிறது…"],
-  te: ["వాయిస్ కాల్","వీడియో కాల్","వాయిస్ కాల్","వీడియో కాల్","ఇన్‌కమింగ్ కాల్","కాల్ ఆన్సర్ చేయండి","కాల్ కట్ చేయండి","మళ్లీ కనెక్ట్ చేయండి","మళ్లీ కనెక్ట్ అవుతోంది…","మైక్ ఆఫ్","మైక్ ఆన్","కెమెరా","కెమెరా ఆఫ్","ముగించు","కాల్ కనెక్ట్ అయింది.","కాల్ కనెక్ట్ అవుతోంది…"],
-  pa: ["ਵੌਇਸ ਕਾਲ","ਵੀਡੀਓ ਕਾਲ","ਵੌਇਸ ਕਾਲ","ਵੀਡੀਓ ਕਾਲ","ਆਉਣ ਵਾਲੀ ਕਾਲ","ਕਾਲ ਚੁੱਕੋ","ਕਾਲ ਕੱਟੋ","ਮੁੜ ਕਨੈਕਟ ਕਰੋ","ਮੁੜ ਕਨੈਕਟ ਹੋ ਰਿਹਾ ਹੈ…","ਮਾਈਕ ਬੰਦ","ਮਾਈਕ ਚਾਲੂ","ਕੈਮਰਾ","ਕੈਮਰਾ ਬੰਦ","ਖਤਮ","ਕਾਲ ਜੁੜ ਗਈ।","ਕਾਲ ਜੁੜ ਰਹੀ ਹੈ…"],
-  kn: ["ಧ್ವನಿ ಕರೆ","ವೀಡಿಯೊ ಕರೆ","ಧ್ವನಿ ಕರೆ","ವೀಡಿಯೊ ಕರೆ","ಒಳಬರುವ ಕರೆ","ಕರೆ ಸ್ವೀಕರಿಸಿ","ಕರೆ ಕಡಿತಗೊಳಿಸಿ","ಮತ್ತೆ ಸಂಪರ್ಕಿಸಿ","ಮತ್ತೆ ಸಂಪರ್ಕಿಸಲಾಗುತ್ತಿದೆ…","ಮೈಕ್ ಆಫ್","ಮೈಕ್ ಆನ್","ಕ್ಯಾಮೆರಾ","ಕ್ಯಾಮೆರಾ ಆಫ್","ಮುಕ್ತಾಯ","ಕರೆ ಸಂಪರ್ಕಗೊಂಡಿದೆ.","ಕರೆ ಸಂಪರ್ಕಗೊಳ್ಳುತ್ತಿದೆ…"],
-  ml: ["വോയ്സ് കോൾ","വീഡിയോ കോൾ","വോയ്സ് കോൾ","വീഡിയോ കോൾ","വരുന്ന കോൾ","കോൾ എടുക്കുക","കോൾ നിരസിക്കുക","വീണ്ടും ബന്ധിപ്പിക്കുക","വീണ്ടും ബന്ധിപ്പിക്കുന്നു…","മൈക്ക് ഓഫ്","മൈക്ക് ഓൺ","ക്യാമറ","ക്യാമറ ഓഫ്","അവസാനിപ്പിക്കുക","കോൾ ബന്ധിപ്പിച്ചു.","കോൾ ബന്ധിപ്പിക്കുന്നു…"],
-  ur: ["وائس کال","ویڈیو کال","وائس کال","ویڈیو کال","آنے والی کال","کال اٹھائیں","کال ختم کریں","دوبارہ منسلک کریں","دوبارہ منسلک ہو رہا ہے…","مائیک بند","مائیک آن","کیمرہ","کیمرہ بند","ختم","کال منسلک ہو گئی۔","کال منسلک ہو رہی ہے…"],
-  es: ["Llamada de voz","Videollamada","LLAMADA DE VOZ","VIDEOLLAMADA","Llamada entrante","Responder","Rechazar","Reconectar","Reconectando…","Silenciar","Activar sonido","Cámara","Cámara apagada","Finalizar","Llamada conectada.","Conectando llamada…"],
-  fr: ["Appel vocal","Appel vidéo","APPEL VOCAL","APPEL VIDÉO","Appel entrant","Répondre","Refuser","Reconnecter","Reconnexion…","Couper le micro","Activer le micro","Caméra","Caméra désactivée","Terminer","Appel connecté.","Connexion de l’appel…"],
-  ar: ["مكالمة صوتية","مكالمة فيديو","مكالمة صوتية","مكالمة فيديو","مكالمة واردة","رد","رفض","إعادة الاتصال","جارٍ إعادة الاتصال…","كتم الميكروفون","تشغيل الميكروفون","الكاميرا","إيقاف الكاميرا","إنهاء","تم الاتصال.","جارٍ الاتصال…"],
-  pt: ["Chamada de voz","Chamada de vídeo","CHAMADA DE VOZ","CHAMADA DE VÍDEO","Chamada recebida","Atender","Recusar","Reconectar","Reconectando…","Silenciar","Ativar som","Câmera","Câmera desligada","Encerrar","Chamada conectada.","Conectando chamada…"],
-  de: ["Sprachanruf","Videoanruf","SPRACHANRUF","VIDEOANRUF","Eingehender Anruf","Annehmen","Ablehnen","Erneut verbinden","Verbindung wird hergestellt…","Mikrofon stummschalten","Mikrofon aktivieren","Kamera","Kamera aus","Beenden","Anruf verbunden.","Anruf wird verbunden…"],
-  ja: ["音声通話","ビデオ通話","音声通話","ビデオ通話","着信中","応答","拒否","再接続","再接続中…","マイクをミュート","マイクをオン","カメラ","カメラオフ","終了","通話が接続されました。","通話を接続中…"],
-  ko: ["음성 통화","영상 통화","음성 통화","영상 통화","수신 전화","받기","거절","다시 연결","다시 연결 중…","마이크 음소거","마이크 켜기","카메라","카메라 끄기","종료","통화가 연결되었습니다.","통화 연결 중…"],
-  id: ["Panggilan suara","Panggilan video","PANGGILAN SUARA","PANGGILAN VIDEO","Panggilan masuk","Jawab","Tolak","Hubungkan ulang","Menghubungkan ulang…","Bisukan","Aktifkan suara","Kamera","Kamera mati","Akhiri","Panggilan terhubung.","Menghubungkan panggilan…"],
-  ru: ["Голосовой звонок","Видеозвонок","ГОЛОСОВОЙ ЗВОНОК","ВИДЕОЗВОНОК","Входящий звонок","Ответить","Отклонить","Переподключить","Переподключение…","Выключить микрофон","Включить микрофон","Камера","Камера выключена","Завершить","Звонок подключён.","Подключение звонка…"],
-  zh: ["语音通话","视频通话","语音通话","视频通话","来电","接听","拒绝","重新连接","正在重新连接…","静音","取消静音","摄像头","摄像头已关闭","结束","通话已连接。","正在连接通话…"],
-  tr: ["Sesli arama","Görüntülü arama","SESLİ ARAMA","GÖRÜNTÜLÜ ARAMA","Gelen arama","Yanıtla","Reddet","Yeniden bağlan","Yeniden bağlanıyor…","Mikrofonu kapat","Mikrofonu aç","Kamera","Kamera kapalı","Bitir","Arama bağlandı.","Arama bağlanıyor…"],
-  th: ["โทรด้วยเสียง","วิดีโอคอล","โทรด้วยเสียง","วิดีโอคอล","สายเรียกเข้า","รับสาย","ปฏิเสธ","เชื่อมต่อใหม่","กำลังเชื่อมต่อใหม่…","ปิดไมค์","เปิดไมค์","กล้อง","ปิดกล้อง","วางสาย","เชื่อมต่อสายแล้ว","กำลังเชื่อมต่อสาย…"],
-  vi: ["Cuộc gọi thoại","Cuộc gọi video","GỌI THOẠI","GỌI VIDEO","Cuộc gọi đến","Trả lời","Từ chối","Kết nối lại","Đang kết nối lại…","Tắt mic","Bật mic","Máy ảnh","Đã tắt máy ảnh","Kết thúc","Đã kết nối cuộc gọi.","Đang kết nối cuộc gọi…"]
+  en: ["Voice call","Video call","VOICE CALL","VIDEO CALL","Incoming call","Answer call","Cancel call","Reconnect","Reconnecting…","Mute","Unmute","Camera","Camera off","End","Call connected.","Connecting call…","Your video","You","Cancel call"],
+  hi: ["वॉइस कॉल","वीडियो कॉल","वॉइस कॉल","वीडियो कॉल","आने वाली कॉल","कॉल उठाएँ","कॉल काटें","फिर से कनेक्ट करें","फिर से कनेक्ट हो रहा है…","माइक बंद करें","माइक चालू करें","कैमरा","कैमरा बंद","समाप्त करें","कॉल कनेक्ट हो गई।","कॉल कनेक्ट हो रही है…","आपका वीडियो","आप","कॉल रद्द करें"],
+  gu: ["વૉઇસ કૉલ","વિડિયો કૉલ","વૉઇસ કૉલ","વિડિયો કૉલ","આવતો કૉલ","કૉલ ઉપાડો","કૉલ કાપો","ફરીથી કનેક્ટ કરો","ફરીથી કનેક્ટ થઈ રહ્યું છે…","માઇક બંધ","માઇક ચાલુ","કૅમેરા","કૅમેરા બંધ","સમાપ્ત","કૉલ કનેક્ટ થઈ ગયો.","કૉલ કનેક્ટ થઈ રહ્યો છે…","તમારો વિડિયો","તમે","કૉલ રદ કરો"],
+  bn: ["ভয়েস কল","ভিডিও কল","ভয়েস কল","ভিডিও কল","ইনকামিং কল","কল ধরুন","কল কেটে দিন","আবার সংযোগ করুন","আবার সংযোগ হচ্ছে…","মাইক বন্ধ","মাইক চালু","ক্যামেরা","ক্যামেরা বন্ধ","শেষ করুন","কল সংযুক্ত হয়েছে।","কল সংযোগ হচ্ছে…","আপনার ভিডিও","আপনি","কল বাতিল করুন"],
+  mr: ["व्हॉइस कॉल","व्हिडिओ कॉल","व्हॉइस कॉल","व्हिडिओ कॉल","येणारा कॉल","कॉल उचला","कॉल कट करा","पुन्हा कनेक्ट करा","पुन्हा कनेक्ट होत आहे…","माइक बंद","माइक सुरू","कॅमेरा","कॅमेरा बंद","समाप्त","कॉल जोडला गेला.","कॉल जोडला जात आहे…","तुमचा व्हिडिओ","तुम्ही","कॉल रद्द करा"],
+  ta: ["குரல் அழைப்பு","வீடியோ அழைப்பு","குரல் அழைப்பு","வீடியோ அழைப்பு","உள்வரும் அழைப்பு","அழைப்பை ஏற்கவும்","அழைப்பை நிராகரிக்கவும்","மீண்டும் இணைக்கவும்","மீண்டும் இணைக்கிறது…","ஒலிவாங்கியை அணை","ஒலிவாங்கியை இயக்கு","கேமரா","கேமரா அணை","முடி","அழைப்பு இணைக்கப்பட்டது.","அழைப்பு இணைக்கப்படுகிறது…","உங்கள் வீடியோ","நீங்கள்","அழைப்பை ரத்துசெய்"],
+  te: ["వాయిస్ కాల్","వీడియో కాల్","వాయిస్ కాల్","వీడియో కాల్","ఇన్‌కమింగ్ కాల్","కాల్ ఆన్సర్ చేయండి","కాల్ కట్ చేయండి","మళ్లీ కనెక్ట్ చేయండి","మళ్లీ కనెక్ట్ అవుతోంది…","మైక్ ఆఫ్","మైక్ ఆన్","కెమెరా","కెమెరా ఆఫ్","ముగించు","కాల్ కనెక్ట్ అయింది.","కాల్ కనెక్ట్ అవుతోంది…","మీ వీడియో","మీరు","కాల్ రద్దు చేయండి"],
+  pa: ["ਵੌਇਸ ਕਾਲ","ਵੀਡੀਓ ਕਾਲ","ਵੌਇਸ ਕਾਲ","ਵੀਡੀਓ ਕਾਲ","ਆਉਣ ਵਾਲੀ ਕਾਲ","ਕਾਲ ਚੁੱਕੋ","ਕਾਲ ਕੱਟੋ","ਮੁੜ ਕਨੈਕਟ ਕਰੋ","ਮੁੜ ਕਨੈਕਟ ਹੋ ਰਿਹਾ ਹੈ…","ਮਾਈਕ ਬੰਦ","ਮਾਈਕ ਚਾਲੂ","ਕੈਮਰਾ","ਕੈਮਰਾ ਬੰਦ","ਖਤਮ","ਕਾਲ ਜੁੜ ਗਈ।","ਕਾਲ ਜੁੜ ਰਹੀ ਹੈ…","ਤੁਹਾਡਾ ਵੀਡੀਓ","ਤੁਸੀਂ","ਕਾਲ ਰੱਦ ਕਰੋ"],
+  kn: ["ಧ್ವನಿ ಕರೆ","ವೀಡಿಯೊ ಕರೆ","ಧ್ವನಿ ಕರೆ","ವೀಡಿಯೊ ಕರೆ","ಒಳಬರುವ ಕರೆ","ಕರೆ ಸ್ವೀಕರಿಸಿ","ಕರೆ ಕಡಿತಗೊಳಿಸಿ","ಮತ್ತೆ ಸಂಪರ್ಕಿಸಿ","ಮತ್ತೆ ಸಂಪರ್ಕಿಸಲಾಗುತ್ತಿದೆ…","ಮೈಕ್ ಆಫ್","ಮೈಕ್ ಆನ್","ಕ್ಯಾಮೆರಾ","ಕ್ಯಾಮೆರಾ ಆಫ್","ಮುಕ್ತಾಯ","ಕರೆ ಸಂಪರ್ಕಗೊಂಡಿದೆ.","ಕರೆ ಸಂಪರ್ಕಗೊಳ್ಳುತ್ತಿದೆ…","ನಿಮ್ಮ ವೀಡಿಯೊ","ನೀವು","ಕರೆಯನ್ನು ರದ್ದುಗೊಳಿಸಿ"],
+  ml: ["വോയ്സ് കോൾ","വീഡിയോ കോൾ","വോയ്സ് കോൾ","വീഡിയോ കോൾ","വരുന്ന കോൾ","കോൾ എടുക്കുക","കോൾ നിരസിക്കുക","വീണ്ടും ബന്ധിപ്പിക്കുക","വീണ്ടും ബന്ധിപ്പിക്കുന്നു…","മൈക്ക് ഓഫ്","മൈക്ക് ഓൺ","ക്യാമറ","ക്യാമറ ഓഫ്","അവസാനിപ്പിക്കുക","കോൾ ബന്ധിപ്പിച്ചു.","കോൾ ബന്ധിപ്പിക്കുന്നു…","നിങ്ങളുടെ വീഡിയോ","നിങ്ങൾ","കോൾ റദ്ദാക്കുക"],
+  ur: ["وائس کال","ویڈیو کال","وائس کال","ویڈیو کال","آنے والی کال","کال اٹھائیں","کال ختم کریں","دوبارہ منسلک کریں","دوبارہ منسلک ہو رہا ہے…","مائیک بند","مائیک آن","کیمرہ","کیمرہ بند","ختم","کال منسلک ہو گئی۔","کال منسلک ہو رہی ہے…","آپ کی ویڈیو","آپ","کال منسوخ کریں"],
+  es: ["Llamada de voz","Videollamada","LLAMADA DE VOZ","VIDEOLLAMADA","Llamada entrante","Responder","Rechazar","Reconectar","Reconectando…","Silenciar","Activar sonido","Cámara","Cámara apagada","Finalizar","Llamada conectada.","Conectando llamada…","Tu vídeo","Tú","Cancelar llamada"],
+  fr: ["Appel vocal","Appel vidéo","APPEL VOCAL","APPEL VIDÉO","Appel entrant","Répondre","Refuser","Reconnecter","Reconnexion…","Couper le micro","Activer le micro","Caméra","Caméra désactivée","Terminer","Appel connecté.","Connexion de l’appel…","Votre vidéo","Vous","Annuler l’appel"],
+  ar: ["مكالمة صوتية","مكالمة فيديو","مكالمة صوتية","مكالمة فيديو","مكالمة واردة","رد","رفض","إعادة الاتصال","جارٍ إعادة الاتصال…","كتم الميكروفون","تشغيل الميكروفون","الكاميرا","إيقاف الكاميرا","إنهاء","تم الاتصال.","جارٍ الاتصال…","الفيديو الخاص بك","أنت","إلغاء المكالمة"],
+  pt: ["Chamada de voz","Chamada de vídeo","CHAMADA DE VOZ","CHAMADA DE VÍDEO","Chamada recebida","Atender","Recusar","Reconectar","Reconectando…","Silenciar","Ativar som","Câmera","Câmera desligada","Encerrar","Chamada conectada.","Conectando chamada…","Seu vídeo","Você","Cancelar chamada"],
+  de: ["Sprachanruf","Videoanruf","SPRACHANRUF","VIDEOANRUF","Eingehender Anruf","Annehmen","Ablehnen","Erneut verbinden","Verbindung wird hergestellt…","Mikrofon stummschalten","Mikrofon aktivieren","Kamera","Kamera aus","Beenden","Anruf verbunden.","Anruf wird verbunden…","Dein Video","Du","Anruf abbrechen"],
+  ja: ["音声通話","ビデオ通話","音声通話","ビデオ通話","着信中","応答","拒否","再接続","再接続中…","マイクをミュート","マイクをオン","カメラ","カメラオフ","終了","通話が接続されました。","通話を接続中…","あなたのビデオ","あなた","通話をキャンセル"],
+  ko: ["음성 통화","영상 통화","음성 통화","영상 통화","수신 전화","받기","거절","다시 연결","다시 연결 중…","마이크 음소거","마이크 켜기","카메라","카메라 끄기","종료","통화가 연결되었습니다.","통화 연결 중…","내 비디오","나","통화 취소"],
+  id: ["Panggilan suara","Panggilan video","PANGGILAN SUARA","PANGGILAN VIDEO","Panggilan masuk","Jawab","Tolak","Hubungkan ulang","Menghubungkan ulang…","Bisukan","Aktifkan suara","Kamera","Kamera mati","Akhiri","Panggilan terhubung.","Menghubungkan panggilan…","Video Anda","Anda","Batalkan panggilan"],
+  ru: ["Голосовой звонок","Видеозвонок","ГОЛОСОВОЙ ЗВОНОК","ВИДЕОЗВОНОК","Входящий звонок","Ответить","Отклонить","Переподключить","Переподключение…","Выключить микрофон","Включить микрофон","Камера","Камера выключена","Завершить","Звонок подключён.","Подключение звонка…","Ваше видео","Вы","Отменить звонок"],
+  zh: ["语音通话","视频通话","语音通话","视频通话","来电","接听","拒绝","重新连接","正在重新连接…","静音","取消静音","摄像头","摄像头已关闭","结束","通话已连接。","正在连接通话…","你的视频","你","取消通话"],
+  tr: ["Sesli arama","Görüntülü arama","SESLİ ARAMA","GÖRÜNTÜLÜ ARAMA","Gelen arama","Yanıtla","Reddet","Yeniden bağlan","Yeniden bağlanıyor…","Mikrofonu kapat","Mikrofonu aç","Kamera","Kamera kapalı","Bitir","Arama bağlandı.","Arama bağlanıyor…","Videonuz","Siz","Aramayı iptal et"],
+  th: ["โทรด้วยเสียง","วิดีโอคอล","โทรด้วยเสียง","วิดีโอคอล","สายเรียกเข้า","รับสาย","ปฏิเสธ","เชื่อมต่อใหม่","กำลังเชื่อมต่อใหม่…","ปิดไมค์","เปิดไมค์","กล้อง","ปิดกล้อง","วางสาย","เชื่อมต่อสายแล้ว","กำลังเชื่อมต่อสาย…","วิดีโอของคุณ","คุณ","ยกเลิกสาย"],
+  vi: ["Cuộc gọi thoại","Cuộc gọi video","GỌI THOẠI","GỌI VIDEO","Cuộc gọi đến","Trả lời","Từ chối","Kết nối lại","Đang kết nối lại…","Tắt mic","Bật mic","Máy ảnh","Đã tắt máy ảnh","Kết thúc","Đã kết nối cuộc gọi.","Đang kết nối cuộc gọi…","Video của bạn","Bạn","Hủy cuộc gọi"]
 };
 const callText = (language, key) => {
-  const keys = ["voice","video","voiceCaps","videoCaps","incoming","answer","decline","reconnect","reconnecting","mute","unmute","camera","cameraOff","end","connected","connecting"];
+  const keys = ["voice","video","voiceCaps","videoCaps","incoming","answer","decline","reconnect","reconnecting","mute","unmute","camera","cameraOff","end","connected","connecting","yourVideo","you","cancel"];
   const index = keys.indexOf(key);
   const row = CALL_LABELS[language] || CALL_LABELS.en;
   return index >= 0 ? row[index] : translateAppText(language, key);
@@ -169,11 +169,11 @@ function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" 
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
             <Ionicons name="person" size={30} color="#FFFFFF" />
             <ActivityIndicator color="#FFFFFF" size="small" style={{ marginTop: 8 }} />
-            <Text style={{ color: "#E5E5E5", fontSize: 9, marginTop: 5 }}>Your video</Text>
+            <Text style={{ color: "#E5E5E5", fontSize: 9, marginTop: 5 }}>{label("yourVideo")}</Text>
           </View>
         )}
         <View style={{ position: "absolute", left: 6, bottom: 6, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.62)" }}>
-          <Text style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700" }}>You</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700" }}>{label("you")}</Text>
         </View>
       </View>
     </View>
@@ -694,7 +694,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                     <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#B83D50", alignItems: "center", justifyContent: "center" }}>
                       <Ionicons name="call" size={22} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
                     </View>
-                    <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 7 }}>Cancel call</Text>
+                    <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 7 }}>{label("cancel")}</Text>
                   </TouchableOpacity>
                 </>
               )}
