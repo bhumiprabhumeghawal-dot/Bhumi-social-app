@@ -8946,7 +8946,7 @@ export default function App() {
                     {!!profile.businessProfile.email && (
                       <TouchableOpacity onPress={() => Linking.openURL("mailto:" + profile.businessProfile.email)} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
                         <Ionicons name="mail" size={14} color="#0095F6" />
-                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>Email</Text>
+                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>{appText("emailField")}</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.website && (
@@ -10652,7 +10652,7 @@ export default function App() {
                 disabled={privacyBusy}
                 style={{ padding: 12, marginRight: 8 }}
               >
-                <Text style={{ color: "#A8A8A8" }}>Cancel</Text>
+                <Text style={{ color: "#A8A8A8" }}>{appText("cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={persistPrivacySettings}
@@ -10717,7 +10717,7 @@ export default function App() {
                 </View>
               ))}
               <TouchableOpacity onPress={() => setSnapPrivacyOpen(false)} style={{ alignSelf: "flex-end", marginTop: 18, paddingVertical: 11, paddingHorizontal: 22, borderRadius: 12, backgroundColor: "#B58BFF" }}>
-                <Text style={{ color: "#17121F", fontWeight: "900" }}>Done</Text>
+                <Text style={{ color: "#17121F", fontWeight: "900" }}>{appText("save")}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -10739,7 +10739,7 @@ export default function App() {
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
                 <Ionicons name="business" size={24} color="#0095F6" />
-                <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>Business Studio</Text>
+                <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>{appText("creatorBusinessHub")}</Text>
               </View>
               <Text style={{ color: "#0095F6", fontSize: 12, fontWeight: "700", marginBottom: 16 }}>PREMIUM BUSINESS PROFILE · AREA DISCOVERY</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 15 }}>
@@ -10787,7 +10787,7 @@ export default function App() {
               ))}
 
               <View style={{ borderTopWidth: 1, borderTopColor: "#262626", paddingTop: 15, marginBottom: 15 }}>
-                <Text style={{ color: "#0095F6", fontSize: 16, fontWeight: "900", marginBottom: 9 }}>Product & Service Catalogue</Text>
+                <Text style={{ color: "#0095F6", fontSize: 16, fontWeight: "900", marginBottom: 9 }}>{appText("productsServices")}</Text>
                 <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
                   {["product", "service"].map((type) => (
                     <TouchableOpacity key={type} onPress={() => setCatalogDraft((old) => ({ ...old, itemType: type }))} style={{ paddingHorizontal: 13, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: catalogDraft.itemType === type ? "#0095F6" : "#262626", backgroundColor: catalogDraft.itemType === type ? "#1C1C1E" : "#121212" }}>
@@ -10807,7 +10807,7 @@ export default function App() {
                   </View>
                 ))}
                 <TouchableOpacity onPress={addBusinessCatalogItem} style={{ backgroundColor: "#0095F6", borderRadius: 10, padding: 11, alignItems: "center" }}>
-                  <Text style={{ color: "#121212", fontWeight: "900" }}>Add to Catalogue</Text>
+                  <Text style={{ color: "#121212", fontWeight: "900" }}>{appText("addToCatalogAction")}</Text>
                 </TouchableOpacity>
                 {businessCatalog.map((item) => (
                   <View key={item.id} style={{ flexDirection: "row", alignItems: "center", padding: 10, borderBottomWidth: 1, borderBottomColor: "#262626" }}>
@@ -10842,7 +10842,7 @@ export default function App() {
               </View>
               <View style={{ flexDirection: "row", justifyContent: "flex-end", paddingBottom: 20 }}>
                 <TouchableOpacity onPress={() => setBusinessProfileOpen(false)} disabled={businessProfileBusy} style={{ padding: 13, marginRight: 8 }}>
-                  <Text style={{ color: "#A8A8A8", fontWeight: "700" }}>Close</Text>
+                  <Text style={{ color: "#A8A8A8", fontWeight: "700" }}>{appText("close")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={persistBusinessProfile} disabled={businessProfileBusy} style={{ backgroundColor: "#0095F6", borderRadius: 12, paddingHorizontal: 18, paddingVertical: 13 }}>
                   <Text style={{ color: "#121212", fontWeight: "900" }}>{businessProfileBusy ? "Saving..." : "Save Business Profile"}</Text>
@@ -10883,7 +10883,7 @@ export default function App() {
               ))}
               {!businessDirectoryBusy && businessDirectoryResults.length === 0 && <Text style={{ color: "#8F819E", fontSize: 12, textAlign: "center", paddingVertical: 12 }}>Enter a city, area or category to discover businesses.</Text>}
               <TouchableOpacity onPress={() => setBusinessDirectoryOpen(false)} style={{ alignSelf: "flex-end", padding: 13 }}>
-                <Text style={{ color: "#0095F6", fontWeight: "800" }}>Close</Text>
+                <Text style={{ color: "#0095F6", fontWeight: "800" }}>{appText("close")}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
