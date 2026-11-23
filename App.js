@@ -201,7 +201,7 @@ function isVersionNewer(latest, current) {
   return false;
 }
 
-function Story({ item, onPress }) {
+function Story({ item, onPress, lightAppearance = false }) {
   return (
     <TouchableOpacity
       style={styles.story}
@@ -231,7 +231,7 @@ function Story({ item, onPress }) {
         </View>
       </View>
         </View>
-      <Text style={styles.storyName} numberOfLines={1}>
+      <Text style={[styles.storyName, { color: lightAppearance ? "#111111" : "#F5F5F5" }]} numberOfLines={1}>
         {item.name}
       </Text>
     </TouchableOpacity>
@@ -1049,7 +1049,10 @@ function PostCard({
   pageHeight = 0,
   active = true,
   autoPlay = true,
+  lightAppearance = false,
 }) {
+  const uiTextColor = lightAppearance ? "#111111" : "#FFFFFF";
+  const uiSurfaceColor = lightAppearance ? "#FFFFFF" : "#000000";
   const postText = (key) => translateAppText(appLanguage, key);
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
@@ -1210,7 +1213,7 @@ function PostCard({
             left: 0,
             right: 0,
             zIndex: 10,
-            backgroundColor: "#000000",
+            backgroundColor: uiSurfaceColor,
           },
         ]}
       >
@@ -1228,12 +1231,12 @@ function PostCard({
         </TouchableOpacity>
         <View style={styles.postUserInfo}>
           <TouchableOpacity onPress={() => onOpenProfile(post.user)} activeOpacity={0.75}>
-            <Text style={[styles.username, { color: "#FFFFFF" }]}>
+            <Text style={[styles.username, { color: uiTextColor }]}>
               {post.user || translateAppText(appLanguage, "youLabel")}
             </Text>
           </TouchableOpacity>
           {!!post.location && (
-            <Text style={[styles.location, { color: "#FFFFFF" }]}>
+            <Text style={[styles.location, { color: uiTextColor }]}>
               {post.location}
             </Text>
           )}
@@ -1258,7 +1261,7 @@ function PostCard({
           right: 0,
           height: mediaHeight,
           overflow: "hidden",
-          backgroundColor: "#000000",
+          backgroundColor: uiSurfaceColor,
         }}
       >
         {post.mediaItems?.length > 1 ? (
@@ -1365,7 +1368,7 @@ function PostCard({
             style={{
               textAlign: "center",
               paddingVertical: 5,
-              color: "#A8A8A8",
+              color: lightAppearance ? "#666666" : "#A8A8A8",
               fontSize: 12,
             }}
           >
@@ -1386,7 +1389,7 @@ function PostCard({
           left: 0,
           right: 0,
           zIndex: 30,
-          backgroundColor: "#000000",
+          backgroundColor: uiSurfaceColor,
           paddingBottom: 10,
           paddingTop: 6,
         }}
@@ -1396,14 +1399,14 @@ function PostCard({
             <Ionicons
               name={liked ? "heart" : "heart-outline"}
               size={27}
-              color={liked ? "#ED4956" : "#FFFFFF"}
+              color={liked ? "#ED4956" : uiTextColor}
             />
           </TouchableOpacity>
           <TouchableOpacity onPress={openComments}>
             <Ionicons name="chatbubble-outline" size={24} color="#0095F6" />
           </TouchableOpacity>
           <TouchableOpacity onPress={sharePost}>
-            <Ionicons name="paper-plane-outline" size={25} color="#FFFFFF" />
+            <Ionicons name="paper-plane-outline" size={25} color={uiTextColor} />
           </TouchableOpacity>
           <View style={styles.actionSpacer} />
           <TouchableOpacity onPress={() => setSaved(!saved)}>
@@ -1415,24 +1418,24 @@ function PostCard({
           </TouchableOpacity>
         </View>
 
-        <Text style={[styles.likes, { color: "#FFFFFF" }]}>
+        <Text style={[styles.likes, { color: uiTextColor }]}>
           {likeCount.toLocaleString()} {translateAppText(appLanguage, "likesLabel")}
         </Text>
         {!!post.caption && (
-          <Text style={[styles.caption, { color: "#FFFFFF" }]}>
-            <Text style={[styles.username, { color: "#FFFFFF" }]}>
+          <Text style={[styles.caption, { color: uiTextColor }]}>
+            <Text style={[styles.username, { color: uiTextColor }]}>
               {post.user || translateAppText(appLanguage, "youLabel")}{" "}
             </Text>
             {post.caption}
           </Text>
         )}
         <TouchableOpacity onPress={openComments}>
-          <Text style={[styles.comments, { color: "#FFFFFF" }]}>
+          <Text style={[styles.comments, { color: uiTextColor }]}>
             {postText("commentsTitle")}
           </Text>
         </TouchableOpacity>
         {!!post.createdAt && (
-          <Text style={[styles.time, { color: "#FFFFFF" }]}>
+          <Text style={[styles.time, { color: uiTextColor }]}>
             {formatPostTime(post.createdAt)}
           </Text>
         )}
@@ -5409,7 +5412,7 @@ export default function App() {
   };
 
   const renderAppHeader = () => (
-    <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative" }]}>
+    <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative", backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderBottomColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
       {activeTab === "Profile" ? (
         <>
           <Text style={[styles.brand, { flex: 1, fontSize: 20 }]} numberOfLines={1}>
@@ -5427,11 +5430,11 @@ export default function App() {
       ) : activeTab === "Home" ? (
         <>
           <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("createPhotoPost")} style={{ width: 42, alignItems: "flex-start", justifyContent: "center" }}>
-            <Ionicons name="add" size={38} color="#F5F5F5" />
+            <Ionicons name="add" size={38} color={lightAppearance ? "#111111" : "#F5F5F5"} />
           </TouchableOpacity>
-          <Text style={[styles.brand, { flex: 1, textAlign: "center", fontSize: 27, fontWeight: "700", letterSpacing: -1 }]} numberOfLines={1}>Bhumi Social AI</Text>
+          <Text style={[styles.brand, { flex: 1, textAlign: "center", fontSize: 27, fontWeight: "700", letterSpacing: -1, color: lightAppearance ? "#111111" : "#F5F5F5" }]} numberOfLines={1}>Bhumi Social AI</Text>
           <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center", position: "relative" }}>
-            <Ionicons name="heart-outline" size={32} color="#F5F5F5" />
+            <Ionicons name="heart-outline" size={32} color={lightAppearance ? "#111111" : "#F5F5F5"} />
             {unreadNotificationCount > 0 ? <View style={{ position: "absolute", right: -1, top: 2, width: 10, height: 10, borderRadius: 5, backgroundColor: "#E1306C" }} /> : null}
           </TouchableOpacity>
         </>
@@ -8230,7 +8233,7 @@ export default function App() {
           )}
         </View>
       ) : activeTab === "Home" ? (
-        <View style={[styles.content, { flex: 1 }]}>
+        <View style={[styles.content, { flex: 1, backgroundColor: lightAppearance ? "#FFFFFF" : "#000000" }]}>
           {/* Keep the Instagram-style top bar fixed; only stories and feed content scroll. */}
           {renderAppHeader()}
             <FlatList
@@ -8262,6 +8265,7 @@ export default function App() {
                               own: true,
                               uri: profile?.avatarUrl,
                             }}
+                            lightAppearance={lightAppearance}
                             onPress={() => {
                               if (ownGroup) openStoryGroup(ownGroup.items);
                               else createStory();
@@ -8299,12 +8303,13 @@ export default function App() {
                             name: group.name,
                             own: false,
                           }}
+                          lightAppearance={lightAppearance}
                           onPress={() => openStoryGroup(group.items)}
                         />
                       ))}
 
                   </ScrollView>
-                  <View style={styles.feedDivider} />
+                  <View style={[styles.feedDivider, { backgroundColor: lightAppearance ? "#E5E5E5" : "#262626" }]} />
                 </View>
               }
               onLayout={(event) => {
@@ -8383,6 +8388,7 @@ export default function App() {
                   pageHeight={feedViewportHeight}
                   active={activeTab === "Home" && index === activeFeedIndex}
                   autoPlay={appSettingsPreferences["feed.autoPlay"] !== false}
+                  lightAppearance={lightAppearance}
                   onOpen={() => {
                     setSelectedPostMediaIndex(0);
                     setSelectedPost(post);
@@ -9716,7 +9722,7 @@ export default function App() {
         </View>
       )}
 
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderTopColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
         {[
           { name: "Home", icon: "home-outline", activeIcon: "home" },
           { name: "Reels", icon: "play-outline", activeIcon: "play" },
@@ -9726,7 +9732,7 @@ export default function App() {
         ].map((tab) => (
           <TouchableOpacity
             key={tab.name}
-            style={[styles.navItem, activeTab === tab.name ? styles.activeNavItem : null]}
+            style={[styles.navItem, activeTab === tab.name ? [styles.activeNavItem, { backgroundColor: lightAppearance ? "#E9E9EB" : "#26292D" }] : null]}
             onPress={() => handleTab(tab.name)}
             accessibilityLabel={appText("tab" + tab.name)}
           >
@@ -9736,7 +9742,7 @@ export default function App() {
               <Ionicons
                 name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
                 size={tab.name === "Create" ? 29 : 27}
-                color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
+                color={activeTab === tab.name ? (lightAppearance ? "#111111" : "#F5F5F5") : (lightAppearance ? "#777777" : "#A8A8A8")}
               />
             )}
             {tab.name === "Chat" ? <View style={{ position: "absolute", right: "31%", bottom: 8, width: 7, height: 7, borderRadius: 4, backgroundColor: "#E1306C" }} /> : null}
