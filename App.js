@@ -4402,7 +4402,7 @@ export default function App() {
 
   const handleSettingsLogout = () => {
     Alert.alert(appText("alertLogOut"), "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
+      { text: appText("cancel"), style: "cancel" },
       {
         text: appText("alertLogOut"),
         style: "destructive",
@@ -4653,7 +4653,7 @@ export default function App() {
 
   const removeProfilePhoto = () => {
     Alert.alert(appText("removePhoto") + "?", appText("removePhoto") + "?", [
-      { text: "Cancel", style: "cancel" },
+      { text: appText("cancel"), style: "cancel" },
       {
         text: appText("alertDelete"),
         style: "destructive",
@@ -4809,7 +4809,7 @@ export default function App() {
       "Delete this " + (kind === "stories" ? "story" : kind === "reels" ? "reel" : "post") + "?",
       "This will permanently remove it from Bhumi Social AI.",
       [
-        { text: "Cancel", style: "cancel" },
+        { text: appText("cancel"), style: "cancel" },
         {
           text: appText("alertDelete"),
           style: "destructive",
@@ -5010,7 +5010,7 @@ export default function App() {
         { text: "Record with Camera", onPress: openReelCamera },
         { text: "Select Video", onPress: () => chooseMedia("reels", "video") },
         { text: "Create Video from Photos", onPress: createReelFromPhotos },
-        { text: "Cancel", style: "cancel" },
+        { text: appText("cancel"), style: "cancel" },
       ]);
       return;
     }
@@ -10515,7 +10515,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 14 }}
               >
-                Close
+                {appText("close")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -11128,9 +11128,7 @@ export default function App() {
                   onPress={() => setAccountSettingsOpen(false)}
                   style={{ padding: 13, marginRight: 8 }}
                 >
-                  <Text style={{ color: "#A8A8A8", fontWeight: "700" }}>
-                    Cancel
-                  </Text>
+                  <Text style={{ color: "#A8A8A8", fontWeight: "700" }}>{appText("cancel")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   disabled={accountSettingsBusy}
@@ -11236,7 +11234,7 @@ export default function App() {
                     "Log Out Other Devices",
                     "This will sign out your account from other devices. This device will stay logged in.",
                     [
-                      { text: "Cancel", style: "cancel" },
+                      { text: appText("cancel"), style: "cancel" },
                       {
                         text: appText("logoutOtherDevices"),
                         style: "destructive",
@@ -12743,9 +12741,7 @@ export default function App() {
                             fontWeight: "700",
                             fontSize: 12,
                           }}
-                        >
-                          Cancel
-                        </Text>
+                        >{appText("cancel")}</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -13147,9 +13143,7 @@ export default function App() {
                 onPress={() => setNoteComposerOpen(false)}
                 style={{ paddingVertical: 10, alignItems: "center" }}
               >
-                <Text style={{ color: "#A8A8A8", fontWeight: "600" }}>
-                  Cancel
-                </Text>
+                <Text style={{ color: "#A8A8A8", fontWeight: "600" }}>{appText("cancel")}</Text>
               </TouchableOpacity>
             </View>
           </View>
