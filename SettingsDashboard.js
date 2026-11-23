@@ -39,41 +39,9 @@ const APP_LANGUAGES = [
   { code:"th", name:"Thai", native:"ไทย", region:"International" },
   { code:"vi", name:"Vietnamese", native:"Tiếng Việt", region:"International" },
 ];
-const SECTION_SUBTITLES = {
-  hi: {
-    account:"व्यक्तिगत जानकारी और खाते के नियंत्रण",
-    location:"लाइव लोकेशन साझा करना और आसपास के लोगों को खोजना",
-    privacy:"कौन आपकी जानकारी देख और आपसे संपर्क कर सकता है",
-    security:"अपने खाते और लॉगिन सत्रों की सुरक्षा करें",
-    notifications:"अलर्ट, आवाज़ और शांत समय चुनें",
-    messages:"संदेशों और कॉल की गोपनीयता नियंत्रित करें",
-    story:"स्टोरी की गोपनीयता और साझाकरण नियंत्रित करें",
-    feed:"फ़ीड और रील्स की प्राथमिकताएँ चुनें",
-    appearance:"ऐप की दिखावट और भाषा बदलें",
-    advanced:"डेटा, डाउनलोड और स्टोरेज प्रबंधित करें",
-    creator:"क्रिएटर और प्रोफेशनल टूल प्रबंधित करें",
-    appLock:"ऐप और निजी सामग्री की सुरक्षा करें",
-    premium:"प्रीमियम सुविधाएँ और सदस्यताएँ प्रबंधित करें",
-  },
-  ur: {
-    account:"ذاتی معلومات اور اکاؤنٹ کے اختیارات",
-    location:"لائیو مقام شیئر کریں اور قریبی لوگوں کو تلاش کریں",
-    privacy:"کون آپ کی معلومات دیکھ سکتا ہے اور رابطہ کر سکتا ہے",
-    security:"اپنے اکاؤنٹ اور سائن اِن سیشنز کو محفوظ رکھیں",
-    notifications:"الرٹس، آواز اور خاموش اوقات منتخب کریں",
-    messages:"پیغامات اور کالز کی رازداری کنٹرول کریں",
-    story:"اسٹوری کی رازداری اور شیئرنگ کنٹرول کریں",
-    feed:"فیڈ اور ریلز کی ترجیحات منتخب کریں",
-    appearance:"ایپ کی شکل اور زبان تبدیل کریں",
-    advanced:"ڈیٹا، ڈاؤن لوڈز اور اسٹوریج منظم کریں",
-    creator:"کریئیٹر اور پروفیشنل ٹولز منظم کریں",
-    appLock:"ایپ اور نجی مواد کو محفوظ بنائیں",
-    premium:"پریمیم خصوصیات اور سبسکرپشنز منظم کریں",
-  },
-};
 function getSectionSubtitle(language, key, fallback) {
   if (language === "en") return fallback;
-  return SECTION_SUBTITLES[language]?.[key] || "";
+  return translateAppText(language, "sectionSubtitle_" + key);
 }
 const GOLD = "#0095F6";
 const BG = "#000000";
@@ -1510,7 +1478,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               {APP_LANGUAGES.map((item) => (
                 <TouchableOpacity key={item.code} onPress={async () => {
                   try { await SecureStore.setItemAsync("bhumi_app_language",item.code); setSelectedLanguage(item.code); onLanguageChange?.(item.code); setLanguageVisible(false); }
-                  catch (error) { setNotice({title:"Could not save language",message:error?.message || "Please try again."}); }
+                  catch (error) { setNotice({title:t("languageSaveFailed"),message:t("tryAgain")}); }
                 }} style={{ flexDirection:"row",alignItems:"center",paddingVertical:12,borderBottomWidth:1,borderBottomColor:BORDER }}>
                   <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{appLanguage === "en" ? item.name : item.native}</Text></View>
                   {selectedLanguage===item.code ? <Ionicons name="checkmark-circle" size={21} color={GOLD}/> : <View style={{ width:20,height:20,borderRadius:10,borderWidth:1,borderColor:BORDER }}/>}
