@@ -219,7 +219,7 @@ function Story({ item, onPress }) {
           {item.uri ? (
             <Image
               source={{ uri: item.uri }}
-              style={{ width: 52, height: 52, borderRadius: 26 }}
+              style={{ width: 80, height: 80, borderRadius: 40 }}
             />
           ) : item.own ? (
             <Text style={{ fontSize: 43 }}>😊</Text>
