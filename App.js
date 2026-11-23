@@ -2413,7 +2413,7 @@ export default function App() {
     } catch (error) {
       Alert.alert(
         appText("alertUpdate"),
-        "The update could not be downloaded. Check your internet connection and try again.",
+        appText("updateDownloadFailed"),
       );
     } finally {
       setUpdateDownloading(false);
