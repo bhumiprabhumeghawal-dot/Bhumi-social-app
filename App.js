@@ -96,7 +96,7 @@ import {
   saveSettingsPreferences,
   togglePostLike,
   loadPostById,
-  loadPost{postText("commentsTitle")},
+  loadPostComments,
   createPostComment,
   approvePostComment,
   toggleReelLike,
@@ -1159,7 +1159,7 @@ function PostCard({
     }
   };
 
-  const handle{postText("approve")}Comment = async (commentId) => {
+  const handleApproveComment = async (commentId) => {
     if (!post?.id || interactionBusy) return;
     setInteractionBusy(true);
     try {
@@ -1526,7 +1526,7 @@ function PostCard({
                             marginTop: 4,
                           }}
                         >
-                          {postText("pendingApproval")}
+                          {appText("pendingApproval")}
                         </Text>
                       ) : null}
                       {comment.isPending && comment.canApprove ? (
@@ -1549,7 +1549,7 @@ function PostCard({
                               fontWeight: "800",
                             }}
                           >
-                            {postText("approve")}
+                            {appText("approve")}
                           </Text>
                         </TouchableOpacity>
                       ) : null}
@@ -1599,7 +1599,7 @@ function PostCard({
                   }}
                 >
                   <Text style={{ color: commentDraft.trim() && !interactionBusy ? "#FFFFFF" : "#8E8E93", fontWeight: "800", fontSize: 12 }}>
-                    {postText("postComment")}
+                    {appText("postComment")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -13852,7 +13852,7 @@ export default function App() {
                 <Text
                   style={{ color: "#A8A8A8", textAlign: "center", padding: 28 }}
                 >
-                  No comments yet. Be the first to comment.
+                  {appText("noCommentsFirst")}
                 </Text>
               ) : null}
             </ScrollView>
@@ -13870,7 +13870,7 @@ export default function App() {
               <TextInput
                 value={reelCommentDraft}
                 onChangeText={setReelCommentDraft}
-                placeholder="Add a comment..."
+                placeholder={appText("writeComment")}
                 placeholderTextColor="#A8A8A8"
                 maxLength={2000}
                 editable={!reelCommentsBusy}
