@@ -12992,7 +12992,7 @@ export default function App() {
                     closeMessages();
                     handleTab(tab.name);
                   }}
-                  accessibilityLabel={tab.name}
+                  accessibilityLabel={appText("tab" + tab.name)}
                 >
                   <Ionicons
                     name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
