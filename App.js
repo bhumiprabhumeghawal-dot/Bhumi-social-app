@@ -5780,7 +5780,7 @@ export default function App() {
               <TextInput
                 value={forgotEmail}
                 onChangeText={setForgotEmail}
-                placeholder="Enter your email (optional)"
+                placeholder={appText("emailOptionalPlaceholder")}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={!authBusy}
@@ -5813,7 +5813,7 @@ export default function App() {
               <TextInput
                 value={forgotOtp}
                 onChangeText={setForgotOtp}
-                placeholder="Enter OTP"
+                placeholder={appText("otpPlaceholder")}
                 keyboardType="number-pad"
                 editable={!authBusy}
                 style={fieldStyle}
@@ -5853,7 +5853,7 @@ export default function App() {
               <TextInput
                 value={forgotNewPassword}
                 onChangeText={setForgotNewPassword}
-                placeholder="New password"
+                placeholder={appText("newPasswordPlaceholder")}
                 secureTextEntry
                 autoCapitalize="none"
                 editable={!authBusy}
@@ -5867,7 +5867,7 @@ export default function App() {
               <TextInput
                 value={forgotConfirmPassword}
                 onChangeText={setForgotConfirmPassword}
-                placeholder="Confirm new password"
+                placeholder={appText("confirmNewPasswordPlaceholder")}
                 secureTextEntry
                 autoCapitalize="none"
                 editable={!authBusy}
@@ -6137,7 +6137,7 @@ export default function App() {
               <TextInput
                 value={authFullName}
                 onChangeText={setAuthFullName}
-                placeholder="Enter your full name"
+                placeholder={appText("fullNamePlaceholder")}
                 autoCapitalize="words"
                 editable={!authBusy}
                 style={{
@@ -6158,7 +6158,7 @@ export default function App() {
               <TextInput
                 value={authUsername}
                 onChangeText={setAuthUsername}
-                placeholder="Choose your own username"
+                placeholder={appText("chooseUsernamePlaceholder")}
                 maxLength={50}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -6186,7 +6186,7 @@ export default function App() {
               <TextInput
                 value={authEmail}
                 onChangeText={setAuthEmail}
-                placeholder="Email address"
+                placeholder={appText("emailAddressPlaceholder")}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -6236,7 +6236,7 @@ export default function App() {
               <TextInput
                 value={authPhoneNumber}
                 onChangeText={setAuthPhoneNumber}
-                placeholder="Enter your mobile number (optional)"
+                placeholder={appText("mobileOptionalPlaceholder")}
                 keyboardType="phone-pad"
                 editable={!authBusy}
                 style={{
@@ -6258,7 +6258,7 @@ export default function App() {
           <TextInput
             value={authPassword}
             onChangeText={setAuthPassword}
-            placeholder="Create password"
+            placeholder={appText("createPasswordPlaceholder")}
             secureTextEntry
             autoCapitalize="none"
             editable={!authBusy}
@@ -6283,7 +6283,7 @@ export default function App() {
               <TextInput
                 value={authConfirmPassword}
                 onChangeText={setAuthConfirmPassword}
-                placeholder="Re-enter password"
+                placeholder={appText("reenterPasswordPlaceholder")}
                 secureTextEntry
                 autoCapitalize="none"
                 editable={!authBusy}
