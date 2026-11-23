@@ -193,8 +193,8 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
             <Text style={{ color: MUTED, fontSize: 11, marginTop: 4 }}>{t("creatorHubIntro")}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 12 }}>
               {[
-                ["personal", "Personal"], ["creator", "Creator"],
-                ["business", "Business"]
+                ["personal", t("personalAccount")], ["creator", t("creatorAccountType")],
+                ["business", t("businessAccountType")]
               ].map(([value, label]) => (
                 <TouchableOpacity key={value} disabled={saving} onPress={() => changeAccountType(value)} style={{ backgroundColor: accountType === value ? GOLD : PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, marginRight: 7, marginBottom: 7 }}>
                   <Text style={{ color: accountType === value ? "#FFFFFF" : TEXT, fontSize: 10, fontWeight: "900" }}>{label}</Text>
@@ -210,7 +210,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
               <View style={{ flexDirection: "row", marginBottom: 12 }}>
                 {["overview", "profile", "catalog"].map(value => (
                   <TouchableOpacity key={value} onPress={() => setTab(value)} style={{ flex: 1, padding: 10, marginRight: 5, borderRadius: 9, backgroundColor: tab === value ? "#102A3C" : PANEL, borderWidth: 1, borderColor: tab === value ? GOLD : BORDER, alignItems: "center" }}>
-                    <Text style={{ color: tab === value ? GOLD : MUTED, fontSize: 11, fontWeight: "800" }}>{value.toUpperCase()}</Text>
+                    <Text style={{ color: tab === value ? GOLD : MUTED, fontSize: 11, fontWeight: "800" }}>{t(value === "overview" ? "overviewTab" : value === "profile" ? "profileTab" : "catalogTab").toUpperCase()}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -228,27 +228,27 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
               ) : null}
               {tab === "profile" ? (
                 <>
-                  {field("Business Name", "businessName")}
-                  {field("Category", "category")}
-                  {field("Description", "description", true)}
-                  {field("Phone", "phone")}
+                  {field(t("businessNameField"), "businessName")}
+                  {field(t("categoryField"), "category")}
+                  {field(t("descriptionField"), "description", true)}
+                  {field(t("phoneField"), "phone")}
                   {field("WhatsApp", "whatsapp")}
                   {field("Email", "email")}
-                  {field("Website", "website")}
-                  {field("Address", "address", true)}
-                  {field("City", "city")}
-                  {field("State", "state")}
-                  {field("Pincode", "pincode")}
-                  {actionButton(saving ? "SAVING..." : "SAVE BUSINESS PROFILE", saveBusiness, saving)}
+                  {field(t("websiteField"), "website")}
+                  {field(t("addressField"), "address", true)}
+                  {field(t("cityField"), "city")}
+                  {field(t("stateField"), "state")}
+                  {field(t("pincodeField"), "pincode")}
+                  {actionButton(saving ? t("savingAction").toUpperCase() : t("saveBusinessProfileAction").toUpperCase(), saveBusiness, saving)}
                 </>
               ) : null}
               {tab === "catalog" ? (
                 <>
                   <Text style={{ color: TEXT, fontWeight: "900", fontSize: 15, marginBottom: 10 }}>{t("productsServices")}</Text>
-                  <TextInput value={form.title} onChangeText={title => setForm(current => ({ ...current, title }))} placeholder="Product / service name" placeholderTextColor="#8E8E8E" style={inputStyle}/>
-                  <TextInput value={form.price} onChangeText={price => setForm(current => ({ ...current, price }))} placeholder="Price (e.g. 499)" placeholderTextColor="#8E8E8E" keyboardType="decimal-pad" style={inputStyle}/>
-                  <TextInput value={form.description} onChangeText={description => setForm(current => ({ ...current, description }))} placeholder="Description" placeholderTextColor="#8E8E8E" multiline style={[inputStyle, { minHeight: 70, textAlignVertical: "top" }]}/>
-                  {actionButton(saving ? "ADDING..." : "ADD TO CATALOG", addItem, saving)}
+                  <TextInput value={form.title} onChangeText={title => setForm(current => ({ ...current, title }))} placeholder={t("productNamePlaceholder")} placeholderTextColor="#8E8E8E" style={inputStyle}/>
+                  <TextInput value={form.price} onChangeText={price => setForm(current => ({ ...current, price }))} placeholder={t("pricePlaceholder")} placeholderTextColor="#8E8E8E" keyboardType="decimal-pad" style={inputStyle}/>
+                  <TextInput value={form.description} onChangeText={description => setForm(current => ({ ...current, description }))} placeholder={t("descriptionPlaceholder")} placeholderTextColor="#8E8E8E" multiline style={[inputStyle, { minHeight: 70, textAlignVertical: "top" }]}/>
+                  {actionButton(saving ? t("addingAction").toUpperCase() : t("addToCatalogAction").toUpperCase(), addItem, saving)}
                   <Text style={{ color: GOLD, fontWeight: "900", fontSize: 14, marginTop: 22, marginBottom: 10 }}>{t("productsServices").toUpperCase()} ({items.length})</Text>
                   {items.map(item => (
                     <View key={String(item.id)} style={{ backgroundColor: PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 8, flexDirection: "row", alignItems: "center" }}>
