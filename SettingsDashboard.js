@@ -1299,8 +1299,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 <Text style={{ color:MUTED,fontSize:11,marginTop:7 }}>{new Date(item.created_at).toLocaleString()}</Text>
                 <Text style={{ color:MUTED,fontSize:10,marginTop:3 }}>{item.session_active ? "Session active" : "Signed out / expired"}</Text>
               </View>
-            )) : <Text style={{ color:MUTED,fontSize:12,marginBottom:15 }}>No login history is available yet. New successful logins will appear here.</Text>}
-            <Text style={{ color:TEXT,fontSize:15,fontWeight:"900",marginTop:15,marginBottom:8 }}>Active Devices</Text>
+            )) : <Text style={{ color:MUTED,fontSize:12,marginBottom:15 }}>{t("noLoginHistory")}</Text>}
+            <Text style={{ color:TEXT,fontSize:15,fontWeight:"900",marginTop:15,marginBottom:8 }}>{t("activeDevices")}</Text>
             {activeSessions.length ? activeSessions.map((item)=>(
               <View key={item.id} style={{ backgroundColor:PANEL,borderRadius:13,padding:13,marginBottom:8 }}>
                 <View style={{ flexDirection:"row",alignItems:"center" }}>
@@ -1322,14 +1322,14 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         <View style={{ flex:1,backgroundColor:"#000000",paddingTop:Platform.OS==="android"?35:55,paddingHorizontal:18,paddingBottom:20 }}>
           <View style={{ flexDirection:"row",alignItems:"center",marginBottom:15 }}>
             <TouchableOpacity onPress={()=>setLocationVisible(false)} style={{ width:38 }}><Ionicons name="arrow-back" size={24} color={TEXT}/></TouchableOpacity>
-            <Text style={{ color:TEXT,fontSize:20,fontWeight:"900",flex:1 }}>Live Location</Text>
+            <Text style={{ color:TEXT,fontSize:20,fontWeight:"900",flex:1 }}>{t("liveLocationTitle")}</Text>
             <TouchableOpacity onPress={refreshLocationShares}><Ionicons name="refresh" size={21} color={GOLD}/></TouchableOpacity>
           </View>
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <View style={{ backgroundColor:PANEL,borderRadius:15,padding:15,marginBottom:14 }}>
               <Text style={{ color:TEXT,fontSize:15,fontWeight:"900" }}>{t("shareProfileAction")}</Text>
               <Text style={{ color:MUTED,fontSize:11,lineHeight:16,marginTop:5 }}>{t("locationSafety")}</Text>
-              <TextInput value={locationRecipient} onChangeText={setLocationRecipient} placeholder="Friend's username" placeholderTextColor="#777777" autoCapitalize="none" autoCorrect={false} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:11,padding:12,marginTop:13 }}/>
+              <TextInput value={locationRecipient} onChangeText={setLocationRecipient} placeholder={t("friendUsernamePlaceholder")} placeholderTextColor="#777777" autoCapitalize="none" autoCorrect={false} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:11,padding:12,marginTop:13 }}/>
               <Text style={{ color:MUTED,fontSize:11,fontWeight:"800",marginTop:13,marginBottom:8 }}>{t("choose")}</Text>
               <View style={{ flexDirection:"row",flexWrap:"wrap",gap:7 }}>
                 {[15,60,240,1440].map((minutes)=>(
@@ -1378,13 +1378,13 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginTop:18,marginBottom:8 }}>{t("section_location")}</Text>
             {(locationShares.history || []).map((item)=>(
               <View key={"history-"+item.share_id} style={{ backgroundColor:PANEL,borderRadius:11,padding:11,marginBottom:7 }}>
-                <Text style={{ color:TEXT,fontSize:11,fontWeight:"800" }}>{item.owner_username===username ? t("youSharedWithLabel")+" @"+item.recipient_username : "@"+item.owner_username+" "+t("sharedWithYouLabel")"}</Text>
+                <Text style={{ color:TEXT,fontSize:11,fontWeight:"800" }}>{item.owner_username===username ? t("youSharedWithLabel")+" @"+item.recipient_username : "@"+item.owner_username+" "+t("sharedWithYouLabel")}</Text>
                 <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>{new Date(item.created_at).toLocaleString()} · {item.active ? "Active" : "Ended"}</Text>
               </View>
             ))}
             {!(locationShares.history || []).length ? <Text style={{ color:MUTED,fontSize:11 }}>{t("noNotificationsYet")}</Text> : null}
             <View style={{ backgroundColor:"#1B1B1B",borderRadius:12,padding:12,marginTop:15,marginBottom:20 }}>
-              <Text style={{ color:MUTED,fontSize:10,lineHeight:15 }}>Location is shared only after you press Start, only with the selected mutual follower, and expires automatically. Background Location requires the separate switch, Always permission, and an ongoing system notification. You can stop sharing here at any time. Approximate Location rounds coordinates before sending.</Text>
+              <Text style={{ color:MUTED,fontSize:10,lineHeight:15 }}>{t("locationHistoryNote")}</Text>
             </View>
           </ScrollView>
         </View>
@@ -1446,7 +1446,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.82)",justifyContent:"center",padding:24 }}>
           <View style={{ backgroundColor:"#121212",borderRadius:20,borderWidth:1,borderColor:"#303030",padding:20 }}>
             <Text style={{ color:TEXT,fontSize:19,fontWeight:"900" }}>{pinAlreadySet ? "Change App PIN" : "Set App PIN"}</Text>
-            <Text style={{ color:MUTED,fontSize:12,lineHeight:18,marginTop:7 }}>Choose a 4–6 digit PIN. It is required on app launch; Automatic Lock can also require it whenever the app returns from the background.</Text>
+            <Text style={{ color:MUTED,fontSize:12,lineHeight:18,marginTop:7 }}>{t("pinInstruction")}</Text>
             <TextInput value={pinValue} onChangeText={(v)=>setPinValue(v.replace(/\D/g,"").slice(0,6))} placeholder="New 4–6 digit PIN" placeholderTextColor="#777777" keyboardType="number-pad" secureTextEntry maxLength={6} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:12,padding:13,marginTop:16,fontSize:18,letterSpacing:5 }} />
             <TextInput value={pinConfirmValue} onChangeText={(v)=>setPinConfirmValue(v.replace(/\D/g,"").slice(0,6))} placeholder="Confirm PIN" placeholderTextColor="#777777" keyboardType="number-pad" secureTextEntry maxLength={6} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:12,padding:13,marginTop:10,fontSize:18,letterSpacing:5 }} />
             <TouchableOpacity onPress={async()=>{
