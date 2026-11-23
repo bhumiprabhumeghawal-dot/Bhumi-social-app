@@ -12250,12 +12250,12 @@ export default function App() {
                       }}
                     >
                       {messageConversations.length === 0
-                        ? "No conversations yet. Start a new chat."
+                        ? appText("emptyConversations")
                         : chatUnreadOnly
-                          ? "No unread messages here."
+                          ? appText("emptyUnread")
                           : chatInboxTab === "Requests"
-                            ? "No message requests."
-                            : "No conversations match these filters."}
+                            ? appText("emptyRequests")
+                            : appText("emptyFiltered")}
                     </Text>
                   ) : null}
                 </ScrollView>
@@ -12283,7 +12283,7 @@ export default function App() {
                     <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 28 }}>
                       <ActivityIndicator color="#3797F0" size="small" />
                       <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 10 }}>
-                        Loading messages…
+                        {appText("loadingMessages")}
                       </Text>
                     </View>
                   ) : null}
@@ -12553,10 +12553,10 @@ export default function App() {
                                 }}
                               >
                                 {message.readAt
-                                  ? "Seen"
+                                  ? appText("seen")
                                   : message.deliveredAt
-                                    ? "Delivered"
-                                    : "Sent"}
+                                    ? appText("delivered")
+                                    : appText("sent")}
                               </Text>
                             ) : null}
                           </View>
@@ -12615,7 +12615,7 @@ export default function App() {
                         fontWeight: "600",
                       }}
                     >
-                      No messages yet. Say hello! 👋
+                      {appText("noMessagesYet")}
                     </Text>
                   ) : null}
                 </ScrollView>
@@ -12629,7 +12629,7 @@ export default function App() {
                       paddingVertical: 7,
                     }}
                   >
-                    Typing…
+                    {appText("typing")}
                   </Text>
                 ) : null}
                 {chatUnsendTarget ? (
@@ -12654,7 +12654,7 @@ export default function App() {
                         marginBottom: 9,
                       }}
                     >
-                      Message options
+                      {appText("messageOptions")}
                     </Text>
                     <View
                       style={{
@@ -12686,7 +12686,7 @@ export default function App() {
                             fontSize: 12,
                           }}
                         >
-                          Reply
+                          {appText("reply")}
                         </Text>
                       </TouchableOpacity>
                       {String(chatUnsendTarget.sender || "").toLowerCase() ===
@@ -12711,7 +12711,7 @@ export default function App() {
                               fontSize: 12,
                             }}
                           >
-                            {chatBusy ? "Removing…" : "Unsend"}
+                            {chatBusy ? appText("saving") : appText("unsend")}
                           </Text>
                         </TouchableOpacity>
                       ) : null}
@@ -12757,7 +12757,7 @@ export default function App() {
                           fontWeight: "800",
                         }}
                       >
-                        Replying to @{chatReplyTo.sender || selectedChatUser}
+                        {appText("reply")}ing to @{chatReplyTo.sender || selectedChatUser}
                       </Text>
                       <Text
                         numberOfLines={1}
