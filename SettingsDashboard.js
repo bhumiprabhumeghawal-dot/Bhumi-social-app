@@ -958,8 +958,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           <View style={{ flex:1, paddingRight:12 }}>
             <Text style={{ color:TEXT, fontSize:14, fontWeight:"800" }}>{title}</Text>
             <Text style={{ color:MUTED, fontSize:11, marginTop:4, lineHeight:16 }}>{subtitle}</Text>
-            {((key === "security.fingerprint" || key === "security.faceUnlock") && value) ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"800",marginTop:5 }}>Enabled on this device</Text> : null}
-            {savingKey === key ? <Text style={{ color:GOLD, fontSize:10, marginTop:5 }}>Saving…</Text> : null}
+            {((key === "security.fingerprint" || key === "security.faceUnlock") && value) ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"800",marginTop:5 }}>{t("enabledDevice")}</Text> : null}
+            {savingKey === key ? <Text style={{ color:GOLD, fontSize:10, marginTop:5 }}>{t("saving")}</Text> : null}
           </View>
           {isAction ? (
             <TouchableOpacity
@@ -1006,16 +1006,16 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           <ScrollView contentContainerStyle={{ padding:18,paddingBottom: Platform.OS === "android" ? 64 : 40 }} keyboardShouldPersistTaps="handled">
             {section.key === "location" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderColor:GOLD,borderWidth:1,borderRadius:15,padding:14,marginBottom:14 }}>
-                <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>LOCATION SAFETY</Text>
+                <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>{t("locationSafety")}</Text>
                 <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Location sharing is off by default. You must grant foreground permission and choose a mutual follower. Shares expire automatically and can be stopped at any time.</Text>
                 <TouchableOpacity onPress={() => Linking.openSettings()} style={{ alignSelf:"flex-start",marginTop:12,backgroundColor:GOLD,borderRadius:10,paddingHorizontal:13,paddingVertical:9 }}>
-                  <Text style={{ color:"#FFFFFF",fontWeight:"900",fontSize:12 }}>Open App Permissions</Text>
+                  <Text style={{ color:"#FFFFFF",fontWeight:"900",fontSize:12 }}>{t("openPermissions")}</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
             {section.key === "security" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderRadius:14,padding:13,marginBottom:13 }}>
-                <Text style={{ color:GOLD,fontWeight:"800",fontSize:12 }}>SECURITY NOTE</Text>
+                <Text style={{ color:GOLD,fontWeight:"800",fontSize:12 }}>{t("securityNote")}</Text>
                 <Text style={{ color:MUTED,fontSize:11,lineHeight:17,marginTop:5 }}>Account security controls are separate from chat privacy preferences.</Text>
               </View>
             ) : null}
@@ -1101,8 +1101,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 <Ionicons name="people-circle-outline" size={25} color={GOLD}/>
               </View>
               <View style={{ flex:1 }}>
-                <Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>Accounts Center</Text>
-                <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>Personal details, account access and security</Text>
+                <Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{t("accountsCenter")}</Text>
+                <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{t("accountsDescription")}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={MUTED}/>
             </TouchableOpacity>
@@ -1128,12 +1128,12 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 <View style={{ paddingVertical:28,alignItems:"center" }}>
                   <Ionicons name="search-outline" size={28} color={MUTED}/>
                   <Text style={{ color:TEXT,fontSize:14,fontWeight:"700",marginTop:10 }}>{t("noSettings")}</Text>
-                  <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>Try another keyword</Text>
+                  <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{t("tryKeyword")}</Text>
                 </View>
               )}
               <TouchableOpacity onPress={async()=>{const shareId=activeLocationShareRef.current?.shareId||await SecureStore.getItemAsync("bhumi_live_share_id");if(shareId)await stopLocationShare(shareId).catch(()=>{});await stopLocationWatcher();onLogout?.();}} style={{ flexDirection:"row",alignItems:"center",justifyContent:"center",backgroundColor:"#35191D",borderWidth:1,borderColor:"#7C3039",borderRadius:14,padding:14,marginTop:5 }}>
                 <Ionicons name="log-out-outline" color="#F08080" size={20}/>
-                <Text style={{ color:"#F08080",fontWeight:"900",marginLeft:9 }}>Log Out</Text>
+                <Text style={{ color:"#F08080",fontWeight:"900",marginLeft:9 }}>{t("logOut")}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={onClose} style={{ alignItems:"center",padding:14,marginTop:4 }}>
                 <Text style={{ color:MUTED,fontWeight:"800" }}>{t("closeSettings")}</Text>
