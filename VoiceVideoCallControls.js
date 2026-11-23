@@ -53,7 +53,8 @@ const CALL_LABELS = {
 const callText = (language, key) => {
   const keys = ["voice","video","voiceCaps","videoCaps","incoming","answer","decline","reconnect","reconnecting","mute","unmute","camera","cameraOff","end","connected","connecting","yourVideo","you","cancel"];
   const index = keys.indexOf(key);
-  const row = CALL_LABELS[language] || CALL_LABELS.en;
+  const normalizedLanguage = typeof language === "string" ? language.trim().toLowerCase().split("-")[0] : "en";
+  const row = CALL_LABELS[normalizedLanguage] || CALL_LABELS.en;
   return index >= 0 ? row[index] : translateAppText(language, key);
 };
 
