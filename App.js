@@ -8471,7 +8471,7 @@ export default function App() {
             </Text>
           ) : searchError ? (
             <Text style={{ color: "#B42318", paddingVertical: 12 }}>
-              {searchError}
+              {translateAppTextValue(appLanguage, searchError)}
             </Text>
           ) : searchResults.length === 0 ? (
             <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
@@ -11613,7 +11613,7 @@ export default function App() {
                       paddingBottom: 8,
                     }}
                   >
-                    {chatError}
+                    {translateAppTextValue(appLanguage, chatError)}
                   </Text>
                 ) : null}
                 <View
@@ -12816,7 +12816,7 @@ export default function App() {
                       fontSize: 12,
                     }}
                   >
-                    {chatError}
+                    {translateAppTextValue(appLanguage, chatError)}
                   </Text>
                 ) : null}
                 <View>
@@ -13126,7 +13126,7 @@ export default function App() {
               </Text>
               {!!noteError && (
                 <Text style={{ color: "#B42318", marginTop: 8 }}>
-                  {noteError}
+                  {translateAppTextValue(appLanguage, noteError)}
                 </Text>
               )}
               <TouchableOpacity
@@ -13529,7 +13529,7 @@ export default function App() {
             </View>
           ) : profileConnectionsError ? (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-              <Text style={{ color: "#F5F5F5", textAlign: "center" }}>{profileConnectionsError}</Text>
+              <Text style={{ color: "#F5F5F5", textAlign: "center" }}>{translateAppTextValue(appLanguage, profileConnectionsError)}</Text>
               <TouchableOpacity onPress={() => openProfileConnections(profileConnectionsUsername, profileConnectionsType)} style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, backgroundColor: "#262626" }}>
                 <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>{appText("retryAction")}</Text>
               </TouchableOpacity>
