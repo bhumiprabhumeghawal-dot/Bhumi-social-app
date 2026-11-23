@@ -72,7 +72,8 @@ const SECTION_SUBTITLES = {
   },
 };
 function getSectionSubtitle(language, key, fallback) {
-  return SECTION_SUBTITLES[language]?.[key] || fallback;
+  if (language === "en") return fallback;
+  return SECTION_SUBTITLES[language]?.[key] || "";
 }
 const GOLD = "#0095F6";
 const BG = "#000000";
@@ -1118,7 +1119,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             </TouchableOpacity>
             <View style={{ flex:1 }}>
               <Text style={{ color:TEXT,fontSize:22,fontWeight:"900",letterSpacing:-0.5 }}>{t("settings")}</Text>
-              <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>Your account, privacy and app preferences</Text>
+              <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{t("accountsDescription")}</Text>
             </View>
           </View>
           <View style={{ flex:1,paddingHorizontal:17,paddingTop:15,paddingBottom: Platform.OS === "android" ? 20 : 12 }}>
@@ -1148,7 +1149,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setLanguageVisible(true)} activeOpacity={0.85} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderWidth:1,borderColor:BORDER,borderRadius:13,padding:13,marginBottom:15 }}>
               <View style={{ width:40,height:40,borderRadius:20,backgroundColor:PANEL,alignItems:"center",justifyContent:"center",marginRight:11 }}><Ionicons name="language-outline" size={23} color={GOLD}/></View>
-              <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{t("language")}</Text><Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>App language · {APP_LANGUAGES.find((item) => item.code === selectedLanguage)?.name || "English"}</Text></View>
+              <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{t("language")}</Text><Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{t("choose")} · {APP_LANGUAGES.find((item) => item.code === selectedLanguage)?.name || "English"}</Text></View>
               <Ionicons name="chevron-forward" size={18} color={MUTED}/>
             </TouchableOpacity>
             {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical:18 }}/> : null}
