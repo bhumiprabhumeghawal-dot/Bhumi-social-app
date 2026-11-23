@@ -2528,6 +2528,8 @@ export default function App() {
   const [zoomEffectLevel, setZoomEffectLevel] = React.useState(1.5);
   const [zoomEffectDuration, setZoomEffectDuration] = React.useState(3);
   const [musicAsset, setMusicAsset] = React.useState(null);
+  const [musicSearchOpen, setMusicSearchOpen] = React.useState(false);
+  const [musicSearchQuery, setMusicSearchQuery] = React.useState("");
   const [musicVolume, setMusicVolume] = React.useState(0.8);
   const [musicStart, setMusicStart] = React.useState(0);
   const [keepOriginalAudio, setKeepOriginalAudio] = React.useState(true);
@@ -5001,6 +5003,23 @@ export default function App() {
     }
   };
 
+  const openMusicOptions = () => setMusicSearchOpen(true);
+
+  const searchMusicOnGoogle = async () => {
+    const query = musicSearchQuery.trim();
+    if (!query) {
+      Alert.alert("गाना खोजें", "पहले गाने या कलाकार का नाम लिखें।");
+      return;
+    }
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query + " song audio")}`;
+    try {
+      setMusicSearchOpen(false);
+      await Linking.openURL(searchUrl);
+    } catch (error) {
+      Alert.alert("Google Search नहीं खुला", error?.message || "कृपया फिर कोशिश करें।");
+    }
+  };
+
   const chooseMusicFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -6684,7 +6703,7 @@ export default function App() {
                       ) : null}
                       {!isVideo ? (
                         <View style={{ position: "absolute", top: 14, right: 14, alignItems: "center", gap: 10 }}>
-                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 48, height: 48, borderRadius: 17, borderWidth: 1, borderColor: "#7CC4FF", backgroundColor: "rgba(18,18,18,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#0095F6", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
+                          <TouchableOpacity disabled={busy} onPress={openMusicOptions} style={{ width: 48, height: 48, borderRadius: 17, borderWidth: 1, borderColor: "#7CC4FF", backgroundColor: "rgba(18,18,18,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#0095F6", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
                             <Ionicons name="musical-notes" size={22} color="#FFFFFF" />
                           </TouchableOpacity>
                           {musicAsset ? (
@@ -6733,7 +6752,7 @@ export default function App() {
                           <TouchableOpacity onPress={() => setZoomEffectEnabled((value) => !value)} style={{ width: 44, height: 44, borderRadius: 15, borderWidth: 1, borderColor: zoomEffectEnabled ? "#7CC4FF" : "#0095F6", backgroundColor: "rgba(18,18,18,0.92)", alignItems: "center", justifyContent: "center" }}>
                             <Ionicons name="scan-outline" size={21} color="#FFFFFF" />
                           </TouchableOpacity>
-                          <TouchableOpacity disabled={busy} onPress={chooseMusicFile} style={{ width: 46, height: 46, borderRadius: 16, borderWidth: 1, borderColor: "#7CC4FF", backgroundColor: "rgba(18,18,18,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#0095F6", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
+                          <TouchableOpacity disabled={busy} onPress={openMusicOptions} style={{ width: 46, height: 46, borderRadius: 16, borderWidth: 1, borderColor: "#7CC4FF", backgroundColor: "rgba(18,18,18,0.94)", alignItems: "center", justifyContent: "center", shadowColor: "#0095F6", shadowOpacity: 0.55, shadowRadius: 10, elevation: 8 }}>
                             <Ionicons name="musical-notes" size={22} color="#FFFFFF" />
                           </TouchableOpacity>
                           {musicAsset ? (
@@ -7108,7 +7127,7 @@ export default function App() {
                           </TouchableOpacity>
                           <TouchableOpacity
                             disabled={busy}
-                            onPress={chooseMusicFile}
+                            onPress={openMusicOptions}
                             style={{
                               backgroundColor: "rgba(0,0,0,0.78)",
                               paddingVertical: 10,
@@ -7268,7 +7287,7 @@ export default function App() {
                     <View style={{ paddingTop: 10, paddingBottom: 8 }}>
                       <TouchableOpacity
                         disabled={busy}
-                        onPress={chooseMusicFile}
+                        onPress={openMusicOptions}
                         style={{
                           padding: 11,
                           borderWidth: 1,
@@ -7568,6 +7587,53 @@ export default function App() {
                     </TouchableOpacity>
                   </View>
         </SafeAreaView>
+      </Modal>
+
+      <Modal
+        visible={musicSearchOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMusicSearchOpen(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.78)", justifyContent: "center", padding: 22 }}>
+          <View style={{ backgroundColor: "#171717", borderRadius: 22, borderWidth: 1, borderColor: "#343434", padding: 18, gap: 12 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <Text style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800" }}>Add a song</Text>
+              <TouchableOpacity onPress={() => setMusicSearchOpen(false)} style={{ padding: 5 }}>
+                <Ionicons name="close-circle" size={25} color="#AAAAAA" />
+              </TouchableOpacity>
+            </View>
+            <Text style={{ color: "#BDBDBD", fontSize: 13, lineHeight: 19 }}>
+              अपने फोन से गाना चुनें या Google पर गाना खोजें। Google से डाउनलोड की गई वैध ऑडियो फ़ाइल को वापस आकर फोन से चुनें।
+            </Text>
+            <TextInput
+              value={musicSearchQuery}
+              onChangeText={setMusicSearchQuery}
+              placeholder="गाने या कलाकार का नाम लिखें"
+              placeholderTextColor="#888888"
+              returnKeyType="search"
+              onSubmitEditing={searchMusicOnGoogle}
+              style={{ color: "#FFFFFF", backgroundColor: "#242424", borderWidth: 1, borderColor: "#414141", borderRadius: 12, paddingHorizontal: 13, paddingVertical: 12 }}
+            />
+            <TouchableOpacity
+              onPress={searchMusicOnGoogle}
+              style={{ backgroundColor: "#0095F6", borderRadius: 12, paddingVertical: 13, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8 }}
+            >
+              <Ionicons name="search" size={18} color="#FFFFFF" />
+              <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Google पर गाना खोजें</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => { setMusicSearchOpen(false); chooseMusicFile(); }}
+              style={{ borderWidth: 1, borderColor: "#555555", borderRadius: 12, paddingVertical: 13, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8 }}
+            >
+              <Ionicons name="folder-open-outline" size={18} color="#FFFFFF" />
+              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>फोन से गाना चुनें / डाउनलोड किया हुआ गाना</Text>
+            </TouchableOpacity>
+            <Text style={{ color: "#888888", fontSize: 11, lineHeight: 16 }}>
+              ध्यान दें: Google खोज के परिणाम सीधे ऐप में ऑडियो नहीं बनते। गाना डाउनलोड करने के बाद उसे ऊपर वाले फोन विकल्प से चुनें; केवल वही संगीत इस्तेमाल करें जिसके उपयोग की अनुमति आपके पास हो।
+            </Text>
+          </View>
+        </View>
       </Modal>
 
       {activeTab !== "Reels" && activeTab !== "Home" && activeTab !== "Search" && renderAppHeader()}
