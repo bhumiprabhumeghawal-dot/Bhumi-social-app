@@ -5960,7 +5960,7 @@ export default function App() {
                 marginTop: 9,
               }}
             >
-              CONNECT · SHARE · DISCOVER
+              {appText("appTagline")}
             </Text>
           </View>
 
@@ -7359,7 +7359,7 @@ export default function App() {
                         style={{ padding: 10 }}
                       >
                         <Text style={{ color: "#0095F6", fontSize: 16 }}>
-                          Previous
+                          {appText("previousAction")}
                         </Text>
                       </TouchableOpacity>
                       <Text style={{ color: "#A8A8A8" }}>
@@ -7381,7 +7381,7 @@ export default function App() {
                         style={{ padding: 10 }}
                       >
                         <Text style={{ color: "#0095F6", fontSize: 16 }}>
-                          Next
+                          {appText("nextAction")}
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -7725,7 +7725,7 @@ export default function App() {
                       }}
                     >
                       <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}>
-                        {busy ? "Sharing..." : "Share"}
+                        {busy ? appText("sharing") : appText("shareAction")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -8134,7 +8134,7 @@ export default function App() {
                                 marginTop: 3,
                               }}
                             >
-                              Share
+                              {appText("shareAction")}
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
@@ -8156,7 +8156,7 @@ export default function App() {
                                 marginTop: 3,
                               }}
                             >
-                              Save
+                              {appText("save")}
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
@@ -8175,7 +8175,7 @@ export default function App() {
                                 marginTop: 3,
                               }}
                             >
-                              Download
+                              {appText("downloadAction")}
                             </Text>
                           </TouchableOpacity>
                         </View>
@@ -9289,7 +9289,7 @@ export default function App() {
                           fontSize: 15,
                         }}
                       >
-                        Notifications
+                        {appText("notificationsTitle")}
                       </Text>
                       <Text
                         style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
@@ -10351,7 +10351,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 14 }}
               >
-                Close
+                {appText("close")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -10556,7 +10556,7 @@ export default function App() {
                 marginBottom: 18,
               }}
             >
-              Privacy Settings
+              {appText("privacy")}
             </Text>
             <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 12 }}>
               {appText("privacyInteractionDescription")}
@@ -10994,7 +10994,7 @@ export default function App() {
                 <Text
                   style={{ color: "#A8A8A8", fontWeight: "600", fontSize: 15 }}
                 >
-                  Later
+                  {appText("laterAction")}
                 </Text>
               </TouchableOpacity>
             )}
@@ -11070,7 +11070,7 @@ export default function App() {
                   marginBottom: 6,
                 }}
               >
-                Account Settings
+                {appText("account")}
               </Text>
               <Text style={{ color: "#A8A8A8", marginBottom: 18 }}>
                 {appText("optionalContactDescription")}
@@ -11277,7 +11277,7 @@ export default function App() {
                     textAlign: "center",
                   }}
                 >
-                  Log Out Other Devices
+                  {appText("logoutOtherDevices")}
                 </Text>
               </TouchableOpacity>
 
@@ -13945,7 +13945,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800" }}
               >
-                Saved
+                {appText("saved")}
               </Text>
             </View>
             <TouchableOpacity onPress={handleOpenSavedScreen}>
