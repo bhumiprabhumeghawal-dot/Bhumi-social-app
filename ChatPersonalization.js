@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { loadSettingsPreferences, saveSettingsPreferences } from "./api";
+import { translateAppText } from "./localization";
 
 const GOLD = "#0095F6";
 const THEMES = [
@@ -68,7 +69,8 @@ const THEMES = [
 
 const keyFor = (kind, username) => `messages.${kind}.${String(username || "").trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "")}`;
 
-export default function ChatPersonalization({ visible, username, onClose, onSaved }) {
+export default function ChatPersonalization({ visible, username, onClose, onSaved, appLanguage = "en" }) {
+  const t = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   const [name, setName] = React.useState("");
   const [theme, setTheme] = React.useState("royal");
   const [favorite, setFavorite] = React.useState(false);
@@ -133,7 +135,7 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
         <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 18, paddingTop: 4, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: "#262626", backgroundColor: "#000000" }}>
           <View style={{ flex: 1 }}>
             <Text style={{ color: GOLD, fontSize: 10, fontWeight: "900", letterSpacing: 2 }}>BHUMI CHAT STUDIO</Text>
-            <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", letterSpacing: -0.4, marginTop: 4 }}>Personalize Chat</Text>
+            <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", letterSpacing: -0.4, marginTop: 4 }}>{t("chatPersonalization")}</Text>
             <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 3 }}>@{username}</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
@@ -141,12 +143,12 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 36 }} keyboardShouldPersistTaps="handled">
-          <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800", marginBottom: 9 }}>Your private chat name</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800", marginBottom: 9 }}>{t("displayName")}</Text>
           <TextInput value={name} onChangeText={setName} placeholder={username} placeholderTextColor="#8F829F" maxLength={40}
             style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15 }} />
-          <Text style={{ color: "#9E91AC", fontSize: 11, marginTop: 6, marginBottom: 20 }}>This name is visible only to you. It does not change the other person's profile name.</Text>
+          
 
-          <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800", marginBottom: 10 }}>Chat themes</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800", marginBottom: 10 }}>{t("appearance")}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
             {THEMES.map((item) => (
               <TouchableOpacity key={item.key} onPress={() => setTheme(item.key)} activeOpacity={0.85}
@@ -165,7 +167,7 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
           </View>
 
           <View style={{ backgroundColor: selected.bg, borderWidth: 1, borderColor: selected.accent, borderRadius: 15, padding: 14, marginBottom: 20 }}>
-            <Text style={{ color: selected.accent, fontSize: 10, fontWeight: "900", marginBottom: 9 }}>LIVE THEME PREVIEW</Text>
+            <Text style={{ color: selected.accent, fontSize: 10, fontWeight: "900", marginBottom: 9 }}>{t("appearance").toUpperCase()}</Text>
             <View style={{ alignSelf: "flex-start", backgroundColor: selected.other, borderRadius: 13, padding: 10, marginBottom: 7 }}>
               <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Hey! How are you? ✨</Text>
             </View>
@@ -176,21 +178,21 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
 
           <View style={{ backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 15, padding: 14, marginBottom: 10, flexDirection: "row", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "900" }}>Favourite Friend</Text>
-              <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}>Add this friend to Favorites and prioritize them in your chat list.</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "900" }}>{t("chatFavorite")}</Text>
+              
             </View>
             <Switch value={favorite} onValueChange={setFavorite} trackColor={{ false: "#555555", true: "#0095F6" }} thumbColor={favorite ? GOLD : "#FFFFFF"} />
           </View>
           <View style={{ backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 15, padding: 14, marginBottom: 16, flexDirection: "row", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "900" }}>Close Friend</Text>
-              <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}>Add this friend to your Close Friends list.</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "900" }}>{t("chatCloseFriend")}</Text>
+              <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}></Text>
             </View>
             <Switch value={closeFriend} onValueChange={setCloseFriend} trackColor={{ false: "#555555", true: "#0095F6" }} thumbColor={closeFriend ? GOLD : "#FFFFFF"} />
           </View>
           {error ? <Text style={{ color: "#FF8585", fontSize: 12, marginBottom: 12 }}>{error}</Text> : null}
           <TouchableOpacity disabled={busy} onPress={save} style={{ backgroundColor: GOLD, borderRadius: 14, padding: 15, alignItems: "center", justifyContent: "center", opacity: busy ? 0.65 : 1 }}>
-            {busy ? <ActivityIndicator color="#FFFFFF" /> : <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "900" }}>Save Chat Preferences</Text>}
+            {busy ? <ActivityIndicator color="#FFFFFF" /> : <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "900" }}>{t("save")}</Text>}
           </TouchableOpacity>
         </ScrollView>
       </View>
