@@ -1,3 +1,5 @@
 Build APK for startup crash diagnostics commit f0d0eaf.
 
 Build APK after PostCard localization crash fix commit 5c850a12491a9bfe045f1bbfc635d7d6c8ccabee.
+
+Build APK after increasing Gradle build timeout to 55 minutes (commit 45821f8).
