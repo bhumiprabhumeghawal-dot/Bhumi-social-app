@@ -1148,10 +1148,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 </TouchableOpacity>
               </View>
             ) : null}
-            {section.key === "security" && appLanguage === "en" ? (
+            {section.key === "security" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderRadius:14,padding:13,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"800",fontSize:12 }}>{t("securityNote")}</Text>
-                <Text style={{ color:MUTED,fontSize:11,lineHeight:17,marginTop:5 }}>Account security controls are separate from chat privacy preferences.</Text>
+                <Text style={{ color:MUTED,fontSize:11,lineHeight:17,marginTop:5 }}>{t("securityNote")}</Text>
               </View>
             ) : null}
             {section.key === "messages" && appLanguage === "en" ? (
@@ -1171,13 +1171,13 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               <View style={{ marginTop:4 }}>
                 {["blocked","restricted"].map((legacyKey) => (
                   <TouchableOpacity key={legacyKey} onPress={() => { setActive(null); onLegacyOpen?.(legacyKey); }} style={{ backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:13,padding:14,marginBottom:9 }}>
-                    <Text style={{ color:TEXT,fontWeight:"800" }}>{legacyKey === "blocked" ? "Blocked Accounts" : "Restricted Accounts"}</Text>
-                    <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>Manage {legacyKey} people and interactions</Text>
+                    <Text style={{ color:TEXT,fontWeight:"800" }}>{legacyKey === "blocked" ? t("blockedAccounts") : t("restrictedAccounts")}</Text>
+                    <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{appLanguage === "en" ? `Manage ${legacyKey} people and interactions` : t(legacyKey === "blocked" ? "noBlockedAccounts" : "noRestrictedAccounts")}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             ) : null}
-            {section.legacy ? (
+            {section.legacy && appLanguage === "en" ? (
               <TouchableOpacity onPress={() => { setActive(null); onLegacyOpen?.(section.legacy); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
                 <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Open Existing {section.title}</Text>
               </TouchableOpacity>
