@@ -3588,7 +3588,7 @@ export default function App() {
         ),
       );
     } catch (e) {
-      Alert.alert("Reel Like", e.message || "Could not update like.");
+      Alert.alert(appText("alertSaveFailed"), e.message || "Could not update like.");
     } finally {
       setReelBusyState((prev) => ({ ...prev, [id]: false }));
     }
@@ -3660,7 +3660,7 @@ export default function App() {
         message: `${reel.caption || "Watch this reel"}\n${reel.uri || ""}`,
       });
     } catch (e) {
-      Alert.alert("Share", e.message || "Could not share this reel.");
+      Alert.alert(appText("profileShare"), e.message || "Could not share this reel.");
     }
   };
 
@@ -3708,7 +3708,7 @@ export default function App() {
       const rows = await loadReelComments(id);
       setReelComments(Array.isArray(rows) ? rows : []);
     } catch (e) {
-      Alert.alert("Reel comments", e.message || "Could not load comments.");
+      Alert.alert(appText("commentsTitle"), e.message || "Could not load comments.");
     } finally {
       setReelCommentsBusy(false);
     }
@@ -3739,7 +3739,7 @@ export default function App() {
       }
       setReelCommentDraft("");
     } catch (e) {
-      Alert.alert("Reel comment", e.message || "Could not post comment.");
+      Alert.alert(appText("commentsTitle"), e.message || "Could not post comment.");
     } finally {
       setReelCommentsBusy(false);
     }
