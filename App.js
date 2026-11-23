@@ -338,19 +338,19 @@ function ZoomableImage({ uri, style, onZoomChange, showControls = true }) {
           onPress={resetZoom}
           style={{ paddingHorizontal: 10, paddingVertical: 5 }}
         >
-          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Reset Zoom</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{appText("resetZoomLabel")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setFitMode("fit")}
           style={{ paddingHorizontal: 10, paddingVertical: 5 }}
         >
-          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Fit</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{appText("fitLabel")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setFitMode("fill")}
           style={{ paddingHorizontal: 10, paddingVertical: 5 }}
         >
-          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Fill</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{appText("fillLabel")}</Text>
         </TouchableOpacity>
         <Text style={{ color: "#FFFFFF", fontSize: 12, marginHorizontal: 6 }}>
           {zoomLevel.toFixed(1)}×
@@ -582,7 +582,7 @@ function PinchZoomImage({
           onPress={resetZoom}
           style={{ paddingHorizontal: 10, paddingVertical: 5 }}
         >
-          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Reset</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{appText("resetLabel")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setZoom(zoomLevel - 0.5)}
@@ -937,7 +937,7 @@ function ReelVideoZoomable({
             onPress={() => setZoom(1)}
             style={{ paddingHorizontal: 10, paddingVertical: 5 }}
           >
-            <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Reset Zoom</Text>
+            <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{appText("resetZoomLabel")}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setZoom(zoomLevel - 0.5)}
@@ -5838,7 +5838,7 @@ export default function App() {
                 disabled={authBusy}
                 style={{ padding: 12, alignItems: "center" }}
               >
-                <Text style={{ color: "#0095F6" }}>Resend code</Text>
+                <Text style={{ color: "#0095F6" }}>{appText("resendCodeLabel")}</Text>
               </TouchableOpacity>
             </>
           )}
@@ -5898,7 +5898,7 @@ export default function App() {
             disabled={authBusy}
             style={{ padding: 16, alignItems: "center" }}
           >
-            <Text style={{ color: "#0095F6" }}>Back to login</Text>
+            <Text style={{ color: "#0095F6" }}>{appText("backToLoginLabel")}</Text>
           </TouchableOpacity>
         </View>
         </ScrollView>
@@ -6333,7 +6333,7 @@ export default function App() {
                 disabled={authBusy}
                 style={{ padding: 8, alignItems: "center" }}
               >
-                <Text style={{ color: "#0095F6" }}>Forgot password?</Text>
+                <Text style={{ color: "#0095F6" }}>{appText("forgotPasswordLabel")}</Text>
               </TouchableOpacity>
             )}
             <Text style={{ color: "#0095F6" }}>
@@ -6486,7 +6486,7 @@ export default function App() {
               disabled={isRecording || !!recordedVideo || !!recordedPhoto}
               style={{ padding: 8 }}
             >
-              <Text style={{ color: "#FFFFFF", fontSize: 15 }}>Flip</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 15 }}>{appText("flipCameraLabel")}</Text>
             </TouchableOpacity>
           </View>
 
@@ -6829,7 +6829,7 @@ export default function App() {
                         <View style={{ position: "absolute", top: 72, left: 10, right: 10, gap: 7 }}>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 3 }}>
                             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                             <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "800" }}>VIDEO FILTERS</Text>
+                             <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "800" }}>{appText("videoFiltersLabel")}</Text>
                              <TouchableOpacity disabled={busy} onPress={() => setVideoFilterCompareOriginal((value) => !value)} style={{ paddingHorizontal: 9, paddingVertical: 5, borderRadius: 12, backgroundColor: videoFilterCompareOriginal ? "rgba(217,181,109,0.22)" : "rgba(0,0,0,0.78)", borderWidth: 1, borderColor: "#D9B56D" }}>
                                <Text style={{ color: "#D9B56D", fontSize: 9, fontWeight: "800" }}>{videoFilterCompareOriginal ? "SHOW FILTER" : "ORIGINAL"}</Text>
                              </TouchableOpacity>
@@ -6840,7 +6840,7 @@ export default function App() {
                                musicPlayer.pause();
                              }} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.78)", borderWidth: 1, borderColor: "#7CC4FF", flexDirection: "row", alignItems: "center", gap: 5 }}>
                                <Ionicons name="refresh-outline" size={13} color="#FFFFFF" />
-                               <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>Reset all</Text>
+                               <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>{appText("resetAllLabel")}</Text>
                              </TouchableOpacity>
                            </View>
                            <Text style={{ color: "#D9B56D", fontSize: 9, fontWeight: "700", paddingHorizontal: 2 }}>APPROXIMATE PREVIEW · FULL FILTER APPLIES ON EXPORT</Text>
@@ -7782,7 +7782,7 @@ export default function App() {
             </View>
             <ScrollView style={{ maxHeight: 300 }} keyboardShouldPersistTaps="handled">
               {!musicLibraryLoaded ? (
-                <View style={{ padding: 24, alignItems: "center" }}><ActivityIndicator color="#FFFFFF" /><Text style={{ color: "#999999", marginTop: 8 }}>Loading library...</Text></View>
+                <View style={{ padding: 24, alignItems: "center" }}><ActivityIndicator color="#FFFFFF" /><Text style={{ color: "#999999", marginTop: 8 }}>{appText("loadingLibraryLabel")}</Text></View>
               ) : searchLocalMusic(musicSearchQuery, musicLibrary.filter((track) => musicLibraryFilter === "favorites" ? track.favorite : true)).length ? (
                 searchLocalMusic(musicSearchQuery, musicLibrary.filter((track) => musicLibraryFilter === "favorites" ? track.favorite : true)).map((track) => (
                   <View key={track.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#292929", gap: 9 }}>
@@ -7807,7 +7807,7 @@ export default function App() {
               ) : (
                 <View style={{ padding: 22, alignItems: "center" }}>
                   <Ionicons name="musical-notes-outline" size={30} color="#777777" />
-                  <Text style={{ color: "#DDDDDD", fontWeight: "700", marginTop: 8 }}>No saved songs yet</Text>
+                  <Text style={{ color: "#DDDDDD", fontWeight: "700", marginTop: 8 }}>{appText("noSavedSongsLabel")}</Text>
                   <Text style={{ color: "#888888", fontSize: 11, textAlign: "center", marginTop: 4 }}>Google Search or add an audio file you have permission to use. Saved songs will remain here for next time.</Text>
                 </View>
               )}
