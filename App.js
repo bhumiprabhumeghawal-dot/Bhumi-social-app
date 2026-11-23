@@ -8370,7 +8370,7 @@ export default function App() {
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ color: "#A8A8A8" }}>No posts yet.</Text>
+                  <Text style={{ color: "#A8A8A8" }}>{appText("emptyPosts")}</Text>
                 </View>
               }
             />
@@ -9629,7 +9629,7 @@ export default function App() {
                       marginBottom: 6,
                     }}
                   >
-                    Share your first post
+                    {appText("firstPost")}
                   </Text>
                   <Text
                     style={{
@@ -9687,7 +9687,7 @@ export default function App() {
             key={tab.name}
             style={styles.navItem}
             onPress={() => handleTab(tab.name)}
-            accessibilityLabel={tab.name}
+            accessibilityLabel={appText("tab" + tab.name)}
           >
             <Ionicons
               name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
@@ -11600,7 +11600,7 @@ export default function App() {
                   <TextInput
                     value={chatSearchQuery}
                     onChangeText={setChatSearchQuery}
-                    placeholder="Search"
+                    placeholder={appText("tabSearch")}
                     placeholderTextColor="#737373"
                     autoCapitalize="none"
                     autoCorrect={false}
