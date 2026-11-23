@@ -2001,7 +2001,7 @@ function CustomAlertHost() {
   if (!alertData) return null;
   const words = (alertData.title + " " + alertData.message).toLowerCase();
   const error = /error|failed|failed|incorrect|problem|error/.test(words);
-  const success = /success|successful|successful|saved|हो गया|भेज दिया|अपलोड/.test(
+  const success = /success|successful|successful|saved|completed|sent|uploaded/.test(
     words,
   );
   const danger = /delete|remove|logout|log out|delete|remove|Delete|clear/.test(
@@ -4677,7 +4677,7 @@ export default function App() {
     try {
       setFollowRequests(await loadFollowRequests());
     } catch (e) {
-      Alert.alert("Follow Requests", e.message || "Requests load नहीं हुईं।");
+      Alert.alert("Follow Requests", e.message || "Requests could not be loaded.");
     } finally {
       setFollowRequestsBusy(false);
     }
@@ -4702,10 +4702,10 @@ export default function App() {
         decision === "accept" ? "Request accepted" : "Request rejected",
         decision === "accept"
           ? "This user is now following you."
-          : "Follow request reject कर दी गई।",
+          : "Follow request rejected.",
       );
     } catch (e) {
-      Alert.alert("Follow Request", e.message || "Action पूरा नहीं हुआ।");
+      Alert.alert("Follow Request", e.message || "The action could not be completed.");
     } finally {
       setFollowRequestAction((prev) => ({ ...prev, [requestId]: false }));
     }
@@ -5026,7 +5026,7 @@ export default function App() {
         const limitMB = Math.floor(maxBytes / (1024 * 1024));
         Alert.alert(
           "File is too large",
-          `इस अपलोड की अधिकतम सीमा ${limitMB} MB है। Choose a smaller file.`,
+          `The maximum upload size is ${limitMB} MB. Choose a smaller file.`,
         );
         return;
       }
@@ -5332,7 +5332,7 @@ export default function App() {
       );
     } catch (e) {
       console.error("Upload failed:", e);
-      Alert.alert("अपलोड failed", e.message || "Check the server connection.");
+      Alert.alert("Upload failed", e.message || "Check the server connection.");
     } finally {
       setBusy(false);
     }
@@ -6112,7 +6112,7 @@ export default function App() {
               <TextInput
                 value={authFullName}
                 onChangeText={setAuthFullName}
-                placeholder="अपना Full name लिखें"
+                placeholder="Enter your full name"
                 autoCapitalize="words"
                 editable={!authBusy}
                 style={{
@@ -6128,7 +6128,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Username (आपकी पसंद का)
+                Username (your choice)
               </Text>
               <TextInput
                 value={authUsername}
@@ -6151,7 +6151,7 @@ export default function App() {
                 }}
               />
               <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 12 }}>
-                This will be your @username. The app will not create a username for you. 3–50 characters: English letters, numbers, dot (.) या underscore (_).
+                This will be your @username. The app will not create a username for you. 3–50 characters: English letters, numbers, dot (.) or underscore (_).
               </Text>
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
@@ -8565,12 +8565,12 @@ export default function App() {
                           : status === "following"
                             ? "You are now following this user."
                             : requestPending
-                              ? "Follow request cancel कर दी गई।"
-                              : "Follow हट गया।",
+                              ? "Follow request cancelled."
+                              : "Unfollowed.",
                       );
                     } catch (e) {
                       Alert.alert(
-                        "Follow नहीं हुआ",
+                        "Follow failed",
                         e.message || "Please try again.",
                       );
                     } finally {
@@ -12422,7 +12422,7 @@ export default function App() {
             );
             const info = await FileSystem.getInfoAsync(download.uri);
             if (!info.exists || !info.size) {
-              throw new Error("Document download अधूरा है।");
+              throw new Error("Document download is incomplete.");
             }
 
             const extension = fileName.split(".").pop().toLowerCase();
