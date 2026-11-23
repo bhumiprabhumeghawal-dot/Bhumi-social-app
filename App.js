@@ -2291,7 +2291,7 @@ export default function App() {
         if (!report || !active) return;
         await SecureStore.deleteItemAsync("bhumi_last_crash_report");
         if (active) {
-          Alert.alert("Why the app closed last time", report);
+          Alert.alert(appText("crashReportTitle"), report);
         }
       })
       .catch((error) => console.error("Crash report read failed:", error));
