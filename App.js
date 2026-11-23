@@ -11358,6 +11358,7 @@ export default function App() {
       </Modal>
 
       <ChatPersonalization
+        appLanguage={appLanguage}
         visible={chatPersonalizationOpen && !!selectedChatUser}
         username={selectedChatUser}
         onClose={() => setChatPersonalizationOpen(false)}
