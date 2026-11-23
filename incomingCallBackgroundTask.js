@@ -13,16 +13,16 @@ export function ensureCallKeepSetup() {
     callKeepSetupPromise = RNCallKeep.setup({
       ios: { appName: "Bhumi Social AI" },
       android: {
-        alertTitle: "कॉल की अनुमति जरूरी है",
-        alertDescription: "Bhumi Social AI को लॉक स्क्रीन पर कॉल दिखाने के लिए Phone Account की अनुमति दें।",
-        cancelButton: "बाद में",
-        okButton: "अनुमति दें",
+        alertTitle: "Call permission required",
+        alertDescription: "Allow Bhumi Social AI to use the Phone Account permission to show calls on your lock screen.",
+        cancelButton: "Later",
+        okButton: "Allow",
         additionalPermissions: [],
       },
       foregroundService: {
         channelId: "bhumi-social-calls",
         channelName: "Bhumi Social Calls",
-        notificationTitle: "Bhumi Social कॉल चालू है",
+        notificationTitle: "Bhumi Social call service is active",
       },
     }).catch((error) => {
       callKeepSetupPromise = null;
