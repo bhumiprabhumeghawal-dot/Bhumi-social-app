@@ -1421,7 +1421,7 @@ function PostCard({
         {!!post.caption && (
           <Text style={[styles.caption, { color: "#FFFFFF" }]}>
             <Text style={[styles.username, { color: "#FFFFFF" }]}>
-              {post.user || "you"}{" "}
+              {post.user || translateAppText(appLanguage, "youLabel")}{" "}
             </Text>
             {post.caption}
           </Text>
@@ -5413,7 +5413,7 @@ export default function App() {
       {activeTab === "Profile" ? (
         <>
           <Text style={[styles.brand, { flex: 1, fontSize: 20 }]} numberOfLines={1}>
-            {profile?.username ? `@${profile.username}` : "Profile"}
+            {profile?.username ? `@${profile.username}` : appText("profileTab")}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
             <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("create")} style={{ padding: 3 }}>
@@ -8355,7 +8355,7 @@ export default function App() {
                   post={{
                     ...post,
                     avatarUrl:
-                      (post.user || "you") === "you"
+                      (post.user || translateAppText(appLanguage, "youLabel")) === "you"
                         ? profile?.avatarUrl || post.avatarUrl
                         : post.avatarUrl,
                   }}
@@ -13238,7 +13238,7 @@ export default function App() {
               <Ionicons name="arrow-back" size={25} color="#FFFFFF" />
             </TouchableOpacity>
             <Text numberOfLines={1} style={{ flex: 1, fontSize: 17, fontWeight: "800", color: "#FFFFFF" }}>
-              {viewedProfile ? `@${viewedProfile.username}` : "Profile"}
+              {viewedProfile ? `@${viewedProfile.username}` : appText("profileTab")}
             </Text>
             {viewedProfile && String(viewedProfile.username || "").toLowerCase() !== String(authSession?.username || "").toLowerCase() ? (
               <TouchableOpacity onPress={() => setViewedProfileMenuOpen(v => !v)} style={{ padding: 8 }}>
