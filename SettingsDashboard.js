@@ -1208,7 +1208,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
         <View style={{ flex:1,backgroundColor:BG,paddingTop: Platform.OS === "android" ? 28 : 48 }}>
           <View style={{ flexDirection:"row",alignItems:"center",paddingHorizontal:18,paddingBottom:16,borderBottomWidth:1,borderBottomColor:BORDER }}>
-            <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close settings" style={{ width:40,height:40,alignItems:"flex-start",justifyContent:"center" }}>
+            <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel={t("closeSettingsLabel")} style={{ width:40,height:40,alignItems:"flex-start",justifyContent:"center" }}>
               <Ionicons name="arrow-back" size={25} color={TEXT}/>
             </TouchableOpacity>
             <View style={{ flex:1 }}>
@@ -1227,9 +1227,9 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 returnKeyType="search"
                 autoCorrect={false}
                 style={{ flex:1,color:TEXT,fontSize:14,paddingVertical:0,paddingHorizontal:9 }}
-                accessibilityLabel="Search settings"
+                accessibilityLabel={t("searchSettingsLabel")}
               />
-              {settingsSearch ? <TouchableOpacity onPress={() => setSettingsSearch("")} accessibilityLabel="Clear settings search"><Ionicons name="close-circle" size={18} color={MUTED}/></TouchableOpacity> : null}
+              {settingsSearch ? <TouchableOpacity onPress={() => setSettingsSearch("")} accessibilityLabel={t("clearSettingsSearchLabel")}><Ionicons name="close-circle" size={18} color={MUTED}/></TouchableOpacity> : null}
             </View>
             <TouchableOpacity onPress={() => { setSettingsSearch(""); setActive("account"); }} activeOpacity={0.85} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderWidth:1,borderColor:BORDER,borderRadius:13,padding:13,marginBottom:15 }}>
               <View style={{ width:40,height:40,borderRadius:20,backgroundColor:PANEL,alignItems:"center",justifyContent:"center",marginRight:11 }}>
