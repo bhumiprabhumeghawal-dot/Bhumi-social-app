@@ -10672,7 +10672,7 @@ export default function App() {
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
                 <Ionicons name="shield-checkmark" size={24} color="#B58BFF" />
-                <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>Privacy & Chat Controls</Text>
+                <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>{appText("privacyChatControls")}</Text>
               </View>
               <Text style={{ color: "#AAA5B4", fontSize: 12, marginBottom: 18 }}>{appText("privacyControlsDescription")}</Text>
               {[
