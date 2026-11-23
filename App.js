@@ -720,6 +720,7 @@ function ReelVideoZoomable({
   active = true,
   muted = false,
   contentFit = "contain",
+  appLanguage = "en",
   nativeScrollGesture,
   onZoomChange,
   zoomEnabled = true,
@@ -918,8 +919,8 @@ function ReelVideoZoomable({
             <Text
               style={{ color: "#FFFFFF", fontSize: 14, textAlign: "center" }}
             >
-              Video unavailable:{" "}
-              {error?.message || "Could not load this video."}
+              {translateAppText(appLanguage, "videoUnavailableLabel")}:{" "}
+              {translateAppText(appLanguage, "videoLoadFailed")}
             </Text>
           </View>
         )}
@@ -6317,7 +6318,7 @@ export default function App() {
           >
             <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
               {authBusy
-                ? "Please wait..."
+                ? appText("pleaseWait")
                 : authMode === "register"
                   ? "Create account"
                   : "Log in"}
@@ -13141,7 +13142,7 @@ export default function App() {
                 }}
               >
                 <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
-                  {noteBusy ? "Please wait..." : "Share note"}
+                  {noteBusy ? appText("pleaseWait") : "Share note"}
                 </Text>
               </TouchableOpacity>
               {ownNote && (
@@ -13369,7 +13370,7 @@ export default function App() {
                         color: viewedProfile.isFollowing || viewedProfile.followRequestStatus === "pending" ? "#222222" : "#FFFFFF",
                         fontWeight: "800", fontSize: 13
                       }}>
-                        {viewedProfileFollowBusy ? "Please wait..." :
+                        {viewedProfileFollowBusy ? appText("pleaseWait") :
                           viewedProfile.isFollowing ? appText("profileFollowing") :
                           viewedProfile.followRequestStatus === "pending" ? appText("profileRequested") :
                           viewedProfile.followsYou ? appText("profileFollowBack") : appText("profileFollow")}
