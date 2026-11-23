@@ -1718,7 +1718,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
       return;
     }
     if (!post?.id) {
-      Alert.alert("Comments", "This post is not saved on the server yet.");
+      Alert.alert(appText("commentsTitle"), appText("alertContentUnavailable"));
       return;
     }
     setBusy(true);
@@ -3849,7 +3849,7 @@ export default function App() {
       return;
     }
 
-    Alert.alert(appText("alertSaved"), "This saved item type is not supported.");
+    Alert.alert(appText("alertSaved"), appText("alertContentUnavailable"));
   };
 
   const handleRemoveSavedItem = async (item) => {
@@ -4484,12 +4484,12 @@ export default function App() {
   const persistBusinessProfile = async () => {
     if (privacySettings.accountType !== "business") {
       setBusinessProfileOpen(false);
-      Alert.alert(appText("alertBusinessOnly"), "Business tools are available only in Business Account.");
+      Alert.alert(appText("alertBusinessOnly"), appText("alertPermissionRequired"));
       return;
     }
     if (businessProfileBusy) return;
     if (!businessProfile.businessName.trim() || !businessProfile.city.trim()) {
-      Alert.alert(appText("alertDetailsRequired"), "Business name and city are required for area-wise discovery.");
+      Alert.alert(appText("alertDetailsRequired"), appText("alertDetailsRequired"));
       return;
     }
     setBusinessProfileBusy(true);
@@ -4512,8 +4512,8 @@ export default function App() {
 
 
   const addBusinessCatalogItem = async () => {
-    if (privacySettings.accountType !== "business") return Alert.alert(appText("alertBusinessOnly"), "Switch to Business Account to manage your catalogue.");
-    if (!catalogDraft.title.trim()) return Alert.alert("Catalog", "Enter a product or service name.");
+    if (privacySettings.accountType !== "business") return Alert.alert(appText("alertBusinessOnly"), appText("alertPermissionRequired"));
+    if (!catalogDraft.title.trim()) return Alert.alert(appText("catalogTab"), appText("alertDetailsRequired"));
     try {
       const item = await createBusinessCatalogItem(catalogDraft);
       setBusinessCatalog((items) => [item, ...items]);
@@ -4529,8 +4529,8 @@ export default function App() {
   };
 
   const addBusinessQuickReply = async () => {
-    if (privacySettings.accountType !== "business") return Alert.alert(appText("alertBusinessOnly"), "Switch to Business Account to manage quick replies.");
-    if (!quickReplyDraft.shortcut.trim() || !quickReplyDraft.message.trim()) return Alert.alert("Quick Replies", "Enter a shortcut and message.");
+    if (privacySettings.accountType !== "business") return Alert.alert(appText("alertBusinessOnly"), appText("alertPermissionRequired"));
+    if (!quickReplyDraft.shortcut.trim() || !quickReplyDraft.message.trim()) return Alert.alert(appText("customerQuickReplies"), appText("alertDetailsRequired"));
     try {
       const item = await createBusinessQuickReply(quickReplyDraft);
       setBusinessQuickReplies((items) => [item, ...items]);
@@ -4547,7 +4547,7 @@ export default function App() {
 
   const searchBusinessDirectory = async () => {
     if (privacySettings.accountType !== "business") {
-      Alert.alert(appText("alertBusinessOnly"), "Switch to Business Account to use area-wise business discovery.");
+      Alert.alert(appText("alertBusinessOnly"), appText("alertPermissionRequired"));
       setBusinessDirectoryOpen(false);
       return;
     }
@@ -4629,7 +4629,7 @@ export default function App() {
       const permission =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert(appText("alertPermissionRequired"), "Gallery  permission is required.");
+        Alert.alert(appText("alertPermissionRequired"), appText("alertGalleryPermission"));
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -5070,7 +5070,7 @@ export default function App() {
   const searchMusicOnGoogle = async () => {
     const query = musicSearchQuery.trim();
     if (!query || musicSearchLoading) {
-      if (!query) Alert.alert("Search music", "Enter a song or artist name first.");
+      if (!query) Alert.alert(appText("musicStudioTitle"), appText("alertDetailsRequired"));
       return;
     }
     setMusicSearchLoading(true);
@@ -5494,12 +5494,12 @@ export default function App() {
     const fullName = authFullName.trim();
     const email = authEmail.trim().toLowerCase();
     if (!username || !authPassword) {
-      Alert.alert("Required", "Enter your username and password.");
+      Alert.alert(appText("alertDetailsRequired"), appText("alertDetailsRequired"));
       return;
     }
     if (authMode === "register") {
       if (!fullName) {
-        Alert.alert("Required", "Enter your full name.");
+        Alert.alert(appText("alertDetailsRequired"), appText("alertDetailsRequired"));
         return;
       }
       if (!/^[a-zA-Z0-9_.]{3,50}$/.test(username)) {
@@ -5528,7 +5528,7 @@ export default function App() {
         return;
       }
       if (authPassword.length < 4 || authPassword.length > 24) {
-        Alert.alert("Invalid password", "Password must be 4 to 24 characters.");
+        Alert.alert(appText("alertDetailsRequired"), appText("alertTryAgain"));
         return;
       }
       if (authPassword !== authConfirmPassword) {
@@ -5651,7 +5651,7 @@ export default function App() {
       if (authBusy) return;
 
       if (action === "request" && !forgotEmail.trim().includes("@")) {
-        Alert.alert("Email required", "Enter your registered email address.");
+        Alert.alert(appText("alertDetailsRequired"), appText("alertDetailsRequired"));
         return;
       }
 
@@ -5664,7 +5664,7 @@ export default function App() {
           return;
         }
         if (forgotNewPassword !== forgotConfirmPassword) {
-          Alert.alert("Password mismatch", "The passwords do not match.");
+          Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
           return;
         }
       }
@@ -5699,7 +5699,7 @@ export default function App() {
           setForgotConfirmPassword("");
           setAuthPassword("");
           setAuthMode("login");
-          Alert.alert("Password updated", "Log in with your new password.");
+          Alert.alert(appText("alertSuccess"), appText("alertSaved"));
         }
       } catch (error) {
         Alert.alert(
