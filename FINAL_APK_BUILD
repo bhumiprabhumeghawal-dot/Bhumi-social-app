@@ -7,3 +7,5 @@ Build APK after increasing Gradle build timeout to 55 minutes (commit 45821f8).
 Build APK for latest language-system fixes (commits c979ab3, b120ed9, bdf7a23, 6a60751).
 
 Build APK for navigation spacing and app-wide horizontal scrolling (commits 28603543, 6d29549).
+
+Build APK for Home Feed light and dark theme updates (commits 3059644, 819adf9).
