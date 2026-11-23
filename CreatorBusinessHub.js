@@ -4,6 +4,7 @@ import {
   TouchableOpacity, View, Linking, Share
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { translateAppText } from "./localization";
 import {
   loadPrivacySettings, savePrivacySettings, loadProfilePosts,
   loadBusinessProfile, saveBusinessProfile, loadBusinessCatalog, loadProfileConnections,
@@ -22,7 +23,8 @@ const inputStyle = {
   paddingVertical: 10, marginTop: 7, fontSize: 13
 };
 
-export default function CreatorBusinessHub({ visible, username, onClose }) {
+export default function CreatorBusinessHub({ visible, username, onClose, appLanguage = "en" }) {
+  const t = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   const [accountType, setAccountType] = React.useState("personal");
   const [tab, setTab] = React.useState("overview");
   const [loading, setLoading] = React.useState(false);
@@ -292,7 +294,7 @@ export default function CreatorBusinessHub({ visible, username, onClose }) {
             <Text style={{ color: MUTED, fontSize: 12, marginTop: 8 }}>This item will be permanently removed from your catalog.</Text>
             <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}>
               <TouchableOpacity onPress={() => setConfirmDeleteId(null)} disabled={saving} style={{ padding: 11, marginRight: 8 }}>
-                <Text style={{ color: TEXT, fontWeight: "700" }}>Cancel</Text>
+                <Text style={{ color: TEXT, fontWeight: "700" }}>{t("cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={removeItem} disabled={saving} style={{ backgroundColor: "#ED4956", borderRadius: 9, paddingHorizontal: 15, paddingVertical: 11 }}>
                 <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{saving ? "Deleting..." : "Delete"}</Text>
