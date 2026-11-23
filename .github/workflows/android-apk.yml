@@ -78,7 +78,7 @@ jobs:
           CI: "1"
 
       - name: Build release APK
-        timeout-minutes: 40
+        timeout-minutes: 55
         working-directory: android
         run: |
           chmod +x gradlew
