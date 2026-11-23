@@ -49,7 +49,7 @@ export function translateAppTextValue(language, value) {
   if (!match) {
     const normalizedValue = value.trim().toLowerCase();
     let fallbackKey = "alertTryAgain";
-    if (/^delete this\\b|permanently remove|remove this/.test(normalizedValue)) fallbackKey = "alertDelete";
+    if (/^delete this(?: |$)|permanently remove|remove this/.test(normalizedValue)) fallbackKey = "alertDelete";
     else if (/permission|allow .* access|access .* camera|access .* gallery/.test(normalizedValue)) fallbackKey = "alertPermissionRequired";
     else if (/saved|downloaded|uploaded|completed/.test(normalizedValue)) fallbackKey = "alertSaved";
     else if (/select|choose|fill in|missing information|too large/.test(normalizedValue)) fallbackKey = "alertDetailsRequired";
