@@ -101,7 +101,7 @@ export async function loginAccount(username, password) {
     body: JSON.stringify({ username: username.trim(), password }),
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'लॉगिन नहीं हुआ।');
+  if (!response.ok) throw new Error(data.error || 'Login failed.');
   await saveAuthSession(data.token, data.username);
   return data;
 }
@@ -165,8 +165,8 @@ globalThis.fetch = async (input, init = {}) => {
   } catch (error) {
     if (error?.name === 'AbortError') {
       throw new Error(isUpload
-        ? 'Upload में समय लग रहा है। कृपया दोबारा कोशिश करें।'
-        : 'सर्वर से जवाब आने में समय लग रहा है। कृपया दोबारा कोशिश करें।');
+        ? 'The upload is taking longer than expected. Please try again.'
+        : 'The server is taking longer than expected to respond. Please try again.');
     }
     throw error;
   } finally {
@@ -392,7 +392,7 @@ async function uploadContentOnce(type, asset, caption = '', groupId = '') {
   try {
     data = JSON.parse(result.body);
   } catch {
-    throw new Error(`सर्वर का जवाब पढ़ा नहीं जा सका (HTTP ${result.status})`);
+    throw new Error(`Could not read the server response (HTTP ${result.status})`);
   }
 
   if (result.status < 200 || result.status >= 300) {
@@ -401,7 +401,7 @@ async function uploadContentOnce(type, asset, caption = '', groupId = '') {
 
   const item = data.item;
   if (!item) {
-    throw new Error('सर्वर ने अपलोड की जानकारी नहीं लौटाई।');
+    throw new Error('The server did not return upload details.');
   }
 
   return {
@@ -415,17 +415,17 @@ async function uploadContentOnce(type, asset, caption = '', groupId = '') {
 
 export async function deleteContent(type, contentId) {
   if (!['posts', 'stories', 'reels'].includes(type)) {
-    throw new Error('अमान्य कंटेंट प्रकार।');
+    throw new Error('Invalid content type.');
   }
   const id = Number(contentId);
   if (!Number.isSafeInteger(id) || id <= 0) {
-    throw new Error('यह कंटेंट डिलीट नहीं किया जा सकता।');
+    throw new Error('This content cannot be deleted.');
   }
   const response = await fetch(`${API_BASE_URL}/api/${type}/${id}`, {
     method: 'DELETE',
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'कंटेंट डिलीट नहीं हो सका।');
+  if (!response.ok) throw new Error(data.error || 'Could not delete the content.');
 
   CONTENT_MEMORY_CACHE.delete(type);
   CONTENT_REQUESTS_IN_FLIGHT.delete(type);
@@ -489,7 +489,7 @@ export async function loadProfile(username = 'you', viewer = 'you') {
     { headers: await authHeaders() }
   );
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल लोड नहीं हुई।');
+  if (!response.ok) throw new Error(data.error || 'Could not load the profile.');
   if (data.profile?.avatarUrl && !data.profile.avatarUrl.startsWith('http')) {
     data.profile.avatarUrl = `${API_BASE_URL}${data.profile.avatarUrl}`;
   }
@@ -499,7 +499,7 @@ export async function loadProfile(username = 'you', viewer = 'you') {
 
 export async function loadProfilePosts(username, viewer = '', pageSize = 100) {
   const normalizedUsername = String(username || '').trim().replace(/^@/, '');
-  if (!normalizedUsername) throw new Error('यूज़रनेम नहीं मिला।');
+  if (!normalizedUsername) throw new Error('Username not found.');
 
   const limit = Math.min(Math.max(Number(pageSize) || 100, 1), 100);
   const items = [];
@@ -517,7 +517,7 @@ export async function loadProfilePosts(username, viewer = '', pageSize = 100) {
       { headers: await authHeaders() }
     );
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल पोस्ट लोड नहीं हुई।');
+    if (!response.ok) throw new Error(data.error || 'Could not load profile posts.');
 
     const pageItems = Array.isArray(data.items) ? data.items : [];
     items.push(...pageItems);
@@ -547,7 +547,7 @@ export async function updateProfile(username = 'you', changes = {}) {
     }
   );
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल सेव नहीं हुई।');
+  if (!response.ok) throw new Error(data.error || 'Could not save the profile.');
   return data;
 }
 
@@ -561,7 +561,7 @@ export async function uploadProfileAvatar(asset, username = 'you') {
 
   const authSession = await getAuthSession();
   if (!authSession?.token) {
-    throw new Error('कृपया पहले लॉगिन करें।');
+    throw new Error('Please log in first.');
   }
 
   const result = await FileSystem.uploadAsync(
@@ -578,10 +578,10 @@ export async function uploadProfileAvatar(asset, username = 'you') {
 
   let data;
   try { data = JSON.parse(result.body); }
-  catch { throw new Error(`फ़ोटो अपलोड का जवाब पढ़ा नहीं जा सका (HTTP ${result.status})`); }
+  catch { throw new Error(`Could not read the photo upload response (HTTP ${result.status})`); }
 
   if (result.status < 200 || result.status >= 300) {
-    throw new Error(data.error || `फ़ोटो अपलोड नहीं हुई (HTTP ${result.status})`);
+    throw new Error(data.error || `Photo upload failed (HTTP ${result.status})`);
   }
   return data;
 }
@@ -592,7 +592,7 @@ export async function deleteProfileAvatar(username = 'you') {
     { method: 'DELETE' }
   );
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल फ़ोटो हट नहीं सकी।');
+  if (!response.ok) throw new Error(data.error || 'Could not remove the profile photo.');
   return data;
 }
 
@@ -606,7 +606,7 @@ export async function followProfile(username, viewer = 'you') {
     }
   );
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Follow नहीं हो सका।');
+  if (!response.ok) throw new Error(data.error || 'Could not follow this account.');
   return data;
 }
 
@@ -616,19 +616,19 @@ export async function unfollowProfile(username, viewer = 'you') {
     { method: 'DELETE', headers: await authHeaders() }
   );
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Unfollow नहीं हो सका।');
+  if (!response.ok) throw new Error(data.error || 'Could not unfollow this account.');
   return data;
 }
 
 export async function loadProfileConnections(username, type = 'followers') {
   if (!['followers', 'following'].includes(type)) {
-    throw new Error('अमान्य प्रोफ़ाइल सूची।');
+    throw new Error('Invalid profile list.');
   }
   const response = await fetch(
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/${type}`
   );
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'सूची लोड नहीं हुई।');
+  if (!response.ok) throw new Error(data.error || 'Could not load the list.');
   return data;
 }
 
@@ -982,42 +982,42 @@ export async function searchUsers(query) {
 export async function loadFollowRequests() {
   const response = await fetch(`${API_BASE_URL}/api/follow-requests`, { headers: await authHeaders() });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Follow requests load नहीं हुईं।');
+  if (!response.ok) throw new Error(data.error || 'Could not load follow requests.');
   return data.requests || [];
 }
 
 export async function acceptFollowRequest(requestId) {
   const response = await fetch(`${API_BASE_URL}/api/follow-requests/${encodeURIComponent(requestId)}/accept`, { method: 'POST', headers: await authHeaders() });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Request accept नहीं हुई।');
+  if (!response.ok) throw new Error(data.error || 'Could not accept the request.');
   return data;
 }
 
 export async function rejectFollowRequest(requestId) {
   const response = await fetch(`${API_BASE_URL}/api/follow-requests/${encodeURIComponent(requestId)}/reject`, { method: 'POST', headers: await authHeaders() });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Request reject नहीं हुई।');
+  if (!response.ok) throw new Error(data.error || 'Could not reject the request.');
   return data;
 }
 
 export async function loadNotifications() {
   const response = await fetch(`${API_BASE_URL}/api/notifications`, { headers: await authHeaders() });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Notifications load नहीं हुईं।');
+  if (!response.ok) throw new Error(data.error || 'Could not load notifications.');
   return data;
 }
 
 export async function markNotificationRead(notificationId) {
   const response = await fetch(`${API_BASE_URL}/api/notifications/${encodeURIComponent(notificationId)}/read`, { method: 'PATCH', headers: await authHeaders() });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Notification read नहीं हुई।');
+  if (!response.ok) throw new Error(data.error || 'Could not mark the notification as read.');
   return data;
 }
 
 export async function markAllNotificationsRead() {
   const response = await fetch(`${API_BASE_URL}/api/notifications/read-all`, { method: 'PATCH', headers: await authHeaders() });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Notifications update नहीं हुईं।');
+  if (!response.ok) throw new Error(data.error || 'Could not update notifications.');
   return data;
 }
 
@@ -1205,7 +1205,7 @@ export async function uploadChatAttachment(asset) {
 
   const authSession = await getAuthSession();
   if (!authSession?.token) {
-    throw new Error('कृपया पहले लॉगिन करें।');
+    throw new Error('Please log in first.');
   }
 
   // Use Expo FileSystem's native multipart uploader. React Native 0.88's
@@ -1226,7 +1226,7 @@ export async function uploadChatAttachment(asset) {
   try {
     data = JSON.parse(result.body);
   } catch {
-    throw new Error(`अटैचमेंट अपलोड का जवाब पढ़ा नहीं जा सका (HTTP ${result.status})`);
+    throw new Error(`Could not read the attachment upload response (HTTP ${result.status})`);
   }
   if (result.status < 200 || result.status >= 300) {
     throw new Error(data.error || `Could not upload chat attachment (HTTP ${result.status}).`);
@@ -1486,9 +1486,9 @@ export async function removeCallPushToken(expoPushToken) {
 export async function createVoiceVideoCall(username, type = 'audio') {
   const target = String(username || '').trim().replace(/^@/, '');
   const callType = String(type || '').toLowerCase();
-  if (!target) throw new Error('कॉल करने के लिए यूज़रनेम जरूरी है।');
+  if (!target) throw new Error('A username is required to place a call.');
   if (!['audio', 'video'].includes(callType)) {
-    throw new Error('कॉल का प्रकार सही नहीं है।');
+    throw new Error('Invalid call type.');
   }
   const data = await callApi('/api/calls', {
     method: 'POST',
@@ -1505,7 +1505,7 @@ export async function loadPendingCalls() {
 export async function respondToCall(callId, action) {
   const id = String(callId || '').trim();
   if (!id || !['accept', 'reject', 'end'].includes(action)) {
-    throw new Error('कॉल अनुरोध सही नहीं है।');
+    throw new Error('Invalid call request.');
   }
   const data = await callApi(`/api/calls/${encodeURIComponent(id)}/${action}`, {
     method: 'POST',
@@ -1516,7 +1516,7 @@ export async function respondToCall(callId, action) {
 
 export async function getCallConnectionToken(callId) {
   const id = String(callId || '').trim();
-  if (!id) throw new Error('कॉल आईडी नहीं मिली।');
+  if (!id) throw new Error('Call ID was not found.');
   return callApi(`/api/calls/${encodeURIComponent(id)}/token`, {
     method: 'POST',
     body: JSON.stringify({}),
@@ -1525,7 +1525,7 @@ export async function getCallConnectionToken(callId) {
 
 export async function getVoiceVideoCallStatus(callId) {
   const id = String(callId || '').trim();
-  if (!id) throw new Error('कॉल आईडी नहीं मिली।');
+  if (!id) throw new Error('Call ID was not found.');
   const data = await callApi(`/api/calls/${encodeURIComponent(id)}`);
   return data.call || null;
 }
