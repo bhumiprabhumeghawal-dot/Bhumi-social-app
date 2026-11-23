@@ -6818,6 +6818,7 @@ export default function App() {
                                <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>Reset all</Text>
                              </TouchableOpacity>
                            </View>
+                           <Text style={{ color: "#D9B56D", fontSize: 9, fontWeight: "700", paddingHorizontal: 2 }}>APPROXIMATE PREVIEW · FULL FILTER APPLIES ON EXPORT</Text>
                            {VIDEO_FILTERS.map((filter, index) => {
                               const selected = videoFilterIndex === index;
                               return (
@@ -7240,6 +7241,7 @@ export default function App() {
                           <TouchableOpacity disabled={busy} onPress={() => setVideoFilterCompareOriginal((value) => !value)} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14, backgroundColor: videoFilterCompareOriginal ? "rgba(217,181,109,0.22)" : "rgba(0,0,0,0.78)", borderWidth: 1, borderColor: "#D9B56D" }}>
                             <Text style={{ color: "#D9B56D", fontSize: 10, fontWeight: "800" }}>{videoFilterCompareOriginal ? "SHOW FILTER PREVIEW" : "COMPARE ORIGINAL"}</Text>
                           </TouchableOpacity>
+                          <Text style={{ color: "#A8A8A8", fontSize: 10, fontWeight: "600" }}>Preview tint is approximate; the selected FFmpeg effect is rendered when you publish.</Text>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
                             {VIDEO_FILTERS.map((filter, index) => (
                               <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#0095F6" : "rgba(0,0,0,0.78)" }}>
