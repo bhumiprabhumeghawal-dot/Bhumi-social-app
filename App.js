@@ -6416,8 +6416,8 @@ export default function App() {
           <View style={{ flex: 1, backgroundColor: "#111111" }}>
             <CameraView ref={liveCameraRef} style={{ flex: 1 }} facing={cameraFacing} mode="video" />
             <View style={{ position: "absolute", top: 16, left: 16, right: 16, gap: 10 }}>
-              <TextInput value={liveLink} onChangeText={setLiveLink} placeholder="Add a link" placeholderTextColor="#BBBBBB" autoCapitalize="none" style={{ color: "#FFFFFF", backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 14 }} />
-              <TextInput value={liveTitle} onChangeText={setLiveTitle} placeholder="Add a title" placeholderTextColor="#BBBBBB" style={{ color: "#FFFFFF", backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 14 }} />
+              <TextInput value={liveLink} onChangeText={setLiveLink} placeholder={appText("websiteAction")} placeholderTextColor="#BBBBBB" autoCapitalize="none" style={{ color: "#FFFFFF", backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 14 }} />
+              <TextInput value={liveTitle} onChangeText={setLiveTitle} placeholder={appText("displayName")} placeholderTextColor="#BBBBBB" style={{ color: "#FFFFFF", backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 14 }} />
               <View style={{ backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 12 }}>
                 <Text style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 10 }}>{appText("audienceLabel")}</Text>
                 <View style={{ flexDirection: "row", gap: 8 }}>
@@ -7391,7 +7391,7 @@ export default function App() {
                   <TextInput
                     value={mediaDraftCaption}
                     onChangeText={setMediaDraftCaption}
-                    placeholder="Write a caption..."
+                    placeholder={appText("addCaption")}
                     multiline
                     maxLength={2200}
                     style={{
@@ -7753,7 +7753,7 @@ export default function App() {
             <TextInput
               value={musicSearchQuery}
               onChangeText={setMusicSearchQuery}
-              placeholder="Enter a song or artist name"
+              placeholder={appText("search")}
               placeholderTextColor="#888888"
               returnKeyType="search"
               onSubmitEditing={searchMusicOnGoogle}
@@ -10824,8 +10824,8 @@ export default function App() {
               </View>
               <View style={{ borderTopWidth: 1, borderTopColor: "#262626", paddingTop: 15, marginBottom: 15 }}>
                 <Text style={{ color: "#0095F6", fontSize: 16, fontWeight: "900", marginBottom: 8 }}>{appText("customerQuickReplies")}</Text>
-                <TextInput value={quickReplyDraft.shortcut} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, shortcut: value }))} placeholder="Shortcut e.g. welcome" placeholderTextColor="#8E8E93" style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, marginBottom: 7 }} />
-                <TextInput value={quickReplyDraft.message} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, message: value }))} placeholder="Saved reply message..." placeholderTextColor="#8E8E93" multiline style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, minHeight: 62, marginBottom: 7 }} />
+                <TextInput value={quickReplyDraft.shortcut} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, shortcut: value }))} placeholder={appText("customerQuickReplies")} placeholderTextColor="#8E8E93" style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, marginBottom: 7 }} />
+                <TextInput value={quickReplyDraft.message} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, message: value }))} placeholder={appText("saveQuickReply")} placeholderTextColor="#8E8E93" multiline style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, minHeight: 62, marginBottom: 7 }} />
                 <TouchableOpacity onPress={addBusinessQuickReply} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", borderRadius: 10, padding: 11, alignItems: "center" }}>
                   <Text style={{ color: "#0095F6", fontWeight: "900" }}>{appText("saveQuickReply")}</Text>
                 </TouchableOpacity>
@@ -11084,7 +11084,7 @@ export default function App() {
               <TextInput
                 value={accountEmail}
                 onChangeText={setAccountEmail}
-                placeholder="Email address (optional)"
+                placeholder={appText("emailOptionalPlaceholder")}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={!accountSettingsBusy}
@@ -11105,7 +11105,7 @@ export default function App() {
               <TextInput
                 value={accountPhone}
                 onChangeText={setAccountPhone}
-                placeholder="Mobile number (optional)"
+                placeholder={appText("mobileOptionalPlaceholder")}
                 keyboardType="phone-pad"
                 editable={!accountSettingsBusy}
                 style={{
@@ -12952,7 +12952,7 @@ export default function App() {
                     <TextInput
                       value={chatDraft}
                       onChangeText={handleChatDraftChange}
-                      placeholder="Message..."
+                      placeholder={appText("newMessage")}
                       multiline
                       maxLength={5000}
                       style={{
@@ -13091,7 +13091,7 @@ export default function App() {
               <TextInput
                 value={noteDraft}
                 onChangeText={setNoteDraft}
-                placeholder="Share a thought..."
+                placeholder={appText("yourNote")}
                 placeholderTextColor="#A8A8A8"
                 maxLength={60}
                 multiline
