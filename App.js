@@ -4901,9 +4901,16 @@ export default function App() {
     }
   };
 
+  const resetVideoFilterControls = () => {
+    setVideoFilterIndex(0);
+    setVideoFilterCompareOriginal(false);
+    setVoiceEffect("Original");
+  };
+
   const useRecordedPhoto = () => {
     if (!recordedPhoto) return;
     const kind = cameraTargetKind === "stories" ? "stories" : "posts";
+    resetVideoFilterControls();
     setMediaDraft({
       kind,
       assets: [
@@ -4951,6 +4958,7 @@ export default function App() {
 
   const useRecordedVideo = () => {
     if (!recordedVideo) return;
+    resetVideoFilterControls();
     setMediaDraft({
       kind: cameraTargetKind,
       assets: [
@@ -5022,6 +5030,7 @@ export default function App() {
         );
         return;
       }
+      resetVideoFilterControls();
       setMediaDraft({ kind, assets: normalizedAssets });
       setMediaDraftIndex(0);
       setMediaDraftCaption("");
@@ -5128,6 +5137,7 @@ export default function App() {
       const videoAsset = await createVideoFromPhotos(result.assets, {
         secondsPerPhoto: 3,
       });
+      resetVideoFilterControls();
       setMediaDraft({ kind: "reels", assets: [videoAsset] });
       setMediaDraftIndex(0);
       setMediaDraftCaption("");
@@ -7312,6 +7322,7 @@ export default function App() {
                       <TouchableOpacity
                         disabled={mediaDraftIndex === 0}
                         onPress={() => {
+                          resetVideoFilterControls();
                           setMediaDraftIndex((index) => Math.max(0, index - 1));
                           setZoomEffectEnabled(false);
                           setZoomEffectLevel(1.5);
@@ -7331,6 +7342,7 @@ export default function App() {
                       <TouchableOpacity
                         disabled={mediaDraftIndex >= assets.length - 1}
                         onPress={() => {
+                          resetVideoFilterControls();
                           setMediaDraftIndex((index) =>
                             Math.min(assets.length - 1, index + 1),
                           );
