@@ -162,15 +162,7 @@ Notifications.setNotificationHandler({
 
 function formatLastSeen(value, language = "en") {
   const stamp = new Date(value).getTime();
-  if (!Number.isFinite(stamp)) return "Last seen unavailable";
-  const diff = Math.max(0, Date.now() - stamp);
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Seen just now";
-  if (mins < 60) return mins + " minutes ago";
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return hours + " hours ago";
-  const days = Math.floor(hours / 24);
-  if (days < 7) return days + " days ago";
+  if (!Number.isFinite(stamp)) return "";
   const localeByLanguage = {
     en: "en-IN", hi: "hi-IN", gu: "gu-IN", bn: "bn-IN", mr: "mr-IN",
     ta: "ta-IN", te: "te-IN", pa: "pa-IN", kn: "kn-IN", ml: "ml-IN",
@@ -178,11 +170,19 @@ function formatLastSeen(value, language = "en") {
     de: "de-DE", ja: "ja-JP", ko: "ko-KR", id: "id-ID", ru: "ru-RU",
     zh: "zh-CN", tr: "tr-TR", th: "th-TH", vi: "vi-VN",
   };
-  const locale = localeByLanguage[language] || "en-IN";
-  const date = new Date(stamp).toLocaleDateString(locale, {
+  const locale = localeByLanguage[language] || localeByLanguage.en;
+  const diff = Math.max(0, Date.now() - stamp);
+  const mins = Math.floor(diff / 60000);
+  const relative = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  if (mins < 1) return relative.format(0, "second");
+  if (mins < 60) return relative.format(-mins, "minute");
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return relative.format(-hours, "hour");
+  const days = Math.floor(hours / 24);
+  if (days < 7) return relative.format(-days, "day");
+  return new Intl.DateTimeFormat(locale, {
     day: "numeric", month: "short", year: "numeric",
-  });
-  return "Seen on " + date;
+  }).format(stamp);
 }
 
 function isVersionNewer(latest, current) {
