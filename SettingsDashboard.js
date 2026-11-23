@@ -1081,8 +1081,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     const appearanceLabels = APPEARANCE_FIELD_LABELS[appLanguage] || APPEARANCE_FIELD_LABELS.en;
     const accountLabels = ACCOUNT_FIELD_LABELS[appLanguage] || ACCOUNT_FIELD_LABELS.en;
     const locationLabels = LOCATION_FIELD_LABELS[appLanguage] || LOCATION_FIELD_LABELS.en;
-    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : accountIndex >= 0 ? accountLabels[accountIndex] : locationIndex >= 0 ? locationLabels[locationIndex] : originalTitle;
-    const fieldSubtitle = (appearanceIndex >= 0 || accountIndex >= 0 || locationIndex >= 0) && appLanguage !== "en" ? "" : subtitle;
+    const sectionKey = key.startsWith("profile.") ? "account" : key.startsWith("protection.") ? "appLock" : key.split(".")[0];
+    const localizedSectionTitle = appLanguage === "en" ? originalTitle : t("section_" + sectionKey);
+    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : accountIndex >= 0 ? accountLabels[accountIndex] : locationIndex >= 0 ? locationLabels[locationIndex] : appLanguage === "en" ? originalTitle : (localizedSectionTitle || t("settings"));
+    const fieldSubtitle = appLanguage === "en" ? subtitle : "";
     const value = preferences[key] ?? defaultValue;
     const isAction = ACTION_KEYS.has(key);
     return (
