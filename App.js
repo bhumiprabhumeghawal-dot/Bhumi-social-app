@@ -6175,7 +6175,7 @@ export default function App() {
                 }}
               />
               <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 12 }}>
-                This will be your @username. The app will not create a username for you. 3–50 characters: English letters, numbers, dot (.) or underscore (_).
+                {appText("signupUsernameHint")}
               </Text>
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
@@ -7498,7 +7498,7 @@ export default function App() {
                               style={{ padding: 10, marginLeft: 8 }}
                             >
                               <Text style={{ color: "#D93025" }}>
-                                Remove Music
+                                {appText("removeMusicLabel")}
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -7689,7 +7689,7 @@ export default function App() {
                               paddingTop: 6,
                             }}
                           >
-                            The effect is processed before upload.
+                            {appText("videoEffectUploadNotice")}
                           </Text>
                         </View>
                       )}
@@ -9103,7 +9103,7 @@ export default function App() {
                       }}
                     >
                       <Text style={{ color: "#BE3548", fontWeight: "700" }}>
-                        Remove Photo
+                        {appText("removePhotoLabel")}
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -9328,7 +9328,7 @@ export default function App() {
                   <Text
                     style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
                   >
-                    Likes, comments, follows, messages and system alerts
+                    {appText("notificationTypesDescription")}
                   </Text>
                 </TouchableOpacity>
                 {notificationDetailsOpen && (
@@ -10559,7 +10559,7 @@ export default function App() {
               Privacy Settings
             </Text>
             <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 12 }}>
-              Choose how people can view and interact with your account.
+              {appText("privacyInteractionDescription")}
             </Text>
             <TouchableOpacity onPress={openSnapPrivacySettings} disabled={snapPrivacyBusy} style={{ flexDirection: "row", alignItems: "center", padding: 14, marginBottom: 14, borderRadius: 14, backgroundColor: "rgba(181,139,255,0.13)", borderWidth: 1, borderColor: "#7657A5" }}>
               <Ionicons name="shield-checkmark" size={22} color="#C9ACFF" />
@@ -11073,12 +11073,12 @@ export default function App() {
                 Account Settings
               </Text>
               <Text style={{ color: "#A8A8A8", marginBottom: 18 }}>
-                Email and mobile number are optional.
+                {appText("optionalContactDescription")}
               </Text>
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 6 }}
               >
-                Email address
+                {appText("emailAddressLabel")}
               </Text>
               <TextInput
                 value={accountEmail}
@@ -11099,7 +11099,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 6 }}
               >
-                Mobile number
+                {appText("mobileNumberLabel")}
               </Text>
               <TextInput
                 value={accountPhone}
@@ -12520,7 +12520,7 @@ export default function App() {
             fontSize: 11,
             marginTop: 3,
           }}>
-            DOCUMENT · Tap to open
+            {appText("documentTapToOpen")}
           </Text>
         </View>
       </TouchableOpacity>
