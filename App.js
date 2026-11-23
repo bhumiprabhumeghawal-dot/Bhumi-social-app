@@ -1201,6 +1201,7 @@ function PostCard({
     <View
       style={[
         styles.post,
+        { backgroundColor: uiSurfaceColor },
         pageHeight > 0 ? { height: pageHeight, marginBottom: 0 } : null,
       ]}
     >
@@ -8281,14 +8282,14 @@ export default function App() {
                               width: 23,
                               height: 23,
                               borderRadius: 12,
-                              backgroundColor: "#1C1C1E",
+                              backgroundColor: lightAppearance ? "#FFFFFF" : "#1C1C1E",
                               borderWidth: 2,
-                              borderColor: "#303030",
+                              borderColor: lightAppearance ? "#D8D8D8" : "#303030",
                               alignItems: "center",
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons name="add" size={17} color="#FFFFFF" />
+                            <Ionicons name="add" size={17} color={lightAppearance ? "#111111" : "#FFFFFF"} />
                           </TouchableOpacity>
                         </View>
                       );
