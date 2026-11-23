@@ -6748,10 +6748,10 @@ export default function App() {
             </TouchableOpacity>
             <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "700" }}>
               {mediaDraft?.kind === "stories"
-                ? "Edit Story"
+                ? appText("editStory")
                 : mediaDraft?.kind === "reels"
-                  ? "New Reel"
-                  : "New Post"}
+                  ? appText("newReel")
+                  : appText("newPost")}
             </Text>
             <View style={{ width: 54 }} />
           </View>
@@ -7018,7 +7018,7 @@ export default function App() {
                         <TextInput
                           value={mediaDraftCaption}
                           onChangeText={setMediaDraftCaption}
-                          placeholder="Add a caption..."
+                          placeholder={appText("addCaption")}
                           placeholderTextColor="rgba(255,255,255,0.8)"
                           multiline
                           maxLength={2200}
@@ -7066,7 +7066,7 @@ export default function App() {
                               fontWeight: "700",
                             }}
                           >
-                            Your story
+                            {appText("yourStory")}
                           </Text>
                         </TouchableOpacity>
 
@@ -7090,7 +7090,7 @@ export default function App() {
                               fontWeight: "700",
                             }}
                           >
-                            Close Friends
+                            {appText("closeFriends")}
                           </Text>
                         </TouchableOpacity>
 
@@ -8923,7 +8923,7 @@ export default function App() {
                     {!!profile.businessProfile.phone && (
                       <TouchableOpacity onPress={() => Linking.openURL("tel:" + profile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
                         <Ionicons name="call" size={14} color="#0095F6" />
-                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>Call</Text>
+                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>{appText("callAction")}</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.whatsapp && (
@@ -8941,13 +8941,13 @@ export default function App() {
                     {!!profile.businessProfile.website && (
                       <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(profile.businessProfile.website) ? profile.businessProfile.website : "https://" + profile.businessProfile.website)} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
                         <Ionicons name="globe-outline" size={14} color="#0095F6" />
-                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>Website</Text>
+                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>{appText("websiteAction")}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
                   {!!profile.businessCatalog?.length && (
                     <View style={{ borderTopWidth: 1, borderTopColor: "#262626", marginTop: 11, paddingTop: 10 }}>
-                      <Text style={{ color: "#0095F6", fontWeight: "900", marginBottom: 6 }}>Products & Services</Text>
+                      <Text style={{ color: "#0095F6", fontWeight: "900", marginBottom: 6 }}>{appText("productsServices")}</Text>
                       {profile.businessCatalog.slice(0, 5).map((item) => (
                         <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#303030" }}>
                           <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>{item.title} {item.price ? "· " + item.price : ""}</Text>
@@ -9476,7 +9476,7 @@ export default function App() {
                 <Text
                   style={{ color: "#F5F5F5", fontSize: 19, fontWeight: "800" }}
                 >
-                  Your Posts
+                  {appText("yourPosts")}
                 </Text>
                 <Ionicons name="grid-outline" size={21} color="#0095F6" />
               </View>
@@ -13293,10 +13293,10 @@ export default function App() {
                       </Text>
                     )}
                     {!!viewedProfile.businessProfile.serviceAreas && (
-                      <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 6 }}>Service areas: {viewedProfile.businessProfile.serviceAreas}</Text>
+                      <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 6 }}>{appText("serviceAreas")} {viewedProfile.businessProfile.serviceAreas}</Text>
                     )}
                     {!!viewedProfile.businessProfile.openingHours && (
-                      <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 6 }}>Hours: {viewedProfile.businessProfile.openingHours}</Text>
+                      <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 6 }}>{appText("hoursLabel")} {viewedProfile.businessProfile.openingHours}</Text>
                     )}
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 11 }}>
                       {!!viewedProfile.businessProfile.phone && (
@@ -13423,7 +13423,7 @@ export default function App() {
                 ) : (
                   <View style={{ alignItems: "center", paddingVertical: 48 }}>
                     <Ionicons name="camera-outline" size={42} color="#FFFFFF" />
-                    <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 10 }}>No posts yet</Text>
+                    <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 10 }}>{appText("noPostsYet")}</Text>
                   </View>
                 )
               ) : (
@@ -13489,7 +13489,7 @@ export default function App() {
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
               <Text style={{ color: "#F5F5F5", fontSize: 17, fontWeight: "800" }}>
-                {profileConnectionsType === "followers" ? "Followers" : "Following"}
+                {profileConnectionsType === "followers" ? appText("followers") : appText("following")}
               </Text>
               <Text style={{ color: "#A8A8A8", fontSize: 11 }}>@{profileConnectionsUsername}</Text>
             </View>
@@ -13506,7 +13506,7 @@ export default function App() {
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
               <Text style={{ color: "#F5F5F5", textAlign: "center" }}>{profileConnectionsError}</Text>
               <TouchableOpacity onPress={() => openProfileConnections(profileConnectionsUsername, profileConnectionsType)} style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, backgroundColor: "#262626" }}>
-                <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>Retry</Text>
+                <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>{appText("retryAction")}</Text>
               </TouchableOpacity>
             </View>
           ) : profileConnectionsItems.length ? (
@@ -13529,7 +13529,7 @@ export default function App() {
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: "#F5F5F5", fontSize: 14, fontWeight: "800" }}>@{username}</Text>
-                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>View profile</Text>
+                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>{appText("viewProfile")}</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color="#0095F6" />
                   </TouchableOpacity>
