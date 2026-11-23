@@ -1512,7 +1512,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                   try { await SecureStore.setItemAsync("bhumi_app_language",item.code); setSelectedLanguage(item.code); onLanguageChange?.(item.code); setLanguageVisible(false); }
                   catch (error) { setNotice({title:"Could not save language",message:error?.message || "Please try again."}); }
                 }} style={{ flexDirection:"row",alignItems:"center",paddingVertical:12,borderBottomWidth:1,borderBottomColor:BORDER }}>
-                  <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{appLanguage === "en" ? item.name : item.native}</Text><Text style={{ color:MUTED,fontSize:10,marginTop:3 }}>{item.region}</Text></View>
+                  <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{appLanguage === "en" ? item.name : item.native}</Text></View>
                   {selectedLanguage===item.code ? <Ionicons name="checkmark-circle" size={21} color={GOLD}/> : <View style={{ width:20,height:20,borderRadius:10,borderWidth:1,borderColor:BORDER }}/>}
                 </TouchableOpacity>
               ))}
