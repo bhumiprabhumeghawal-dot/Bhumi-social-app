@@ -8413,7 +8413,7 @@ export default function App() {
             {!!searchQuery && (
               <TouchableOpacity
                 onPress={() => setSearchQuery("")}
-                accessibilityLabel="Clear search"
+                accessibilityLabel={appText("clearSearch")}
               >
                 <Ionicons name="close-circle" size={20} color="#737373" />
               </TouchableOpacity>
@@ -11485,7 +11485,7 @@ export default function App() {
                     </View>
                   </View>
                   <VoiceVideoCallControls username={selectedChatUser} enableIncoming={false} />
-                  <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel="Chat personalization" style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "transparent", borderWidth: 0, borderColor: "transparent", alignItems: "center", justifyContent: "center" }}>
+                  <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel={appText("chatPersonalization")} style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "transparent", borderWidth: 0, borderColor: "transparent", alignItems: "center", justifyContent: "center" }}>
                     <Ionicons name="color-palette-outline" size={21} color="#F5F5F5" />
                   </TouchableOpacity>
                 </View>
@@ -11619,7 +11619,7 @@ export default function App() {
                   <TouchableOpacity
                     onPress={() => setChatUnreadOnly((value) => !value)}
                     accessibilityRole="button"
-                    accessibilityLabel={chatUnreadOnly ? "Show all messages" : "Show unread messages"}
+                    accessibilityLabel={chatUnreadOnly ? appText("showAllMessages") : appText("showUnreadMessages")}
                     style={{
                       width: 36,
                       height: 36,
@@ -11841,7 +11841,7 @@ export default function App() {
                           />
                           <TouchableOpacity
                             onPress={createStory}
-                            accessibilityLabel="Add story"
+                            accessibilityLabel={appText("addStory")}
                             style={{
                               position: "absolute",
                               right: 5,
@@ -11951,7 +11951,7 @@ export default function App() {
                       <TextInput
                         value={newChatUsername}
                         onChangeText={setNewChatUsername}
-                        placeholder="Search people by name or username"
+                        placeholder={appText("searchPeople")}
                         placeholderTextColor="#737373"
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -12065,7 +12065,7 @@ export default function App() {
                 {chatBusy ? (
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", paddingHorizontal: 20, paddingVertical: 12, gap: 9 }}>
                     <ActivityIndicator color="#3797F0" size="small" />
-                    <Text style={{ color: "#A8A8A8", fontSize: 12 }}>Updating inbox…</Text>
+                    <Text style={{ color: "#A8A8A8", fontSize: 12 }}>{appText("updatingInbox")}</Text>
                   </View>
                 ) : null}
                 <ScrollView
