@@ -156,6 +156,34 @@ const ACTION_KEYS = new Set([
   "location.history","location.liveSharing","location.nearbyFriends"
 ]);
 
+const LOCATION_FIELD_LABELS = {
+  en: ["Live Location Sharing","Nearby Friends","Approximate Location","Location Tags","Background Location","Location Sharing History"],
+  hi: ["लाइव लोकेशन शेयरिंग","आस-पास के दोस्त","अनुमानित लोकेशन","लोकेशन टैग","बैकग्राउंड लोकेशन","लोकेशन शेयरिंग इतिहास"],
+  gu: ["લાઇવ લોકેશન શેરિંગ","નજીકના મિત્રો","અંદાજિત લોકેશન","લોકેશન ટૅગ્સ","બૅકગ્રાઉન્ડ લોકેશન","લોકેશન શેરિંગ ઇતિહાસ"],
+  bn: ["লাইভ লোকেশন শেয়ারিং","কাছাকাছি বন্ধুরা","আনুমানিক লোকেশন","লোকেশন ট্যাগ","ব্যাকগ্রাউন্ড লোকেশন","লোকেশন শেয়ারিংয়ের ইতিহাস"],
+  mr: ["थेट लोकेशन शेअरिंग","जवळचे मित्र","अंदाजे लोकेशन","लोकेशन टॅग","बॅकग्राउंड लोकेशन","लोकेशन शेअरिंग इतिहास"],
+  ta: ["நேரடி இருப்பிடப் பகிர்வு","அருகிலுள்ள நண்பர்கள்","தோராயமான இருப்பிடம்","இருப்பிடக் குறிச்சொற்கள்","பின்னணி இருப்பிடம்","இருப்பிடப் பகிர்வு வரலாறு"],
+  te: ["లైవ్ లొకేషన్ షేరింగ్","దగ్గరలోని స్నేహితులు","సుమారు లొకేషన్","లొకేషన్ ట్యాగ్‌లు","బ్యాక్‌గ్రౌండ్ లొకేషన్","లొకేషన్ షేరింగ్ చరిత్ర"],
+  pa: ["ਲਾਈਵ ਟਿਕਾਣਾ ਸਾਂਝਾ ਕਰਨਾ","ਨੇੜਲੇ ਦੋਸਤ","ਅੰਦਾਜ਼ਨ ਟਿਕਾਣਾ","ਟਿਕਾਣਾ ਟੈਗ","ਬੈਕਗ੍ਰਾਊਂਡ ਟਿਕਾਣਾ","ਟਿਕਾਣਾ ਸਾਂਝਾ ਕਰਨ ਦਾ ਇਤਿਹਾਸ"],
+  kn: ["ಲೈವ್ ಸ್ಥಳ ಹಂಚಿಕೆ","ಹತ್ತಿರದ ಸ್ನೇಹಿತರು","ಅಂದಾಜು ಸ್ಥಳ","ಸ್ಥಳ ಟ್ಯಾಗ್‌ಗಳು","ಹಿನ್ನೆಲೆ ಸ್ಥಳ","ಸ್ಥಳ ಹಂಚಿಕೆ ಇತಿಹಾಸ"],
+  ml: ["തത്സമയ ലൊക്കേഷൻ പങ്കിടൽ","സമീപത്തുള്ള സുഹൃത്തുകൾ","ഏകദേശ ലൊക്കേഷൻ","ലൊക്കേഷൻ ടാഗുകൾ","പശ്ചാത്തല ലൊക്കേഷൻ","ലൊക്കേഷൻ പങ്കിടൽ ചരിത്രം"],
+  ur: ["لائیو مقام کا اشتراک","قریبی دوست","تخمینی مقام","مقام کے ٹیگز","پس منظر میں مقام","مقام کے اشتراک کی تاریخ"],
+  es: ["Compartir ubicación en vivo","Amigos cercanos","Ubicación aproximada","Etiquetas de ubicación","Ubicación en segundo plano","Historial de ubicación compartida"],
+  fr: ["Partage de position en direct","Amis à proximité","Position approximative","Tags de position","Position en arrière-plan","Historique du partage de position"],
+  ar: ["مشاركة الموقع المباشر","الأصدقاء القريبون","الموقع التقريبي","وسوم الموقع","الموقع في الخلفية","سجل مشاركة الموقع"],
+  pt: ["Compartilhamento de localização ao vivo","Amigos próximos","Localização aproximada","Tags de localização","Localização em segundo plano","Histórico de compartilhamento de localização"],
+  de: ["Live-Standortfreigabe","Freunde in der Nähe","Ungefährer Standort","Standort-Tags","Standort im Hintergrund","Verlauf der Standortfreigabe"],
+  ja: ["ライブ位置情報の共有","近くの友達","おおよその位置情報","位置情報タグ","バックグラウンド位置情報","位置情報共有履歴"],
+  ko: ["실시간 위치 공유","주변 친구","대략적인 위치","위치 태그","백그라운드 위치","위치 공유 기록"],
+  id: ["Berbagi lokasi langsung","Teman di sekitar","Lokasi perkiraan","Tag lokasi","Lokasi latar belakang","Riwayat berbagi lokasi"],
+  ru: ["Передача геопозиции в реальном времени","Друзья поблизости","Примерное местоположение","Метки местоположения","Фоновое местоположение","История передачи геопозиции"],
+  zh: ["实时位置共享","附近的好友","大致位置","位置标签","后台位置","位置共享记录"],
+  tr: ["Canlı konum paylaşımı","Yakındaki arkadaşlar","Yaklaşık konum","Konum etiketleri","Arka plan konumu","Konum paylaşım geçmişi"],
+  th: ["แชร์ตำแหน่งแบบเรียลไทม์","เพื่อนที่อยู่ใกล้เคียง","ตำแหน่งโดยประมาณ","แท็กตำแหน่ง","ตำแหน่งเบื้องหลัง","ประวัติการแชร์ตำแหน่ง"],
+  vi: ["Chia sẻ vị trí trực tiếp","Bạn bè gần đây","Vị trí gần đúng","Thẻ vị trí","Vị trí nền","Lịch sử chia sẻ vị trí"]
+};
+const LOCATION_FIELD_KEYS = ["location.liveSharing","location.nearbyFriends","location.approximate","location.locationTag","location.background","location.history"];
+
 const ACCOUNT_FIELD_LABELS = {
   en: ["Change Username","Profile QR Code","Multiple Account Management","Profile Verification Request","Download Your Data","Deactivate Account","Delete Account Request"],
   hi: ["यूज़रनेम बदलें","प्रोफ़ाइल QR कोड","एकाधिक अकाउंट प्रबंधन","प्रोफ़ाइल सत्यापन अनुरोध","अपना डेटा डाउनलोड करें","अकाउंट निष्क्रिय करें","अकाउंट हटाने का अनुरोध"],
@@ -1049,10 +1077,12 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     const [key, originalTitle, subtitle, defaultValue] = field;
     const appearanceIndex = APPEARANCE_FIELD_KEYS.indexOf(key);
     const accountIndex = ACCOUNT_FIELD_KEYS.indexOf(key);
+    const locationIndex = LOCATION_FIELD_KEYS.indexOf(key);
     const appearanceLabels = APPEARANCE_FIELD_LABELS[appLanguage] || APPEARANCE_FIELD_LABELS.en;
     const accountLabels = ACCOUNT_FIELD_LABELS[appLanguage] || ACCOUNT_FIELD_LABELS.en;
-    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : accountIndex >= 0 ? accountLabels[accountIndex] : originalTitle;
-    const fieldSubtitle = (appearanceIndex >= 0 || accountIndex >= 0) && appLanguage !== "en" ? "" : subtitle;
+    const locationLabels = LOCATION_FIELD_LABELS[appLanguage] || LOCATION_FIELD_LABELS.en;
+    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : accountIndex >= 0 ? accountLabels[accountIndex] : locationIndex >= 0 ? locationLabels[locationIndex] : originalTitle;
+    const fieldSubtitle = (appearanceIndex >= 0 || accountIndex >= 0 || locationIndex >= 0) && appLanguage !== "en" ? "" : subtitle;
     const value = preferences[key] ?? defaultValue;
     const isAction = ACTION_KEYS.has(key);
     return (
