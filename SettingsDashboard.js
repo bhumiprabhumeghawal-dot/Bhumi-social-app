@@ -1360,7 +1360,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {locationShares.incoming.map((item)=>(
               <View key={item.share_id} style={{ backgroundColor:PANEL,borderRadius:12,padding:12,marginBottom:8 }}>
                 <Text style={{ color:TEXT,fontSize:12,fontWeight:"900" }}>@{item.owner_username}</Text>
-                <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>Updated {new Date(item.updated_at).toLocaleString()} · Expires {new Date(item.expires_at).toLocaleString()}</Text>
+                <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>{t("updatedLabel")} {new Date(item.updated_at).toLocaleString()} · {t("expiresLabel")} {new Date(item.expires_at).toLocaleString()}</Text>
                 <TouchableOpacity onPress={()=>Linking.openURL("https://www.google.com/maps/search/?api=1&query="+item.latitude+","+item.longitude)} style={{ paddingVertical:8 }}><Text style={{ color:GOLD,fontSize:11,fontWeight:"900" }}>{t("searchTab")}</Text></TouchableOpacity>
                 <TouchableOpacity onPress={()=>endLocationShare(item.share_id)}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"800" }}>{t("cancel")}</Text></TouchableOpacity>
               </View>
@@ -1369,7 +1369,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginTop:12,marginBottom:8 }}>{t("section_location")}</Text>
             {locationShares.outgoing.map((item)=>(
               <View key={item.share_id} style={{ backgroundColor:PANEL,borderRadius:12,padding:12,marginBottom:8 }}>
-                <Text style={{ color:TEXT,fontSize:12,fontWeight:"900" }}>Shared with @{item.recipient_username}</Text>
+                <Text style={{ color:TEXT,fontSize:12,fontWeight:"900" }}>{t("sharedWithLabel")} @{item.recipient_username}</Text>
                 <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>Updated {new Date(item.updated_at).toLocaleString()} · Expires {new Date(item.expires_at).toLocaleString()}</Text>
                 <TouchableOpacity onPress={()=>endLocationShare(item.share_id)} style={{ paddingVertical:8 }}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>{t("cancel")}</Text></TouchableOpacity>
               </View>
@@ -1378,7 +1378,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginTop:18,marginBottom:8 }}>{t("section_location")}</Text>
             {(locationShares.history || []).map((item)=>(
               <View key={"history-"+item.share_id} style={{ backgroundColor:PANEL,borderRadius:11,padding:11,marginBottom:7 }}>
-                <Text style={{ color:TEXT,fontSize:11,fontWeight:"800" }}>{item.owner_username===username ? "You shared with @"+item.recipient_username : "@"+item.owner_username+" shared with you"}</Text>
+                <Text style={{ color:TEXT,fontSize:11,fontWeight:"800" }}>{item.owner_username===username ? t("youSharedWithLabel")+" @"+item.recipient_username : "@"+item.owner_username+" "+t("sharedWithYouLabel")"}</Text>
                 <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>{new Date(item.created_at).toLocaleString()} · {item.active ? "Active" : "Ended"}</Text>
               </View>
             ))}
