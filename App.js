@@ -702,8 +702,8 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
             <Text
               style={{ color: "#FFFFFF", fontSize: 14, textAlign: "center" }}
             >
-              Video unavailable:{" "}
-              {error?.message || "Could not load this video."}
+              {translateAppText(appLanguage, "videoUnavailableLabel")}:{" "}
+              {translateAppText(appLanguage, "videoLoadFailed")}
             </Text>
           </View>
         )}
@@ -1227,7 +1227,7 @@ function PostCard({
         <View style={styles.postUserInfo}>
           <TouchableOpacity onPress={() => onOpenProfile(post.user)} activeOpacity={0.75}>
             <Text style={[styles.username, { color: "#FFFFFF" }]}>
-              {post.user || "you"}
+              {post.user || appText("youLabel")}
             </Text>
           </TouchableOpacity>
           {!!post.location && (
@@ -1412,7 +1412,7 @@ function PostCard({
         </View>
 
         <Text style={[styles.likes, { color: "#FFFFFF" }]}>
-          {likeCount.toLocaleString()} likes
+          {likeCount.toLocaleString()} {appText("likesLabel")}
         </Text>
         {!!post.caption && (
           <Text style={[styles.caption, { color: "#FFFFFF" }]}>
@@ -1524,7 +1524,7 @@ function PostCard({
                           onPress={() => onOpenProfile(comment.username)}
                           style={{ fontWeight: "600" }}
                         >
-                          {comment.username || "you"}{" "}
+                          {comment.username || appText("youLabel")}{" "}
                         </Text>
                         {comment.text}
                       </Text>
@@ -1887,7 +1887,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
                     >
                       <Text style={{ color: "#FFFFFF", lineHeight: 21 }}>
                         <Text style={{ fontWeight: "800" }}>
-                          {item.username || "you"}{" "}
+                          {item.username || appText("youLabel")}{" "}
                         </Text>
                         {item.text}
                       </Text>
@@ -2211,7 +2211,7 @@ function ChatVideoAttachment({ uri, token, mine }) {
   );
 }
 
-function ChatAudioAttachment({ uri, token, mine, name }) {
+function ChatAudioAttachment({ uri, token, mine, name, appLanguage = "en" }) {
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
   const player = useAudioPlayer({ uri, headers });
   const audioStatus = useAudioPlayerStatus(player);
@@ -2250,14 +2250,14 @@ function ChatAudioAttachment({ uri, token, mine, name }) {
           fontSize: 13,
           fontWeight: "700",
         }}>
-          {name || "Voice message"}
+          {name || translateAppText(appLanguage, "voiceMessageLabel")}
         </Text>
         <Text style={{
           color: mine ? "#EAF5FF" : "#7A8490",
           fontSize: 11,
           marginTop: 3,
         }}>
-          {audioStatus.playing ? "Playing · Tap to pause" : "Audio · Tap to play"}
+          {audioStatus.playing ? translateAppText(appLanguage, "audioPlayingHint") : translateAppText(appLanguage, "audioPlayHint")}
         </Text>
       </View>
     </TouchableOpacity>
@@ -5802,7 +5802,7 @@ export default function App() {
                 }}
               >
                 <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
-                  {authBusy ? "Please wait..." : "Send email code"}
+                  {authBusy ? appText("pleaseWait") : appText("sendEmailCode")}
                 </Text>
               </TouchableOpacity>
             </>
@@ -5835,7 +5835,7 @@ export default function App() {
                 }}
               >
                 <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
-                  {authBusy ? "Please wait..." : "Verify code"}
+                  {authBusy ? appText("pleaseWait") : appText("verifyCode")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -5889,7 +5889,7 @@ export default function App() {
                 }}
               >
                 <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
-                  {authBusy ? "Please wait..." : "Set new password"}
+                  {authBusy ? appText("pleaseWait") : appText("setNewPassword")}
                 </Text>
               </TouchableOpacity>
             </>
@@ -6028,7 +6028,7 @@ export default function App() {
                 textAlign: "center",
               }}
             >
-              Your world,{"\n"}your people.
+              {appText("loginHeroLine")}
             </Text>
             <Text
               style={{
@@ -12430,6 +12430,7 @@ export default function App() {
           token={authSession?.token}
           mine={mine}
           name={message.attachmentName}
+          appLanguage={appLanguage}
         />
       );
     }
