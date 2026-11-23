@@ -1157,13 +1157,13 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {section.key === "messages" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>{t("chatPrivacyControls")}</Text>
-                <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Blocked and Restricted Accounts are managed from the Privacy Settings section. Your existing conversations remain available when you turn off first-time message requests; new unknown senders are refused. Read receipts and typing indicators are enforced by the chat server.</Text>
+                <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>{t("chatPrivacyControlsBody")}</Text>
               </View>
             ) : null}
             {section.key === "messages" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>{t("chatPersonalizationStudio")}</Text>
-                <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Open Messages, enter any conversation, then tap the palette icon. Choose a separate chat theme, set a private name for that friend, and add or remove them from Favourite Friends or Close Friends. Favourite and Close Friends filters appear above your chat list.</Text>
+                <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>{t("chatPersonalizationStudioBody")}</Text>
               </View>
             ) : null}
             {displayedFields.map(renderField)}
