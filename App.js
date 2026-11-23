@@ -6394,7 +6394,7 @@ export default function App() {
   return (
     <SafeAreaView style={[styles.screen, lightAppearance && { backgroundColor: "#F7F7F7" }]}>
       <StatusBar style={lightAppearance ? "dark" : "light"} hidden={false} translucent={false} />
-      <VoiceVideoCallControls username={selectedChatUser} currentUsername={authSession?.username} enableOutgoing={false} showButtons={false} />
+      <VoiceVideoCallControls username={selectedChatUser} currentUsername={authSession?.username} enableOutgoing={false} showButtons={false} appLanguage={appLanguage} />
 
 
       <Modal
@@ -11500,7 +11500,7 @@ export default function App() {
                       </Text>
                     </View>
                   </View>
-                  <VoiceVideoCallControls username={selectedChatUser} enableIncoming={false} />
+                  <VoiceVideoCallControls username={selectedChatUser} enableIncoming={false} appLanguage={appLanguage} />
                   <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel={appText("chatPersonalization")} style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "transparent", borderWidth: 0, borderColor: "transparent", alignItems: "center", justifyContent: "center" }}>
                     <Ionicons name="color-palette-outline" size={21} color="#F5F5F5" />
                   </TouchableOpacity>
