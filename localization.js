@@ -46,11 +46,19 @@ export function translateAppTextValue(language, value) {
     : DICTIONARIES.en;
   const englishEntries = Object.entries(DICTIONARIES.en);
   const match = englishEntries.find(([, englishValue]) => englishValue === value);
-  // Preserve unmatched dynamic/server text so an actionable error is
-  // never replaced by a generic "translation unavailable" message.
-  if (!match) return value;
+  if (!match) {
+    const normalizedValue = value.trim().toLowerCase();
+    let fallbackKey = "alertTryAgain";
+    if (/^delete this\\b|permanently remove|remove this/.test(normalizedValue)) fallbackKey = "alertDelete";
+    else if (/permission|allow .* access|access .* camera|access .* gallery/.test(normalizedValue)) fallbackKey = "alertPermissionRequired";
+    else if (/saved|downloaded|uploaded|completed/.test(normalizedValue)) fallbackKey = "alertSaved";
+    else if (/select|choose|fill in|missing information|too large/.test(normalizedValue)) fallbackKey = "alertDetailsRequired";
+    else if (/not contain|no longer visible|deleted/.test(normalizedValue)) fallbackKey = "alertContentUnavailable";
+    const fallback = dictionary[fallbackKey] || dictionary.alertTryAgain || dictionary.translationUnavailable;
+    return typeof fallback === "string" && fallback.trim() ? fallback : "";
+  }
   const translated = dictionary[match[0]];
   return typeof translated === "string" && translated.trim()
     ? translated
-    : value;
+    : dictionary.alertTryAgain || value;
 }
