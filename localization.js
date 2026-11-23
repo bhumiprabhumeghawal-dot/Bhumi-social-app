@@ -46,7 +46,7 @@ export function translateAppTextValue(language, value) {
     : DICTIONARIES.en;
   const englishEntries = Object.entries(DICTIONARIES.en);
   const match = englishEntries.find(([, englishValue]) => englishValue === value);
-  if (!match) return value;
+  if (!match) return dictionary.translationUnavailable;
   const translated = dictionary[match[0]];
   return typeof translated === "string" && translated.trim()
     ? translated
