@@ -49,6 +49,7 @@ import {
   VOICE_EFFECTS,
 } from "./videoEditor";
 import { editPhotoAsset, POST_PHOTO_FILTERS, getPostPhotoFilter, applyPostPhotoFilter } from "./photoEditor";
+import { buildGoogleMusicSearchUrl, loadMusicLibrary, importAudioToMusicLibrary, updateMusicTrack, removeMusicTrack, searchLocalMusic, MUSIC_CATALOG_PROVIDERS } from "./musicLibrary";
 import {
   loadContent,
   getCachedContent,
@@ -2539,6 +2540,18 @@ export default function App() {
   const chatVoiceRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const musicPlayer = useAudioPlayer(null);
   const musicPlayerStatus = useAudioPlayerStatus(musicPlayer);
+  const [musicLibrary, setMusicLibrary] = React.useState([]);
+  const [musicLibraryLoaded, setMusicLibraryLoaded] = React.useState(false);
+  const [musicLibraryFilter, setMusicLibraryFilter] = React.useState("all");
+  const [musicPlayingId, setMusicPlayingId] = React.useState(null);
+
+  React.useEffect(() => {
+    let active = true;
+    loadMusicLibrary().then((tracks) => { if (active) setMusicLibrary(tracks); })
+      .catch((error) => console.warn("Music library load failed:", error?.message || error))
+      .finally(() => { if (active) setMusicLibraryLoaded(true); });
+    return () => { active = false; };
+  }, []);
 
   // SOCIALAPP_AUTH_SCREEN_V1
   // SOCIALAPP_FIRST_WELCOME_V1
@@ -5012,10 +5025,9 @@ export default function App() {
       if (!query) Alert.alert("गाना खोजें", "पहले गाने या कलाकार का नाम लिखें।");
       return;
     }
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query + " song audio")}`;
     setMusicSearchLoading(true);
     try {
-      await Linking.openURL(searchUrl);
+      await Linking.openURL(buildGoogleMusicSearchUrl(query));
     } catch (error) {
       Alert.alert("Google Search नहीं खुला", error?.message || "कृपया फिर कोशिश करें।");
     } finally {
@@ -5027,21 +5039,54 @@ export default function App() {
     if (musicSearchLoading) return;
     setMusicSearchLoading(true);
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: "audio/*",
-        copyToCacheDirectory: true,
-        multiple: false,
-      });
+      const result = await DocumentPicker.getDocumentAsync({ type: "audio/*", copyToCacheDirectory: true, multiple: false });
       if (result.canceled || !result.assets?.length) return;
-      const selectedAudio = result.assets[0];
+      const selectedAudio = await importAudioToMusicLibrary(result.assets[0]);
+      setMusicLibrary((current) => [selectedAudio, ...current.filter((item) => item.id !== selectedAudio.id)]);
       setMusicAsset(selectedAudio);
       musicPlayer.replace({ uri: selectedAudio.uri });
+      setMusicPlayingId(selectedAudio.id);
       setMusicSearchOpen(false);
     } catch (e) {
       Alert.alert("Music selection failed", e.message || "Please try again.");
     } finally {
       setMusicSearchLoading(false);
     }
+  };
+
+  const useMusicTrack = (track) => {
+    if (!track?.uri) return;
+    setMusicAsset(track);
+    musicPlayer.replace({ uri: track.uri });
+    setMusicPlayingId(track.id);
+    setMusicSearchOpen(false);
+  };
+
+  const toggleMusicPreview = (track) => {
+    if (!track?.uri) return;
+    if (musicPlayingId === track.id && musicPlayerStatus?.playing) {
+      musicPlayer.pause();
+      setMusicPlayingId(null);
+      return;
+    }
+    musicPlayer.replace({ uri: track.uri });
+    musicPlayer.play();
+    setMusicPlayingId(track.id);
+  };
+
+  const toggleMusicFavorite = async (track) => {
+    const updated = await updateMusicTrack(track.id, { favorite: !track.favorite });
+    setMusicLibrary(updated);
+  };
+
+  const deleteMusicLibraryTrack = async (track) => {
+    if (musicAsset?.id === track.id) {
+      musicPlayer.pause();
+      setMusicAsset(null);
+      setMusicPlayingId(null);
+    }
+    const updated = await removeMusicTrack(track.id);
+    setMusicLibrary(updated);
   };
 
   const createReelFromPhotos = async () => {
@@ -7600,17 +7645,17 @@ export default function App() {
         animationType="fade"
         onRequestClose={() => setMusicSearchOpen(false)}
       >
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.78)", justifyContent: "center", padding: 22 }}>
-          <View style={{ backgroundColor: "#171717", borderRadius: 22, borderWidth: 1, borderColor: "#343434", padding: 18, gap: 12 }}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center", padding: 16 }}>
+          <View style={{ maxHeight: "88%", backgroundColor: "#151515", borderRadius: 22, borderWidth: 1, borderColor: "#343434", padding: 16, gap: 12 }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800" }}>Add a song</Text>
+              <View>
+                <Text style={{ color: "#FFFFFF", fontSize: 20, fontWeight: "800" }}>Music Studio</Text>
+                <Text style={{ color: "#999999", fontSize: 11, marginTop: 3 }}>Search · Library · Preview · Add to video</Text>
+              </View>
               <TouchableOpacity onPress={() => setMusicSearchOpen(false)} style={{ padding: 5 }}>
-                <Ionicons name="close-circle" size={25} color="#AAAAAA" />
+                <Ionicons name="close-circle" size={26} color="#AAAAAA" />
               </TouchableOpacity>
             </View>
-            <Text style={{ color: "#BDBDBD", fontSize: 13, lineHeight: 19 }}>
-              Google से गाने का नाम या कलाकार खोजें। गाने की अनुमति-प्राप्त ऑडियो फ़ाइल चुनने पर वह अपने-आप एडिटर में जुड़ जाएगी।
-            </Text>
             <TextInput
               value={musicSearchQuery}
               onChangeText={setMusicSearchQuery}
@@ -7620,25 +7665,66 @@ export default function App() {
               onSubmitEditing={searchMusicOnGoogle}
               style={{ color: "#FFFFFF", backgroundColor: "#242424", borderWidth: 1, borderColor: "#414141", borderRadius: 12, paddingHorizontal: 13, paddingVertical: 12 }}
             />
-            <TouchableOpacity
-              onPress={searchMusicOnGoogle}
-              disabled={musicSearchLoading}
-              style={{ backgroundColor: "#0095F6", borderRadius: 12, paddingVertical: 13, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8 }}
-            >
-              {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="search" size={18} color="#FFFFFF" />}
-              <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{musicSearchLoading ? "लोड हो रहा है..." : "Google पर गाना खोजें"}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={chooseMusicFile}
-              disabled={musicSearchLoading}
-              style={{ borderWidth: 1, borderColor: "#555555", borderRadius: 12, paddingVertical: 13, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8 }}
-            >
-              {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="folder-open-outline" size={18} color="#FFFFFF" />}
-              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{musicSearchLoading ? "गाना लोड हो रहा है..." : "ऑडियो फ़ाइल चुनें"}</Text>
-            </TouchableOpacity>
-            <Text style={{ color: "#888888", fontSize: 11, lineHeight: 16 }}>
-              Google Search से परिणाम खुलेंगे; Google का वेब पेज खुद ऑडियो फ़ाइल नहीं देता। चुनी हुई ऑडियो फ़ाइल एडिटर में अपने-आप लग जाएगी। केवल वही संगीत इस्तेमाल करें जिसके उपयोग की अनुमति आपके पास हो।
-            </Text>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <TouchableOpacity onPress={searchMusicOnGoogle} disabled={musicSearchLoading} style={{ flex: 1, backgroundColor: "#1877F2", borderRadius: 11, paddingVertical: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 7, opacity: musicSearchLoading ? 0.65 : 1 }}>
+                {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="logo-google" size={17} color="#FFFFFF" />}
+                <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>{musicSearchLoading ? "लोड हो रहा है..." : "Google Search"}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={chooseMusicFile} disabled={musicSearchLoading} style={{ flex: 1, borderWidth: 1, borderColor: "#555555", borderRadius: 11, paddingVertical: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 7, opacity: musicSearchLoading ? 0.65 : 1 }}>
+                {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />}
+                <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>{musicSearchLoading ? "सेव हो रहा है..." : "गाना जोड़ें"}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              {[
+                { id: "all", label: "All songs" },
+                { id: "favorites", label: "Favorites" },
+              ].map((item) => (
+                <TouchableOpacity key={item.id} onPress={() => setMusicLibraryFilter(item.id)} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, backgroundColor: musicLibraryFilter === item.id ? "#303030" : "transparent", borderWidth: 1, borderColor: musicLibraryFilter === item.id ? "#777777" : "#3B3B3B" }}>
+                  <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+              <Text style={{ color: "#888888", fontSize: 11, alignSelf: "center", marginLeft: "auto" }}>{musicLibrary.length} saved</Text>
+            </View>
+            <ScrollView style={{ maxHeight: 300 }} keyboardShouldPersistTaps="handled">
+              {!musicLibraryLoaded ? (
+                <View style={{ padding: 24, alignItems: "center" }}><ActivityIndicator color="#FFFFFF" /><Text style={{ color: "#999999", marginTop: 8 }}>लाइब्रेरी लोड हो रही है...</Text></View>
+              ) : searchLocalMusic(musicSearchQuery, musicLibrary.filter((track) => musicLibraryFilter === "favorites" ? track.favorite : true)).length ? (
+                searchLocalMusic(musicSearchQuery, musicLibrary.filter((track) => musicLibraryFilter === "favorites" ? track.favorite : true)).map((track) => (
+                  <View key={track.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#292929", gap: 9 }}>
+                    <TouchableOpacity onPress={() => toggleMusicPreview(track)} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#292929", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name={musicPlayingId === track.id && musicPlayerStatus?.playing ? "pause" : "play"} size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => useMusicTrack(track)} style={{ flex: 1 }}>
+                      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700" }}>{track.title}</Text>
+                      <Text numberOfLines={1} style={{ color: "#999999", fontSize: 11, marginTop: 2 }}>{track.artist || "Unknown artist"}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => toggleMusicFavorite(track)} hitSlop={8} style={{ padding: 5 }}>
+                      <Ionicons name={track.favorite ? "heart" : "heart-outline"} size={19} color={track.favorite ? "#FF4D78" : "#AAAAAA"} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => useMusicTrack(track)} hitSlop={8} style={{ padding: 5 }}>
+                      <Ionicons name="checkmark-circle-outline" size={21} color="#38BDF8" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => deleteMusicLibraryTrack(track)} hitSlop={8} style={{ padding: 5 }}>
+                      <Ionicons name="trash-outline" size={17} color="#888888" />
+                    </TouchableOpacity>
+                  </View>
+                ))
+              ) : (
+                <View style={{ padding: 22, alignItems: "center" }}>
+                  <Ionicons name="musical-notes-outline" size={30} color="#777777" />
+                  <Text style={{ color: "#DDDDDD", fontWeight: "700", marginTop: 8 }}>अभी कोई गाना सेव नहीं है</Text>
+                  <Text style={{ color: "#888888", fontSize: 11, textAlign: "center", marginTop: 4 }}>Google पर खोजें या अपनी अनुमति वाली ऑडियो फ़ाइल जोड़ें। सेव किए गाने अगली बार भी यहीं मिलेंगे।</Text>
+                </View>
+              )}
+            </ScrollView>
+            {musicAsset?.title || musicAsset?.name ? (
+              <View style={{ backgroundColor: "#222222", borderRadius: 10, padding: 10 }}>
+                <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }} numberOfLines={1}>Selected: {musicAsset.title || musicAsset.name}</Text>
+                <Text style={{ color: "#8CCBFF", fontSize: 11, marginTop: 3 }}>गाना एडिटर में जुड़ गया है</Text>
+              </View>
+            ) : null}
+            <Text style={{ color: "#777777", fontSize: 10, lineHeight: 15 }}>Google Search वेब परिणाम खोलता है, सीधे ऑडियो स्ट्रीम नहीं। चुनी हुई फ़ाइल सुरक्षित रूप से ऐप की निजी Music Library में सेव होती है। Licensed streaming catalog बाद में इसी सिस्टम से जोड़ा जा सकेगा।</Text>
           </View>
         </View>
       </Modal>
