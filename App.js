@@ -5293,6 +5293,7 @@ export default function App() {
       setOriginalAudioVolume(1);
       setKeepOriginalAudio(true);
       setVideoFilterIndex(0);
+      setVideoFilterCompareOriginal(false);
       setVoiceEffect("Original");
       if (kind === "posts") {
         await refreshContent(true);
@@ -5343,6 +5344,7 @@ export default function App() {
     setOriginalAudioVolume(1);
     setKeepOriginalAudio(true);
     setVideoFilterIndex(0);
+    setVideoFilterCompareOriginal(false);
     setVoiceEffect("Original");
   };
 
