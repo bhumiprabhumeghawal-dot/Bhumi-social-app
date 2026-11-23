@@ -8853,7 +8853,7 @@ export default function App() {
                         ) : null}
                         <TouchableOpacity
                           onPress={createStory}
-                          accessibilityLabel="Add Status"
+                          accessibilityLabel={appText("addStatus")}
                           style={{
                             paddingVertical: 10,
                             paddingHorizontal: 14,
@@ -10551,7 +10551,7 @@ export default function App() {
             <TouchableOpacity onPress={openSnapPrivacySettings} disabled={snapPrivacyBusy} style={{ flexDirection: "row", alignItems: "center", padding: 14, marginBottom: 14, borderRadius: 14, backgroundColor: "rgba(181,139,255,0.13)", borderWidth: 1, borderColor: "#7657A5" }}>
               <Ionicons name="shield-checkmark" size={22} color="#C9ACFF" />
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Privacy & Chat Controls</Text>
+                <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{appText("privacyChatControls")}</Text>
                 <Text style={{ color: "#B8AFC5", fontSize: 11, marginTop: 3 }}>Messages, Story audience, read receipts and more</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#C9ACFF" />
@@ -10674,11 +10674,11 @@ export default function App() {
                 <Ionicons name="shield-checkmark" size={24} color="#B58BFF" />
                 <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>Privacy & Chat Controls</Text>
               </View>
-              <Text style={{ color: "#AAA5B4", fontSize: 12, marginBottom: 18 }}>Snap-inspired controls · changes save automatically</Text>
+              <Text style={{ color: "#AAA5B4", fontSize: 12, marginBottom: 18 }}>{appText("privacyControlsDescription")}</Text>
               {[
-                { key: "contactAudience", title: "Who can message or call me?", options: [["friends","Friends only"],["followers","Followers"],["everyone","Everyone"]] },
-                { key: "storyAudience", title: "Who can view my Stories?", options: [["followers","Followers"],["close_friends","Close Friends"],["everyone","Everyone"]] },
-                { key: "disappearingMessages", title: "Disappearing messages", options: [["off","Off"],["24h","After 24 hours"],["7d","After 7 days"]] },
+                { key: "contactAudience", title: appText("whoCanMessage"), options: [["friends",appText("friendsOnly")],["followers",appText("followers")],["everyone",appText("everyoneLabel")]] },
+                { key: "storyAudience", title: appText("whoCanViewStories"), options: [["followers",appText("followers")],["close_friends",appText("closeFriends")],["everyone",appText("everyoneLabel")]] },
+                { key: "disappearingMessages", title: appText("disappearingMessages"), options: [["off",appText("offLabel")],["24h",appText("after24Hours")],["7d",appText("after7Days")]] },
               ].map((item) => (
                 <View key={item.key} style={{ paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: "#302D37" }}>
                   <Text style={{ color: "#FFFFFF", fontWeight: "800", marginBottom: 10 }}>{item.title}</Text>
