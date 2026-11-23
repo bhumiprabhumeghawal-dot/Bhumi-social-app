@@ -1343,7 +1343,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               : null}
           </ScrollView>
           <TouchableOpacity onPress={()=>setFeedListsVisible(false)} style={{ backgroundColor:"#242424",borderRadius:12,padding:13,alignItems:"center",marginTop:10 }}>
-            <Text style={{ color:TEXT,fontWeight:"900" }}>Close</Text>
+            <Text style={{ color:TEXT,fontWeight:"900" }}>{t("close")}</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -1366,7 +1366,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 setNotice({title:"App Lock enabled",message:"Your PIN is saved securely on this device. The app will ask for it when reopened or resumed."});
               }catch(error){setNotice({title:"Could not save PIN",message:error?.message||"Secure storage is unavailable."});}
             }} style={{ backgroundColor:GOLD,borderRadius:12,padding:14,alignItems:"center",marginTop:15 }}>
-              <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Save App PIN</Text>
+              <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{t("save")}</Text>
             </TouchableOpacity>
             {pinAlreadySet ? <TouchableOpacity onPress={async()=>{
               try{
@@ -1383,7 +1383,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               <Text style={{ color:"#F08080",fontWeight:"800" }}>Disable App Lock</Text>
             </TouchableOpacity> : null}
             <TouchableOpacity onPress={()=>setPinSetupVisible(false)} style={{ padding:10,alignItems:"center" }}>
-              <Text style={{ color:MUTED,fontWeight:"800" }}>Cancel</Text>
+              <Text style={{ color:MUTED,fontWeight:"800" }}>{t("cancel")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1396,10 +1396,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             <Image source={{ uri:"https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=" + encodeURIComponent("bhumisocial://profile/" + (username || "")) }} style={{ width:250, height:250 }} resizeMode="contain" accessibilityLabel="Profile QR code" />
             <Text style={{ color:"#222222", fontWeight:"800", marginTop:12 }}>@{username || "your-profile"}</Text>
             <TouchableOpacity onPress={() => Share.share({ message:"Find me on Bhumi Social AI: bhumisocial://profile/" + (username || "") + "\nGet Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download" })} style={{ backgroundColor:"#0095F6", borderRadius:13, paddingVertical:13, paddingHorizontal:22, marginTop:18, width:"100%", alignItems:"center" }}>
-              <Text style={{ color:"#FFFFFF", fontWeight:"900" }}>Share Profile</Text>
+              <Text style={{ color:"#FFFFFF", fontWeight:"900" }}>{t("shareProfileAction")}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setQrVisible(false)} style={{ padding:13, marginTop:3 }}>
-              <Text style={{ color:"#555555", fontWeight:"800" }}>Close</Text>
+              <Text style={{ color:"#555555", fontWeight:"800" }}>{t("close")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1440,7 +1440,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             <Text style={{ color:TEXT, fontSize:17, fontWeight:"900" }}>{notice?.title || "Bhumi Social AI"}</Text>
             <Text style={{ color:MUTED, fontSize:13, lineHeight:19, marginTop:8 }}>{notice?.message || ""}</Text>
             <TouchableOpacity onPress={() => setNotice(null)} style={{ marginTop:18, backgroundColor:GOLD, borderRadius:13, paddingVertical:12, alignItems:"center" }}>
-              <Text style={{ color:"#FFFFFF", fontSize:13, fontWeight:"900" }}>Close</Text>
+              <Text style={{ color:"#FFFFFF", fontSize:13, fontWeight:"900" }}>{t("close")}</Text>
             </TouchableOpacity>
           </View>
         </View>
