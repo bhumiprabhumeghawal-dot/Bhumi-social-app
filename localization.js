@@ -36,3 +36,19 @@ export function translateAppText(language, key) {
   if (typeof translated === "string" && translated.trim()) return translated;
   return dictionary.translationUnavailable;
 }
+
+export function translateAppTextValue(language, value) {
+  if (typeof value !== "string" || !value.trim()) return value;
+  const requested = typeof language === "string" ? language.trim().toLowerCase().split("-")[0] : "en";
+  if (requested === "en") return value;
+  const dictionary = Object.prototype.hasOwnProperty.call(DICTIONARIES, requested)
+    ? DICTIONARIES[requested]
+    : DICTIONARIES.en;
+  const englishEntries = Object.entries(DICTIONARIES.en);
+  const match = englishEntries.find(([, englishValue]) => englishValue === value);
+  if (!match) return value;
+  const translated = dictionary[match[0]];
+  return typeof translated === "string" && translated.trim()
+    ? translated
+    : dictionary.translationUnavailable;
+}
