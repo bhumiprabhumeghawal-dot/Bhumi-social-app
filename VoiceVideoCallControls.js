@@ -25,7 +25,7 @@ import { Track, VideoPresets } from "livekit-client";
 import { translateAppText } from "./localization";
 
 const CALL_LABELS = {
-  en: ["Voice call","Video call","VOICE CALL","VIDEO CALL","Incoming call","Answer call","Cancel call","Reconnect","Reconnecting…","Mute","Unmute","Camera","Camera off","End","Call connected.","Connecting call…","Your video","You","Cancel call"],
+  en: ["Voice call","Video call","VOICE CALL","VIDEO CALL","Incoming call","Answer call","Cancel call","Reconnect","Reconnecting…","Mute","Unmute","Camera","Camera off","End",callText(appLanguage, "connected"),callText(appLanguage, "connecting"),"Your video","You","Cancel call"],
   hi: ["वॉइस कॉल","वीडियो कॉल","वॉइस कॉल","वीडियो कॉल","आने वाली कॉल","कॉल उठाएँ","कॉल काटें","फिर से कनेक्ट करें","फिर से कनेक्ट हो रहा है…","माइक बंद करें","माइक चालू करें","कैमरा","कैमरा बंद","समाप्त करें","कॉल कनेक्ट हो गई।","कॉल कनेक्ट हो रही है…","आपका वीडियो","आप","कॉल रद्द करें"],
   gu: ["વૉઇસ કૉલ","વિડિયો કૉલ","વૉઇસ કૉલ","વિડિયો કૉલ","આવતો કૉલ","કૉલ ઉપાડો","કૉલ કાપો","ફરીથી કનેક્ટ કરો","ફરીથી કનેક્ટ થઈ રહ્યું છે…","માઇક બંધ","માઇક ચાલુ","કૅમેરા","કૅમેરા બંધ","સમાપ્ત","કૉલ કનેક્ટ થઈ ગયો.","કૉલ કનેક્ટ થઈ રહ્યો છે…","તમારો વિડિયો","તમે","કૉલ રદ કરો"],
   bn: ["ভয়েস কল","ভিডিও কল","ভয়েস কল","ভিডিও কল","ইনকামিং কল","কল ধরুন","কল কেটে দিন","আবার সংযোগ করুন","আবার সংযোগ হচ্ছে…","মাইক বন্ধ","মাইক চালু","ক্যামেরা","ক্যামেরা বন্ধ","শেষ করুন","কল সংযুক্ত হয়েছে।","কল সংযোগ হচ্ছে…","আপনার ভিডিও","আপনি","কল বাতিল করুন"],
@@ -315,7 +315,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     setBusy(true);
     setConnectionFailed(false);
     setRoomConnected(false);
-    setCallMessage("Connecting call…");
+    setCallMessage(callText(appLanguage, "connecting"));
     try {
       // Fetch the short-lived room token while native audio routing starts.
       // These independent setup steps run together to reduce answer-to-audio delay.
@@ -349,11 +349,11 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       }
       setConnection(result);
       setConnectionFailed(false);
-      setCallMessage("Joining call room…");
+      setCallMessage(callText(appLanguage, "connecting"));
     } catch (error) {
       if (mountedRef.current) {
         setConnectionFailed(true);
-        setCallMessage(error?.message || "Could not connect the call.");
+        setCallMessage(translateAppText(appLanguage, "alertTryAgain"));
       }
     } finally {
       if (mountedRef.current) setBusy(false);
@@ -403,13 +403,13 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       callRef.current = created;
       setCall(created);
       setIncoming(false);
-      setCallMessage("Ringing… Waiting for the other person to answer.");
+      setCallMessage(callText(appLanguage, "incoming"));
     } catch (error) {
       if (audioSessionActiveRef.current && !callRef.current) {
         audioSessionActiveRef.current = false;
         await AudioSession.stopAudioSession().catch(() => {});
       }
-      if (mountedRef.current) setCallMessage(error?.message || "Could not start the call.");
+      if (mountedRef.current) setCallMessage(translateAppText(appLanguage, "alertTryAgain"));
     } finally {
       if (mountedRef.current) setBusy(false);
     }
@@ -429,7 +429,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           callRef.current = next;
           setCall(next);
           setIncoming(true);
-          setCallMessage(next.type === "video" ? "You have an incoming video call." : "You have an incoming voice call.");
+          setCallMessage(next.type === "video" ? `${callText(appLanguage, "incoming")} · ${callText(appLanguage, "video")}` : `${callText(appLanguage, "incoming")} · ${callText(appLanguage, "voice")}`);
           if (Platform.OS === "android") {
             try { await ensureCallKeepSetup(); } catch (_) {}
             if (!active || callRef.current?.id !== next.id) return;
@@ -470,12 +470,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
         }
         if (["rejected", "missed", "ended"].includes(latest.status)) {
           finished = true;
-          setCallMessage(latest.status === "rejected" ? "The call was declined." : latest.status === "missed" ? "The call was not answered." : "The call has ended.");
+          setCallMessage(latest.status === "rejected" ? callText(appLanguage, "decline") : latest.status === "missed" ? callText(appLanguage, "incoming") : callText(appLanguage, "end"));
           timer = setTimeout(() => { if (active) resetCall(); }, 2200);
           return;
         }
       } catch (error) {
-        if (active) setCallMessage(error?.message || "Call status is unavailable.");
+        if (active) setCallMessage(translateAppText(appLanguage, "alertCheckConnection"));
       } finally {
         if (active && !finished && !tokenAttemptedRef.current) timer = setTimeout(checkStatus, 900 + Math.floor(Math.random() * 200));
       }
@@ -498,7 +498,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       await connectCall(next);
       if (Platform.OS === "android" && callKeepUuidRef.current) RNCallKeep.setCurrentCallActive(callKeepUuidRef.current);
     } catch (error) {
-      setCallMessage(error?.message || "Could not answer the call.");
+      setCallMessage(translateAppText(appLanguage, "alertTryAgain"));
     } finally {
       setBusy(false);
     }
@@ -592,7 +592,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               onConnected={() => {
                 if (mountedRef.current) {
                   setRoomConnected(true);
-                  setCallMessage("Call connected.");
+                  setCallMessage(callText(appLanguage, "connected"));
                 }
               }}
               onError={(error) => {
@@ -601,7 +601,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                   connectionRef.current = null;
                   setRoomConnected(false);
                   setConnectionFailed(true);
-                  setCallMessage(error?.message || "There was a problem connecting the call. Please try again.");
+                  setCallMessage(translateAppText(appLanguage, "alertTryAgain"));
                   if (audioSessionActiveRef.current) {
                     audioSessionActiveRef.current = false;
                     AudioSession.stopAudioSession().catch(() => {});
@@ -616,7 +616,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                 connectionRef.current = null;
                 setRoomConnected(false);
                 setConnectionFailed(true);
-                setCallMessage("The call network connection was lost. Reconnect to continue.");
+                setCallMessage(translateAppText(appLanguage, "alertCheckConnection"));
                 if (audioSessionActiveRef.current) {
                   audioSessionActiveRef.current = false;
                   AudioSession.stopAudioSession().catch(() => {});
