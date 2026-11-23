@@ -160,7 +160,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-function formatHindiLastSeen(value) {
+function formatLastSeen(value, language = "en") {
   const stamp = new Date(value).getTime();
   if (!Number.isFinite(stamp)) return "Last seen unavailable";
   const diff = Math.max(0, Date.now() - stamp);
@@ -171,7 +171,18 @@ function formatHindiLastSeen(value) {
   if (hours < 24) return hours + " hours ago";
   const days = Math.floor(hours / 24);
   if (days < 7) return days + " days ago";
-  return new Date(stamp).toLocaleDateString("hi-IN", { day: "numeric", month: "short", year: "numeric" }) + "Seen on ";
+  const localeByLanguage = {
+    en: "en-IN", hi: "hi-IN", gu: "gu-IN", bn: "bn-IN", mr: "mr-IN",
+    ta: "ta-IN", te: "te-IN", pa: "pa-IN", kn: "kn-IN", ml: "ml-IN",
+    ur: "ur-IN", es: "es-ES", fr: "fr-FR", ar: "ar", pt: "pt-PT",
+    de: "de-DE", ja: "ja-JP", ko: "ko-KR", id: "id-ID", ru: "ru-RU",
+    zh: "zh-CN", tr: "tr-TR", th: "th-TH", vi: "vi-VN",
+  };
+  const locale = localeByLanguage[language] || "en-IN";
+  const date = new Date(stamp).toLocaleDateString(locale, {
+    day: "numeric", month: "short", year: "numeric",
+  });
+  return "Seen on " + date;
 }
 
 function isVersionNewer(latest, current) {
@@ -11483,7 +11494,7 @@ export default function App() {
                     <View style={{ flexDirection: "row", alignItems: "center", marginTop: 3, gap: 5 }}>
                       <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: chatPresence?.isOnline ? "#25D366" : "#8B8B93" }} />
                       <Text numberOfLines={1} style={{ fontSize: 11, color: chatPresence?.isOnline ? "#25D366" : "#A7A9AE" }}>
-                        {chatPresence?.hidden ? appText("chatActivityHidden") : chatPresence?.isOnline ? appText("chatOnline") : chatPresence?.lastSeenAt ? (appText("chatOffline") + " · " + formatHindiLastSeen(chatPresence.lastSeenAt)) : appText("chatOffline")}
+                        {chatPresence?.hidden ? appText("chatActivityHidden") : chatPresence?.isOnline ? appText("chatOnline") : chatPresence?.lastSeenAt ? (appText("chatOffline") + " · " + formatLastSeen(chatPresence.lastSeenAt, appLanguage)) : appText("chatOffline")}
                         {chatPreferences.favorite ? "  ★ " + appText("chatFavorite") : ""}{chatPreferences.closeFriend ? " · " + appText("chatCloseFriend") : ""}
                       </Text>
                     </View>
