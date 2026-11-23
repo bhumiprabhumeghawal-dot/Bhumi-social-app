@@ -9257,8 +9257,8 @@ export default function App() {
               >
                 <Ionicons name="storefront" size={23} color="#0095F6" />
                 <View style={{ marginLeft: 11, flex: 1 }}>
-                  <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>Area-wise Business Directory</Text>
-                  <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 3 }}>Discover local brands, shops and services</Text>
+                  <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>{appText("areaBusinessDirectory")}</Text>
+                  <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 3 }}>{appText("discoverLocalBusinesses")}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={18} color="#0095F6" />
               </TouchableOpacity>
@@ -10820,11 +10820,11 @@ export default function App() {
                 ))}
               </View>
               <View style={{ borderTopWidth: 1, borderTopColor: "#262626", paddingTop: 15, marginBottom: 15 }}>
-                <Text style={{ color: "#0095F6", fontSize: 16, fontWeight: "900", marginBottom: 8 }}>Customer Quick Replies</Text>
+                <Text style={{ color: "#0095F6", fontSize: 16, fontWeight: "900", marginBottom: 8 }}>{appText("customerQuickReplies")}</Text>
                 <TextInput value={quickReplyDraft.shortcut} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, shortcut: value }))} placeholder="Shortcut e.g. welcome" placeholderTextColor="#8E8E93" style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, marginBottom: 7 }} />
                 <TextInput value={quickReplyDraft.message} onChangeText={(value) => setQuickReplyDraft((old) => ({ ...old, message: value }))} placeholder="Saved reply message..." placeholderTextColor="#8E8E93" multiline style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 10, padding: 10, minHeight: 62, marginBottom: 7 }} />
                 <TouchableOpacity onPress={addBusinessQuickReply} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", borderRadius: 10, padding: 11, alignItems: "center" }}>
-                  <Text style={{ color: "#0095F6", fontWeight: "900" }}>Save Quick Reply</Text>
+                  <Text style={{ color: "#0095F6", fontWeight: "900" }}>{appText("saveQuickReply")}</Text>
                 </TouchableOpacity>
                 {businessQuickReplies.map((reply) => (
                   <View key={reply.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "#262626" }}>
@@ -10858,8 +10858,8 @@ export default function App() {
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "rgba(5,2,12,0.88)", justifyContent: "flex-end" }}>
           <View style={{ maxHeight: "90%", backgroundColor: "#000000", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: "#363636", padding: 17 }}>
             <ScrollView keyboardShouldPersistTaps="handled">
-              <Text style={{ color: "#0095F6", fontSize: 20, fontWeight: "900", marginBottom: 5 }}>Local Business Directory</Text>
-              <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 13 }}>Search by city, area or business category</Text>
+              <Text style={{ color: "#0095F6", fontSize: 20, fontWeight: "900", marginBottom: 5 }}>{appText("localBusinessDirectory")}</Text>
+              <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 13 }}>{appText("searchBusinessDirectory")}</Text>
               {[
                 ["city", "City", "e.g. Ahmedabad"],
                 ["area", "Area / Locality", "e.g. Navrangpura"],
@@ -10881,7 +10881,7 @@ export default function App() {
                   {!!item.description && <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 12, marginTop: 5 }}>{item.description}</Text>}
                 </TouchableOpacity>
               ))}
-              {!businessDirectoryBusy && businessDirectoryResults.length === 0 && <Text style={{ color: "#8F819E", fontSize: 12, textAlign: "center", paddingVertical: 12 }}>Enter a city, area or category to discover businesses.</Text>}
+              {!businessDirectoryBusy && businessDirectoryResults.length === 0 && <Text style={{ color: "#8F819E", fontSize: 12, textAlign: "center", paddingVertical: 12 }}>{appText("enterBusinessSearch")}</Text>}
               <TouchableOpacity onPress={() => setBusinessDirectoryOpen(false)} style={{ alignSelf: "flex-end", padding: 13 }}>
                 <Text style={{ color: "#0095F6", fontWeight: "800" }}>{appText("close")}</Text>
               </TouchableOpacity>
@@ -11017,13 +11017,13 @@ export default function App() {
               <Text style={{ color: "#A8A8A8", fontSize: 13, marginTop: 6 }}>Version {appConfig.expo?.version || "1.0.0"}</Text>
             </View>
             <TouchableOpacity onPress={() => { setAboutAppOpen(false); Linking.openURL("https://bhumi-social-app-1.onrender.com/api/app-version"); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#0095F6", alignItems: "center", justifyContent: "center", marginBottom: 11 }}>
-              <Text style={{ color: "#121212", fontSize: 15, fontWeight: "800" }}>Check Updates</Text>
+              <Text style={{ color: "#121212", fontSize: 15, fontWeight: "800" }}>{appText("checkUpdatesLabel")}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => { setAboutAppOpen(false); Linking.openURL("https://bhumi-social-app-1.onrender.com/download"); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", alignItems: "center", justifyContent: "center", marginBottom: 11 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}>Download App</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}>{appText("downloadAppLabel")}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => { setAboutAppOpen(false); Share.share({ message: "Download Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download" }); }} style={{ minHeight: 50, borderRadius: 15, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#363636", alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ color: "#0095F6", fontSize: 15, fontWeight: "700" }}>Share App</Text>
+              <Text style={{ color: "#0095F6", fontSize: 15, fontWeight: "700" }}>{appText("shareAppLabel")}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setAboutAppOpen(false)} style={{ alignItems: "center", justifyContent: "center", paddingVertical: 16, marginTop: 5 }}>
               <Text style={{ color: "#A8A8A8", fontSize: 14, fontWeight: "700" }}>Close</Text>
