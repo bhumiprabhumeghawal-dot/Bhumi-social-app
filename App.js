@@ -8397,7 +8397,7 @@ export default function App() {
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search people by name or username"
+              placeholder={appText("searchPeople")}
               placeholderTextColor="#737373"
               autoCapitalize="none"
               autoCorrect={false}
@@ -8421,7 +8421,7 @@ export default function App() {
           </View>
           {searchQuery.trim().length < 2 ? (
             <View style={{ paddingTop: 8 }}>
-              <Text style={{ color: "#F5F5F5", fontSize: 18, fontWeight: "800", marginBottom: 12 }}>Explore</Text>
+              <Text style={{ color: "#F5F5F5", fontSize: 18, fontWeight: "800", marginBottom: 12 }}>{appText("explore")}</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 3 }}>
                 {groupPostItems(feedPosts).slice(0, 18).map((post, index) => {
                   const media = post.mediaItems?.[0] || post;
@@ -8436,11 +8436,11 @@ export default function App() {
                   );
                 })}
               </View>
-              {!feedPosts.length ? <Text style={{ color: "#A8A8A8", textAlign: "center", paddingVertical: 20 }}>Posts from the community will appear here.</Text> : null}
+              {!feedPosts.length ? <Text style={{ color: "#A8A8A8", textAlign: "center", paddingVertical: 20 }}>{appText("communityPostsEmpty")}</Text> : null}
             </View>
           ) : searchLoading ? (
             <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
-              Searching...
+              {appText("searching")}
             </Text>
           ) : searchError ? (
             <Text style={{ color: "#B42318", paddingVertical: 12 }}>
@@ -8448,7 +8448,7 @@ export default function App() {
             </Text>
           ) : searchResults.length === 0 ? (
             <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
-              No users found.
+              {appText("noUsersFound")}
             </Text>
           ) : (
             searchResults.map((item) => (
@@ -11396,7 +11396,7 @@ export default function App() {
                 <TouchableOpacity
                   onPress={() => setChatInboxTab("Requests")}
                   accessibilityRole="button"
-                  accessibilityLabel="Open message requests"
+                  accessibilityLabel={appText("inboxRequests")}
                   style={{ paddingRight: 18 }}
                 >
                   <Ionicons
@@ -11479,8 +11479,8 @@ export default function App() {
                     <View style={{ flexDirection: "row", alignItems: "center", marginTop: 3, gap: 5 }}>
                       <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: chatPresence?.isOnline ? "#25D366" : "#8B8B93" }} />
                       <Text numberOfLines={1} style={{ fontSize: 11, color: chatPresence?.isOnline ? "#25D366" : "#A7A9AE" }}>
-                        {chatPresence?.hidden ? "Activity hidden" : chatPresence?.isOnline ? "Online" : chatPresence?.lastSeenAt ? ("Offline · " + formatHindiLastSeen(chatPresence.lastSeenAt)) : "Offline"}
-                        {chatPreferences.favorite ? "  ★ Favourite" : ""}{chatPreferences.closeFriend ? " · Close Friend" : ""}
+                        {chatPresence?.hidden ? appText("chatActivityHidden") : chatPresence?.isOnline ? appText("chatOnline") : chatPresence?.lastSeenAt ? (appText("chatOffline") + " · " + formatHindiLastSeen(chatPresence.lastSeenAt)) : appText("chatOffline")}
+                        {chatPreferences.favorite ? "  ★ " + appText("chatFavorite") : ""}{chatPreferences.closeFriend ? " · " + appText("chatCloseFriend") : ""}
                       </Text>
                     </View>
                   </View>
@@ -11550,7 +11550,7 @@ export default function App() {
                       setChatPeopleResults([]);
                     }}
                     accessibilityRole="button"
-                    accessibilityLabel="New message"
+                    accessibilityLabel={appText("newMessage")}
                     style={{ paddingHorizontal: 9 }}
                   >
                     <Ionicons name="create-outline" size={25} color="#F5F5F5" />
@@ -11907,7 +11907,7 @@ export default function App() {
                             fontWeight: active ? "800" : "600",
                           }}
                         >
-                          {tab}
+                          {appText("inbox" + tab)}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -11932,7 +11932,7 @@ export default function App() {
                         marginBottom: 10,
                       }}
                     >
-                      New message
+                      {appText("newMessage")}
                     </Text>
                     <View
                       style={{
@@ -11977,7 +11977,7 @@ export default function App() {
                     </View>
                     {chatPeopleBusy ? (
                       <Text style={{ color: "#A8A8A8", padding: 10 }}>
-                        Searching people...
+                        {appText("searchingPeople")}
                       </Text>
                     ) : null}
                     {chatPeopleError ? (
@@ -12056,7 +12056,7 @@ export default function App() {
                           padding: 12,
                         }}
                       >
-                        No people found
+                        {appText("noPeopleFound")}
                       </Text>
                     ) : null}
                   </View>
