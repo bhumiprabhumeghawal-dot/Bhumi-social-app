@@ -6430,7 +6430,7 @@ export default function App() {
               </View>
             </View>
             <View style={{ position: "absolute", bottom: 22, left: 0, right: 0, alignItems: "center" }}>
-              <TouchableOpacity onPress={() => Alert.alert("Live streaming unavailable", "A streaming server/provider must be connected before broadcasting can start.")} style={{ width: "88%", minHeight: 54, borderRadius: 28, backgroundColor: "#E53945", alignItems: "center", justifyContent: "center" }}>
+              <TouchableOpacity onPress={() => Alert.alert(appText("liveStreamUnavailableTitle"), appText("liveStreamUnavailableMessage"))} style={{ width: "88%", minHeight: 54, borderRadius: 28, backgroundColor: "#E53945", alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "800" }}>{appText("createGoLive")}</Text>
               </TouchableOpacity>
             </View>
