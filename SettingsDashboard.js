@@ -1172,7 +1172,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 {["blocked","restricted"].map((legacyKey) => (
                   <TouchableOpacity key={legacyKey} onPress={() => { setActive(null); onLegacyOpen?.(legacyKey); }} style={{ backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:13,padding:14,marginBottom:9 }}>
                     <Text style={{ color:TEXT,fontWeight:"800" }}>{legacyKey === "blocked" ? t("blockedAccounts") : t("restrictedAccounts")}</Text>
-                    <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{appLanguage === "en" ? `Manage ${legacyKey} people and interactions` : t(legacyKey === "blocked" ? "noBlockedAccounts" : "noRestrictedAccounts")}</Text>
+                    <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{appLanguage === "en" ? `Manage ${legacyKey} people and interactions` : ""}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
