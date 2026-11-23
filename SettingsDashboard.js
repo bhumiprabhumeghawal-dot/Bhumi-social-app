@@ -406,9 +406,13 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const [settingsSearch, setSettingsSearch] = React.useState("");
   const normalizedSearch = settingsSearch.trim().toLowerCase();
   const visibleSections = SECTIONS.map((section) => {
+    const localizedSectionTitle = t("section_" + section.key) || section.title;
+    const localizedSectionSubtitle = getSectionSubtitle(appLanguage, section.key, section.subtitle);
     const sectionMatches = normalizedSearch &&
       (section.title.toLowerCase().includes(normalizedSearch) ||
-       section.subtitle.toLowerCase().includes(normalizedSearch));
+       section.subtitle.toLowerCase().includes(normalizedSearch) ||
+       localizedSectionTitle.toLowerCase().includes(normalizedSearch) ||
+       localizedSectionSubtitle.toLowerCase().includes(normalizedSearch));
     return {
       ...section,
       fields: !normalizedSearch || sectionMatches
@@ -1049,11 +1053,12 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     const appearanceLabels = APPEARANCE_FIELD_LABELS[appLanguage] || APPEARANCE_FIELD_LABELS.en;
     const accountLabels = ACCOUNT_FIELD_LABELS[appLanguage] || ACCOUNT_FIELD_LABELS.en;
     const locationLabels = LOCATION_FIELD_LABELS[appLanguage] || LOCATION_FIELD_LABELS.en;
-    const sectionKey = key.startsWith("profile.") ? "account" : key.startsWith("protection.") ? "appLock" : key.split(".")[0];
-    const localizedSectionTitle = appLanguage === "en" ? originalTitle : t("section_" + sectionKey);
     const translatedFieldTitle = translateAppTextValue(appLanguage, originalTitle);
     const hasFieldTranslation = translatedFieldTitle && translatedFieldTitle !== originalTitle;
-    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : accountIndex >= 0 ? accountLabels[accountIndex] : locationIndex >= 0 ? locationLabels[locationIndex] : appLanguage === "en" ? originalTitle : hasFieldTranslation ? translatedFieldTitle : (localizedSectionTitle || t("settings"));
+    // Never substitute a section heading for an untranslated field name.
+    // A generic localized label is less misleading than a duplicated heading
+    // or English text leaking into a non-English settings screen.
+    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : accountIndex >= 0 ? accountLabels[accountIndex] : locationIndex >= 0 ? locationLabels[locationIndex] : appLanguage === "en" ? originalTitle : hasFieldTranslation ? translatedFieldTitle : t("settings");
     const fieldSubtitle = appLanguage === "en" ? subtitle : "";
     const value = preferences[key] ?? defaultValue;
     const isAction = ACTION_KEYS.has(key);
@@ -1095,7 +1100,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       ? section.fields
       : section.fields.filter((field) =>
           field[1].toLowerCase().includes(normalizedSearch) ||
-          field[2].toLowerCase().includes(normalizedSearch));
+          field[2].toLowerCase().includes(normalizedSearch) ||
+          translateAppTextValue(appLanguage, field[1]).toLowerCase().includes(normalizedSearch));
     return (
       <Modal visible={!!active && visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setActive(null)}>
         <View style={{ flex:1, backgroundColor:BG, paddingTop:16, paddingBottom: Platform.OS === "android" ? 36 : 0 }}>
