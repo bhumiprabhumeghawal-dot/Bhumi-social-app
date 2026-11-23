@@ -257,47 +257,32 @@ export const VOICE_EFFECTS = [
 
 export async function applyVideoEffects(videoUri, options = {}) {
   if (!videoUri) throw new Error('Please select a video first.');
-  const filter = VIDEO_FILTERS[clamp(options.videoFilterIndex ?? 0, 0, VIDEO_FILTERS.length - 1)]?.value || '';
+  const filterIndex = Math.round(clamp(options.videoFilterIndex ?? 0, 0, VIDEO_FILTERS.length - 1));
+  const filter = VIDEO_FILTERS[filterIndex]?.value || '';
   const voice = VOICE_EFFECTS.find(item => item.name === options.voiceEffect)?.value || '';
   if (!filter && !voice) return { uri: videoUri, type: 'video', mimeType: 'video/mp4' };
-
   const inputPath = normalizePath(videoUri);
   const outputPath = `${FileSystem.cacheDirectory}edited_video_${Date.now()}.mp4`;
   const media = await getMediaInformation(inputPath);
   const streams = media?.streams || [];
   const hasAudio = streams.some(stream => stream.codec_type === 'audio');
-  if (voice && !hasAudio) {
-    throw new Error('इस वीडियो में मूल आवाज़ नहीं है। Voice Effect लगाने के लिए आवाज़ वाला वीडियो चुनें।');
-  }
+  const hasVideo = streams.some(stream => stream.codec_type === 'video');
+  if (!hasVideo) throw new Error('चुनी हुई फ़ाइल में वीडियो ट्रैक नहीं मिला।');
+  if (voice && !hasAudio) throw new Error('इस वीडियो में मूल आवाज़ नहीं है। Voice Effect लगाने के लिए आवाज़ वाला वीडियो चुनें।');
   const videoEncoder = await pickEncoder(['h264_mediacodec', 'libopenh264', 'libx264']);
   if (!videoEncoder) throw new Error('No supported MP4 video encoder was found.');
-
-  const args = ['-y', '-i', inputPath];
+  const args = ['-y', '-i', inputPath, '-map', '0:v:0'];
+  if (hasAudio) args.push('-map', '0:a:0'); else args.push('-an');
   if (filter) args.push('-vf', filter);
-  args.push('-map', '0:v:0');
-  if (hasAudio) {
-    args.push('-map', '0:a:0');
-    if (voice) args.push('-af', voice);
-    args.push('-c:a', 'aac', '-b:a', '192k');
-  } else {
-    args.push('-an');
-  }
-  args.push('-c:v', videoEncoder, '-pix_fmt', 'yuv420p', '-movflags', '+faststart', outputPath);
-
+  if (hasAudio && voice) args.push('-af', voice);
+  if (hasAudio) args.push('-c:a', 'aac', '-b:a', '192k');
+  args.push('-c:v', videoEncoder, '-pix_fmt', 'yuv420p', '-map_metadata', '0', '-map_chapters', '0', '-movflags', '+faststart', outputPath);
   const result = await execute(args);
   if (!result.success || result.returnCode !== 0) {
     const details = String(result.output || '').trim().slice(-900);
-    throw new Error(
-      `वीडियो फ़िल्टर लागू नहीं हो पाया। कृपया दूसरा फ़िल्टर चुनें या वीडियो दोबारा चुनें।${details ? `\n\nतकनीकी विवरण: ${details}` : ''}`
-    );
+    throw new Error(`वीडियो फ़िल्टर लागू नहीं हो पाया। कृपया दूसरा फ़िल्टर चुनें या वीडियो दोबारा चुनें।${details ? `\n\nतकनीकी विवरण: ${details}` : ''}`);
   }
   const info = await FileSystem.getInfoAsync(outputPath);
   if (!info.exists || !info.size) throw new Error('Edited video file was not created.');
-  return {
-    uri: outputPath,
-    fileName: `edited_video_${Date.now()}.mp4`,
-    type: 'video',
-    mimeType: 'video/mp4',
-    fileSize: info.size,
-  };
+  return { uri: outputPath, fileName: `edited_video_${Date.now()}.mp4`, type: 'video', mimeType: 'video/mp4', fileSize: info.size, appliedFilter: VIDEO_FILTERS[filterIndex].name, appliedVoiceEffect: options.voiceEffect || 'Original' };
 }

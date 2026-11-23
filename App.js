@@ -6697,7 +6697,19 @@ export default function App() {
                       {isVideo ? (
                         <View style={{ position: "absolute", top: 72, left: 10, right: 10, gap: 7 }}>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 3 }}>
-                            {VIDEO_FILTERS.map((filter, index) => {
+                            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                             <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "800" }}>VIDEO FILTERS</Text>
+                             <TouchableOpacity disabled={busy} onPress={() => {
+                               setVideoFilterIndex(0); setVoiceEffect("Original");
+                               setZoomEffectEnabled(false); setZoomEffectLevel(1.5); setZoomEffectDuration(3);
+                               setMusicAsset(null); setMusicStart(0); setMusicVolume(0.8); setKeepOriginalAudio(true);
+                               musicPlayer.pause();
+                             }} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.78)", borderWidth: 1, borderColor: "#7CC4FF", flexDirection: "row", alignItems: "center", gap: 5 }}>
+                               <Ionicons name="refresh-outline" size={13} color="#FFFFFF" />
+                               <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>Reset all</Text>
+                             </TouchableOpacity>
+                           </View>
+                           {VIDEO_FILTERS.map((filter, index) => {
                               const selected = videoFilterIndex === index;
                               return (
                                 <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ width: 60, height: 62, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(0,149,246,0.22)" : "rgba(18,18,18,0.92)", borderWidth: 1, borderColor: selected ? "#7CC4FF" : "rgba(0,149,246,0.48)", shadowColor: "#0095F6", shadowOpacity: selected ? 0.5 : 0.16, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
