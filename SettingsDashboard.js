@@ -579,7 +579,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     try {
       setFeedLists(await loadFeedUserLists());
     } catch (error) {
-      setNotice({ title:"Favorites & Muted", message:error?.message || "Could not load account lists." });
+      setNotice({ title:"{t("section_feed")}", message:error?.message || "Could not load account lists." });
     } finally {
       setFeedListsLoading(false);
     }
@@ -1327,10 +1327,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           </View>
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <View style={{ backgroundColor:PANEL,borderRadius:15,padding:15,marginBottom:14 }}>
-              <Text style={{ color:TEXT,fontSize:15,fontWeight:"900" }}>Share with a friend</Text>
-              <Text style={{ color:MUTED,fontSize:11,lineHeight:16,marginTop:5 }}>Only mutual followers can receive your location. Permission is requested only when you start sharing.</Text>
+              <Text style={{ color:TEXT,fontSize:15,fontWeight:"900" }}>{t("shareProfileAction")}</Text>
+              <Text style={{ color:MUTED,fontSize:11,lineHeight:16,marginTop:5 }}>{t("locationSafety")}</Text>
               <TextInput value={locationRecipient} onChangeText={setLocationRecipient} placeholder="Friend's username" placeholderTextColor="#777777" autoCapitalize="none" autoCorrect={false} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:11,padding:12,marginTop:13 }}/>
-              <Text style={{ color:MUTED,fontSize:11,fontWeight:"800",marginTop:13,marginBottom:8 }}>SHARE DURATION</Text>
+              <Text style={{ color:MUTED,fontSize:11,fontWeight:"800",marginTop:13,marginBottom:8 }}>{t("choose")}</Text>
               <View style={{ flexDirection:"row",flexWrap:"wrap",gap:7 }}>
                 {[15,60,240,1440].map((minutes)=>(
                   <TouchableOpacity key={minutes} onPress={()=>setLocationDuration(minutes)} style={{ borderWidth:1,borderColor:locationDuration===minutes?GOLD:BORDER,backgroundColor:locationDuration===minutes?"#102A3C":"#1A1A1A",borderRadius:20,paddingVertical:8,paddingHorizontal:12 }}>
@@ -1344,9 +1344,9 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               {locationStatus ? <Text style={{ color:"#8CCBFF",fontSize:11,lineHeight:16,marginTop:10 }}>{locationStatus}</Text> : null}
             </View>
             <View style={{ flexDirection:"row",alignItems:"center",marginBottom:8 }}>
-              <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",flex:1 }}>Nearby Friends</Text>
+              <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",flex:1 }}>{t("section_location")}</Text>
               <TouchableOpacity onPress={findNearbyFriends} style={{ backgroundColor:"#102A3C",borderRadius:18,paddingHorizontal:11,paddingVertical:7 }}>
-                <Text style={{ color:GOLD,fontSize:10,fontWeight:"900" }}>Find Nearby</Text>
+                <Text style={{ color:GOLD,fontSize:10,fontWeight:"900" }}>{t("searchTab")}</Text>
               </TouchableOpacity>
             </View>
             {Object.keys(nearbyDistances).length ? [...(locationShares.incoming || [])].sort((a,b)=>(nearbyDistances[a.share_id]??Infinity)-(nearbyDistances[b.share_id]??Infinity)).map((item)=>(
@@ -1355,34 +1355,34 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 <Text style={{ color:TEXT,fontSize:11,fontWeight:"800",flex:1,marginLeft:8 }}>@{item.owner_username}</Text>
                 <Text style={{ color:MUTED,fontSize:10 }}>{nearbyDistances[item.share_id].toFixed(1)} km</Text>
               </View>
-            )) : <Text style={{ color:MUTED,fontSize:10,marginBottom:13 }}>Only friends actively sharing their location with you can appear here.</Text>}
-            <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginBottom:8 }}>People sharing with you</Text>
+            )) : <Text style={{ color:MUTED,fontSize:10,marginBottom:13 }}>{t("locationSafety")}</Text>}
+            <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginBottom:8 }}>{t("section_location")}</Text>
             {locationShares.incoming.map((item)=>(
               <View key={item.share_id} style={{ backgroundColor:PANEL,borderRadius:12,padding:12,marginBottom:8 }}>
                 <Text style={{ color:TEXT,fontSize:12,fontWeight:"900" }}>@{item.owner_username}</Text>
                 <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>Updated {new Date(item.updated_at).toLocaleString()} · Expires {new Date(item.expires_at).toLocaleString()}</Text>
-                <TouchableOpacity onPress={()=>Linking.openURL("https://www.google.com/maps/search/?api=1&query="+item.latitude+","+item.longitude)} style={{ paddingVertical:8 }}><Text style={{ color:GOLD,fontSize:11,fontWeight:"900" }}>Open on Map</Text></TouchableOpacity>
-                <TouchableOpacity onPress={()=>endLocationShare(item.share_id)}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"800" }}>Stop receiving this share</Text></TouchableOpacity>
+                <TouchableOpacity onPress={()=>Linking.openURL("https://www.google.com/maps/search/?api=1&query="+item.latitude+","+item.longitude)} style={{ paddingVertical:8 }}><Text style={{ color:GOLD,fontSize:11,fontWeight:"900" }}>{t("searchTab")}</Text></TouchableOpacity>
+                <TouchableOpacity onPress={()=>endLocationShare(item.share_id)}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"800" }}>{t("cancel")}</Text></TouchableOpacity>
               </View>
             ))}
-            {!locationShares.incoming.length ? <Text style={{ color:MUTED,fontSize:11,marginBottom:12 }}>No friends are sharing their location with you.</Text> : null}
-            <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginTop:12,marginBottom:8 }}>Your active shares</Text>
+            {!locationShares.incoming.length ? <Text style={{ color:MUTED,fontSize:11,marginBottom:12 }}>{t("noNotificationsYet")}</Text> : null}
+            <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginTop:12,marginBottom:8 }}>{t("section_location")}</Text>
             {locationShares.outgoing.map((item)=>(
               <View key={item.share_id} style={{ backgroundColor:PANEL,borderRadius:12,padding:12,marginBottom:8 }}>
                 <Text style={{ color:TEXT,fontSize:12,fontWeight:"900" }}>Shared with @{item.recipient_username}</Text>
                 <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>Updated {new Date(item.updated_at).toLocaleString()} · Expires {new Date(item.expires_at).toLocaleString()}</Text>
-                <TouchableOpacity onPress={()=>endLocationShare(item.share_id)} style={{ paddingVertical:8 }}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>Stop sharing now</Text></TouchableOpacity>
+                <TouchableOpacity onPress={()=>endLocationShare(item.share_id)} style={{ paddingVertical:8 }}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>{t("cancel")}</Text></TouchableOpacity>
               </View>
             ))}
-            {!locationShares.outgoing.length ? <Text style={{ color:MUTED,fontSize:11 }}>You are not sharing your location with anyone.</Text> : null}
-            <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginTop:18,marginBottom:8 }}>Recent Location History</Text>
+            {!locationShares.outgoing.length ? <Text style={{ color:MUTED,fontSize:11 }}>{t("noNotificationsYet")}</Text> : null}
+            <Text style={{ color:TEXT,fontSize:14,fontWeight:"900",marginTop:18,marginBottom:8 }}>{t("section_location")}</Text>
             {(locationShares.history || []).map((item)=>(
               <View key={"history-"+item.share_id} style={{ backgroundColor:PANEL,borderRadius:11,padding:11,marginBottom:7 }}>
                 <Text style={{ color:TEXT,fontSize:11,fontWeight:"800" }}>{item.owner_username===username ? "You shared with @"+item.recipient_username : "@"+item.owner_username+" shared with you"}</Text>
                 <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>{new Date(item.created_at).toLocaleString()} · {item.active ? "Active" : "Ended"}</Text>
               </View>
             ))}
-            {!(locationShares.history || []).length ? <Text style={{ color:MUTED,fontSize:11 }}>No location sharing history in the last 30 days.</Text> : null}
+            {!(locationShares.history || []).length ? <Text style={{ color:MUTED,fontSize:11 }}>{t("noNotificationsYet")}</Text> : null}
             <View style={{ backgroundColor:"#1B1B1B",borderRadius:12,padding:12,marginTop:15,marginBottom:20 }}>
               <Text style={{ color:MUTED,fontSize:10,lineHeight:15 }}>Location is shared only after you press Start, only with the selected mutual follower, and expires automatically. Background Location requires the separate switch, Always permission, and an ongoing system notification. You can stop sharing here at any time. Approximate Location rounds coordinates before sending.</Text>
             </View>
@@ -1393,7 +1393,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         <View style={{ flex:1,backgroundColor:"#000000",paddingTop:Platform.OS==="android"?35:55,paddingHorizontal:18,paddingBottom:20 }}>
           <View style={{ flexDirection:"row",alignItems:"center",marginBottom:15 }}>
             <TouchableOpacity onPress={()=>setFeedListsVisible(false)} style={{ width:38 }}><Ionicons name="arrow-back" size={24} color={TEXT}/></TouchableOpacity>
-            <Text style={{ color:TEXT,fontSize:20,fontWeight:"900",flex:1 }}>Favorites & Muted</Text>
+            <Text style={{ color:TEXT,fontSize:20,fontWeight:"900",flex:1 }}>{t("section_feed")}</Text>
             <TouchableOpacity onPress={refreshFeedLists}><Ionicons name="refresh" size={21} color={GOLD}/></TouchableOpacity>
           </View>
           <View style={{ flexDirection:"row",backgroundColor:PANEL,borderRadius:12,padding:4,marginBottom:14 }}>
@@ -1414,7 +1414,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           <View style={{ flexDirection:"row",alignItems:"center",marginBottom:14 }}>
             <TextInput value={feedListUsername} onChangeText={setFeedListUsername} placeholder="Enter username" placeholderTextColor="#777777" autoCapitalize="none" autoCorrect={false} onSubmitEditing={saveFeedListAccount} returnKeyType="done" style={{ flex:1,color:TEXT,backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:11,padding:12,marginRight:8 }}/>
             <TouchableOpacity disabled={feedListsLoading} onPress={saveFeedListAccount} style={{ backgroundColor:GOLD,borderRadius:11,paddingVertical:13,paddingHorizontal:16,opacity:feedListsLoading?0.6:1 }}>
-              <Text style={{ color:"#FFFFFF",fontWeight:"900",fontSize:12 }}>Add</Text>
+              <Text style={{ color:"#FFFFFF",fontWeight:"900",fontSize:12 }}>{t("create")}</Text>
             </TouchableOpacity>
           </View>
           {feedListsLoading ? <ActivityIndicator color={GOLD} style={{ marginVertical:10 }}/> : null}
@@ -1434,7 +1434,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               </View>
             ))}
             {!feedListsLoading && !(feedListType==="favorite"?feedLists.favorites:feedLists.muted).length
-              ? <Text style={{ color:MUTED,fontSize:12,textAlign:"center",marginTop:24 }}>No accounts in this list yet.</Text>
+              ? <Text style={{ color:MUTED,fontSize:12,textAlign:"center",marginTop:24 }}>{t("noNotificationsYet")}</Text>
               : null}
           </ScrollView>
           <TouchableOpacity onPress={()=>setFeedListsVisible(false)} style={{ backgroundColor:"#242424",borderRadius:12,padding:13,alignItems:"center",marginTop:10 }}>
