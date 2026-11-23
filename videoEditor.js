@@ -173,16 +173,29 @@ export async function addMusicToVideo(videoUri, audioUri, options = {}) {
   const audioPath = normalizePath(audioUri);
   const outputPath = `${FileSystem.cacheDirectory}music_video_${Date.now()}.mp4`;
   const musicVolume = clamp(options.musicVolume ?? 1, 0, 2);
+  const originalVolume = clamp(options.originalVolume ?? 1, 0, 2);
   const musicStart = clamp(options.musicStart ?? 0, 0, 3600);
+  const fadeIn = clamp(options.musicFadeIn ?? 0.6, 0, 5);
+  const fadeOut = clamp(options.musicFadeOut ?? 1.2, 0, 5);
   const keepOriginalAudio = options.keepOriginalAudio !== false;
   const media = await getMediaInformation(videoPath);
-  const hasOriginalAudio = (media?.streams || []).some(
-    stream => stream.codec_type === 'audio'
-  );
+  const streams = media?.streams || [];
+  const video = streams.find((stream) => stream.codec_type === 'video');
+  const hasOriginalAudio = streams.some((stream) => stream.codec_type === 'audio');
+  if (!video) throw new Error('चुनी हुई फ़ाइल में वीडियो ट्रैक नहीं मिला।');
 
+  const duration = Math.max(0, Number(media?.format?.duration || video.duration || 0));
+  const safeFadeOut = duration > 0 ? Math.min(fadeOut, Math.max(0, duration - fadeIn)) : 0;
+  const fadeOutStart = duration > 0 ? Math.max(0, duration - safeFadeOut) : 0;
+  const musicFilters = [
+    `volume=${musicVolume}`,
+    ...(fadeIn > 0 ? [`afade=t=in:st=0:d=${fadeIn}`] : []),
+    ...(safeFadeOut > 0 ? [`afade=t=out:st=${fadeOutStart}:d=${safeFadeOut}`] : []),
+  ];
   const args = [
     '-y',
     '-i', videoPath,
+    '-stream_loop', '-1',
     '-ss', String(musicStart),
     '-i', audioPath,
   ];
@@ -190,17 +203,18 @@ export async function addMusicToVideo(videoUri, audioUri, options = {}) {
   if (keepOriginalAudio && hasOriginalAudio) {
     args.push(
       '-filter_complex',
-      `[1:a]volume=${musicVolume}[music];` +
-      '[0:a]volume=1[original];' +
-      '[original][music]amix=inputs=2:duration=first:dropout_transition=2[aout]',
+      `[1:a]${musicFilters.join(',')}[music];` +
+      `[0:a]volume=${originalVolume}[original];` +
+      '[original][music]amix=inputs=2:duration=longest:dropout_transition=2:normalize=0[aout]',
       '-map', '0:v:0',
       '-map', '[aout]'
     );
   } else {
     args.push(
+      '-filter_complex',
+      `[1:a]${musicFilters.join(',')}[aout]`,
       '-map', '0:v:0',
-      '-map', '1:a:0',
-      '-filter:a', `volume=${musicVolume}`
+      '-map', '[aout]'
     );
   }
 
@@ -208,6 +222,7 @@ export async function addMusicToVideo(videoUri, audioUri, options = {}) {
     '-c:v', 'copy',
     '-c:a', 'aac',
     '-b:a', '192k',
+    '-map_metadata', '0',
     '-shortest',
     '-movflags', '+faststart',
     outputPath
@@ -215,7 +230,8 @@ export async function addMusicToVideo(videoUri, audioUri, options = {}) {
 
   const result = await execute(args);
   if (!result.success || result.returnCode !== 0) {
-    throw new Error(`Adding music failed: ${result.output || 'FFmpeg error'}`);
+    const details = String(result.output || '').trim().slice(-700);
+    throw new Error(`Adding music failed: ${details || 'FFmpeg error'}`);
   }
 
   const info = await FileSystem.getInfoAsync(outputPath);
@@ -229,6 +245,12 @@ export async function addMusicToVideo(videoUri, audioUri, options = {}) {
     type: 'video',
     mimeType: 'video/mp4',
     fileSize: info.size,
+    musicVolume,
+    originalVolume,
+    musicStart,
+    keepOriginalAudio,
+    musicFadeIn: fadeIn,
+    musicFadeOut: safeFadeOut,
   };
 }
 
