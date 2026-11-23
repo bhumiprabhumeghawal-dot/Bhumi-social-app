@@ -1339,7 +1339,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 ))}
               </View>
               <TouchableOpacity disabled={locationLoading} onPress={startLiveLocationShare} style={{ backgroundColor:GOLD,borderRadius:12,padding:13,alignItems:"center",marginTop:14,opacity:locationLoading?0.6:1 }}>
-                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{locationLoading?"Please wait…":"Start Live Sharing"}</Text>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{locationLoading?t("pleaseWait")+"…":t("startLiveSharing")}</Text>
               </TouchableOpacity>
               {locationStatus ? <Text style={{ color:"#8CCBFF",fontSize:11,lineHeight:16,marginTop:10 }}>{locationStatus}</Text> : null}
             </View>
@@ -1370,7 +1370,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {locationShares.outgoing.map((item)=>(
               <View key={item.share_id} style={{ backgroundColor:PANEL,borderRadius:12,padding:12,marginBottom:8 }}>
                 <Text style={{ color:TEXT,fontSize:12,fontWeight:"900" }}>{t("sharedWithLabel")} @{item.recipient_username}</Text>
-                <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>Updated {new Date(item.updated_at).toLocaleString()} · Expires {new Date(item.expires_at).toLocaleString()}</Text>
+                <Text style={{ color:MUTED,fontSize:10,marginTop:4 }}>{t("updatedLabel")} {new Date(item.updated_at).toLocaleString()} · {t("expiresLabel")} {new Date(item.expires_at).toLocaleString()}</Text>
                 <TouchableOpacity onPress={()=>endLocationShare(item.share_id)} style={{ paddingVertical:8 }}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>{t("cancel")}</Text></TouchableOpacity>
               </View>
             ))}
@@ -1398,8 +1398,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           </View>
           <View style={{ flexDirection:"row",backgroundColor:PANEL,borderRadius:12,padding:4,marginBottom:14 }}>
             {[
-              { key:"favorite", label:"Favorites" },
-              { key:"muted", label:"Muted" },
+              { key:"favorite", label:t("favoritesListLabel") },
+              { key:"muted", label:t("mutedListLabel") },
             ].map(item=>(
               <TouchableOpacity key={item.key} onPress={()=>setFeedListType(item.key)} style={{ flex:1,backgroundColor:feedListType===item.key?"#17334A":"transparent",borderRadius:9,padding:10,alignItems:"center" }}>
                 <Text style={{ color:feedListType===item.key?GOLD:TEXT,fontWeight:"900",fontSize:12 }}>{item.label}</Text>
@@ -1408,11 +1408,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           </View>
           <Text style={{ color:MUTED,fontSize:11,lineHeight:16,marginBottom:10 }}>
             {feedListType==="favorite"
-              ? "Favorite accounts appear first in your Posts and Reels feed. They are not notified."
-              : "Muted accounts' posts, reels and stories are hidden from your feed. They are not notified."}
+              ? t("favoritesListDescription")
+              : t("mutedListDescription")}
           </Text>
           <View style={{ flexDirection:"row",alignItems:"center",marginBottom:14 }}>
-            <TextInput value={feedListUsername} onChangeText={setFeedListUsername} placeholder="Enter username" placeholderTextColor="#777777" autoCapitalize="none" autoCorrect={false} onSubmitEditing={saveFeedListAccount} returnKeyType="done" style={{ flex:1,color:TEXT,backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:11,padding:12,marginRight:8 }}/>
+            <TextInput value={feedListUsername} onChangeText={setFeedListUsername} placeholder={t("enterUsernameLabel")} placeholderTextColor="#777777" autoCapitalize="none" autoCorrect={false} onSubmitEditing={saveFeedListAccount} returnKeyType="done" style={{ flex:1,color:TEXT,backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:11,padding:12,marginRight:8 }}/>
             <TouchableOpacity disabled={feedListsLoading} onPress={saveFeedListAccount} style={{ backgroundColor:GOLD,borderRadius:11,paddingVertical:13,paddingHorizontal:16,opacity:feedListsLoading?0.6:1 }}>
               <Text style={{ color:"#FFFFFF",fontWeight:"900",fontSize:12 }}>{t("create")}</Text>
             </TouchableOpacity>
@@ -1429,7 +1429,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                   <Text style={{ color:MUTED,fontSize:11,marginTop:2 }}>@{item.username}</Text>
                 </View>
                 <TouchableOpacity disabled={feedListsLoading} onPress={()=>deleteFeedListAccount(feedListType,item.username)} style={{ borderWidth:1,borderColor:"#5B3035",borderRadius:9,paddingVertical:8,paddingHorizontal:11 }}>
-                  <Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>{feedListType==="favorite"?"Remove":"Unmute"}</Text>
+                  <Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>{feedListType==="favorite"?t("removeFromList"):t("unmuteAccount")}</Text>
                 </TouchableOpacity>
               </View>
             ))}
