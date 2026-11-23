@@ -59,7 +59,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
         setFollowingCount(Array.isArray(following?.users) ? following.users.length : 0);
       }
     } catch (error) {
-      setFeedback(error.message || "Data could not be loaded.");
+      setFeedback(t("alertLoadFailed"));
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
       setTab("overview");
       await refresh();
     } catch (error) {
-      setFeedback(error.message || "Account type could not be changed.");
+      setFeedback(t("alertSaveFailed"));
     } finally { setSaving(false); }
   };
 
@@ -83,27 +83,27 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
     const subject = encodeURIComponent('Bhumi Social AI - ' + topic);
     const body = encodeURIComponent('Username: ' + (username || 'Not available') + String.fromCharCode(10) + 'Account type: ' + accountType + String.fromCharCode(10,10) + 'Please share the next steps for ' + topic.toLowerCase() + '.');
     try { await Linking.openURL('mailto:bhumiprabhumeghawal@gmail.com?subject=' + subject + '&body=' + body); }
-    catch (_) { setFeedback('Email is not available on this device. Contact bhumiprabhumeghawal@gmail.com.'); }
+    catch (_) { setFeedback(t("alertCheckConnection")); }
   };
 
   const createPromotionBrief = async () => {
     try { await Share.share({ title: 'Promotion brief', message: 'Bhumi Social AI promotion brief' + String.fromCharCode(10) + 'Creator: @' + (username || '') + String.fromCharCode(10) + 'Campaign goal: [add goal]' + String.fromCharCode(10) + 'Target audience: [add audience]' + String.fromCharCode(10) + 'Content format: [post / reel / story]' + String.fromCharCode(10) + 'Budget: [add budget]' + String.fromCharCode(10) + 'Contact: bhumiprabhumeghawal@gmail.com' }); }
-    catch (error) { setFeedback(error.message || 'Promotion brief could not be shared.'); }
+    catch (error) { setFeedback(t("alertSaveFailed")); }
   };
   const saveBusiness = async () => {
     setSaving(true);
     try {
       const saved = await saveBusinessProfile(business);
       setBusiness(saved || business);
-      setFeedback("Business profile saved successfully.");
+      setFeedback(t("alertSaved"));
     } catch (error) {
-      setFeedback(error.message || "Business profile could not be saved.");
+      setFeedback(t("alertSaveFailed"));
     } finally { setSaving(false); }
   };
 
   const addItem = async () => {
     if (!form.title.trim()) {
-      setFeedback("Please enter a product or service name.");
+      setFeedback(t("alertDetailsRequired"));
       return;
     }
     setSaving(true);
@@ -113,10 +113,10 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
         description: form.description.trim(), item_type: form.category
       });
       setItems(current => [item, ...current]);
-      setFeedback("Product or service added to your catalog.");
+      setFeedback(t("alertSaved"));
       setForm({ title: "", price: "", description: "", category: "product" });
     } catch (error) {
-      setFeedback(error.message || "Item could not be added.");
+      setFeedback(t("alertSaveFailed"));
     } finally { setSaving(false); }
   };
 
@@ -127,9 +127,9 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
     try {
       await deleteBusinessCatalogItem(id);
       setItems(current => current.filter(item => String(item.id) !== String(id)));
-      setFeedback("Catalog item deleted.");
+      setFeedback(t("alertDelete"));
     } catch (error) {
-      setFeedback(error.message || "Item could not be deleted.");
+      setFeedback(t("alertSaveFailed"));
     } finally {
       setSaving(false);
       setConfirmDeleteId(null);
