@@ -222,7 +222,7 @@ function Story({ item, onPress }) {
               style={{ width: 52, height: 52, borderRadius: 26 }}
             />
           ) : item.own ? (
-            <Text style={styles.plus}>＋</Text>
+            <Text style={{ fontSize: 43 }}>😊</Text>
           ) : (
             <Text style={styles.avatarLetter}>
               {(item.name || "U").charAt(0).toUpperCase()}
@@ -5424,6 +5424,17 @@ export default function App() {
             </TouchableOpacity>
           </View>
         </>
+      ) : activeTab === "Home" ? (
+        <>
+          <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("createPhotoPost")} style={{ width: 42, alignItems: "flex-start", justifyContent: "center" }}>
+            <Ionicons name="add" size={38} color="#F5F5F5" />
+          </TouchableOpacity>
+          <Text style={[styles.brand, { flex: 1, textAlign: "center", fontSize: 27, fontWeight: "700", letterSpacing: -1 }]} numberOfLines={1}>Bhumi Social AI</Text>
+          <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center", position: "relative" }}>
+            <Ionicons name="heart-outline" size={32} color="#F5F5F5" />
+            {unreadNotificationCount > 0 ? <View style={{ position: "absolute", right: -1, top: 2, width: 10, height: 10, borderRadius: 5, backgroundColor: "#E1306C" }} /> : null}
+          </TouchableOpacity>
+        </>
       ) : (
         <>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flex: 1 }}>
@@ -5436,11 +5447,6 @@ export default function App() {
             </TouchableOpacity>
             <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ position: "relative", padding: 3 }}>
               <Ionicons name="heart-outline" size={26} color="#F5F5F5" />
-              {unreadNotificationCount > 0 ? (
-                <View style={{ position: "absolute", right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#E1306C", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}>
-                  <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text>
-                </View>
-              ) : null}
             </TouchableOpacity>
             <TouchableOpacity onPress={openMessages} accessibilityLabel={appText("tabChat")} style={{ padding: 3 }}>
               <Ionicons name="paper-plane-outline" size={25} color="#F5F5F5" />
@@ -9720,15 +9726,20 @@ export default function App() {
         ].map((tab) => (
           <TouchableOpacity
             key={tab.name}
-            style={styles.navItem}
+            style={[styles.navItem, activeTab === tab.name ? styles.activeNavItem : null]}
             onPress={() => handleTab(tab.name)}
             accessibilityLabel={appText("tab" + tab.name)}
           >
-            <Ionicons
-              name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
-              size={tab.name === "Create" ? 29 : 26}
-              color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
-            />
+            {tab.name === "Profile" && profile?.avatarUrl ? (
+              <Image source={{ uri: profile.avatarUrl }} style={{ width: 27, height: 27, borderRadius: 14 }} />
+            ) : (
+              <Ionicons
+                name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
+                size={tab.name === "Create" ? 29 : 27}
+                color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
+              />
+            )}
+            {tab.name === "Chat" ? <View style={{ position: "absolute", right: "31%", bottom: 8, width: 7, height: 7, borderRadius: 4, backgroundColor: "#E1306C" }} /> : null}
           </TouchableOpacity>
         ))}
       </View>
@@ -14227,11 +14238,11 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: "row", alignItems: "center", gap: 19, transform: [{ translateY: 15 }] },
   headerIcon: { fontSize: 27, color: "#0095F6" },
   stories: { paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
-  story: { width: 68, alignItems: "center" },
+  story: { width: 104, alignItems: "center" },
   storyRing: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     padding: 0,
     borderWidth: 2,
     borderColor: "#F56040",
@@ -14239,9 +14250,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   storyInnerRing: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 92,
+    height: 92,
+    borderRadius: 46,
     borderWidth: 2,
     borderColor: "#C13584",
     alignItems: "center",
@@ -14250,15 +14261,15 @@ const styles = StyleSheet.create({
   ownRing: { borderColor: "#404040" },
   ownStoryInnerRing: { borderColor: "#404040" },
   storyAvatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     alignItems: "center",
     justifyContent: "center",
   },
   plus: { fontSize: 30, color: "#FFFFFF" },
   avatarLetter: { fontSize: 22, fontWeight: "700", color: "#FFFFFF" },
-  storyName: { marginTop: 5, fontSize: 11, color: "#F5F5F5" },
+  storyName: { marginTop: 5, fontSize: 12, color: "#F5F5F5", maxWidth: 100 },
   feedDivider: { height: 1, backgroundColor: "#262626" },
   post: {
     marginHorizontal: 0,
@@ -14347,7 +14358,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     backgroundColor: "#000000",
   },
-  navItem: { flex: 1, alignItems: "center", justifyContent: "center", transform: [{ translateY: -10 }] },
+  navItem: { flex: 1, height: 44, alignItems: "center", justifyContent: "center", transform: [{ translateY: -10 }] },
+  activeNavItem: { backgroundColor: "#26292D", borderRadius: 28, marginHorizontal: 5 },
   navIcon: { fontSize: 24, color: "#8E8E93" },
   activeNavIcon: { color: "#0095F6", fontWeight: "800" },
   navLabel: { fontSize: 9, color: "#A8A8A8", marginTop: 1 },
