@@ -2,6 +2,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import {
   execute,
   pickEncoder,
+  listFilters,
   normalizePath,
   getMediaInformation,
 } from 'munim-ffmpeg';
@@ -293,6 +294,24 @@ export async function applyVideoEffects(videoUri, options = {}) {
   const filter = VIDEO_FILTERS[filterIndex]?.value || '';
   const voice = VOICE_EFFECTS.find(item => item.name === options.voiceEffect)?.value || '';
   if (!filter && !voice) return { uri: videoUri, type: 'video', mimeType: 'video/mp4' };
+
+  // Check the actual native FFmpeg build before starting an export.
+  const requiredFilters = [...filter, ...voice]
+    .join('')
+    .match(/(?:^|,)([a-zA-Z0-9_]+)=/g) || [];
+  const requiredFilterNames = [...new Set(
+    requiredFilters.map(item => item.replace(/^,/, '').replace(/=$/, ''))
+  )];
+  const availableFilters = await listFilters();
+  const missingFilters = requiredFilterNames.filter(
+    name => !availableFilters.includes(name)
+  );
+  if (missingFilters.length) {
+    throw new Error(
+      `इस डिवाइस के वीडियो इंजन में ये फ़िल्टर उपलब्ध नहीं हैं: ${missingFilters.join(', ')}। कृपया दूसरा फ़िल्टर चुनें।`
+    );
+  }
+
   const inputPath = normalizePath(videoUri);
   const outputPath = `${FileSystem.cacheDirectory}edited_video_${Date.now()}.mp4`;
   const media = await getMediaInformation(inputPath);
@@ -301,14 +320,20 @@ export async function applyVideoEffects(videoUri, options = {}) {
   const hasVideo = streams.some(stream => stream.codec_type === 'video');
   if (!hasVideo) throw new Error('चुनी हुई फ़ाइल में वीडियो ट्रैक नहीं मिला।');
   if (voice && !hasAudio) throw new Error('इस वीडियो में मूल आवाज़ नहीं है। Voice Effect लगाने के लिए आवाज़ वाला वीडियो चुनें।');
-  const videoEncoder = await pickEncoder(['h264_mediacodec', 'libopenh264', 'libx264']);
+  const videoEncoder = await pickEncoder([
+    'h264_videotoolbox',
+    'h264_mediacodec',
+    'libopenh264',
+  ]);
   if (!videoEncoder) throw new Error('No supported MP4 video encoder was found.');
+  const outputPixelFormat =
+    videoEncoder === 'h264_mediacodec' ? 'nv12' : 'yuv420p';
   const args = ['-y', '-i', inputPath, '-map', '0:v:0'];
   if (hasAudio) args.push('-map', '0:a:0'); else args.push('-an');
   if (filter) args.push('-vf', filter);
   if (hasAudio && voice) args.push('-af', voice);
   if (hasAudio) args.push('-c:a', 'aac', '-b:a', '192k');
-  args.push('-c:v', videoEncoder, '-pix_fmt', 'yuv420p', '-map_metadata', '0', '-map_chapters', '0', '-movflags', '+faststart', outputPath);
+  args.push('-c:v', videoEncoder, '-pix_fmt', outputPixelFormat, '-map_metadata', '0', '-map_chapters', '0', '-movflags', '+faststart', outputPath);
   const result = await execute(args);
   if (!result.success || result.returnCode !== 0) {
     const details = String(result.output || '').trim().slice(-900);
