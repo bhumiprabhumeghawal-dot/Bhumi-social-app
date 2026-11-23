@@ -1537,7 +1537,7 @@ function PostCard({
                             marginTop: 4,
                           }}
                         >
-                          {appText("pendingApproval")}
+                          {postText("pendingApproval")}
                         </Text>
                       ) : null}
                       {comment.isPending && comment.canApprove ? (
@@ -1560,7 +1560,7 @@ function PostCard({
                               fontWeight: "800",
                             }}
                           >
-                            {appText("approve")}
+                            {postText("approve")}
                           </Text>
                         </TouchableOpacity>
                       ) : null}
@@ -1610,7 +1610,7 @@ function PostCard({
                   }}
                 >
                   <Text style={{ color: commentDraft.trim() && !interactionBusy ? "#FFFFFF" : "#8E8E93", fontWeight: "800", fontSize: 12 }}>
-                    {appText("postComment")}
+                    {postText("postComment")}
                   </Text>
                 </TouchableOpacity>
               </View>
