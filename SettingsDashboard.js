@@ -754,7 +754,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       return;
     }
     if (key === "appearance.display" || key === "appearance.language") {
-      setNotice({ title:"Display Settings", message:"The app currently uses its supported dark interface and English/Hindi text where provided. Per-user display and language switching is not fully implemented yet." });
+      setNotice({ title:"Display Settings", message:"Use the Light Appearance switch in Appearance Settings to change the app background and status bar. Language switching is managed separately." });
       return;
     }
     if (key === "feed.favorites" || key === "feed.mutedAccounts") {
