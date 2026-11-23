@@ -25,7 +25,7 @@ export const MUSIC_CATALOG_PROVIDERS = Object.freeze([
 
 export function buildGoogleMusicSearchUrl(query) {
   const clean = safeText(query, 160);
-  if (!clean) throw new Error("पहले गाने या कलाकार का नाम लिखें।");
+  if (!clean) throw new Error("Enter a song or artist name first.");
   return `https://www.google.com/search?q=${encodeURIComponent(clean + " official song audio")}`;
 }
 
@@ -60,7 +60,7 @@ async function persistMusicLibrary(tracks) {
 }
 
 export async function importAudioToMusicLibrary(asset, details = {}) {
-  if (!asset?.uri) throw new Error("ऑडियो फ़ाइल उपलब्ध नहीं है।");
+  if (!asset?.uri) throw new Error("The audio file is unavailable.");
   await FileSystem.makeDirectoryAsync(AUDIO_DIRECTORY, { intermediates: true });
   const sourceName = safeText(asset.name || asset.fileName || "song", 100);
   const extMatch = sourceName.match(/\.([a-z0-9]{2,5})$/i) || String(asset.uri).match(/\.([a-z0-9]{2,5})(?:[?#]|$)/i);
@@ -70,7 +70,7 @@ export async function importAudioToMusicLibrary(asset, details = {}) {
   const destination = AUDIO_DIRECTORY + fileName;
   await FileSystem.copyAsync({ from: asset.uri, to: destination });
   const info = await FileSystem.getInfoAsync(destination);
-  if (!info.exists || !info.size) throw new Error("गाना लाइब्रेरी में सेव नहीं हो पाया।");
+  if (!info.exists || !info.size) throw new Error("The song could not be saved to the library.");
   const tracks = await loadMusicLibrary();
   const title = safeText(details.title || sourceName.replace(/\.[^.]+$/, "") || "Unknown song");
   const track = {
