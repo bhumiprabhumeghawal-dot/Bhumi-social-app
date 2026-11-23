@@ -25,7 +25,7 @@ import { Track, VideoPresets } from "livekit-client";
 import { translateAppText } from "./localization";
 
 const CALL_LABELS = {
-  en: ["Voice call","Video call","VOICE CALL","VIDEO CALL","Incoming call","Answer call","Cancel call","Reconnect","Reconnecting…","Mute","Unmute","Camera","Camera off","End",callText(appLanguage, "connected"),callText(appLanguage, "connecting"),"Your video","You","Cancel call"],
+  en: ["Voice call","Video call","VOICE CALL","VIDEO CALL","Incoming call","Answer call","Cancel call","Reconnect","Reconnecting…","Mute","Unmute","Camera","Camera off","End","Call connected.","Connecting call…","Your video","You","Cancel call"],
   hi: ["वॉइस कॉल","वीडियो कॉल","वॉइस कॉल","वीडियो कॉल","आने वाली कॉल","कॉल उठाएँ","कॉल काटें","फिर से कनेक्ट करें","फिर से कनेक्ट हो रहा है…","माइक बंद करें","माइक चालू करें","कैमरा","कैमरा बंद","समाप्त करें","कॉल कनेक्ट हो गई।","कॉल कनेक्ट हो रही है…","आपका वीडियो","आप","कॉल रद्द करें"],
   gu: ["વૉઇસ કૉલ","વિડિયો કૉલ","વૉઇસ કૉલ","વિડિયો કૉલ","આવતો કૉલ","કૉલ ઉપાડો","કૉલ કાપો","ફરીથી કનેક્ટ કરો","ફરીથી કનેક્ટ થઈ રહ્યું છે…","માઇક બંધ","માઇક ચાલુ","કૅમેરા","કૅમેરા બંધ","સમાપ્ત","કૉલ કનેક્ટ થઈ ગયો.","કૉલ કનેક્ટ થઈ રહ્યો છે…","તમારો વિડિયો","તમે","કૉલ રદ કરો"],
   bn: ["ভয়েস কল","ভিডিও কল","ভয়েস কল","ভিডিও কল","ইনকামিং কল","কল ধরুন","কল কেটে দিন","আবার সংযোগ করুন","আবার সংযোগ হচ্ছে…","মাইক বন্ধ","মাইক চালু","ক্যামেরা","ক্যামেরা বন্ধ","শেষ করুন","কল সংযুক্ত হয়েছে।","কল সংযোগ হচ্ছে…","আপনার ভিডিও","আপনি","কল বাতিল করুন"],
