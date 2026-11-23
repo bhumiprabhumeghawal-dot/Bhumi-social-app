@@ -5408,7 +5408,7 @@ export default function App() {
             <Text style={styles.brand} numberOfLines={1}>Bhumi Social AI</Text>
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 19 }}>
-            <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel="Create menu" style={{ padding: 3 }}>
+            <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("createPhotoPost")} style={{ padding: 3 }}>
               <Ionicons name="add-circle-outline" size={27} color="#F5F5F5" />
             </TouchableOpacity>
             <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ position: "relative", padding: 3 }}>
@@ -5419,7 +5419,7 @@ export default function App() {
                 </View>
               ) : null}
             </TouchableOpacity>
-            <TouchableOpacity onPress={openMessages} accessibilityLabel="Messages" style={{ padding: 3 }}>
+            <TouchableOpacity onPress={openMessages} accessibilityLabel={appText("tabChat")} style={{ padding: 3 }}>
               <Ionicons name="paper-plane-outline" size={25} color="#F5F5F5" />
             </TouchableOpacity>
           </View>
@@ -5442,7 +5442,7 @@ export default function App() {
               ].map(([action, label, iconName]) => (
                 <TouchableOpacity key={action} onPress={() => runHeaderCreateAction(action)} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 11, paddingHorizontal: 9 }}>
                   <Ionicons name={iconName} size={19} color="#FFFFFF" />
-                  <Text style={{ color: "#FFFFFF", fontSize: 14, marginLeft: 12, fontWeight: "600" }}>{label}</Text>
+                  <Text style={{ color: "#FFFFFF", fontSize: 14, marginLeft: 12, fontWeight: "600" }}>{appText(({ "live-camera": "createGoLive", "reel-camera": "createRecordReel", "reel-photos": "createReelPhotos", "photo-post": "createPhotoPost", "video-post": "createVideoPost", "story-camera": "createStoryCamera", "story-gallery": "createStoryGallery", "post-gallery": "createPostGallery" })[action])}</Text>
                 </TouchableOpacity>
               ))}
             </View>
