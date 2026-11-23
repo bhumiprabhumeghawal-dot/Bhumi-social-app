@@ -1148,19 +1148,19 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 </TouchableOpacity>
               </View>
             ) : null}
-            {section.key === "security" ? (
+            {section.key === "security" && appLanguage === "en" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderRadius:14,padding:13,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"800",fontSize:12 }}>{t("securityNote")}</Text>
                 <Text style={{ color:MUTED,fontSize:11,lineHeight:17,marginTop:5 }}>Account security controls are separate from chat privacy preferences.</Text>
               </View>
             ) : null}
-            {section.key === "messages" ? (
+            {section.key === "messages" && appLanguage === "en" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>CHAT PRIVACY CONTROLS</Text>
                 <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Blocked and Restricted Accounts are managed from the Privacy Settings section. Your existing conversations remain available when you turn off first-time message requests; new unknown senders are refused. Read receipts and typing indicators are enforced by the chat server.</Text>
               </View>
             ) : null}
-            {section.key === "messages" ? (
+            {section.key === "messages" && appLanguage === "en" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
                 <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>CHAT PERSONALIZATION STUDIO</Text>
                 <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Open Messages, enter any conversation, then tap the palette icon. Choose a separate chat theme, set a private name for that friend, and add or remove them from Favourite Friends or Close Friends. Favourite and Close Friends filters appear above your chat list.</Text>
@@ -1184,17 +1184,17 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             ) : null}
             {section.key === "about" ? (
               <TouchableOpacity onPress={() => { setActive(null); onAbout?.(); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
-                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>About & App Updates</Text>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{t("section_about")}</Text>
               </TouchableOpacity>
             ) : null}
             {section.key === "account" ? (
               <TouchableOpacity onPress={() => { setActive(null); onLegacyOpen?.("account"); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
-                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Manage Email & Mobile</Text>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{t("section_account")}</Text>
               </TouchableOpacity>
             ) : null}
             {section.key === "security" ? (
               <TouchableOpacity onPress={() => { setActive(null); onLegacyOpen?.("security"); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
-                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Change Password / Other Sessions</Text>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{t("section_security")}</Text>
               </TouchableOpacity>
             ) : null}
           </ScrollView>
