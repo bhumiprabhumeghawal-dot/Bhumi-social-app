@@ -62,8 +62,11 @@ class StartupErrorBoundary extends React.Component {
           <Text selectable style={{ color: '#E8E2EF', fontSize: 13, lineHeight: 20 }}>
             {String(this.state.error?.message || this.state.error)}
           </Text>
+          <Text selectable style={{ color: '#A99DB5', fontSize: 10, lineHeight: 15, marginTop: 12 }}>
+            {String(this.state.error?.stack || 'Stack unavailable')}
+          </Text>
           <Text style={{ color: '#A99DB5', fontSize: 12, marginTop: 16 }}>
-            Crash report saved on this device.
+            Crash report saved on this device. Long-press the error details to copy.
           </Text>
         </View>
       );
@@ -94,8 +97,11 @@ function Root() {
         <Text selectable style={{ color: '#E8E2EF', fontSize: 13, lineHeight: 20 }}>
           {String(startupError?.message || startupError)}
         </Text>
+        <Text selectable style={{ color: '#A99DB5', fontSize: 10, lineHeight: 15, marginTop: 12 }}>
+          {String(startupError?.stack || 'Stack unavailable')}
+        </Text>
         <Text style={{ color: '#A99DB5', fontSize: 12, marginTop: 16 }}>
-          Crash report saved on this device.
+          Crash report saved on this device. Long-press the error details to copy.
         </Text>
       </View>
     );
