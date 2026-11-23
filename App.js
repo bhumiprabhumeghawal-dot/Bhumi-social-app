@@ -6408,7 +6408,7 @@ export default function App() {
             <TouchableOpacity onPress={() => setLiveCameraOpen(false)}>
               <Ionicons name="close" size={28} color="#FFFFFF" />
             </TouchableOpacity>
-            <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>Live</Text>
+            <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>{appText("createGoLive")}</Text>
             <TouchableOpacity onPress={() => setCameraFacing(v => v === "back" ? "front" : "back")}>
               <Ionicons name="camera-reverse-outline" size={27} color="#FFFFFF" />
             </TouchableOpacity>
@@ -6431,7 +6431,7 @@ export default function App() {
             </View>
             <View style={{ position: "absolute", bottom: 22, left: 0, right: 0, alignItems: "center" }}>
               <TouchableOpacity onPress={() => Alert.alert("Live streaming unavailable", "A streaming server/provider must be connected before broadcasting can start.")} style={{ width: "88%", minHeight: 54, borderRadius: 28, backgroundColor: "#E53945", alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "800" }}>Start Live</Text>
+                <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "800" }}>{appText("createGoLive")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -6468,7 +6468,7 @@ export default function App() {
               }}
               style={{ padding: 8 }}
             >
-              <Text style={{ color: "#FFFFFF", fontSize: 16 }}>Cancel</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 16 }}>{appText("cancel")}</Text>
             </TouchableOpacity>
             <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "700" }}>
               {cameraTargetKind === "reels"
@@ -6654,7 +6654,7 @@ export default function App() {
                   }}
                   style={{ padding: 14 }}
                 >
-                  <Text style={{ color: "#FFFFFF", fontSize: 16 }}>Retake</Text>
+                  <Text style={{ color: "#FFFFFF", fontSize: 16 }}>{appText("retry")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={recordedPhoto ? useRecordedPhoto : useRecordedVideo}
@@ -6755,7 +6755,7 @@ export default function App() {
               onPress={cancelDraftMedia}
               style={{ paddingVertical: 8, paddingRight: 12 }}
             >
-              <Text style={{ color: "#0095F6", fontSize: 16 }}>Cancel</Text>
+              <Text style={{ color: "#0095F6", fontSize: 16 }}>{appText("cancel")}</Text>
             </TouchableOpacity>
             <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "700" }}>
               {mediaDraft?.kind === "stories"
@@ -11291,7 +11291,7 @@ export default function App() {
                   disabled={passwordBusy}
                   style={{ padding: 12, marginRight: 8 }}
                 >
-                  <Text style={{ color: "#A8A8A8" }}>Cancel</Text>
+                  <Text style={{ color: "#A8A8A8" }}>{appText("cancel")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={async () => {
@@ -13201,7 +13201,7 @@ export default function App() {
                 paddingHorizontal: 14,
               }}
             >
-              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>Close</Text>
+              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{appText("close")}</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
