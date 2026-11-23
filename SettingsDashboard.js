@@ -156,6 +156,34 @@ const ACTION_KEYS = new Set([
   "location.history","location.liveSharing","location.nearbyFriends"
 ]);
 
+const APPEARANCE_FIELD_LABELS = {
+  en: ["Light Appearance","Bhumi Blue Theme","App Language","Larger Text","App Animations","App Icon","Display Settings","Chat Appearance"],
+  hi: ["लाइट थीम","भूमि ब्लू थीम","ऐप की भाषा","बड़ा टेक्स्ट","ऐप एनिमेशन","ऐप आइकन","डिस्प्ले सेटिंग्स","चैट का रूप"],
+  gu: ["લાઇટ થીમ","ભૂમિ બ્લૂ થીમ","એપની ભાષા","મોટું લખાણ","એપ એનિમેશન","એપ આઇકન","ડિસ્પ્લે સેટિંગ્સ","ચેટનો દેખાવ"],
+  bn: ["লাইট থিম","ভূমি ব্লু থিম","অ্যাপের ভাষা","বড় লেখা","অ্যাপ অ্যানিমেশন","অ্যাপ আইকন","ডিসপ্লে সেটিংস","চ্যাটের চেহারা"],
+  mr: ["लाइट थीम","भूमि ब्लू थीम","अॅपची भाषा","मोठा मजकूर","अॅप अॅनिमेशन","अॅप आयकॉन","डिस्प्ले सेटिंग्ज","चॅटचे स्वरूप"],
+  ta: ["ஒளி தோற்றம்","பூமி நீலத் தீம்","செயலி மொழி","பெரிய உரை","செயலி அசைவுகள்","செயலி ஐகான்","காட்சி அமைப்புகள்","அரட்டை தோற்றம்"],
+  te: ["లైట్ థీమ్","భూమి బ్లూ థీమ్","యాప్ భాష","పెద్ద అక్షరాలు","యాప్ యానిమేషన్లు","యాప్ ఐకాన్","డిస్‌ప్లే సెట్టింగ్‌లు","చాట్ రూపం"],
+  pa: ["ਲਾਈਟ ਥੀਮ","ਭੂਮੀ ਬਲੂ ਥੀਮ","ਐਪ ਦੀ ਭਾਸ਼ਾ","ਵੱਡਾ ਲਿਖਤ","ਐਪ ਐਨੀਮੇਸ਼ਨ","ਐਪ ਆਈਕਨ","ਡਿਸਪਲੇ ਸੈਟਿੰਗਾਂ","ਚੈਟ ਦੀ ਦਿੱਖ"],
+  kn: ["ಲೈಟ್ ಥೀಮ್","ಭೂಮಿ ಬ್ಲೂ ಥೀಮ್","ಆ್ಯಪ್ ಭಾಷೆ","ದೊಡ್ಡ ಪಠ್ಯ","ಆ್ಯಪ್ ಅನಿಮೇಷನ್‌ಗಳು","ಆ್ಯಪ್ ಐಕಾನ್","ಡಿಸ್ಪ್ಲೇ ಸೆಟ್ಟಿಂಗ್‌ಗಳು","ಚಾಟ್ ನೋಟ"],
+  ml: ["ലൈറ്റ് തീം","ഭൂമി ബ്ലൂ തീം","ആപ്പ് ഭാഷ","വലിയ ടെക്സ്റ്റ്","ആപ്പ് ആനിമേഷനുകൾ","ആപ്പ് ഐക്കൺ","ഡിസ്‌പ്ലേ ക്രമീകരണങ്ങൾ","ചാറ്റിന്റെ രൂപം"],
+  ur: ["لائٹ تھیم","بھومی بلیو تھیم","ایپ کی زبان","بڑا متن","ایپ اینیمیشنز","ایپ آئیکن","ڈسپلے کی ترتیبات","چیٹ کی شکل"],
+  es: ["Tema claro","Tema azul Bhumi","Idioma de la app","Texto más grande","Animaciones de la app","Icono de la app","Ajustes de pantalla","Apariencia del chat"],
+  fr: ["Thème clair","Thème bleu Bhumi","Langue de l’application","Texte plus grand","Animations de l’application","Icône de l’application","Paramètres d’affichage","Apparence du chat"],
+  ar: ["المظهر الفاتح","سمة بهومي الزرقاء","لغة التطبيق","نص أكبر","حركات التطبيق","أيقونة التطبيق","إعدادات العرض","مظهر الدردشة"],
+  pt: ["Tema claro","Tema azul Bhumi","Idioma do app","Texto maior","Animações do app","Ícone do app","Configurações de exibição","Aparência do chat"],
+  de: ["Helles Design","Bhumi-Blau-Design","App-Sprache","Größerer Text","App-Animationen","App-Symbol","Anzeigeeinstellungen","Chat-Design"],
+  ja: ["ライトテーマ","Bhumiブルーテーマ","アプリの言語","大きな文字","アプリのアニメーション","アプリアイコン","表示設定","チャットの外観"],
+  ko: ["라이트 테마","Bhumi 블루 테마","앱 언어","큰 글자","앱 애니메이션","앱 아이콘","화면 설정","채팅 모양"],
+  id: ["Tema terang","Tema Biru Bhumi","Bahasa aplikasi","Teks lebih besar","Animasi aplikasi","Ikon aplikasi","Pengaturan tampilan","Tampilan chat"],
+  ru: ["Светлая тема","Синяя тема Bhumi","Язык приложения","Крупный текст","Анимация приложения","Значок приложения","Настройки экрана","Оформление чата"],
+  zh: ["浅色外观","Bhumi 蓝色主题","应用语言","较大文字","应用动画","应用图标","显示设置","聊天外观"],
+  tr: ["Açık tema","Bhumi Mavi Tema","Uygulama dili","Daha büyük metin","Uygulama animasyonları","Uygulama simgesi","Görüntü ayarları","Sohbet görünümü"],
+  th: ["ธีมสว่าง","ธีมสีน้ำเงิน Bhumi","ภาษาของแอป","ข้อความขนาดใหญ่","ภาพเคลื่อนไหวของแอป","ไอคอนแอป","การตั้งค่าการแสดงผล","รูปลักษณ์แชต"],
+  vi: ["Giao diện sáng","Chủ đề xanh Bhumi","Ngôn ngữ ứng dụng","Văn bản lớn hơn","Hoạt ảnh ứng dụng","Biểu tượng ứng dụng","Cài đặt hiển thị","Giao diện trò chuyện"]
+};
+const APPEARANCE_FIELD_KEYS = ["appearance.theme","appearance.royalTheme","appearance.language","appearance.largeText","appearance.animations","appearance.appIcon","appearance.display","appearance.chat"];
+
 const SECTIONS = [
   { key:"account", title:"Account Settings", subtitle:"Personal details and account controls", icon:"person-circle-outline", fields:[
     ["profile.usernameChange","Change Username","Update your public username",false],
@@ -990,7 +1018,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   };
 
   const renderField = (field) => {
-    const [key, title, subtitle, defaultValue] = field;
+    const [key, originalTitle, subtitle, defaultValue] = field;
+    const appearanceIndex = APPEARANCE_FIELD_KEYS.indexOf(key);
+    const appearanceLabels = APPEARANCE_FIELD_LABELS[appLanguage] || APPEARANCE_FIELD_LABELS.en;
+    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : originalTitle;
+    const fieldSubtitle = appearanceIndex >= 0 && appLanguage !== "en" ? "" : subtitle;
     const value = preferences[key] ?? defaultValue;
     const isAction = ACTION_KEYS.has(key);
     return (
@@ -998,7 +1030,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         <View style={{ flexDirection:"row", alignItems:"center" }}>
           <View style={{ flex:1, paddingRight:12 }}>
             <Text style={{ color:TEXT, fontSize:14, fontWeight:"800" }}>{title}</Text>
-            <Text style={{ color:MUTED, fontSize:11, marginTop:4, lineHeight:16 }}>{subtitle}</Text>
+            <Text style={{ color:MUTED, fontSize:11, marginTop:4, lineHeight:16 }}>{fieldSubtitle}</Text>
             {((key === "security.fingerprint" || key === "security.faceUnlock") && value) ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"800",marginTop:5 }}>{t("enabledDevice")}</Text> : null}
             {savingKey === key ? <Text style={{ color:GOLD, fontSize:10, marginTop:5 }}>{t("saving")}</Text> : null}
           </View>
