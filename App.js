@@ -9640,7 +9640,7 @@ export default function App() {
                       marginBottom: 16,
                     }}
                   >
-                    Your photos and videos will appear here.
+                    {appText("profileMediaEmpty")}
                   </Text>
                   <TouchableOpacity
                     onPress={() => handleTab("Create")}
@@ -13380,7 +13380,7 @@ export default function App() {
                               onPress={() => openStoryGroup(stories)} />
                           ))}
                         </ScrollView>
-                      ) : <Text style={{ color: "#A8A8A8", fontSize: 13 }}>No status yet</Text>}
+                      ) : <Text style={{ color: "#A8A8A8", fontSize: 13 }}>{appText("noStatus")}</Text>}
                     </View>
                   );
                 })()}
