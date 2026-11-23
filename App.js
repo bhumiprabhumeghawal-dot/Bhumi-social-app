@@ -2530,6 +2530,7 @@ export default function App() {
   const [musicAsset, setMusicAsset] = React.useState(null);
   const [musicSearchOpen, setMusicSearchOpen] = React.useState(false);
   const [musicSearchQuery, setMusicSearchQuery] = React.useState("");
+  const [musicSearchLoading, setMusicSearchLoading] = React.useState(false);
   const [musicVolume, setMusicVolume] = React.useState(0.8);
   const [musicStart, setMusicStart] = React.useState(0);
   const [keepOriginalAudio, setKeepOriginalAudio] = React.useState(true);
@@ -5007,20 +5008,24 @@ export default function App() {
 
   const searchMusicOnGoogle = async () => {
     const query = musicSearchQuery.trim();
-    if (!query) {
-      Alert.alert("गाना खोजें", "पहले गाने या कलाकार का नाम लिखें।");
+    if (!query || musicSearchLoading) {
+      if (!query) Alert.alert("गाना खोजें", "पहले गाने या कलाकार का नाम लिखें।");
       return;
     }
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query + " song audio")}`;
+    setMusicSearchLoading(true);
     try {
-      setMusicSearchOpen(false);
       await Linking.openURL(searchUrl);
     } catch (error) {
       Alert.alert("Google Search नहीं खुला", error?.message || "कृपया फिर कोशिश करें।");
+    } finally {
+      setMusicSearchLoading(false);
     }
   };
 
   const chooseMusicFile = async () => {
+    if (musicSearchLoading) return;
+    setMusicSearchLoading(true);
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: "audio/*",
@@ -5028,14 +5033,14 @@ export default function App() {
         multiple: false,
       });
       if (result.canceled || !result.assets?.length) return;
-      setMusicAsset(result.assets[0]);
-      musicPlayer.replace({ uri: result.assets[0].uri });
-      Alert.alert(
-        "Music selected",
-        result.assets[0].name || "Audio file selected",
-      );
+      const selectedAudio = result.assets[0];
+      setMusicAsset(selectedAudio);
+      musicPlayer.replace({ uri: selectedAudio.uri });
+      setMusicSearchOpen(false);
     } catch (e) {
       Alert.alert("Music selection failed", e.message || "Please try again.");
+    } finally {
+      setMusicSearchLoading(false);
     }
   };
 
@@ -7604,7 +7609,7 @@ export default function App() {
               </TouchableOpacity>
             </View>
             <Text style={{ color: "#BDBDBD", fontSize: 13, lineHeight: 19 }}>
-              अपने फोन से गाना चुनें या Google पर गाना खोजें। Google से डाउनलोड की गई वैध ऑडियो फ़ाइल को वापस आकर फोन से चुनें।
+              Google से गाने का नाम या कलाकार खोजें। गाने की अनुमति-प्राप्त ऑडियो फ़ाइल चुनने पर वह अपने-आप एडिटर में जुड़ जाएगी।
             </Text>
             <TextInput
               value={musicSearchQuery}
@@ -7617,20 +7622,22 @@ export default function App() {
             />
             <TouchableOpacity
               onPress={searchMusicOnGoogle}
+              disabled={musicSearchLoading}
               style={{ backgroundColor: "#0095F6", borderRadius: 12, paddingVertical: 13, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8 }}
             >
-              <Ionicons name="search" size={18} color="#FFFFFF" />
-              <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Google पर गाना खोजें</Text>
+              {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="search" size={18} color="#FFFFFF" />}
+              <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{musicSearchLoading ? "लोड हो रहा है..." : "Google पर गाना खोजें"}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => { setMusicSearchOpen(false); chooseMusicFile(); }}
+              onPress={chooseMusicFile}
+              disabled={musicSearchLoading}
               style={{ borderWidth: 1, borderColor: "#555555", borderRadius: 12, paddingVertical: 13, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8 }}
             >
-              <Ionicons name="folder-open-outline" size={18} color="#FFFFFF" />
-              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>फोन से गाना चुनें / डाउनलोड किया हुआ गाना</Text>
+              {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="folder-open-outline" size={18} color="#FFFFFF" />}
+              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{musicSearchLoading ? "गाना लोड हो रहा है..." : "ऑडियो फ़ाइल चुनें"}</Text>
             </TouchableOpacity>
             <Text style={{ color: "#888888", fontSize: 11, lineHeight: 16 }}>
-              ध्यान दें: Google खोज के परिणाम सीधे ऐप में ऑडियो नहीं बनते। गाना डाउनलोड करने के बाद उसे ऊपर वाले फोन विकल्प से चुनें; केवल वही संगीत इस्तेमाल करें जिसके उपयोग की अनुमति आपके पास हो।
+              Google Search से परिणाम खुलेंगे; Google का वेब पेज खुद ऑडियो फ़ाइल नहीं देता। चुनी हुई ऑडियो फ़ाइल एडिटर में अपने-आप लग जाएगी। केवल वही संगीत इस्तेमाल करें जिसके उपयोग की अनुमति आपके पास हो।
             </Text>
           </View>
         </View>
