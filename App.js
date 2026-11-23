@@ -4046,7 +4046,7 @@ export default function App() {
           console.warn("Could not open reel notification:", error?.message || error);
         }
       }
-      Alert.alert(appText("alertContentUnavailable"), "This post or reel may have been deleted or is no longer visible.");
+      Alert.alert(appText("alertContentUnavailable"), appText("postOrReelUnavailable"));
       return;
     }
 
@@ -4406,7 +4406,7 @@ export default function App() {
   };
 
   const handleSettingsLogout = () => {
-    Alert.alert(appText("alertLogOut"), "Are you sure you want to log out?", [
+    Alert.alert(appText("alertLogOut"), appText("logoutConfirmMessage"), [
       { text: appText("cancel"), style: "cancel" },
       {
         text: appText("alertLogOut"),
@@ -6102,7 +6102,7 @@ export default function App() {
             <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 76, height: 76, marginBottom: 14 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
             <Text style={{ fontSize: 27, fontWeight: "800", color: "#FFFFFF", letterSpacing: -0.6 }}>Bhumi Social AI</Text>
             <Text style={{ color: "#A8A8A8", marginTop: 7, fontSize: 13 }}>
-              {authMode === "register" ? "Create your account and connect" : "Welcome back. Sign in to continue."}
+              {authMode === "register" ? appText("authRegisterSubtitle") : appText("authLoginSubtitle")}
             </Text>
           </View>
           {authMode === "register" ? (
