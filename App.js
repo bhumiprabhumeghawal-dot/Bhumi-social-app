@@ -2283,6 +2283,9 @@ const VIDEO_FILTER_PREVIEW_STYLES = [
 ];
 
 export default function App() {
+  const [activeTab, setActiveTab] = React.useState("Home");
+  const [appLanguage, setAppLanguage] = React.useState("en");
+  const appText = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   // BHUMI_CRASH_DISPLAY
   React.useEffect(() => {
     let active = true;
@@ -2301,9 +2304,6 @@ export default function App() {
     };
   }, [appLanguage]);
 
-  const [activeTab, setActiveTab] = React.useState("Home");
-  const [appLanguage, setAppLanguage] = React.useState("en");
-  const appText = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   React.useEffect(() => {
     let active = true;
     SecureStore.getItemAsync("bhumi_app_language")
