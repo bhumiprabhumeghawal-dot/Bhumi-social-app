@@ -2533,6 +2533,7 @@ export default function App() {
   const [musicSearchQuery, setMusicSearchQuery] = React.useState("");
   const [musicSearchLoading, setMusicSearchLoading] = React.useState(false);
   const [musicVolume, setMusicVolume] = React.useState(0.8);
+  const [originalAudioVolume, setOriginalAudioVolume] = React.useState(1);
   const [musicStart, setMusicStart] = React.useState(0);
   const [musicFadeIn, setMusicFadeIn] = React.useState(0.6);
   const [musicFadeOut, setMusicFadeOut] = React.useState(1.2);
@@ -5249,6 +5250,7 @@ export default function App() {
         if (assetIsVideo && musicAsset?.uri) {
           uploadAsset = await addMusicToVideo(uploadAsset.uri, musicAsset.uri, {
             musicVolume,
+            originalVolume: originalAudioVolume,
             musicStart,
             musicFadeIn,
             musicFadeOut,
@@ -5277,6 +5279,7 @@ export default function App() {
       setMusicFadeIn(0.6);
       setMusicFadeOut(1.2);
       setMusicVolume(0.8);
+      setOriginalAudioVolume(1);
       setKeepOriginalAudio(true);
       setVideoFilterIndex(0);
       setVoiceEffect("Original");
@@ -5326,6 +5329,7 @@ export default function App() {
     setMusicFadeIn(0.6);
     setMusicFadeOut(1.2);
     setMusicVolume(0.8);
+    setOriginalAudioVolume(1);
     setKeepOriginalAudio(true);
     setVideoFilterIndex(0);
     setVoiceEffect("Original");
@@ -6781,7 +6785,7 @@ export default function App() {
                              <TouchableOpacity disabled={busy} onPress={() => {
                                setVideoFilterIndex(0); setVoiceEffect("Original");
                                setZoomEffectEnabled(false); setZoomEffectLevel(1.5); setZoomEffectDuration(3);
-                               setMusicAsset(null); setMusicStart(0); setMusicVolume(0.8); setKeepOriginalAudio(true);
+                               setMusicAsset(null); setMusicStart(0); setMusicVolume(0.8); setOriginalAudioVolume(1); setKeepOriginalAudio(true);
                                musicPlayer.pause();
                              }} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.78)", borderWidth: 1, borderColor: "#7CC4FF", flexDirection: "row", alignItems: "center", gap: 5 }}>
                                <Ionicons name="refresh-outline" size={13} color="#FFFFFF" />
@@ -7498,6 +7502,15 @@ export default function App() {
                               {keepOriginalAudio ? "ON" : "OFF"}
                             </Text>
                           </TouchableOpacity>
+                          {keepOriginalAudio ? (
+                            <View style={{ paddingTop: 4, gap: 7 }}>
+                              <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>Original audio volume: {Math.round(originalAudioVolume * 100)}%</Text>
+                              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                                <TouchableOpacity onPress={() => setOriginalAudioVolume((v) => Math.max(0, Number((v - 0.1).toFixed(1))))} style={{ paddingHorizontal: 13, paddingVertical: 7, borderWidth: 1, borderColor: "#333333", borderRadius: 8 }}><Text style={{ color: "#0095F6" }}>−</Text></TouchableOpacity>
+                                <TouchableOpacity onPress={() => setOriginalAudioVolume((v) => Math.min(2, Number((v + 0.1).toFixed(1))))} style={{ paddingHorizontal: 13, paddingVertical: 7, borderWidth: 1, borderColor: "#333333", borderRadius: 8 }}><Text style={{ color: "#0095F6" }}>＋</Text></TouchableOpacity>
+                              </View>
+                            </View>
+                          ) : null}
                         </View>
                       )}
                     </View>
