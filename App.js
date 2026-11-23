@@ -616,6 +616,7 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
   active = true,
   muted = false,
   contentFit = "contain",
+  appLanguage = "en",
   loop = true,
   onPlayToEnd,
   onTimeUpdate,
@@ -1227,7 +1228,7 @@ function PostCard({
         <View style={styles.postUserInfo}>
           <TouchableOpacity onPress={() => onOpenProfile(post.user)} activeOpacity={0.75}>
             <Text style={[styles.username, { color: "#FFFFFF" }]}>
-              {post.user || appText("youLabel")}
+              {post.user || translateAppText(appLanguage, "youLabel")}
             </Text>
           </TouchableOpacity>
           {!!post.location && (
@@ -1285,6 +1286,7 @@ function PostCard({
               >
                 {media.uri && media.mediaType === "video" ? (
                   <ReelVideo
+                    appLanguage={appLanguage}
                     uri={media.uri}
                     height={mediaHeight}
                     active={active && mediaIndex === index && autoPlay}
@@ -1329,6 +1331,7 @@ function PostCard({
           >
             {post.uri && post.mediaType === "video" ? (
               <ReelVideo
+                    appLanguage={appLanguage}
                 uri={post.uri}
                 height={mediaHeight}
                 active={active}
@@ -1412,7 +1415,7 @@ function PostCard({
         </View>
 
         <Text style={[styles.likes, { color: "#FFFFFF" }]}>
-          {likeCount.toLocaleString()} {appText("likesLabel")}
+          {likeCount.toLocaleString()} {translateAppText(appLanguage, "likesLabel")}
         </Text>
         {!!post.caption && (
           <Text style={[styles.caption, { color: "#FFFFFF" }]}>
@@ -1524,7 +1527,7 @@ function PostCard({
                           onPress={() => onOpenProfile(comment.username)}
                           style={{ fontWeight: "600" }}
                         >
-                          {comment.username || appText("youLabel")}{" "}
+                          {comment.username || translateAppText(appLanguage, "youLabel")}{" "}
                         </Text>
                         {comment.text}
                       </Text>
@@ -1887,7 +1890,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
                     >
                       <Text style={{ color: "#FFFFFF", lineHeight: 21 }}>
                         <Text style={{ fontWeight: "800" }}>
-                          {item.username || appText("youLabel")}{" "}
+                          {item.username || translateAppText(appLanguage, "youLabel")}{" "}
                         </Text>
                         {item.text}
                       </Text>
@@ -6568,7 +6571,8 @@ export default function App() {
                 resizeMode="contain"
               />
             ) : recordedVideo ? (
-              <ReelVideo key={recordedVideo} uri={recordedVideo} />
+              <ReelVideo
+                    appLanguage={appLanguage} key={recordedVideo} uri={recordedVideo} />
             ) : (
               <CameraView
                 ref={cameraRef}
@@ -6793,6 +6797,7 @@ export default function App() {
                     >
                       {isVideo ? (
                         <ReelVideo
+                    appLanguage={appLanguage}
                           uri={asset.uri}
                           height={Dimensions.get("window").height}
                         />
@@ -7158,6 +7163,7 @@ export default function App() {
                   >
                     {isVideo ? (
                       <ReelVideo
+                    appLanguage={appLanguage}
                         uri={asset.uri}
                         height={Math.max(
                           360,
@@ -7928,6 +7934,7 @@ export default function App() {
                   >
                     {r.uri && Math.abs(index - activeReelIndex) <= 1 ? (
                       <ReelVideo
+                    appLanguage={appLanguage}
                         uri={r.uri}
                         height={rowHeight}
                         active={
@@ -9728,6 +9735,7 @@ export default function App() {
             {selectedStory?.uri ? (
               selectedStory.mediaType === "video" ? (
                 <ReelVideo
+                    appLanguage={appLanguage}
                   uri={selectedStory.uri}
                   height={Dimensions.get("window").height}
                   
@@ -10071,7 +10079,8 @@ export default function App() {
                       }}
                     >
                       {media.uri && media.mediaType === "video" ? (
-                        <ReelVideo uri={media.uri} zoomControls />
+                        <ReelVideo
+                    appLanguage={appLanguage} uri={media.uri} zoomControls />
                       ) : media.uri ? (
                         <ZoomableImage
                           uri={media.uri}
@@ -10114,7 +10123,8 @@ export default function App() {
                 </Text>
               </>
             ) : selectedPost?.uri && selectedPost.mediaType === "video" ? (
-              <ReelVideo uri={selectedPost.uri} zoomControls />
+              <ReelVideo
+                    appLanguage={appLanguage} uri={selectedPost.uri} zoomControls />
             ) : selectedPost?.uri ? (
               <ZoomableImage
                 uri={selectedPost.uri}
