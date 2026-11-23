@@ -14212,7 +14212,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
   headerSideSpacer: { width: 116 },
-  headerActions: { flexDirection: "row", alignItems: "center", gap: 19, transform: [{ translateY: 5 }] },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: 19, transform: [{ translateY: 15 }] },
   headerIcon: { fontSize: 27, color: "#0095F6" },
   stories: { paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   story: { width: 68, alignItems: "center" },
