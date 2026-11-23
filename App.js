@@ -7814,7 +7814,7 @@ export default function App() {
             </ScrollView>
             {musicAsset?.title || musicAsset?.name ? (
               <View style={{ backgroundColor: "#222222", borderRadius: 10, padding: 10 }}>
-                <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }} numberOfLines={1}>Selected: {musicAsset.title || musicAsset.name}</Text>
+                <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }} numberOfLines={1}>{appText("selectedTrack")}: {musicAsset.title || musicAsset.name}</Text>
                 <Text style={{ color: "#8CCBFF", fontSize: 11, marginTop: 3 }}>{appText("songAddedToEditor")}</Text>
               </View>
             ) : null}
