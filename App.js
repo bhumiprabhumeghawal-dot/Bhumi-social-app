@@ -10563,7 +10563,7 @@ export default function App() {
               <Ionicons name="shield-checkmark" size={22} color="#C9ACFF" />
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{appText("privacyChatControls")}</Text>
-                <Text style={{ color: "#B8AFC5", fontSize: 11, marginTop: 3 }}>Messages, Story audience, read receipts and more</Text>
+                <Text style={{ color: "#B8AFC5", fontSize: 11, marginTop: 3 }}>{appText("messagePrivacySubtitle")}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#C9ACFF" />
             </TouchableOpacity>
@@ -10741,7 +10741,7 @@ export default function App() {
                 <Ionicons name="business" size={24} color="#0095F6" />
                 <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", marginLeft: 9 }}>{appText("creatorBusinessHub")}</Text>
               </View>
-              <Text style={{ color: "#0095F6", fontSize: 12, fontWeight: "700", marginBottom: 16 }}>PREMIUM BUSINESS PROFILE · AREA DISCOVERY</Text>
+              <Text style={{ color: "#0095F6", fontSize: 12, fontWeight: "700", marginBottom: 16 }}>{appText("premiumBusinessProfileTag")}</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 15 }}>
                 {[
                   ["Content", businessInsights.contentCount],
@@ -11026,7 +11026,7 @@ export default function App() {
               <Text style={{ color: "#0095F6", fontSize: 15, fontWeight: "700" }}>{appText("shareAppLabel")}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setAboutAppOpen(false)} style={{ alignItems: "center", justifyContent: "center", paddingVertical: 16, marginTop: 5 }}>
-              <Text style={{ color: "#A8A8A8", fontSize: 14, fontWeight: "700" }}>Close</Text>
+              <Text style={{ color: "#A8A8A8", fontSize: 14, fontWeight: "700" }}>{appText("close")}</Text>
             </TouchableOpacity>
           </View>
         </View>
