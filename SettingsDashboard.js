@@ -543,7 +543,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const findNearbyFriends = async () => {
     try {
       const permission = await Location.requestForegroundPermissionsAsync();
-      if (permission.status !== "granted") throw new Error("Nearby friends देखने के लिए foreground location permission दें।");
+      if (permission.status !== "granted") throw new Error("Grant foreground location permission to see nearby friends.");
       const current = await Location.getCurrentPositionAsync({ accuracy:Location.Accuracy.Balanced });
       const toRad = (value) => value * Math.PI / 180;
       const distanceKm = (lat, lon) => {
@@ -558,7 +558,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       });
       setNearbyDistances(distances);
     } catch (error) {
-      setLocationStatus(error?.message || "Nearby friends नहीं दिख सके।");
+      setLocationStatus(error?.message || "Nearby friends could not be loaded.");
     }
   };
 
@@ -581,13 +581,13 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
 
   const startLiveLocationShare = async () => {
     const recipient = locationRecipient.trim().replace(/^@/, "");
-    if (!recipient) { setLocationStatus("जिस दोस्त को लोकेशन भेजनी है उसका username लिखें।"); return; }
+    if (!recipient) { setLocationStatus("Enter the username of the friend you want to share your location with."); return; }
     setLocationLoading(true);
-    setLocationStatus("Location permission माँगी जा रही है…");
+    setLocationStatus("Requesting location permission…");
     let createdShareId = null;
     try {
       const permission = await Location.requestForegroundPermissionsAsync();
-      if (permission.status !== "granted") throw new Error("Live location के लिए While Using the App location permission जरूरी है।");
+      if (permission.status !== "granted") throw new Error("While Using the App location permission is required for live location sharing.");
       const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const approximate = !!preferences["location.approximate"];
       const latitude = approximate ? Math.round(position.coords.latitude * 100) / 100 : position.coords.latitude;
@@ -610,7 +610,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         if (backgroundPermission.status !== "granted") {
           await stopLocationShare(created.share_id);
           activeLocationShareRef.current = null;
-          throw new Error("Background permission नहीं मिली। Location sharing शुरू नहीं की गई। Android Settings में Allow all the time चुनें, या Background Location बंद करके foreground sharing करें।");
+          throw new Error("Background location permission was not granted. Location sharing was not started. Choose Allow all the time in Android Settings, or turn off Background Location and use foreground sharing.");
         }
         await Promise.all([
           SecureStore.setItemAsync("bhumi_live_share_id", created.share_id),
@@ -648,18 +648,18 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               duration_minutes: locationDurationRef.current,
             });
           } catch (error) {
-            setLocationStatus(error?.message || "Location update नहीं हो पाया।");
+            setLocationStatus(error?.message || "The location could not be updated.");
           }
         });
       }
-      setLocationStatus("आपकी live location @" + created.recipient_username + " के साथ साझा हो रही है। " + (preferences["location.background"] ? "Background location service चालू है।" : "Updates app foreground में होंगी।"));
+      setLocationStatus("Your live location is shared with @" + created.recipient_username + "." + (preferences["location.background"] ? "Background location service is active." : "Updates will run while the app is in the foreground."));
       await refreshLocationShares();
     } catch (error) {
       if (createdShareId) {
         try { await stopLocationShare(createdShareId); } catch (_) {}
         await stopLocationWatcher();
       }
-      setLocationStatus(error?.message || "Live location शुरू नहीं हो सकी।");
+      setLocationStatus(error?.message || "Live location could not be started.");
     } finally { setLocationLoading(false); }
   };
 
@@ -668,9 +668,9 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       await stopLocationShare(shareId);
       const storedShareId = await SecureStore.getItemAsync("bhumi_live_share_id");
       if (activeLocationShareRef.current?.shareId === shareId || storedShareId === shareId) await stopLocationWatcher();
-      setLocationStatus("Location sharing बंद कर दी गई है।");
+      setLocationStatus("Location sharing has been stopped.");
       await refreshLocationShares();
-    } catch (error) { setLocationStatus(error?.message || "Location sharing बंद नहीं हुई।"); }
+    } catch (error) { setLocationStatus(error?.message || "Location sharing could not be stopped."); }
   };
 
   React.useEffect(() => {
@@ -714,14 +714,14 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       const supported = await LocalAuthentication.supportedAuthenticationTypesAsync();
       const requiredType = isFingerprint ? LocalAuthentication.AuthenticationType.FINGERPRINT : LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION;
       if (!hasHardware || !enrolled || !supported.includes(requiredType)) {
-        throw new Error(isFingerprint ? "इस डिवाइस में enrolled fingerprint उपलब्ध नहीं है।" : "इस डिवाइस में enrolled face unlock उपलब्ध नहीं है।");
+        throw new Error(isFingerprint ? "No enrolled fingerprint is available on this device." : "No enrolled face unlock is available on this device.");
       }
       const result = await LocalAuthentication.authenticateAsync({ promptMessage:"Enable "+label, cancelLabel:"Cancel", disableDeviceFallback:true });
       if (!result.success) return;
       await SecureStore.setItemAsync(secureKey,"true");
       const saved = await saveSettingsPreferences({ [key]:true });
       setPreferences((current)=>({...current,...saved,[key]:true}));
-      setNotice({ title:label+" enabled", message:"अब App Lock स्क्रीन पर "+label+" से भी ऐप खोल सकते हैं। App PIN backup के रूप में सुरक्षित रहेगा।" });
+      setNotice({ title:label+" enabled", message:"You can now use "+label+" on the App Lock screen. Your App PIN will remain available as a backup." });
     } catch (error) {
       setNotice({ title:label, message:error?.message || "Biometric authentication could not be enabled." });
     }
@@ -1377,7 +1377,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                   try { await SecureStore.setItemAsync("bhumi_app_language",item.code); setSelectedLanguage(item.code); onLanguageChange?.(item.code); setLanguageVisible(false); }
                   catch (error) { setNotice({title:"Could not save language",message:error?.message || "Please try again."}); }
                 }} style={{ flexDirection:"row",alignItems:"center",paddingVertical:12,borderBottomWidth:1,borderBottomColor:BORDER }}>
-                  <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{item.name} · {item.native}</Text><Text style={{ color:MUTED,fontSize:10,marginTop:3 }}>{item.region}</Text></View>
+                  <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{item.name}{appLanguage === "en" ? "" : " · " + item.native}</Text><Text style={{ color:MUTED,fontSize:10,marginTop:3 }}>{item.region}</Text></View>
                   {selectedLanguage===item.code ? <Ionicons name="checkmark-circle" size={21} color={GOLD}/> : <View style={{ width:20,height:20,borderRadius:10,borderWidth:1,borderColor:BORDER }}/>}
                 </TouchableOpacity>
               ))}
