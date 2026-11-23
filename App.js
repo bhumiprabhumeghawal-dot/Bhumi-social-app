@@ -1994,7 +1994,7 @@ const Alert = {
   },
 };
 
-function CustomAlertHost() {
+function CustomAlertHost({ appLanguage = "en" }) {
   const [alertData, setAlertData] = React.useState(null);
 
   React.useEffect(() => {
@@ -2003,7 +2003,7 @@ function CustomAlertHost() {
         title: String(title || "Bhumi Social AI"),
         message: message == null ? "" : String(message),
         buttons:
-          Array.isArray(buttons) && buttons.length ? buttons : [{ text: "Close" }],
+          Array.isArray(buttons) && buttons.length ? buttons : [{ text: translateAppText(appLanguage, "close") }],
         options: options || {},
       });
     };
@@ -2011,7 +2011,7 @@ function CustomAlertHost() {
     return () => {
       if (customAlertHandler === handler) customAlertHandler = null;
     };
-  }, []);
+  }, [appLanguage]);
 
   if (!alertData) return null;
   const words = (alertData.title + " " + alertData.message).toLowerCase();
@@ -2158,7 +2158,7 @@ function CustomAlertHost() {
                       textAlign: "center",
                     }}
                   >
-                    {button.text || "Close"}
+                    {({ Close: "close", Cancel: "cancel", OK: "ok", Done: "done", Save: "save", Back: "back", Later: "laterAction" }[button.text] ? translateAppText(appLanguage, ({ Close: "close", Cancel: "cancel", OK: "ok", Done: "done", Save: "save", Back: "back", Later: "laterAction" }[button.text])) : button.text || translateAppText(appLanguage, "close"))}
                   </Text>
                 </TouchableOpacity>
               );
@@ -14166,7 +14166,7 @@ export default function App() {
           </View>
         </View>
       </Modal>
-      <CustomAlertHost />
+      <CustomAlertHost appLanguage={appLanguage} />
     </SafeAreaView>
   );
 }
