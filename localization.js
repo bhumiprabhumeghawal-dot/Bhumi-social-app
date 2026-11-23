@@ -46,9 +46,11 @@ export function translateAppTextValue(language, value) {
     : DICTIONARIES.en;
   const englishEntries = Object.entries(DICTIONARIES.en);
   const match = englishEntries.find(([, englishValue]) => englishValue === value);
-  if (!match) return dictionary.translationUnavailable;
+  // Preserve unmatched dynamic/server text so an actionable error is
+  // never replaced by a generic "translation unavailable" message.
+  if (!match) return value;
   const translated = dictionary[match[0]];
   return typeof translated === "string" && translated.trim()
     ? translated
-    : dictionary.translationUnavailable;
+    : value;
 }
