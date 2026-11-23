@@ -1154,15 +1154,15 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 <Text style={{ color:MUTED,fontSize:11,lineHeight:17,marginTop:5 }}>{t("securityNote")}</Text>
               </View>
             ) : null}
-            {section.key === "messages" && appLanguage === "en" ? (
+            {section.key === "messages" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
-                <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>CHAT PRIVACY CONTROLS</Text>
+                <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>{t("chatPrivacyControls")}</Text>
                 <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Blocked and Restricted Accounts are managed from the Privacy Settings section. Your existing conversations remain available when you turn off first-time message requests; new unknown senders are refused. Read receipts and typing indicators are enforced by the chat server.</Text>
               </View>
             ) : null}
-            {section.key === "messages" && appLanguage === "en" ? (
+            {section.key === "messages" ? (
               <View style={{ backgroundColor:"#1C1C1E",borderWidth:1,borderColor:GOLD,borderRadius:14,padding:14,marginBottom:13 }}>
-                <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>CHAT PERSONALIZATION STUDIO</Text>
+                <Text style={{ color:GOLD,fontWeight:"900",fontSize:13 }}>{t("chatPersonalizationStudio")}</Text>
                 <Text style={{ color:TEXT,fontSize:12,lineHeight:18,marginTop:6 }}>Open Messages, enter any conversation, then tap the palette icon. Choose a separate chat theme, set a private name for that friend, and add or remove them from Favourite Friends or Close Friends. Favourite and Close Friends filters appear above your chat list.</Text>
               </View>
             ) : null}
@@ -1179,7 +1179,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             ) : null}
             {section.legacy && appLanguage === "en" ? (
               <TouchableOpacity onPress={() => { setActive(null); onLegacyOpen?.(section.legacy); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
-                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Open Existing {section.title}</Text>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{t("openExistingSection")} {section.title}</Text>
               </TouchableOpacity>
             ) : null}
             {section.key === "about" ? (
