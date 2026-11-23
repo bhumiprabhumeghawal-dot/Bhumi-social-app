@@ -6258,9 +6258,11 @@ export default function App() {
     });
   };
 
+  const lightAppearance = appSettingsPreferences["appearance.theme"] === true;
+
   return (
-    <SafeAreaView style={styles.screen}>
-      <StatusBar style="light" hidden={false} translucent={false} />
+    <SafeAreaView style={[styles.screen, lightAppearance && { backgroundColor: "#F7F7F7" }]}>
+      <StatusBar style={lightAppearance ? "dark" : "light"} hidden={false} translucent={false} />
       <VoiceVideoCallControls username={selectedChatUser} currentUsername={authSession?.username} enableOutgoing={false} showButtons={false} />
 
 
