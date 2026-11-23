@@ -13819,7 +13819,7 @@ export default function App() {
                     <Text
                       style={{ color: "#B7791F", fontSize: 11, marginTop: 4 }}
                     >
-                      {postText("pendingApproval")}
+                      {appText("pendingApproval")}
                     </Text>
                   ) : null}
                   {item.isPending && item.canApprove ? (
@@ -13842,7 +13842,7 @@ export default function App() {
                           fontWeight: "800",
                         }}
                       >
-                        {postText("approve")}
+                        {appText("approve")}
                       </Text>
                     </TouchableOpacity>
                   ) : null}
@@ -13897,7 +13897,7 @@ export default function App() {
                     fontWeight: "800",
                   }}
                 >
-                  {postText("postComment")}
+                  {appText("postComment")}
                 </Text>
               </TouchableOpacity>
             </View>
