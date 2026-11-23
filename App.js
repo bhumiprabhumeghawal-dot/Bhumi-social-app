@@ -1153,7 +1153,7 @@ function PostCard({
       setComments((previous) => [...previous, comment]);
       setCommentDraft("");
     } catch (error) {
-      Alert.alert("Comment failed", error.message || "Could not post comment.");
+      Alert.alert(postText("commentFailed"), error.message || postText("couldNotPostComment"));
     } finally {
       setInteractionBusy(false);
     }
@@ -9453,7 +9453,7 @@ export default function App() {
                         fontSize: 15,
                       }}
                     >
-                      Saved
+                      {appText("saved")}
                     </Text>
                     <Text
                       style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}
@@ -14025,7 +14025,7 @@ export default function App() {
                             fontWeight: "700",
                           }}
                         >
-                          {item.kind === "reels" ? "REEL" : "POST"}
+                          {item.kind === "reels" ? appText("reelLabel") : appText("postLabel")}
                         </Text>
                       </View>
                       <View
@@ -14070,7 +14070,7 @@ export default function App() {
                 <View style={{ alignItems: "center", padding: 45 }}>
                   <Ionicons name="bookmark-outline" size={42} color="#A0A8B4" />
                   <Text style={{ color: "#A8A8A8", marginTop: 12 }}>
-                    Nothing saved yet.
+                    {appText("nothingSaved")}
                   </Text>
                 </View>
               ) : null}
@@ -14091,12 +14091,12 @@ export default function App() {
             <View style={{ width:64,height:64,borderRadius:32,backgroundColor:"#1C1C1E",alignItems:"center",justifyContent:"center",marginBottom:14 }}>
               <Ionicons name="lock-closed" size={29} color="#0095F6"/>
             </View>
-            <Text style={{ color:"#FFFFFF",fontSize:21,fontWeight:"900" }}>Bhumi Social AI Locked</Text>
-            <Text style={{ color:"#A8A8A8",fontSize:12,textAlign:"center",lineHeight:18,marginTop:7 }}>Enter your device App PIN to continue.</Text>
+            <Text style={{ color:"#FFFFFF",fontSize:21,fontWeight:"900" }}>{appText("appLockedTitle")}</Text>
+            <Text style={{ color:"#A8A8A8",fontSize:12,textAlign:"center",lineHeight:18,marginTop:7 }}>{appText("enterDevicePin")}</Text>
             <TextInput
               value={appPinInput}
               onChangeText={(value)=>{setAppPinInput(value.replace(/\D/g,"").slice(0,6));setAppPinError("");}}
-              placeholder="Enter 4–6 digit PIN"
+              placeholder={appText("enterPinPlaceholder")}
               placeholderTextColor="#777777"
               keyboardType="number-pad"
               secureTextEntry
@@ -14120,13 +14120,13 @@ export default function App() {
                       setAppPinError("");
                     }
                   } catch (error) {
-                    setAppPinError(error?.message || "Biometric unlock failed. Use your App PIN.");
+                    setAppPinError(error?.message || appText("unlockWithBiometrics"));
                   }
                 }}
                 style={{ width:"100%",backgroundColor:"#17354A",borderRadius:13,padding:13,alignItems:"center",marginTop:14,flexDirection:"row",justifyContent:"center" }}
               >
                 <Ionicons name="finger-print" size={19} color="#8CCBFF"/>
-                <Text style={{ color:"#8CCBFF",fontWeight:"900",marginLeft:8 }}>Unlock with Biometrics</Text>
+                <Text style={{ color:"#8CCBFF",fontWeight:"900",marginLeft:8 }}>{appText("unlockWithBiometrics")}</Text>
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity
@@ -14136,13 +14136,13 @@ export default function App() {
                   setAppPinInput("");
                   setAppPinError("");
                 } else {
-                  setAppPinError("PIN  is incorrect. Please try again.");
+                  setAppPinError(appText("pinIncorrect"));
                   setAppPinInput("");
                 }
               }}
               style={{ width:"100%",backgroundColor:"#0095F6",borderRadius:13,padding:14,alignItems:"center",marginTop:15 }}
             >
-              <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>Unlock App</Text>
+              <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{appText("unlockApp")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={async()=>{
@@ -14153,7 +14153,7 @@ export default function App() {
               }}
               style={{ padding:13,marginTop:4 }}
             >
-              <Text style={{ color:"#A8A8A8",fontWeight:"800" }}>Sign out instead</Text>
+              <Text style={{ color:"#A8A8A8",fontWeight:"800" }}>{appText("signOutInstead")}</Text>
             </TouchableOpacity>
           </View>
         </View>
