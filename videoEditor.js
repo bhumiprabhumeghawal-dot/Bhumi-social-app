@@ -296,8 +296,9 @@ export async function applyVideoEffects(videoUri, options = {}) {
   if (!filter && !voice) return { uri: videoUri, type: 'video', mimeType: 'video/mp4' };
 
   // Check the actual native FFmpeg build before starting an export.
-  const requiredFilters = [...filter, ...voice]
-    .join('')
+  const requiredFilters = [filter, voice]
+    .filter(Boolean)
+    .join(',')
     .match(/(?:^|,)([a-zA-Z0-9_]+)=/g) || [];
   const requiredFilterNames = [...new Set(
     requiredFilters.map(item => item.replace(/^,/, '').replace(/=$/, ''))
