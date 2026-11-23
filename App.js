@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import appConfig from "./app.json";
 import SettingsDashboard from "./SettingsDashboard";
+import { translateAppText } from "./localization";
 import ChatPersonalization from "./ChatPersonalization";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import { ensureCallKeepSetup } from "./incomingCallBackgroundTask";
@@ -2288,6 +2289,7 @@ export default function App() {
 
   const [activeTab, setActiveTab] = React.useState("Home");
   const [appLanguage, setAppLanguage] = React.useState("en");
+  const appText = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   React.useEffect(() => {
     let active = true;
     SecureStore.getItemAsync("bhumi_app_language")
@@ -8179,7 +8181,7 @@ export default function App() {
                 justifyContent: "center",
               }}
             >
-              <Text style={{ color: "#FFFFFF" }}>No reels yet.</Text>
+              <Text style={{ color: "#FFFFFF" }}>{appText("noReels")}</Text>
               <TouchableOpacity onPress={createReel} style={{ padding: 14 }}>
                 <Text style={{ color: "#0095F6", fontWeight: "700" }}>
                   Upload Reel

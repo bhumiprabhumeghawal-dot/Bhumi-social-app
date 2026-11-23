@@ -999,7 +999,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               <Ionicons name="arrow-back" size={22} color={GOLD}/>
             </TouchableOpacity>
             <View style={{ flex:1 }}>
-              <Text style={{ color:TEXT,fontSize:19,fontWeight:"900", letterSpacing:-0.35 }}>{section.title}</Text>
+              <Text style={{ color:TEXT,fontSize:19,fontWeight:"900", letterSpacing:-0.35 }}>{t("section_" + section.key) || section.title}</Text>
               <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{section.subtitle}</Text>
             </View>
           </View>
@@ -1087,7 +1087,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               <TextInput
                 value={settingsSearch}
                 onChangeText={setSettingsSearch}
-                placeholder="Search settings"
+                placeholder={t("search")}
                 placeholderTextColor="#8E8E8E"
                 returnKeyType="search"
                 autoCorrect={false}
