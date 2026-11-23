@@ -12014,7 +12014,7 @@ export default function App() {
                     ) : null}
                     {chatPeopleError ? (
                       <Text style={{ color: "#B42318", padding: 10 }}>
-                        {chatPeopleError}
+                        {translateAppTextValue(appLanguage, chatPeopleError)}
                       </Text>
                     ) : null}
                     {chatPeopleResults.map((person, index) => (
@@ -14129,7 +14129,7 @@ export default function App() {
               autoFocus
               style={{ width:"100%",color:"#FFFFFF",borderWidth:1,borderColor:"#3A3A3A",borderRadius:13,padding:14,marginTop:18,fontSize:20,textAlign:"center",letterSpacing:8 }}
             />
-            {appPinError ? <Text style={{ color:"#F08080",fontSize:12,marginTop:9 }}>{appPinError}</Text> : null}
+            {appPinError ? <Text style={{ color:"#F08080",fontSize:12,marginTop:9 }}>{translateAppTextValue(appLanguage, appPinError)}</Text> : null}
             {appBiometricEnabled ? (
               <TouchableOpacity
                 onPress={async()=>{
