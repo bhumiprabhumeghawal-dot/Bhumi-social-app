@@ -9071,7 +9071,7 @@ export default function App() {
                     }}
                   >
                     <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
-                      Edit Profile
+                      {appText("editProfileAction")}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -9087,7 +9087,7 @@ export default function App() {
                       marginBottom: 8,
                     }}
                   >
-                    <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>Share Profile</Text>
+                    <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>{appText("shareProfileAction")}</Text>
                   </TouchableOpacity>
                   {!!profile.avatarUrl && (
                     <TouchableOpacity
@@ -9145,20 +9145,20 @@ export default function App() {
                       fontSize: 17,
                     }}
                   >
-                    Follow Requests ({followRequests.length})
+                    {appText("followRequestsTitle")} ({followRequests.length})
                   </Text>
                   <TouchableOpacity
                     onPress={refreshFollowRequests}
                     disabled={followRequestsBusy}
                   >
                     <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
-                      {followRequestsBusy ? "" : "Refresh"}
+                      {followRequestsBusy ? "" : appText("refreshAction")}
                     </Text>
                   </TouchableOpacity>
                 </View>
                 {followRequests.length === 0 ? (
                   <Text style={{ color: "#A8A8A8", paddingVertical: 8 }}>
-                    There are no pending follow requests.
+                    {appText("noPendingFollowRequests")}
                   </Text>
                 ) : (
                   followRequests.map((request) => (
@@ -13734,7 +13734,7 @@ export default function App() {
                   <View style={{ alignItems: "center", padding: 36 }}>
                     <Ionicons name="notifications-outline" size={34} color="#A8A8A8" />
                     <Text style={{ color: "#F5F5F5", fontSize: 14, fontWeight: "700", marginTop: 10 }}>
-                      {notificationsList.length === 0 ? "No notifications yet." : "No " + notificationFilter.toLowerCase() + " notifications."}
+                      {notificationsList.length === 0 ? appText("noNotificationsYet") : appText("noNotificationsInCategory")}
                     </Text>
                   </View>
                 ) : null}
