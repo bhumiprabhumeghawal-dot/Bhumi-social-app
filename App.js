@@ -1475,7 +1475,7 @@ function PostCard({
                   <Text
                     style={{ fontSize: 18, fontWeight: "800", color: "#FFFFFF" }}
                   >
-                    Comments
+                    {postText("commentsTitle")}
                   </Text>
                   <Text style={{ color: "#8E8E93", fontSize: 11, marginTop: 3 }}>
                     {postText("joinConversation")}
@@ -1549,7 +1549,7 @@ function PostCard({
                               fontWeight: "800",
                             }}
                           >
-                            Approve
+                            {postText("approve")}
                           </Text>
                         </TouchableOpacity>
                       ) : null}
@@ -1599,7 +1599,7 @@ function PostCard({
                   }}
                 >
                   <Text style={{ color: commentDraft.trim() && !interactionBusy ? "#FFFFFF" : "#8E8E93", fontWeight: "800", fontSize: 12 }}>
-                    Post
+                    {postText("postComment")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1838,15 +1838,15 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
               >
                 <View>
                   <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>
-                    Comments
+                    {postText("commentsTitle")}
                   </Text>
                   <Text style={{ color: "#8E8E93", fontSize: 11, marginTop: 3 }}>
-                    Join the conversation
+                    {postText("joinConversation")}
                   </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => setCommentsOpen(false)}
-                  accessibilityLabel="Close comments"
+                  accessibilityLabel={postText("closeComments")}
                   style={{
                     width: 32,
                     height: 32,
@@ -1889,7 +1889,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
                             marginTop: 4,
                           }}
                         >
-                          Pending approval
+                          {postText("pendingApproval")}
                         </Text>
                       ) : null}
                       {item.isPending && item.canApprove ? (
@@ -1912,7 +1912,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
                               fontWeight: "800",
                             }}
                           >
-                            Approve
+                            {postText("approve")}
                           </Text>
                         </TouchableOpacity>
                       ) : null}
@@ -1931,7 +1931,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
                 <TextInput
                   value={draft}
                   onChangeText={setDraft}
-                  placeholder="Write a comment..."
+                  placeholder={postText("writeComment")}
                   placeholderTextColor="#8E8E93"
                   maxLength={2000}
                   editable={!busy}
@@ -1963,7 +1963,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
                   }}
                 >
                   <Text style={{ color: draft.trim() && !busy ? "#FFFFFF" : "#8E8E93", fontWeight: "800", fontSize: 12 }}>
-                    Post
+                    {postText("postComment")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -8962,7 +8962,7 @@ export default function App() {
               {profileEditing ? (
                 <View>
                   <Text style={{ color: "#F5F5F5", marginBottom: 5 }}>
-                    Display Name
+                    {appText("displayName")}
                   </Text>
                   <TextInput
                     value={profileDraft.displayName}
@@ -10213,7 +10213,7 @@ export default function App() {
                 marginBottom: 5,
               }}
             >
-              Blocked Accounts
+              {appText("blockedAccounts")}
             </Text>
             <Text style={{ color: "#A8A8A8", fontSize: 13, marginBottom: 16 }}>
               {appText("blockedDescription")}
@@ -10377,7 +10377,7 @@ export default function App() {
                 marginBottom: 5,
               }}
             >
-              Restricted Accounts
+              {appText("restrictedAccounts")}
             </Text>
             <Text style={{ color: "#A8A8A8", fontSize: 13, marginBottom: 16 }}>
               {appText("restrictedDescription")}
@@ -13819,7 +13819,7 @@ export default function App() {
                     <Text
                       style={{ color: "#B7791F", fontSize: 11, marginTop: 4 }}
                     >
-                      Pending approval
+                      {postText("pendingApproval")}
                     </Text>
                   ) : null}
                   {item.isPending && item.canApprove ? (
@@ -13842,7 +13842,7 @@ export default function App() {
                           fontWeight: "800",
                         }}
                       >
-                        Approve
+                        {postText("approve")}
                       </Text>
                     </TouchableOpacity>
                   ) : null}
@@ -13897,7 +13897,7 @@ export default function App() {
                     fontWeight: "800",
                   }}
                 >
-                  Post
+                  {postText("postComment")}
                 </Text>
               </TouchableOpacity>
             </View>
