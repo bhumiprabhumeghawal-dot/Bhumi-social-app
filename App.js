@@ -7743,8 +7743,8 @@ export default function App() {
           <View style={{ maxHeight: "88%", backgroundColor: "#151515", borderRadius: 22, borderWidth: 1, borderColor: "#343434", padding: 16, gap: 12 }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <View>
-                <Text style={{ color: "#FFFFFF", fontSize: 20, fontWeight: "800" }}>Music Studio</Text>
-                <Text style={{ color: "#999999", fontSize: 11, marginTop: 3 }}>Search · Library · Preview · Add to video</Text>
+                <Text style={{ color: "#FFFFFF", fontSize: 20, fontWeight: "800" }}>{appText("musicStudioTitle")}</Text>
+                <Text style={{ color: "#999999", fontSize: 11, marginTop: 3 }}>{appText("musicStudioSubtitle")}</Text>
               </View>
               <TouchableOpacity onPress={() => setMusicSearchOpen(false)} style={{ padding: 5 }}>
                 <Ionicons name="close-circle" size={26} color="#AAAAAA" />
@@ -7815,7 +7815,7 @@ export default function App() {
             {musicAsset?.title || musicAsset?.name ? (
               <View style={{ backgroundColor: "#222222", borderRadius: 10, padding: 10 }}>
                 <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }} numberOfLines={1}>Selected: {musicAsset.title || musicAsset.name}</Text>
-                <Text style={{ color: "#8CCBFF", fontSize: 11, marginTop: 3 }}>Song added to the editor</Text>
+                <Text style={{ color: "#8CCBFF", fontSize: 11, marginTop: 3 }}>{appText("songAddedToEditor")}</Text>
               </View>
             ) : null}
             <Text style={{ color: "#777777", fontSize: 10, lineHeight: 15 }}>Google Search Opens web results, not a direct audio stream. The selected file is securely saved in the app's private Music Library  folder. A licensed streaming catalog can be connected to this system later.</Text>
@@ -7838,7 +7838,7 @@ export default function App() {
         </Text>
       )}
       {activeTab !== "Reels" && busy && (
-        <Text style={{ padding: 5, color: "#0095F6" }}>Uploading media…</Text>
+        <Text style={{ padding: 5, color: "#0095F6" }}>{appText("uploadMediaProgress")}</Text>
       )}
 
       {activeTab === "Reels" ? (
