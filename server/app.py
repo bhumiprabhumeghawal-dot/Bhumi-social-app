@@ -1517,7 +1517,7 @@ def update_profile(username):
                     if now - last < timedelta(days=90):
                         next_date = (last + timedelta(days=90)).date().isoformat()
                         return jsonify({
-                            "error": f"Display name अगली बार {next_date} से बदल सकते हैं।"
+                            "error": f"You can change your display name again from {next_date}."
                         }), 429
                 except ValueError:
                     pass
@@ -2799,13 +2799,13 @@ def enforce_authenticated_mutations():
 
     username = _auth_user()
     if not username:
-        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+        return jsonify({"error": "Please log in first."}), 401
 
     g.auth_username = username
 
     supplied = request.form.get("username")
     if supplied and supplied.strip().lstrip("@").lower() != username.lower():
-        return jsonify({"error": "लॉगिन अकाउंट से ही पोस्ट करें।"}), 403
+        return jsonify({"error": "You must post from the logged-in account."}), 403
 
     if request.path.startswith("/api/profile/"):
         parts = request.path.strip("/").split("/")
@@ -2826,14 +2826,14 @@ def enforce_authenticated_mutations():
                 request.method, request.path, username, target
             )
             return jsonify({
-                "error": "दूसरे अकाउंट में बदलाव की अनुमति नहीं है। "
+                "error": "Changes to another account are not allowed. "
                          f"[{request.method} {request.path}]"
             }), 403
 
         data = request.get_json(silent=True) or {}
         supplied_json = data.get("username") or data.get("viewer")
         if supplied_json and str(supplied_json).strip().lstrip("@").lower() != username.lower():
-            return jsonify({"error": "लॉगिन अकाउंट से ही यह काम करें।"}), 403
+            return jsonify({"error": "You must perform this action from the logged-in account."}), 403
 
     return None
 
@@ -2852,7 +2852,7 @@ def auth_register():
     email = email or None
     phone_number = phone_number or None
     if len(password) < 4 or len(password) > 24:
-        return jsonify({"error": "पासवर्ड 4 से 24 अक्षरों का रखें।"}), 400
+        return jsonify({"error": "Password must be between 4 and 24 characters."}), 400
 
     username = str(data.get("username", "")).strip().lstrip("@")
     full_name = str(data.get("full_name", "")).strip()
@@ -2875,7 +2875,7 @@ def auth_register():
             if db.execute(
                 "SELECT 1 FROM users WHERE username=? COLLATE NOCASE", (username,)
             ).fetchone():
-                return jsonify({"error": "यह username पहले से इस्तेमाल हो रहा है।"}), 409
+                return jsonify({"error": "This username is already in use."}), 409
 
             db.execute(
                 "INSERT INTO users(username,password_hash,created_at,phone_number,email) VALUES(?,?,?,?,?)",
@@ -2901,7 +2901,7 @@ def auth_register():
                 (username, now.isoformat())
             )
     except sqlite3.IntegrityError:
-        return jsonify({"error": "यह ईमेल पहले से किसी अकाउंट में इस्तेमाल हो रहा है।"}), 409
+        return jsonify({"error": "This email is already associated with an account."}), 409
 
     return jsonify({"ok": True, "username": username, "token": token}), 201
 
@@ -3094,7 +3094,7 @@ def auth_login():
             (identifier, identifier)
         ).fetchone()
         if not row or not check_password_hash(row["password_hash"], password):
-            return jsonify({"error": "ईमेल/यूज़रनेम या पासवर्ड गलत है।"}), 401
+            return jsonify({"error": "Email/username or password is incorrect."}), 401
 
         now = datetime.now(timezone.utc)
         token = secrets.token_urlsafe(32)
@@ -3117,7 +3117,7 @@ def auth_login():
 def auth_me():
     username = _auth_user()
     if not username:
-        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+        return jsonify({"error": "Login is required."}), 401
     return jsonify({"ok": True, "username": username})
 
 @app.post("/api/auth/logout")
@@ -3136,7 +3136,7 @@ def auth_logout():
 def auth_login_history():
     username = getattr(g, "auth_username", None)
     if not username:
-        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+        return jsonify({"error": "Login is required."}), 401
     try:
         limit = max(1, min(int(request.args.get("limit", 30)), 100))
     except (TypeError, ValueError):
@@ -3163,7 +3163,7 @@ def auth_login_history():
 def auth_list_sessions():
     username = getattr(g, "auth_username", None)
     if not username:
-        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+        return jsonify({"error": "Login is required."}), 401
     header = request.headers.get("Authorization", "")
     token = header[7:].strip() if header.startswith("Bearer ") else ""
     current_digest = hashlib.sha256(token.encode("utf-8")).hexdigest() if token else ""
@@ -3187,7 +3187,7 @@ def auth_list_sessions():
 def auth_revoke_session(session_id):
     username = getattr(g, "auth_username", None)
     if not username:
-        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+        return jsonify({"error": "Login is required."}), 401
     header = request.headers.get("Authorization", "")
     token = header[7:].strip() if header.startswith("Bearer ") else ""
     current_digest = hashlib.sha256(token.encode("utf-8")).hexdigest() if token else ""
@@ -3206,7 +3206,7 @@ def auth_revoke_session(session_id):
 def list_location_shares():
     username = getattr(g, "auth_username", None)
     if not username:
-        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+        return jsonify({"error": "Login is required."}), 401
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as db:
         db.execute("UPDATE location_shares SET active=0 WHERE expires_at<=?", (now,))
@@ -3239,7 +3239,7 @@ def list_location_shares():
 def create_or_update_location_share():
     username = getattr(g, "auth_username", None)
     if not username:
-        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+        return jsonify({"error": "Login is required."}), 401
     data = request.get_json(silent=True) or {}
     recipient = str(data.get("recipient_username") or "").strip().lstrip("@")
     try:
@@ -3295,7 +3295,7 @@ def create_or_update_location_share():
 def stop_location_share(share_id):
     username = getattr(g, "auth_username", None)
     if not username:
-        return jsonify({"error": "लॉगिन आवश्यक है।"}), 401
+        return jsonify({"error": "Login is required."}), 401
     with get_db() as db:
         cursor = db.execute("""
             UPDATE location_shares SET active=0
@@ -4100,7 +4100,7 @@ def _call_user():
 def register_call_push_token():
     username = _call_user()
     if not username:
-        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+        return jsonify({"error": "Please log in first."}), 401
     payload = request.get_json(silent=True) or {}
     token = str(payload.get("token") or "").strip()
     if not token.startswith(("ExponentPushToken[", "ExpoPushToken[")) or len(token) > 512:
@@ -4120,7 +4120,7 @@ def register_call_push_token():
 def unregister_call_push_token():
     username = _call_user()
     if not username:
-        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+        return jsonify({"error": "Please log in first."}), 401
     payload = request.get_json(silent=True) or {}
     token = str(payload.get("token") or "").strip()
     if not token:
@@ -4149,7 +4149,7 @@ def _call_json(row):
 def create_call():
     caller = _call_user()
     if not caller:
-        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+        return jsonify({"error": "Please log in first."}), 401
     payload = request.get_json(silent=True) or {}
     callee = str(payload.get("username") or "").strip().lstrip("@")
     call_type = str(payload.get("type") or "").strip().lower()
@@ -4213,7 +4213,7 @@ def create_call():
 def get_pending_calls():
     username = _call_user()
     if not username:
-        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+        return jsonify({"error": "Please log in first."}), 401
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as db:
         rows = db.execute("""
@@ -4228,7 +4228,7 @@ def get_pending_calls():
 def update_call(call_id, action):
     username = _call_user()
     if not username:
-        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+        return jsonify({"error": "Please log in first."}), 401
     if action not in ("accept", "reject", "end"):
         return jsonify({"error": "Invalid call action."}), 404
     now = datetime.now(timezone.utc).isoformat()
@@ -4268,7 +4268,7 @@ def update_call(call_id, action):
 def get_call_status(call_id):
     username = _call_user()
     if not username:
-        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+        return jsonify({"error": "Please log in first."}), 401
     with get_db() as db:
         row = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
     if row is None:
@@ -4292,7 +4292,7 @@ def get_call_status(call_id):
 def get_call_token(call_id):
     username = _call_user()
     if not username:
-        return jsonify({"error": "कृपया पहले लॉगिन करें।"}), 401
+        return jsonify({"error": "Please log in first."}), 401
     livekit_url = (os.environ.get("LIVEKIT_URL") or "").strip()
     api_key = (os.environ.get("LIVEKIT_API_KEY") or "").strip()
     api_secret = (os.environ.get("LIVEKIT_API_SECRET") or "").strip()
