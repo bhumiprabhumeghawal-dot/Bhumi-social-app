@@ -239,7 +239,7 @@ function Story({ item, onPress }) {
 }
 
 // SOCIALAPP_MEDIA_MASTER2
-function ZoomableImage({ uri, style, onZoomChange, showControls = true }) {
+function ZoomableImage({ uri, style, onZoomChange, showControls = true, appLanguage = "en" }) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -338,19 +338,19 @@ function ZoomableImage({ uri, style, onZoomChange, showControls = true }) {
           onPress={resetZoom}
           style={{ paddingHorizontal: 10, paddingVertical: 5 }}
         >
-          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{appText("resetZoomLabel")}</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{translateAppText(appLanguage, "resetZoomLabel")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setFitMode("fit")}
           style={{ paddingHorizontal: 10, paddingVertical: 5 }}
         >
-          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{appText("fitLabel")}</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{translateAppText(appLanguage, "fitLabel")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setFitMode("fill")}
           style={{ paddingHorizontal: 10, paddingVertical: 5 }}
         >
-          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{appText("fillLabel")}</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{translateAppText(appLanguage, "fillLabel")}</Text>
         </TouchableOpacity>
         <Text style={{ color: "#FFFFFF", fontSize: 12, marginHorizontal: 6 }}>
           {zoomLevel.toFixed(1)}×
@@ -582,7 +582,7 @@ function PinchZoomImage({
           onPress={resetZoom}
           style={{ paddingHorizontal: 10, paddingVertical: 5 }}
         >
-          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{appText("resetLabel")}</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{translateAppText(appLanguage, "resetLabel")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setZoom(zoomLevel - 0.5)}
@@ -937,7 +937,7 @@ function ReelVideoZoomable({
             onPress={() => setZoom(1)}
             style={{ paddingHorizontal: 10, paddingVertical: 5 }}
           >
-            <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{appText("resetZoomLabel")}</Text>
+            <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{translateAppText(appLanguage, "resetZoomLabel")}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setZoom(zoomLevel - 0.5)}
@@ -2291,7 +2291,7 @@ export default function App() {
         if (!report || !active) return;
         await SecureStore.deleteItemAsync("bhumi_last_crash_report");
         if (active) {
-          Alert.alert(appText("crashReportTitle"), report);
+          Alert.alert(translateAppText(appLanguage, "crashReportTitle"), report);
         }
       })
       .catch((error) => console.error("Crash report read failed:", error));
@@ -2299,7 +2299,7 @@ export default function App() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [appLanguage]);
 
   const [activeTab, setActiveTab] = React.useState("Home");
   const [appLanguage, setAppLanguage] = React.useState("en");
@@ -9742,6 +9742,7 @@ export default function App() {
                 <ZoomableImage
                   key={selectedStory.uri}
                   uri={selectedStory.uri}
+                  appLanguage={appLanguage}
                   style={{ width: "100%", height: "100%" }}
                   onZoomChange={(level) => setStoryImageZoomed(level > 1.01)}
                   showControls={false}
@@ -10070,6 +10071,7 @@ export default function App() {
                       ) : media.uri ? (
                         <ZoomableImage
                           uri={media.uri}
+                          appLanguage={appLanguage}
                           style={{ width: "100%", height: "100%" }}
                         />
                       ) : (
@@ -10112,6 +10114,7 @@ export default function App() {
             ) : selectedPost?.uri ? (
               <ZoomableImage
                 uri={selectedPost.uri}
+                appLanguage={appLanguage}
                 style={{ width: "100%", height: "100%" }}
               />
             ) : (
