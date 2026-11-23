@@ -266,6 +266,16 @@ export const VIDEO_FILTERS = [
   { name: 'Dream', value: 'gblur=sigma=0.35,eq=brightness=0.035:saturation=0.9' },
   { name: 'Golden', value: 'colorbalance=rs=0.12:gs=0.04:bs=-0.10,eq=contrast=1.06:saturation=1.16' },
   { name: 'Fade', value: 'eq=contrast=0.82:brightness=0.04:saturation=0.82' },
+  { name: 'Teal Noir', value: 'colorbalance=rs=-0.035:gs=0.015:bs=0.095:rm=0.025:bm=-0.035,eq=contrast=1.22:saturation=0.88,vignette=PI/5', premium: true },
+  { name: 'Rose Luxe', value: 'colorbalance=rs=0.105:gs=-0.025:bs=0.035,eq=contrast=1.08:saturation=1.12,vignette=PI/6', premium: true },
+  { name: 'Emerald', value: 'colorbalance=rs=-0.035:gs=0.09:bs=0.015,eq=contrast=1.13:saturation=1.2', premium: true },
+  { name: 'Arctic', value: 'colorbalance=rs=-0.09:gs=0.015:bs=0.12,eq=contrast=1.1:saturation=0.92', premium: true },
+  { name: 'Mocha', value: 'colorbalance=rs=0.085:gs=0.025:bs=-0.075,eq=contrast=1.06:saturation=0.88', premium: true },
+  { name: 'Neon', value: 'eq=contrast=1.28:saturation=1.62:brightness=0.015,unsharp=5:5:0.55:3:3:0.0', premium: true },
+  { name: 'Matte', value: 'eq=contrast=0.88:brightness=0.045:saturation=0.9,colorbalance=rs=0.025:bs=-0.02', premium: true },
+  { name: 'Portrait Glow', value: 'gblur=sigma=0.18,eq=brightness=0.025:contrast=1.06:saturation=1.08,unsharp=5:5:0.35:3:3:0.0', premium: true },
+  { name: 'Cyber', value: 'colorbalance=rs=0.07:gs=-0.025:bs=0.12,eq=contrast=1.2:saturation=1.38', premium: true },
+  { name: 'Film', value: 'noise=alls=5:allf=t+u,eq=contrast=1.06:saturation=0.9,colorbalance=rs=0.035:bs=-0.025', premium: true },
 ];
 
 export const VOICE_EFFECTS = [

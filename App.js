@@ -2255,6 +2255,16 @@ const VIDEO_FILTER_PREVIEW_STYLES = [
   { backgroundColor: "#E7D7F0", opacity: 0.11 },
   { backgroundColor: "#E8B94F", opacity: 0.15 },
   { backgroundColor: "#E8DCCB", opacity: 0.16 },
+  { backgroundColor: "#0C8F91", opacity: 0.19 },
+  { backgroundColor: "#D86C92", opacity: 0.18 },
+  { backgroundColor: "#1D9467", opacity: 0.17 },
+  { backgroundColor: "#7BBDE8", opacity: 0.17 },
+  { backgroundColor: "#9B6A45", opacity: 0.18 },
+  { backgroundColor: "#B34DFF", opacity: 0.18 },
+  { backgroundColor: "#A5A5A5", opacity: 0.14 },
+  { backgroundColor: "#F0B7A0", opacity: 0.15 },
+  { backgroundColor: "#8A52D6", opacity: 0.18 },
+  { backgroundColor: "#A77A4B", opacity: 0.16 },
 ];
 
 export default function App() {
@@ -6798,6 +6808,7 @@ export default function App() {
                                 <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ width: 60, height: 62, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: selected ? "rgba(0,149,246,0.22)" : "rgba(18,18,18,0.92)", borderWidth: 1, borderColor: selected ? "#7CC4FF" : "rgba(0,149,246,0.48)", shadowColor: "#0095F6", shadowOpacity: selected ? 0.5 : 0.16, shadowRadius: 8, elevation: selected ? 6 : 2 }}>
                                   <Ionicons name="color-filter-outline" size={20} color={selected ? "#7CC4FF" : "#0095F6"} />
                                   <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700", marginTop: 3 }}>{filter.name}</Text>
+                                  {filter.premium ? <Text style={{ color: "#D9B56D", fontSize: 7, fontWeight: "900", letterSpacing: 0.8, marginTop: 1 }}>✦ PRO</Text> : null}
                                 </TouchableOpacity>
                               );
                             })}
@@ -7213,7 +7224,7 @@ export default function App() {
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
                             {VIDEO_FILTERS.map((filter, index) => (
                               <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#0095F6" : "rgba(0,0,0,0.78)" }}>
-                                <Text style={{ color: videoFilterIndex === index ? "#121212" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}</Text>
+                                <Text style={{ color: videoFilterIndex === index ? "#121212" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}{filter.premium ? " ✦ PRO" : ""}</Text>
                               </TouchableOpacity>
                             ))}
                           </ScrollView>
