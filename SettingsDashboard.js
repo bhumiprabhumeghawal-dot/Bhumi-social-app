@@ -12,6 +12,27 @@ import * as TaskManager from "expo-task-manager";
 import CreatorBusinessHub from "./CreatorBusinessHub";
 import { loadSettingsPreferences, saveSettingsPreferences, loadNotificationPreference, saveNotificationPreference, loadNotificationDetails, saveNotificationDetails, loadLoginHistory, loadActiveSessions, revokeActiveSession, logoutOtherSessions, loadLocationShares, createOrUpdateLocationShare, stopLocationShare, loadFeedUserLists, addFeedUserList, removeFeedUserList, loadPrivacySettings, savePrivacySettings } from "./api";
 
+const APP_LANGUAGES = [
+  { code:"en", name:"English", native:"English", region:"International" },
+  { code:"hi", name:"Hindi", native:"हिन्दी", region:"India" },
+  { code:"bn", name:"Bengali", native:"বাংলা", region:"India / Bangladesh" },
+  { code:"gu", name:"Gujarati", native:"ગુજરાતી", region:"India" },
+  { code:"mr", name:"Marathi", native:"मराठी", region:"India" },
+  { code:"ta", name:"Tamil", native:"தமிழ்", region:"India / Sri Lanka" },
+  { code:"te", name:"Telugu", native:"తెలుగు", region:"India" },
+  { code:"pa", name:"Punjabi", native:"ਪੰਜਾਬੀ", region:"India" },
+  { code:"kn", name:"Kannada", native:"ಕನ್ನಡ", region:"India" },
+  { code:"ml", name:"Malayalam", native:"മലയാളം", region:"India" },
+  { code:"ur", name:"Urdu", native:"اردو", region:"India / Pakistan" },
+  { code:"es", name:"Spanish", native:"Español", region:"International" },
+  { code:"fr", name:"French", native:"Français", region:"International" },
+  { code:"ar", name:"Arabic", native:"العربية", region:"International" },
+  { code:"pt", name:"Portuguese", native:"Português", region:"International" },
+  { code:"de", name:"German", native:"Deutsch", region:"International" },
+  { code:"ja", name:"Japanese", native:"日本語", region:"International" },
+  { code:"ko", name:"Korean", native:"한국어", region:"International" },
+  { code:"id", name:"Indonesian", native:"Bahasa Indonesia", region:"International" },
+];
 const GOLD = "#0095F6";
 const BG = "#000000";
 const PANEL = "#121212";
@@ -254,6 +275,9 @@ const SECTIONS = [
 
 export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen, onPreferencesChange }) {
   const [active, setActive] = React.useState(null);
+  const [languageVisible, setLanguageVisible] = React.useState(false);
+  const [selectedLanguage, setSelectedLanguage] = React.useState("en");
+  React.useEffect(() => { SecureStore.getItemAsync("bhumi_app_language").then((value) => { if (APP_LANGUAGES.some((item) => item.code === value)) setSelectedLanguage(value); }).catch(() => {}); }, []);
   const [hubVisible, setHubVisible] = React.useState(false);
   const [qrVisible, setQrVisible] = React.useState(false);
   const [pinSetupVisible, setPinSetupVisible] = React.useState(false);
@@ -1080,6 +1104,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               </View>
               <Ionicons name="chevron-forward" size={18} color={MUTED}/>
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => setLanguageVisible(true)} activeOpacity={0.85} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderWidth:1,borderColor:BORDER,borderRadius:13,padding:13,marginBottom:15 }}>
+              <View style={{ width:40,height:40,borderRadius:20,backgroundColor:PANEL,alignItems:"center",justifyContent:"center",marginRight:11 }}><Ionicons name="language-outline" size={23} color={GOLD}/></View>
+              <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>Language</Text><Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>App language · {APP_LANGUAGES.find((item) => item.code === selectedLanguage)?.name || "English"}</Text></View>
+              <Ionicons name="chevron-forward" size={18} color={MUTED}/>
+            </TouchableOpacity>
             {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical:18 }}/> : null}
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 48 : 12 }}>
               {visibleSections.length ? visibleSections.map((section) => (
@@ -1330,6 +1359,28 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             <TouchableOpacity onPress={() => setQrVisible(false)} style={{ padding:13, marginTop:3 }}>
               <Text style={{ color:"#555555", fontWeight:"800" }}>Close</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal visible={languageVisible && visible} transparent animationType="slide" onRequestClose={() => setLanguageVisible(false)}>
+        <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.78)",justifyContent:"flex-end" }}>
+          <View style={{ maxHeight:"82%",backgroundColor:BG,borderTopLeftRadius:22,borderTopRightRadius:22,borderWidth:1,borderColor:BORDER,padding:18 }}>
+            <View style={{ flexDirection:"row",alignItems:"center",marginBottom:8 }}>
+              <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:19,fontWeight:"900" }}>Choose app language</Text><Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>India and international languages</Text></View>
+              <TouchableOpacity onPress={() => setLanguageVisible(false)} style={{ padding:8 }}><Ionicons name="close" size={23} color={TEXT}/></TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {APP_LANGUAGES.map((item) => (
+                <TouchableOpacity key={item.code} onPress={async () => {
+                  try { await SecureStore.setItemAsync("bhumi_app_language",item.code); setSelectedLanguage(item.code); setLanguageVisible(false); }
+                  catch (error) { setNotice({title:"Could not save language",message:error?.message || "Please try again."}); }
+                }} style={{ flexDirection:"row",alignItems:"center",paddingVertical:12,borderBottomWidth:1,borderBottomColor:BORDER }}>
+                  <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{item.name} · {item.native}</Text><Text style={{ color:MUTED,fontSize:10,marginTop:3 }}>{item.region}</Text></View>
+                  {selectedLanguage===item.code ? <Ionicons name="checkmark-circle" size={21} color={GOLD}/> : <View style={{ width:20,height:20,borderRadius:10,borderWidth:1,borderColor:BORDER }}/>}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <Text style={{ color:MUTED,fontSize:10,lineHeight:15,marginTop:10 }}>English is the complete default interface. Additional language translations are being added progressively.</Text>
           </View>
         </View>
       </Modal>

@@ -161,16 +161,16 @@ Notifications.setNotificationHandler({
 
 function formatHindiLastSeen(value) {
   const stamp = new Date(value).getTime();
-  if (!Number.isFinite(stamp)) return "आख़िरी बार उपलब्ध नहीं";
+  if (!Number.isFinite(stamp)) return "Last seen unavailable";
   const diff = Math.max(0, Date.now() - stamp);
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "अभी देखा";
-  if (mins < 60) return mins + " मिनट पहले देखा";
+  if (mins < 1) return "Seen just now";
+  if (mins < 60) return mins + " minutes ago";
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return hours + " घंटे पहले देखा";
+  if (hours < 24) return hours + " hours ago";
   const days = Math.floor(hours / 24);
-  if (days < 7) return days + " दिन पहले देखा";
-  return new Date(stamp).toLocaleDateString("hi-IN", { day: "numeric", month: "short", year: "numeric" }) + " को देखा";
+  if (days < 7) return days + " days ago";
+  return new Date(stamp).toLocaleDateString("hi-IN", { day: "numeric", month: "short", year: "numeric" }) + "Seen on ";
 }
 
 function isVersionNewer(latest, current) {
@@ -2000,11 +2000,11 @@ function CustomAlertHost() {
 
   if (!alertData) return null;
   const words = (alertData.title + " " + alertData.message).toLowerCase();
-  const error = /error|failed|विफल|गलत|समस्या|त्रुटि/.test(words);
-  const success = /success|successful|सफल|saved|हो गया|भेज दिया|अपलोड/.test(
+  const error = /error|failed|failed|incorrect|problem|error/.test(words);
+  const success = /success|successful|successful|saved|हो गया|भेज दिया|अपलोड/.test(
     words,
   );
-  const danger = /delete|remove|logout|log out|डिलीट|हटाएं|हटाएँ|मिटाएं/.test(
+  const danger = /delete|remove|logout|log out|delete|remove|Delete|clear/.test(
     words,
   );
   const accent = error
@@ -2276,7 +2276,7 @@ export default function App() {
         if (!report || !active) return;
         await SecureStore.deleteItemAsync("bhumi_last_crash_report");
         if (active) {
-          Alert.alert("पिछली बार ऐप क्यों बंद हुआ", report);
+          Alert.alert("Why the app closed last time", report);
         }
       })
       .catch((error) => console.error("Crash report read failed:", error));
@@ -2383,12 +2383,12 @@ export default function App() {
         await Updates.reloadAsync();
       } else {
         setUpdatePromptVisible(false);
-        Alert.alert("Bhumi Social AI", "आपका ऐप पहले से अपडेट है।");
+        Alert.alert("Bhumi Social AI", "Your app is already up to date.");
       }
     } catch (error) {
       Alert.alert(
         "Update",
-        "अभी अपडेट डाउनलोड नहीं हो पाया। इंटरनेट कनेक्शन जाँचकर दोबारा कोशिश करें।",
+        "The update could not be downloaded. Check your internet connection and try again.",
       );
     } finally {
       setUpdateDownloading(false);
@@ -3140,14 +3140,14 @@ export default function App() {
     try {
       const permission = await requestRecordingPermissionsAsync();
       if (!permission.granted) {
-        throw new Error("Voice message रिकॉर्ड करने के लिए Microphone permission दें।");
+        throw new Error("Allow Microphone permission to record a voice message.");
       }
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await chatVoiceRecorder.prepareToRecordAsync();
       chatVoiceRecorder.record();
       setIsChatRecording(true);
     } catch (error) {
-      setChatError(error?.message || "Voice recording शुरू नहीं हो सकी।");
+      setChatError(error?.message || "Voice recording could not be started.");
       await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
     }
   };
@@ -3158,7 +3158,7 @@ export default function App() {
     try {
       await chatVoiceRecorder.stop();
       const uri = chatVoiceRecorder.uri;
-      if (!uri) throw new Error("रिकॉर्ड की गई आवाज़ की फाइल नहीं मिली।");
+      if (!uri) throw new Error("The recorded audio file could not be found.");
       setChatMediaDraft({
         uri,
         name: "Voice message.m4a",
@@ -3166,7 +3166,7 @@ export default function App() {
         type: "audio/mp4",
       });
     } catch (error) {
-      setChatError(error?.message || "Voice recording सेव नहीं हो सकी।");
+      setChatError(error?.message || "Voice recording could not be saved.");
     } finally {
       setIsChatRecording(false);
       await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
@@ -4567,7 +4567,7 @@ export default function App() {
       });
     } catch (e) {
       if (!cachedLoaded) {
-        Alert.alert("प्रोफ़ाइल लोड नहीं हुई", e.message || "सर्वर कनेक्शन जाँचें।");
+        Alert.alert("Profile could not be loaded", e.message || "Check the server connection.");
       }
     }
   }, [authSession]);
@@ -4591,9 +4591,9 @@ export default function App() {
         bio: item.bio || "",
       });
       setProfileEditing(false);
-      Alert.alert("सफल", "प्रोफ़ाइल सेव हो गई।");
+      Alert.alert("successful", "Profile saved.");
     } catch (e) {
-      Alert.alert("सेव नहीं हुआ", e.message || "सर्वर कनेक्शन जाँचें।");
+      Alert.alert("Save failed", e.message || "Check the server connection.");
     } finally {
       setProfileBusy(false);
     }
@@ -4604,7 +4604,7 @@ export default function App() {
       const permission =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert("अनुमति चाहिए", "Gallery की अनुमति दें।");
+        Alert.alert("Permission required", "Gallery  permission is required.");
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -4618,19 +4618,19 @@ export default function App() {
       setProfileBusy(true);
       await uploadProfileAvatar(result.assets[0], authSession.username);
       await refreshProfile();
-      Alert.alert("सफल", "प्रोफ़ाइल फ़ोटो अपडेट हो गई।");
+      Alert.alert("successful", "Profile photo updated.");
     } catch (e) {
-      Alert.alert("फ़ोटो अपलोड नहीं हुई", e.message || "सर्वर कनेक्शन जाँचें।");
+      Alert.alert("Photo upload failed", e.message || "Check the server connection.");
     } finally {
       setProfileBusy(false);
     }
   };
 
   const removeProfilePhoto = () => {
-    Alert.alert("Remove Photo?", "क्या प्रोफ़ाइल फ़ोटो हटानी है?", [
-      { text: "रद्द करें", style: "cancel" },
+    Alert.alert("Remove Photo?", "Delete profile photo?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: "हटाएँ",
+        text: "Delete",
         style: "destructive",
         onPress: async () => {
           setProfileBusy(true);
@@ -4638,7 +4638,7 @@ export default function App() {
             await deleteProfileAvatar(authSession.username);
             await refreshProfile();
           } catch (e) {
-            Alert.alert("फ़ोटो नहीं हटी", e.message || "फिर से कोशिश करें।");
+            Alert.alert("Photo was not deleted", e.message || "Please try again.");
           } finally {
             setProfileBusy(false);
           }
@@ -4661,7 +4661,7 @@ export default function App() {
       const items = result.items || result.users || result[type] || [];
       setProfileConnectionsItems(Array.isArray(items) ? items : []);
     } catch (e) {
-      setProfileConnectionsError(e.message || "सूची लोड नहीं हुई।");
+      setProfileConnectionsError(e.message || "The list could not be loaded.");
     } finally {
       setProfileConnectionsBusy(false);
     }
@@ -4701,7 +4701,7 @@ export default function App() {
       Alert.alert(
         decision === "accept" ? "Request accepted" : "Request rejected",
         decision === "accept"
-          ? "अब यह user आपका follower है।"
+          ? "This user is now following you."
           : "Follow request reject कर दी गई।",
       );
     } catch (e) {
@@ -5025,8 +5025,8 @@ export default function App() {
       if (oversizedAsset) {
         const limitMB = Math.floor(maxBytes / (1024 * 1024));
         Alert.alert(
-          "फ़ाइल बहुत बड़ी है",
-          `इस अपलोड की अधिकतम सीमा ${limitMB} MB है। छोटी फ़ाइल चुनें।`,
+          "File is too large",
+          `इस अपलोड की अधिकतम सीमा ${limitMB} MB है। Choose a smaller file.`,
         );
         return;
       }
@@ -5036,7 +5036,7 @@ export default function App() {
       setMediaDraftCaption("");
     } catch (e) {
       console.error("Media selection failed:", e);
-      Alert.alert("मीडिया नहीं खुला", e.message || "कृपया फिर कोशिश करें।");
+      Alert.alert("Media could not be opened", e.message || "Please try again.");
     }
   };
 
@@ -5045,14 +5045,14 @@ export default function App() {
   const searchMusicOnGoogle = async () => {
     const query = musicSearchQuery.trim();
     if (!query || musicSearchLoading) {
-      if (!query) Alert.alert("गाना खोजें", "पहले गाने या कलाकार का नाम लिखें।");
+      if (!query) Alert.alert("Search music", "Enter a song or artist name first.");
       return;
     }
     setMusicSearchLoading(true);
     try {
       await Linking.openURL(buildGoogleMusicSearchUrl(query));
     } catch (error) {
-      Alert.alert("Google Search नहीं खुला", error?.message || "कृपया फिर कोशिश करें।");
+      Alert.alert("Google Search Could not open", error?.message || "Please try again.");
     } finally {
       setMusicSearchLoading(false);
     }
@@ -5332,7 +5332,7 @@ export default function App() {
       );
     } catch (e) {
       console.error("Upload failed:", e);
-      Alert.alert("अपलोड विफल", e.message || "सर्वर कनेक्शन जाँचें।");
+      Alert.alert("अपलोड failed", e.message || "Check the server connection.");
     } finally {
       setBusy(false);
     }
@@ -5755,7 +5755,7 @@ export default function App() {
               <TextInput
                 value={forgotEmail}
                 onChangeText={setForgotEmail}
-                placeholder="अपना ईमेल लिखें (जरूरी नहीं)"
+                placeholder="Enter your email (optional)"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={!authBusy}
@@ -6107,12 +6107,12 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                पूरा नाम / Full Name
+                Full name / Full Name
               </Text>
               <TextInput
                 value={authFullName}
                 onChangeText={setAuthFullName}
-                placeholder="अपना पूरा नाम लिखें"
+                placeholder="अपना Full name लिखें"
                 autoCapitalize="words"
                 editable={!authBusy}
                 style={{
@@ -6133,7 +6133,7 @@ export default function App() {
               <TextInput
                 value={authUsername}
                 onChangeText={setAuthUsername}
-                placeholder="अपना username खुद चुनें"
+                placeholder="Choose your own username"
                 maxLength={50}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -6151,12 +6151,12 @@ export default function App() {
                 }}
               />
               <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 12 }}>
-                यही आपका @username होगा। ऐप आपके लिए username नहीं बनाएगी। 3–50 अक्षर: English letters, numbers, dot (.) या underscore (_).
+                This will be your @username. The app will not create a username for you. 3–50 characters: English letters, numbers, dot (.) या underscore (_).
               </Text>
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                ईमेल (वैकल्पिक) / Email
+                Email (optional) / Email
               </Text>
               <TextInput
                 value={authEmail}
@@ -6206,12 +6206,12 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                मोबाइल नंबर (वैकल्पिक) / Mobile
+                Phone number (optional) / Mobile
               </Text>
               <TextInput
                 value={authPhoneNumber}
                 onChangeText={setAuthPhoneNumber}
-                placeholder="अपना मोबाइल नंबर लिखें (जरूरी नहीं)"
+                placeholder="Enter your mobile number (optional)"
                 keyboardType="phone-pad"
                 editable={!authBusy}
                 style={{
@@ -6228,12 +6228,12 @@ export default function App() {
           <Text
             style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
           >
-            पासवर्ड (4 से 24 अक्षर) / Password
+            Password (4–24 characters) / Password
           </Text>
           <TextInput
             value={authPassword}
             onChangeText={setAuthPassword}
-            placeholder="पासवर्ड बनाएं"
+            placeholder="Create password"
             secureTextEntry
             autoCapitalize="none"
             editable={!authBusy}
@@ -6253,12 +6253,12 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                पासवर्ड दोबारा लिखें / Confirm password
+                Enter password again / Confirm password
               </Text>
               <TextInput
                 value={authConfirmPassword}
                 onChangeText={setAuthConfirmPassword}
-                placeholder="पासवर्ड फिर से लिखें"
+                placeholder="Re-enter password"
                 secureTextEntry
                 autoCapitalize="none"
                 editable={!authBusy}
@@ -7728,7 +7728,7 @@ export default function App() {
             <TextInput
               value={musicSearchQuery}
               onChangeText={setMusicSearchQuery}
-              placeholder="गाने या कलाकार का नाम लिखें"
+              placeholder="Enter a song or artist name"
               placeholderTextColor="#888888"
               returnKeyType="search"
               onSubmitEditing={searchMusicOnGoogle}
@@ -7737,11 +7737,11 @@ export default function App() {
             <View style={{ flexDirection: "row", gap: 8 }}>
               <TouchableOpacity onPress={searchMusicOnGoogle} disabled={musicSearchLoading} style={{ flex: 1, backgroundColor: "#1877F2", borderRadius: 11, paddingVertical: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 7, opacity: musicSearchLoading ? 0.65 : 1 }}>
                 {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="logo-google" size={17} color="#FFFFFF" />}
-                <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>{musicSearchLoading ? "लोड हो रहा है..." : "Google Search"}</Text>
+                <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>{musicSearchLoading ? "Loading..." : "Google Search"}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={chooseMusicFile} disabled={musicSearchLoading} style={{ flex: 1, borderWidth: 1, borderColor: "#555555", borderRadius: 11, paddingVertical: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 7, opacity: musicSearchLoading ? 0.65 : 1 }}>
                 {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />}
-                <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>{musicSearchLoading ? "सेव हो रहा है..." : "गाना जोड़ें"}</Text>
+                <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>{musicSearchLoading ? "Saving..." : "Add song"}</Text>
               </TouchableOpacity>
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
@@ -7757,7 +7757,7 @@ export default function App() {
             </View>
             <ScrollView style={{ maxHeight: 300 }} keyboardShouldPersistTaps="handled">
               {!musicLibraryLoaded ? (
-                <View style={{ padding: 24, alignItems: "center" }}><ActivityIndicator color="#FFFFFF" /><Text style={{ color: "#999999", marginTop: 8 }}>लाइब्रेरी लोड हो रही है...</Text></View>
+                <View style={{ padding: 24, alignItems: "center" }}><ActivityIndicator color="#FFFFFF" /><Text style={{ color: "#999999", marginTop: 8 }}>Loading library...</Text></View>
               ) : searchLocalMusic(musicSearchQuery, musicLibrary.filter((track) => musicLibraryFilter === "favorites" ? track.favorite : true)).length ? (
                 searchLocalMusic(musicSearchQuery, musicLibrary.filter((track) => musicLibraryFilter === "favorites" ? track.favorite : true)).map((track) => (
                   <View key={track.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#292929", gap: 9 }}>
@@ -7782,18 +7782,18 @@ export default function App() {
               ) : (
                 <View style={{ padding: 22, alignItems: "center" }}>
                   <Ionicons name="musical-notes-outline" size={30} color="#777777" />
-                  <Text style={{ color: "#DDDDDD", fontWeight: "700", marginTop: 8 }}>अभी कोई गाना सेव नहीं है</Text>
-                  <Text style={{ color: "#888888", fontSize: 11, textAlign: "center", marginTop: 4 }}>Google पर खोजें या अपनी अनुमति वाली ऑडियो फ़ाइल जोड़ें। सेव किए गाने अगली बार भी यहीं मिलेंगे।</Text>
+                  <Text style={{ color: "#DDDDDD", fontWeight: "700", marginTop: 8 }}>No saved songs yet</Text>
+                  <Text style={{ color: "#888888", fontSize: 11, textAlign: "center", marginTop: 4 }}>Google Search or add an audio file you have permission to use. Saved songs will remain here for next time.</Text>
                 </View>
               )}
             </ScrollView>
             {musicAsset?.title || musicAsset?.name ? (
               <View style={{ backgroundColor: "#222222", borderRadius: 10, padding: 10 }}>
                 <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }} numberOfLines={1}>Selected: {musicAsset.title || musicAsset.name}</Text>
-                <Text style={{ color: "#8CCBFF", fontSize: 11, marginTop: 3 }}>गाना एडिटर में जुड़ गया है</Text>
+                <Text style={{ color: "#8CCBFF", fontSize: 11, marginTop: 3 }}>Song added to the editor</Text>
               </View>
             ) : null}
-            <Text style={{ color: "#777777", fontSize: 10, lineHeight: 15 }}>Google Search वेब परिणाम खोलता है, सीधे ऑडियो स्ट्रीम नहीं। चुनी हुई फ़ाइल सुरक्षित रूप से ऐप की निजी Music Library में सेव होती है। Licensed streaming catalog बाद में इसी सिस्टम से जोड़ा जा सकेगा।</Text>
+            <Text style={{ color: "#777777", fontSize: 10, lineHeight: 15 }}>Google Search Opens web results, not a direct audio stream. The selected file is securely saved in the app's private Music Library  folder. A licensed streaming catalog can be connected to this system later.</Text>
           </View>
         </View>
       </Modal>
@@ -8561,9 +8561,9 @@ export default function App() {
                             ? "Following"
                             : "Updated",
                         status === "requested"
-                          ? "Private account follow request भेज दी गई।"
+                          ? "Private account follow request  sent."
                           : status === "following"
-                            ? "अब आप इस user को follow कर रहे हैं।"
+                            ? "You are now following this user."
                             : requestPending
                               ? "Follow request cancel कर दी गई।"
                               : "Follow हट गया।",
@@ -8571,7 +8571,7 @@ export default function App() {
                     } catch (e) {
                       Alert.alert(
                         "Follow नहीं हुआ",
-                        e.message || "फिर से कोशिश करें।",
+                        e.message || "Please try again.",
                       );
                     } finally {
                       setSearchFollowBusy((prev) => ({
@@ -8966,7 +8966,7 @@ export default function App() {
                     }}
                   />
                   <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>
-                    Username (स्थायी)
+                    Username (Permanent)
                   </Text>
                   <Text style={{ color: "#A8A8A8", paddingVertical: 10 }}>
                     @{profile.username || "you"}
@@ -9132,7 +9132,7 @@ export default function App() {
                 </View>
                 {followRequests.length === 0 ? (
                   <Text style={{ color: "#A8A8A8", paddingVertical: 8 }}>
-                    अभी कोई pending follow request नहीं है।
+                    There are no pending follow requests.
                   </Text>
                 ) : (
                   followRequests.map((request) => (
@@ -11466,7 +11466,7 @@ export default function App() {
                     <View style={{ flexDirection: "row", alignItems: "center", marginTop: 3, gap: 5 }}>
                       <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: chatPresence?.isOnline ? "#25D366" : "#8B8B93" }} />
                       <Text numberOfLines={1} style={{ fontSize: 11, color: chatPresence?.isOnline ? "#25D366" : "#A7A9AE" }}>
-                        {chatPresence?.hidden ? "एक्टिविटी छुपाई गई" : chatPresence?.isOnline ? "ऑनलाइन" : chatPresence?.lastSeenAt ? ("ऑफ़लाइन · " + formatHindiLastSeen(chatPresence.lastSeenAt)) : "ऑफ़लाइन"}
+                        {chatPresence?.hidden ? "Activity hidden" : chatPresence?.isOnline ? "Online" : chatPresence?.lastSeenAt ? ("Offline · " + formatHindiLastSeen(chatPresence.lastSeenAt)) : "Offline"}
                         {chatPreferences.favorite ? "  ★ Favourite" : ""}{chatPreferences.closeFriend ? " · Close Friend" : ""}
                       </Text>
                     </View>
@@ -12456,7 +12456,7 @@ export default function App() {
           } catch (error) {
             Alert.alert(
               "Attachment",
-              error?.message || "Document खुल नहीं सका।"
+              error?.message || "Document Could not be opened."
             );
           }
         }}
@@ -14119,7 +14119,7 @@ export default function App() {
                   setAppPinInput("");
                   setAppPinError("");
                 } else {
-                  setAppPinError("PIN सही नहीं है। दोबारा कोशिश करें।");
+                  setAppPinError("PIN  is incorrect. Please try again.");
                   setAppPinInput("");
                 }
               }}
