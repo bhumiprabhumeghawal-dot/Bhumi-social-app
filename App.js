@@ -6598,6 +6598,7 @@ export default function App() {
                   }}
                 />
                 <ScrollView
+                  nestedScrollEnabled
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   style={{
@@ -6837,7 +6838,8 @@ export default function App() {
                       ) : null}
                       {isVideo ? (
                         <View style={{ position: "absolute", top: 72, left: 10, right: 10, gap: 7 }}>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 3 }}>
+                          <ScrollView
+                  nestedScrollEnabled horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 3 }}>
                             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                              <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "800" }}>{appText("videoFiltersLabel")}</Text>
                              <TouchableOpacity disabled={busy} onPress={() => setVideoFilterCompareOriginal((value) => !value)} style={{ paddingHorizontal: 9, paddingVertical: 5, borderRadius: 12, backgroundColor: videoFilterCompareOriginal ? "rgba(217,181,109,0.22)" : "rgba(0,0,0,0.78)", borderWidth: 1, borderColor: "#D9B56D" }}>
@@ -6865,7 +6867,8 @@ export default function App() {
                               );
                             })}
                           </ScrollView>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
+                          <ScrollView
+                  nestedScrollEnabled horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
                             {VOICE_EFFECTS.map((effect) => {
                               const selected = voiceEffect === effect.name;
                               return (
@@ -6904,7 +6907,8 @@ export default function App() {
                         </View>
                       ) : (
                         <View style={{ position: "absolute", top: 72, left: 10, right: 10, gap: 8 }}>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 3 }}>
+                          <ScrollView
+                  nestedScrollEnabled horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 3 }}>
                             {POST_PHOTO_FILTERS.map((filter, index) => {
                               const selected = Number(asset.photoFilterIndex || 0) === index;
                               return (
@@ -7278,14 +7282,16 @@ export default function App() {
                             <Text style={{ color: "#D9B56D", fontSize: 10, fontWeight: "800" }}>{videoFilterCompareOriginal ? appText("showFilterPreviewLabel") : appText("compareOriginalLabel")}</Text>
                           </TouchableOpacity>
                           <Text style={{ color: "#A8A8A8", fontSize: 10, fontWeight: "600" }}>{appText("previewTintNote")}</Text>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
+                          <ScrollView
+                  nestedScrollEnabled horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
                             {VIDEO_FILTERS.map((filter, index) => (
                               <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#0095F6" : "rgba(0,0,0,0.78)" }}>
                                 <Text style={{ color: videoFilterIndex === index ? "#121212" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{filter.name}{filter.premium ? " ✦ PRO" : ""}</Text>
                               </TouchableOpacity>
                             ))}
                           </ScrollView>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
+                          <ScrollView
+                  nestedScrollEnabled horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
                             {VOICE_EFFECTS.map((effect) => (
                               <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: voiceEffect === effect.name ? "#0095F6" : "rgba(0,0,0,0.78)" }}>
                                 <Text style={{ color: voiceEffect === effect.name ? "#121212" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{effect.name} {appText("voiceLabel")}</Text>
@@ -7308,6 +7314,7 @@ export default function App() {
                         {appText("filtersLabel")}
                       </Text>
                       <ScrollView
+                  nestedScrollEnabled
                         horizontal
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={{ paddingHorizontal: 10, gap: 8 }}
@@ -8231,6 +8238,7 @@ export default function App() {
                   }}
                 >
                   <ScrollView
+                  nestedScrollEnabled
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.stories}
@@ -11669,6 +11677,7 @@ export default function App() {
                   </TouchableOpacity>
                 </View>
                 <ScrollView
+                  nestedScrollEnabled
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{
@@ -11851,6 +11860,7 @@ export default function App() {
                 {/* INSTAGRAM_STYLE_INBOX_STORIES_V1 */}
                 <View style={{ paddingTop: 10, paddingBottom: 8 }}>
                   <ScrollView
+                  nestedScrollEnabled
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ paddingHorizontal: 12, alignItems: "flex-start" }}
@@ -13402,7 +13412,8 @@ export default function App() {
                     <View style={{ marginTop: 19 }}>
                       <Text style={{ color: "#FFFFFF", fontWeight: "800", marginBottom: 10 }}>{appText("profileStatus")}</Text>
                       {stories.length ? (
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <ScrollView
+                  nestedScrollEnabled horizontal showsHorizontalScrollIndicator={false}>
                           {stories.map((story, index) => (
                             <Story key={String(story.id || story._id || index)}
                               item={{ ...story, name: viewedProfile.displayName || viewedProfile.username, own: false }}
@@ -13628,7 +13639,8 @@ export default function App() {
                 </TouchableOpacity>
               </View>
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
+            <ScrollView
+                  nestedScrollEnabled horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
               {["All", "Likes", "Comments", "Follows", "Messages"].map((filter) => (
                 <TouchableOpacity key={filter} onPress={() => setNotificationFilter(filter)}
                   style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 18, backgroundColor: notificationFilter === filter ? "#0095F6" : "#262626" }}>
