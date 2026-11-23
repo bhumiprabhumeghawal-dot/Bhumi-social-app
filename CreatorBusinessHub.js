@@ -175,7 +175,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={{ color: GOLD, fontSize: 10, fontWeight: "900", letterSpacing: 1.5 }}>BHUMI SOCIAL AI</Text>
-            <Text style={{ color: TEXT, fontSize: 19, fontWeight: "900", marginTop: 3 }}>Creator & Business Hub</Text>
+            <Text style={{ color: TEXT, fontSize: 19, fontWeight: "900", marginTop: 3 }}>{t("creatorBusinessHub")}</Text>
           </View>
           <TouchableOpacity onPress={refresh}><Ionicons name="refresh" size={21} color={GOLD}/></TouchableOpacity>
         </View>
@@ -290,14 +290,14 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
       <Modal visible={confirmDeleteId != null} transparent animationType="fade" onRequestClose={() => setConfirmDeleteId(null)}>
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "center", padding: 28 }}>
           <View style={{ backgroundColor: PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 16, padding: 18 }}>
-            <Text style={{ color: TEXT, fontSize: 16, fontWeight: "900" }}>Delete catalog item?</Text>
-            <Text style={{ color: MUTED, fontSize: 12, marginTop: 8 }}>This item will be permanently removed from your catalog.</Text>
+            <Text style={{ color: TEXT, fontSize: 16, fontWeight: "900" }}>{t("deleteCatalogItemTitle")}</Text>
+            <Text style={{ color: MUTED, fontSize: 12, marginTop: 8 }}>{t("deleteCatalogItemBody")}</Text>
             <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}>
               <TouchableOpacity onPress={() => setConfirmDeleteId(null)} disabled={saving} style={{ padding: 11, marginRight: 8 }}>
                 <Text style={{ color: TEXT, fontWeight: "700" }}>{t("cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={removeItem} disabled={saving} style={{ backgroundColor: "#ED4956", borderRadius: 9, paddingHorizontal: 15, paddingVertical: 11 }}>
-                <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{saving ? "Deleting..." : "Delete"}</Text>
+                <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{saving ? t("deletingAction") : t("deleteAction")}</Text>
               </TouchableOpacity>
             </View>
           </View>
