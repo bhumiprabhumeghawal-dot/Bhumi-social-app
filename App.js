@@ -2412,7 +2412,7 @@ export default function App() {
       }
     } catch (error) {
       Alert.alert(
-        "Update",
+        appText("alertUpdate"),
         "The update could not be downloaded. Check your internet connection and try again.",
       );
     } finally {
@@ -2462,7 +2462,7 @@ export default function App() {
           const username = decodeURIComponent(profileMatch[1]);
           if (active && username) await openUserProfile(username);
         } catch (error) {
-          if (active) Alert.alert("Profile unavailable", error?.message || "Could not open this profile.");
+          if (active) Alert.alert(appText("alertProfileUnavailable"), error?.message || "Could not open this profile.");
         }
         return;
       }
@@ -2476,7 +2476,7 @@ export default function App() {
       } catch (error) {
         if (active) {
           Alert.alert(
-            "Post unavailable",
+            appText("alertPostUnavailable"),
             error?.message || "Could not open this shared post.",
           );
         }
@@ -3495,10 +3495,10 @@ export default function App() {
     try {
       await saveAccountSettings(accountEmail, accountPhone);
       setAccountSettingsOpen(false);
-      Alert.alert("Success", "Account details saved.");
+      Alert.alert(appText("alertSuccess"), "Account details saved.");
     } catch (e) {
       Alert.alert(
-        "Save failed",
+        appText("alertSaveFailed"),
         e.message || "Could not save account details.",
       );
     } finally {
@@ -3513,7 +3513,7 @@ export default function App() {
       setNotificationsEnabled(saved);
     } catch (e) {
       Alert.alert(
-        "Notifications",
+        appText("alertNotifications"),
         e.message || "Could not save notification preference.",
       );
     } finally {
@@ -3531,7 +3531,7 @@ export default function App() {
       setNotificationDetailsOpen((value) => !value);
     } catch (e) {
       Alert.alert(
-        "Notifications",
+        appText("alertNotifications"),
         e.message || "Could not load notification settings.",
       );
     } finally {
@@ -3608,7 +3608,7 @@ export default function App() {
         ),
       );
     } catch (e) {
-      Alert.alert("Saved", e.message || "Could not update Saved.");
+      Alert.alert(appText("alertSaved"), e.message || "Could not update Saved.");
     } finally {
       setReelBusyState((prev) => ({ ...prev, [`save-${id}`]: false }));
     }
@@ -3648,7 +3648,7 @@ export default function App() {
         ),
       );
     } catch (e) {
-      Alert.alert("Follow", e.message || "Could not update follow.");
+      Alert.alert(appText("alertFollow"), e.message || "Could not update follow.");
     } finally {
       setReelBusyState((prev) => ({ ...prev, [`follow-${username}`]: false }));
     }
@@ -3690,7 +3690,7 @@ export default function App() {
       );
     } catch (e) {
       Alert.alert(
-        "Download",
+        appText("alertDownload"),
         e.message || "Could not save this reel to Gallery.",
       );
     }
@@ -3788,7 +3788,7 @@ export default function App() {
       const items = await loadSavedContent();
       setSavedContent(Array.isArray(items) ? items : []);
     } catch (e) {
-      Alert.alert("Saved", e.message || "Could not load Saved items.");
+      Alert.alert(appText("alertSaved"), e.message || "Could not load Saved items.");
     } finally {
       setSavedContentBusy(false);
     }
@@ -3849,7 +3849,7 @@ export default function App() {
       return;
     }
 
-    Alert.alert("Saved", "This saved item type is not supported.");
+    Alert.alert(appText("alertSaved"), "This saved item type is not supported.");
   };
 
   const handleRemoveSavedItem = async (item) => {
@@ -3875,7 +3875,7 @@ export default function App() {
         setReelSavedState((current) => ({ ...current, [id]: false }));
       }
     } catch (e) {
-      Alert.alert("Saved", e.message || "Could not remove this item.");
+      Alert.alert(appText("alertSaved"), e.message || "Could not remove this item.");
     }
   };
 
@@ -3891,7 +3891,7 @@ export default function App() {
       setUnreadNotificationCount(Number(data.unreadCount || 0));
     } catch (e) {
       Alert.alert(
-        "Notifications",
+        appText("alertNotifications"),
         e.message || "Could not load notifications.",
       );
     } finally {
@@ -3912,7 +3912,7 @@ export default function App() {
       setUnreadNotificationCount((current) => Math.max(0, current - 1));
     } catch (e) {
       Alert.alert(
-        "Notifications",
+        appText("alertNotifications"),
         e.message || "Could not mark notification as read.",
       );
     }
@@ -3989,7 +3989,7 @@ export default function App() {
         setUnreadNotificationCount((current) => Math.max(0, current - 1));
       } catch (e) {
         Alert.alert(
-          "Notifications",
+          appText("alertNotifications"),
           e.message || "Could not mark notification as read.",
         );
       }
@@ -4002,7 +4002,7 @@ export default function App() {
     if (kind === "like" || kind === "comment" || kind === "reel_like" || kind === "reel_comment") {
       if (!item.referenceId) {
         Alert.alert(
-          "Post unavailable",
+          appText("alertPostUnavailable"),
           "This notification does not contain a post reference.",
         );
         return;
@@ -4041,7 +4041,7 @@ export default function App() {
           console.warn("Could not open reel notification:", error?.message || error);
         }
       }
-      Alert.alert("Content unavailable", "This post or reel may have been deleted or is no longer visible.");
+      Alert.alert(appText("alertContentUnavailable"), "This post or reel may have been deleted or is no longer visible.");
       return;
     }
 
@@ -4129,7 +4129,7 @@ export default function App() {
       setUnreadNotificationCount(0);
     } catch (e) {
       Alert.alert(
-        "Notifications",
+        appText("alertNotifications"),
         e.message || "Could not mark notifications as read.",
       );
     }
@@ -4146,7 +4146,7 @@ export default function App() {
     } catch (e) {
       setNotificationDetails(previous);
       Alert.alert(
-        "Notifications",
+        appText("alertNotifications"),
         e.message || "Could not save notification settings.",
       );
     } finally {
@@ -4270,7 +4270,7 @@ export default function App() {
         };
       });
     } catch (e) {
-      Alert.alert("Follow", e.message || "Could not update follow.");
+      Alert.alert(appText("alertFollow"), e.message || "Could not update follow.");
     } finally {
       setViewedProfileFollowBusy(false);
     }
@@ -4343,7 +4343,7 @@ export default function App() {
     } catch (e) {
       Alert.alert(
         "Privacy settings unavailable",
-        e.message || "Check the server connection.",
+        e.message || appText("alertCheckConnection"),
       );
     } finally {
       setPrivacyBusy(false);
@@ -4365,7 +4365,7 @@ export default function App() {
       });
       setSnapPrivacyOpen(true);
     } catch (error) {
-      Alert.alert("Privacy settings unavailable", error.message || "Please try again.");
+      Alert.alert("Privacy settings unavailable", error.message || appText("alertTryAgain"));
     } finally {
       setSnapPrivacyBusy(false);
     }
@@ -4390,7 +4390,7 @@ export default function App() {
       await saveSettingsPreferences({ [serverKey]: value });
     } catch (error) {
       setSnapPrivacy((current) => ({ ...current, [key]: previous }));
-      Alert.alert("Could not save", error.message || "Please try again.");
+      Alert.alert("Could not save", error.message || appText("alertTryAgain"));
     } finally {
       setSnapPrivacyBusy(false);
     }
@@ -4401,10 +4401,10 @@ export default function App() {
   };
 
   const handleSettingsLogout = () => {
-    Alert.alert("Log out", "Are you sure you want to log out?", [
+    Alert.alert(appText("alertLogOut"), "Are you sure you want to log out?", [
       { text: "Cancel", style: "cancel" },
       {
-        text: "Log out",
+        text: appText("alertLogOut"),
         style: "destructive",
         onPress: async () => {
           try {
@@ -4430,9 +4430,9 @@ export default function App() {
       );
       setPrivacySettings(settings);
       setPrivacyOpen(false);
-      Alert.alert("Saved", "Privacy settings have been saved.");
+      Alert.alert(appText("alertSaved"), "Privacy settings have been saved.");
     } catch (e) {
-      Alert.alert("Save failed", e.message || "Check the server connection.");
+      Alert.alert(appText("alertSaveFailed"), e.message || appText("alertCheckConnection"));
     } finally {
       setPrivacyBusy(false);
     }
@@ -4465,7 +4465,7 @@ export default function App() {
         setBusinessProfileOpen(false);
         setBusinessDirectoryOpen(false);
         Alert.alert(
-          "Account updated",
+          appText("alertAccountUpdated"),
           mode === "private"
             ? "Your account is now private. Business tools are disabled."
             : mode === "creator"
@@ -4474,7 +4474,7 @@ export default function App() {
         );
       }
     } catch (error) {
-      Alert.alert("Could not change account", error.message || "Please try again.");
+      Alert.alert("Could not change account", error.message || appText("alertTryAgain"));
     } finally {
       setPrivacyBusy(false);
     }
@@ -4484,12 +4484,12 @@ export default function App() {
   const persistBusinessProfile = async () => {
     if (privacySettings.accountType !== "business") {
       setBusinessProfileOpen(false);
-      Alert.alert("Business Account only", "Business tools are available only in Business Account.");
+      Alert.alert(appText("alertBusinessOnly"), "Business tools are available only in Business Account.");
       return;
     }
     if (businessProfileBusy) return;
     if (!businessProfile.businessName.trim() || !businessProfile.city.trim()) {
-      Alert.alert("Details required", "Business name and city are required for area-wise discovery.");
+      Alert.alert(appText("alertDetailsRequired"), "Business name and city are required for area-wise discovery.");
       return;
     }
     setBusinessProfileBusy(true);
@@ -4503,7 +4503,7 @@ export default function App() {
       await refreshProfile();
       Alert.alert("Business profile saved", "Your business details and service area are now published.");
     } catch (error) {
-      Alert.alert("Save failed", error.message || "Please try again.");
+      Alert.alert(appText("alertSaveFailed"), error.message || appText("alertTryAgain"));
     } finally {
       setBusinessProfileBusy(false);
     }
@@ -4512,7 +4512,7 @@ export default function App() {
 
 
   const addBusinessCatalogItem = async () => {
-    if (privacySettings.accountType !== "business") return Alert.alert("Business Account only", "Switch to Business Account to manage your catalogue.");
+    if (privacySettings.accountType !== "business") return Alert.alert(appText("alertBusinessOnly"), "Switch to Business Account to manage your catalogue.");
     if (!catalogDraft.title.trim()) return Alert.alert("Catalog", "Enter a product or service name.");
     try {
       const item = await createBusinessCatalogItem(catalogDraft);
@@ -4529,7 +4529,7 @@ export default function App() {
   };
 
   const addBusinessQuickReply = async () => {
-    if (privacySettings.accountType !== "business") return Alert.alert("Business Account only", "Switch to Business Account to manage quick replies.");
+    if (privacySettings.accountType !== "business") return Alert.alert(appText("alertBusinessOnly"), "Switch to Business Account to manage quick replies.");
     if (!quickReplyDraft.shortcut.trim() || !quickReplyDraft.message.trim()) return Alert.alert("Quick Replies", "Enter a shortcut and message.");
     try {
       const item = await createBusinessQuickReply(quickReplyDraft);
@@ -4547,7 +4547,7 @@ export default function App() {
 
   const searchBusinessDirectory = async () => {
     if (privacySettings.accountType !== "business") {
-      Alert.alert("Business Account only", "Switch to Business Account to use area-wise business discovery.");
+      Alert.alert(appText("alertBusinessOnly"), "Switch to Business Account to use area-wise business discovery.");
       setBusinessDirectoryOpen(false);
       return;
     }
@@ -4556,7 +4556,7 @@ export default function App() {
       const results = await discoverBusinesses(businessDirectoryFilters);
       setBusinessDirectoryResults(results);
     } catch (error) {
-      Alert.alert("Business search failed", error.message || "Please try again.");
+      Alert.alert("Business search failed", error.message || appText("alertTryAgain"));
     } finally {
       setBusinessDirectoryBusy(false);
     }
@@ -4592,7 +4592,7 @@ export default function App() {
       });
     } catch (e) {
       if (!cachedLoaded) {
-        Alert.alert("Profile could not be loaded", e.message || "Check the server connection.");
+        Alert.alert("Profile could not be loaded", e.message || appText("alertCheckConnection"));
       }
     }
   }, [authSession]);
@@ -4618,7 +4618,7 @@ export default function App() {
       setProfileEditing(false);
       Alert.alert("successful", "Profile saved.");
     } catch (e) {
-      Alert.alert("Save failed", e.message || "Check the server connection.");
+      Alert.alert(appText("alertSaveFailed"), e.message || appText("alertCheckConnection"));
     } finally {
       setProfileBusy(false);
     }
@@ -4629,7 +4629,7 @@ export default function App() {
       const permission =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert("Permission required", "Gallery  permission is required.");
+        Alert.alert(appText("alertPermissionRequired"), "Gallery  permission is required.");
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -4645,7 +4645,7 @@ export default function App() {
       await refreshProfile();
       Alert.alert("successful", "Profile photo updated.");
     } catch (e) {
-      Alert.alert("Photo upload failed", e.message || "Check the server connection.");
+      Alert.alert("Photo upload failed", e.message || appText("alertCheckConnection"));
     } finally {
       setProfileBusy(false);
     }
@@ -4655,7 +4655,7 @@ export default function App() {
     Alert.alert("Remove Photo?", "Delete profile photo?", [
       { text: "Cancel", style: "cancel" },
       {
-        text: "Delete",
+        text: appText("alertDelete"),
         style: "destructive",
         onPress: async () => {
           setProfileBusy(true);
@@ -4663,7 +4663,7 @@ export default function App() {
             await deleteProfileAvatar(authSession.username);
             await refreshProfile();
           } catch (e) {
-            Alert.alert("Photo was not deleted", e.message || "Please try again.");
+            Alert.alert("Photo was not deleted", e.message || appText("alertTryAgain"));
           } finally {
             setProfileBusy(false);
           }
@@ -4811,7 +4811,7 @@ export default function App() {
       [
         { text: "Cancel", style: "cancel" },
         {
-          text: "Delete",
+          text: appText("alertDelete"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -4852,7 +4852,7 @@ export default function App() {
       }
       setLiveCameraOpen(true);
     } catch (e) {
-      Alert.alert("Camera unavailable", e.message || "Please try again.");
+      Alert.alert("Camera unavailable", e.message || appText("alertTryAgain"));
     }
   };
 
@@ -4875,7 +4875,7 @@ export default function App() {
       setCameraTargetKind("reels");
       setCameraOpen(true);
     } catch (e) {
-      Alert.alert("Camera unavailable", e.message || "Please try again.");
+      Alert.alert("Camera unavailable", e.message || appText("alertTryAgain"));
     }
   };
 
@@ -4887,7 +4887,7 @@ export default function App() {
       const result = await cameraRef.current.recordAsync({ maxDuration: 1200 });
       if (result?.uri) setRecordedVideo(result.uri);
     } catch (e) {
-      Alert.alert("Recording failed", e.message || "Please try again.");
+      Alert.alert("Recording failed", e.message || appText("alertTryAgain"));
     } finally {
       setIsRecording(false);
     }
@@ -4922,7 +4922,7 @@ export default function App() {
         setRecordedPhoto(photo.uri);
       }
     } catch (e) {
-      Alert.alert("Photo capture failed", e.message || "Please try again.");
+      Alert.alert("Photo capture failed", e.message || appText("alertTryAgain"));
     }
   };
 
@@ -4977,7 +4977,7 @@ export default function App() {
       setRecordedVideo(null);
       setCameraOpen(true);
     } catch (e) {
-      Alert.alert("Camera unavailable", e.message || "Please try again.");
+      Alert.alert("Camera unavailable", e.message || appText("alertTryAgain"));
     }
   };
 
@@ -5061,7 +5061,7 @@ export default function App() {
       setMediaDraftCaption("");
     } catch (e) {
       console.error("Media selection failed:", e);
-      Alert.alert("Media could not be opened", e.message || "Please try again.");
+      Alert.alert("Media could not be opened", e.message || appText("alertTryAgain"));
     }
   };
 
@@ -5077,7 +5077,7 @@ export default function App() {
     try {
       await Linking.openURL(buildGoogleMusicSearchUrl(query));
     } catch (error) {
-      Alert.alert("Google Search Could not open", error?.message || "Please try again.");
+      Alert.alert("Google Search Could not open", error?.message || appText("alertTryAgain"));
     } finally {
       setMusicSearchLoading(false);
     }
@@ -5097,7 +5097,7 @@ export default function App() {
       setMusicPlayingId(selectedAudio.id);
       setMusicSearchOpen(false);
     } catch (e) {
-      Alert.alert("Music selection failed", e.message || "Please try again.");
+      Alert.alert("Music selection failed", e.message || appText("alertTryAgain"));
     } finally {
       setMusicSearchLoading(false);
     }
@@ -5170,7 +5170,7 @@ export default function App() {
       setMusicStart(0);
     } catch (e) {
       console.error("Photo video creation failed:", e);
-      Alert.alert("Video creation failed", e.message || "Please try again.");
+      Alert.alert("Video creation failed", e.message || appText("alertTryAgain"));
     } finally {
       setBusy(false);
     }
@@ -5201,7 +5201,7 @@ export default function App() {
           : current,
       );
     } catch (e) {
-      Alert.alert("Photo editing failed", e.message || "Please try again.");
+      Alert.alert("Photo editing failed", e.message || appText("alertTryAgain"));
     } finally {
       setBusy(false);
     }
@@ -5357,7 +5357,7 @@ export default function App() {
       );
     } catch (e) {
       console.error("Upload failed:", e);
-      Alert.alert("Upload failed", e.message || "Check the server connection.");
+      Alert.alert("Upload failed", e.message || appText("alertCheckConnection"));
     } finally {
       setBusy(false);
     }
@@ -5560,7 +5560,7 @@ export default function App() {
       setAuthSession({ token: result.token, username: result.username });
       setAuthPassword("");
       Alert.alert(
-        "Success",
+        appText("alertSuccess"),
         authMode === "register" ? "Account created." : "Login successful.",
       );
     } catch (error) {
@@ -8068,7 +8068,7 @@ export default function App() {
                                   ? "Requested"
                                   : following
                                     ? "Following"
-                                    : "Follow"}
+                                    : appText("alertFollow")}
                               </Text>
                             </TouchableOpacity>
                           )}
@@ -8597,7 +8597,7 @@ export default function App() {
                     } catch (e) {
                       Alert.alert(
                         "Follow failed",
-                        e.message || "Please try again.",
+                        e.message || appText("alertTryAgain"),
                       );
                     } finally {
                       setSearchFollowBusy((prev) => ({
@@ -8641,7 +8641,7 @@ export default function App() {
                           ? "Requested"
                           : item.followsYou
                             ? "Follow Back"
-                            : "Follow"}
+                            : appText("alertFollow")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -9393,7 +9393,7 @@ export default function App() {
                         setPasswordOpen(true);
                       } else if (item.title === "Account Settings") {
                         openAccountSettings();
-                      } else if (item.title === "Notifications") {
+                      } else if (item.title === appText("alertNotifications")) {
                         openNotificationSettings();
                       } else {
                         Alert.alert(
@@ -11243,14 +11243,14 @@ export default function App() {
                           try {
                             const result = await logoutOtherSessions();
                             Alert.alert(
-                              "Success",
+                              appText("alertSuccess"),
                               result.message ||
                                 "Other devices have been signed out.",
                             );
                           } catch (e) {
                             Alert.alert(
                               "Could Not Sign Out Devices",
-                              e.message || "Please try again.",
+                              e.message || appText("alertTryAgain"),
                             );
                           } finally {
                             setPasswordBusy(false);
@@ -11328,13 +11328,13 @@ export default function App() {
                       setConfirmNewPassword("");
                       setPasswordOpen(false);
                       Alert.alert(
-                        "Success",
+                        appText("alertSuccess"),
                         result.message || "Password changed successfully.",
                       );
                     } catch (e) {
                       Alert.alert(
                         "Password change failed",
-                        e.message || "Please try again.",
+                        e.message || appText("alertTryAgain"),
                       );
                     } finally {
                       setPasswordBusy(false);
