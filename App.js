@@ -6874,20 +6874,20 @@ export default function App() {
                           </TouchableOpacity>
                           {musicAsset ? (
                             <TouchableOpacity onPress={() => musicPlayerStatus.playing ? musicPlayer.pause() : musicPlayer.play()} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.65)" }}>
-                              <Text style={{ color: "#FFFFFF", fontSize: 11 }}>{musicPlayerStatus.playing ? "Pause Music Preview" : "Preview Music"}</Text>
+                              <Text style={{ color: "#FFFFFF", fontSize: 11 }}>{musicPlayerStatus.playing ? appText("musicPreviewPause") : appText("musicPreviewPlay")}</Text>
                             </TouchableOpacity>
                           ) : null}
                           <TouchableOpacity onPress={() => setKeepOriginalAudio((value) => !value)} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.65)" }}>
-                            <Text style={{ color: "#FFFFFF", fontSize: 11 }}>{keepOriginalAudio ? "Original Sound: ON" : "Original Sound: OFF"}</Text>
+                            <Text style={{ color: "#FFFFFF", fontSize: 11 }}>{keepOriginalAudio ? appText("originalSoundOn") : appText("originalSoundOff")}</Text>
                           </TouchableOpacity>
                           {musicAsset ? (
                             <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
                               <TouchableOpacity onPress={() => setMusicVolume((value) => Math.max(0, Number((value - 0.1).toFixed(1))))} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 15, backgroundColor: "rgba(0,0,0,0.7)" }}>
-                                <Text style={{ color: "#FFFFFF", fontSize: 11 }}>Music −</Text>
+                                <Text style={{ color: "#FFFFFF", fontSize: 11 }}>{appText("musicVolumeDown")}</Text>
                               </TouchableOpacity>
                               <Text style={{ color: "#FFFFFF", fontSize: 11, textShadowColor: "#000000", textShadowRadius: 4 }}>{Math.round(musicVolume * 100)}%</Text>
                               <TouchableOpacity onPress={() => setMusicVolume((value) => Math.min(1, Number((value + 0.1).toFixed(1))))} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 15, backgroundColor: "rgba(0,0,0,0.7)" }}>
-                                <Text style={{ color: "#FFFFFF", fontSize: 11 }}>Music +</Text>
+                                <Text style={{ color: "#FFFFFF", fontSize: 11 }}>{appText("musicVolumeUp")}</Text>
                               </TouchableOpacity>
                             </View>
                           ) : null}
