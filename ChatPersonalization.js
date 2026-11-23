@@ -98,7 +98,7 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
       setCloseFriend(loaded.closeFriend);
       onSaved?.(loaded);
     }).catch((e) => {
-      if (alive) setError(e?.message || "Chat preferences load नहीं हो सके।");
+      if (alive) setError(e?.message || "Chat preferences could not be loaded.");
     }).finally(() => { if (alive) setBusy(false); });
     return () => { alive = false; };
   }, [visible, username]);
@@ -122,7 +122,7 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
       });
       onClose?.();
     } catch (e) {
-      setError(e?.message || "Changes save नहीं हुए।");
+      setError(e?.message || "Changes could not be saved.");
     } finally { setBusy(false); }
   };
 
@@ -144,7 +144,7 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
           <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800", marginBottom: 9 }}>Your private chat name</Text>
           <TextInput value={name} onChangeText={setName} placeholder={username} placeholderTextColor="#8F829F" maxLength={40}
             style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15 }} />
-          <Text style={{ color: "#9E91AC", fontSize: 11, marginTop: 6, marginBottom: 20 }}>यह नाम सिर्फ आपको दिखेगा; दूसरे व्यक्ति का प्रोफाइल नाम नहीं बदलेगा।</Text>
+          <Text style={{ color: "#9E91AC", fontSize: 11, marginTop: 6, marginBottom: 20 }}>This name is visible only to you. It does not change the other person's profile name.</Text>
 
           <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800", marginBottom: 10 }}>Chat themes</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
@@ -167,24 +167,24 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
           <View style={{ backgroundColor: selected.bg, borderWidth: 1, borderColor: selected.accent, borderRadius: 15, padding: 14, marginBottom: 20 }}>
             <Text style={{ color: selected.accent, fontSize: 10, fontWeight: "900", marginBottom: 9 }}>LIVE THEME PREVIEW</Text>
             <View style={{ alignSelf: "flex-start", backgroundColor: selected.other, borderRadius: 13, padding: 10, marginBottom: 7 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Hey! कैसी हो? ✨</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Hey! How are you? ✨</Text>
             </View>
             <View style={{ alignSelf: "flex-end", backgroundColor: selected.mine, borderRadius: 13, padding: 10 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 12 }}>सब बढ़िया! 💜</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Everything is great! 💜</Text>
             </View>
           </View>
 
           <View style={{ backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 15, padding: 14, marginBottom: 10, flexDirection: "row", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "900" }}>Favourite Friend</Text>
-              <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}>इस दोस्त को Favourite में रखें और चैट सूची में प्राथमिकता दें।</Text>
+              <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}>Add this friend to Favorites and prioritize them in your chat list.</Text>
             </View>
             <Switch value={favorite} onValueChange={setFavorite} trackColor={{ false: "#555555", true: "#0095F6" }} thumbColor={favorite ? GOLD : "#FFFFFF"} />
           </View>
           <View style={{ backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 15, padding: 14, marginBottom: 16, flexDirection: "row", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "900" }}>Close Friend</Text>
-              <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}>इस दोस्त को अपनी Close Friends सूची में जोड़ें।</Text>
+              <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}>Add this friend to your Close Friends list.</Text>
             </View>
             <Switch value={closeFriend} onValueChange={setCloseFriend} trackColor={{ false: "#555555", true: "#0095F6" }} thumbColor={closeFriend ? GOLD : "#FFFFFF"} />
           </View>
