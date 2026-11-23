@@ -169,10 +169,10 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
           <View style={{ backgroundColor: selected.bg, borderWidth: 1, borderColor: selected.accent, borderRadius: 15, padding: 14, marginBottom: 20 }}>
             <Text style={{ color: selected.accent, fontSize: 10, fontWeight: "900", marginBottom: 9 }}>{t("appearance").toUpperCase()}</Text>
             <View style={{ alignSelf: "flex-start", backgroundColor: selected.other, borderRadius: 13, padding: 10, marginBottom: 7 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Hey! How are you? ✨</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{t("chatPreviewIncoming")}</Text>
             </View>
             <View style={{ alignSelf: "flex-end", backgroundColor: selected.mine, borderRadius: 13, padding: 10 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 12 }}>Everything is great! 💜</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{t("chatPreviewReply")}</Text>
             </View>
           </View>
 
