@@ -5411,7 +5411,7 @@ export default function App() {
             <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel="Create menu" style={{ padding: 3 }}>
               <Ionicons name="add-circle-outline" size={27} color="#F5F5F5" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={openNotifications} accessibilityLabel="Notifications" style={{ position: "relative", padding: 3 }}>
+            <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ position: "relative", padding: 3 }}>
               <Ionicons name="heart-outline" size={26} color="#F5F5F5" />
               {unreadNotificationCount > 0 ? (
                 <View style={{ position: "absolute", right: -5, top: -5, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#E1306C", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}>
@@ -13342,9 +13342,9 @@ export default function App() {
                         fontWeight: "800", fontSize: 13
                       }}>
                         {viewedProfileFollowBusy ? "Please wait..." :
-                          viewedProfile.isFollowing ? "Following" :
-                          viewedProfile.followRequestStatus === "pending" ? "Requested" :
-                          viewedProfile.followsYou ? "Follow Back" : "Follow"}
+                          viewedProfile.isFollowing ? appText("profileFollowing") :
+                          viewedProfile.followRequestStatus === "pending" ? appText("profileRequested") :
+                          viewedProfile.followsYou ? appText("profileFollowBack") : appText("profileFollow")}
                       </Text>
                       {(viewedProfile.isFollowing || viewedProfile.followRequestStatus === "pending") && (
                         <Ionicons name="chevron-down" size={14} color="#222222" style={{ marginLeft: 4 }} />
@@ -13359,7 +13359,7 @@ export default function App() {
                       }}
                       activeOpacity={0.8}
                       style={{ flex: 1, height: 36, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "#1C1C1E" }}>
-                      <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 13 }}>Message</Text>
+                      <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 13 }}>{appText("profileMessage")}</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -13371,7 +13371,7 @@ export default function App() {
                   );
                   return (
                     <View style={{ marginTop: 19 }}>
-                      <Text style={{ color: "#FFFFFF", fontWeight: "800", marginBottom: 10 }}>Status</Text>
+                      <Text style={{ color: "#FFFFFF", fontWeight: "800", marginBottom: 10 }}>{appText("profileStatus")}</Text>
                       {stories.length ? (
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                           {stories.map((story, index) => (
@@ -13425,7 +13425,7 @@ export default function App() {
               ) : (
                 <View style={{ alignItems: "center", paddingVertical: 48 }}>
                   <Ionicons name="images-outline" size={38} color="#555555" />
-                  <Text style={{ color: "#A8A8A8", marginTop: 10 }}>No tagged photos yet</Text>
+                  <Text style={{ color: "#A8A8A8", marginTop: 10 }}>{appText("profileNoTagged")}</Text>
                 </View>
               )}
             </ScrollView>
@@ -13447,12 +13447,12 @@ export default function App() {
                   message: `View @${username}'s profile on Bhumi Social AI:\n${profileLink}\n\nGet Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download`,
                 });
               }} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
-                <Text style={{ color: "#F5F5F5", fontSize: 14 }}>Share Profile</Text>
+                <Text style={{ color: "#F5F5F5", fontSize: 14 }}>{appText("profileShare")}</Text>
               </TouchableOpacity>
               <View style={{ height: 0.5, backgroundColor: "#30253E" }} />
               <TouchableOpacity disabled={viewedProfileBlockBusy} onPress={handleBlockViewedProfile} style={{ paddingHorizontal: 16, paddingVertical: 13, opacity: viewedProfileBlockBusy ? 0.55 : 1 }}>
                 <Text style={{ color: "#FF6B7A", fontSize: 14, fontWeight: "700" }}>
-                  {viewedProfileBlockBusy ? "Blocking…" : "Block Account"}
+                  {appText("profileBlock")}
                 </Text>
               </TouchableOpacity>
               <View style={{ height: 0.5, backgroundColor: "#30253E" }} />
@@ -13461,7 +13461,7 @@ export default function App() {
                 handleToggleViewedProfileRestriction();
               }} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
                 <Text style={{ color: "#F5F5F5", fontSize: 14 }}>
-                  {viewedProfileRestricted ? "Unrestrict" : "Restrict"}
+                  {viewedProfileRestricted ? appText("profileUnrestrict") : appText("profileRestrict")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -13580,7 +13580,7 @@ export default function App() {
               <Text
                 style={{ fontSize: 20, fontWeight: "800", color: "#F5F5F5" }}
               >
-                Notifications
+                {appText("notificationsTitle")}
               </Text>
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: 16 }}
@@ -13588,7 +13588,7 @@ export default function App() {
                 {unreadNotificationCount > 0 ? (
                   <TouchableOpacity onPress={handleReadAllNotifications}>
                     <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
-                      Mark all read
+                      {appText("markAllRead")}
                     </Text>
                   </TouchableOpacity>
                 ) : null}
@@ -13603,7 +13603,7 @@ export default function App() {
               {["All", "Likes", "Comments", "Follows", "Messages"].map((filter) => (
                 <TouchableOpacity key={filter} onPress={() => setNotificationFilter(filter)}
                   style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 18, backgroundColor: notificationFilter === filter ? "#0095F6" : "#262626" }}>
-                  <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "800" }}>{filter}</Text>
+                  <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "800" }}>{appText("notif" + filter)}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -13681,7 +13681,7 @@ export default function App() {
                           }}
                         >
                           <Text style={{ fontWeight: "800" }}>{actor}</Text>{" "}
-                          {messages[item.kind] || "sent you a notification"}
+                          {appText("notif_" + (messages[item.kind] ? item.kind : "message"))}
                         </Text>
                         <Text
                           style={{
