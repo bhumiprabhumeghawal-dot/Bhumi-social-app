@@ -1172,12 +1172,12 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 {["blocked","restricted"].map((legacyKey) => (
                   <TouchableOpacity key={legacyKey} onPress={() => { setActive(null); onLegacyOpen?.(legacyKey); }} style={{ backgroundColor:PANEL,borderWidth:1,borderColor:BORDER,borderRadius:13,padding:14,marginBottom:9 }}>
                     <Text style={{ color:TEXT,fontWeight:"800" }}>{legacyKey === "blocked" ? t("blockedAccounts") : t("restrictedAccounts")}</Text>
-                    <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{appLanguage === "en" ? `Manage ${legacyKey} people and interactions` : ""}</Text>
+                    <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{legacyKey === "blocked" ? t("blockedDescription") : t("restrictedDescription")}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             ) : null}
-            {section.legacy && appLanguage === "en" ? (
+            {section.legacy ? (
               <TouchableOpacity onPress={() => { setActive(null); onLegacyOpen?.(section.legacy); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
                 <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{t("openExistingSection")} {section.title}</Text>
               </TouchableOpacity>
@@ -1512,7 +1512,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                   try { await SecureStore.setItemAsync("bhumi_app_language",item.code); setSelectedLanguage(item.code); onLanguageChange?.(item.code); setLanguageVisible(false); }
                   catch (error) { setNotice({title:"Could not save language",message:error?.message || "Please try again."}); }
                 }} style={{ flexDirection:"row",alignItems:"center",paddingVertical:12,borderBottomWidth:1,borderBottomColor:BORDER }}>
-                  <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{item.name}{appLanguage === "en" ? "" : " · " + item.native}</Text><Text style={{ color:MUTED,fontSize:10,marginTop:3 }}>{item.region}</Text></View>
+                  <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{appLanguage === "en" ? item.name : item.native}</Text><Text style={{ color:MUTED,fontSize:10,marginTop:3 }}>{item.region}</Text></View>
                   {selectedLanguage===item.code ? <Ionicons name="checkmark-circle" size={21} color={GOLD}/> : <View style={{ width:20,height:20,borderRadius:10,borderWidth:1,borderColor:BORDER }}/>}
                 </TouchableOpacity>
               ))}
