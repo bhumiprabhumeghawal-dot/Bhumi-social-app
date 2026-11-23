@@ -22,6 +22,41 @@ import {
   registerGlobals,
 } from "@livekit/react-native";
 import { Track, VideoPresets } from "livekit-client";
+import { translateAppText } from "./localization";
+
+const CALL_LABELS = {
+  en: ["Voice call","Video call","VOICE CALL","VIDEO CALL","Incoming call","Answer call","Cancel call","Reconnect","Reconnecting…","Mute","Unmute","Camera","Camera off","End","Call connected.","Connecting call…"],
+  hi: ["वॉइस कॉल","वीडियो कॉल","वॉइस कॉल","वीडियो कॉल","आने वाली कॉल","कॉल उठाएँ","कॉल काटें","फिर से कनेक्ट करें","फिर से कनेक्ट हो रहा है…","माइक बंद करें","माइक चालू करें","कैमरा","कैमरा बंद","समाप्त करें","कॉल कनेक्ट हो गई।","कॉल कनेक्ट हो रही है…"],
+  gu: ["વૉઇસ કૉલ","વિડિયો કૉલ","વૉઇસ કૉલ","વિડિયો કૉલ","આવતો કૉલ","કૉલ ઉપાડો","કૉલ કાપો","ફરીથી કનેક્ટ કરો","ફરીથી કનેક્ટ થઈ રહ્યું છે…","માઇક બંધ","માઇક ચાલુ","કૅમેરા","કૅમેરા બંધ","સમાપ્ત","કૉલ કનેક્ટ થઈ ગયો.","કૉલ કનેક્ટ થઈ રહ્યો છે…"],
+  bn: ["ভয়েস কল","ভিডিও কল","ভয়েস কল","ভিডিও কল","ইনকামিং কল","কল ধরুন","কল কেটে দিন","আবার সংযোগ করুন","আবার সংযোগ হচ্ছে…","মাইক বন্ধ","মাইক চালু","ক্যামেরা","ক্যামেরা বন্ধ","শেষ করুন","কল সংযুক্ত হয়েছে।","কল সংযোগ হচ্ছে…"],
+  mr: ["व्हॉइस कॉल","व्हिडिओ कॉल","व्हॉइस कॉल","व्हिडिओ कॉल","येणारा कॉल","कॉल उचला","कॉल कट करा","पुन्हा कनेक्ट करा","पुन्हा कनेक्ट होत आहे…","माइक बंद","माइक सुरू","कॅमेरा","कॅमेरा बंद","समाप्त","कॉल जोडला गेला.","कॉल जोडला जात आहे…"],
+  ta: ["குரல் அழைப்பு","வீடியோ அழைப்பு","குரல் அழைப்பு","வீடியோ அழைப்பு","உள்வரும் அழைப்பு","அழைப்பை ஏற்கவும்","அழைப்பை நிராகரிக்கவும்","மீண்டும் இணைக்கவும்","மீண்டும் இணைக்கிறது…","ஒலிவாங்கியை அணை","ஒலிவாங்கியை இயக்கு","கேமரா","கேமரா அணை","முடி","அழைப்பு இணைக்கப்பட்டது.","அழைப்பு இணைக்கப்படுகிறது…"],
+  te: ["వాయిస్ కాల్","వీడియో కాల్","వాయిస్ కాల్","వీడియో కాల్","ఇన్‌కమింగ్ కాల్","కాల్ ఆన్సర్ చేయండి","కాల్ కట్ చేయండి","మళ్లీ కనెక్ట్ చేయండి","మళ్లీ కనెక్ట్ అవుతోంది…","మైక్ ఆఫ్","మైక్ ఆన్","కెమెరా","కెమెరా ఆఫ్","ముగించు","కాల్ కనెక్ట్ అయింది.","కాల్ కనెక్ట్ అవుతోంది…"],
+  pa: ["ਵੌਇਸ ਕਾਲ","ਵੀਡੀਓ ਕਾਲ","ਵੌਇਸ ਕਾਲ","ਵੀਡੀਓ ਕਾਲ","ਆਉਣ ਵਾਲੀ ਕਾਲ","ਕਾਲ ਚੁੱਕੋ","ਕਾਲ ਕੱਟੋ","ਮੁੜ ਕਨੈਕਟ ਕਰੋ","ਮੁੜ ਕਨੈਕਟ ਹੋ ਰਿਹਾ ਹੈ…","ਮਾਈਕ ਬੰਦ","ਮਾਈਕ ਚਾਲੂ","ਕੈਮਰਾ","ਕੈਮਰਾ ਬੰਦ","ਖਤਮ","ਕਾਲ ਜੁੜ ਗਈ।","ਕਾਲ ਜੁੜ ਰਹੀ ਹੈ…"],
+  kn: ["ಧ್ವನಿ ಕರೆ","ವೀಡಿಯೊ ಕರೆ","ಧ್ವನಿ ಕರೆ","ವೀಡಿಯೊ ಕರೆ","ಒಳಬರುವ ಕರೆ","ಕರೆ ಸ್ವೀಕರಿಸಿ","ಕರೆ ಕಡಿತಗೊಳಿಸಿ","ಮತ್ತೆ ಸಂಪರ್ಕಿಸಿ","ಮತ್ತೆ ಸಂಪರ್ಕಿಸಲಾಗುತ್ತಿದೆ…","ಮೈಕ್ ಆಫ್","ಮೈಕ್ ಆನ್","ಕ್ಯಾಮೆರಾ","ಕ್ಯಾಮೆರಾ ಆಫ್","ಮುಕ್ತಾಯ","ಕರೆ ಸಂಪರ್ಕಗೊಂಡಿದೆ.","ಕರೆ ಸಂಪರ್ಕಗೊಳ್ಳುತ್ತಿದೆ…"],
+  ml: ["വോയ്സ് കോൾ","വീഡിയോ കോൾ","വോയ്സ് കോൾ","വീഡിയോ കോൾ","വരുന്ന കോൾ","കോൾ എടുക്കുക","കോൾ നിരസിക്കുക","വീണ്ടും ബന്ധിപ്പിക്കുക","വീണ്ടും ബന്ധിപ്പിക്കുന്നു…","മൈക്ക് ഓഫ്","മൈക്ക് ഓൺ","ക്യാമറ","ക്യാമറ ഓഫ്","അവസാനിപ്പിക്കുക","കോൾ ബന്ധിപ്പിച്ചു.","കോൾ ബന്ധിപ്പിക്കുന്നു…"],
+  ur: ["وائس کال","ویڈیو کال","وائس کال","ویڈیو کال","آنے والی کال","کال اٹھائیں","کال ختم کریں","دوبارہ منسلک کریں","دوبارہ منسلک ہو رہا ہے…","مائیک بند","مائیک آن","کیمرہ","کیمرہ بند","ختم","کال منسلک ہو گئی۔","کال منسلک ہو رہی ہے…"],
+  es: ["Llamada de voz","Videollamada","LLAMADA DE VOZ","VIDEOLLAMADA","Llamada entrante","Responder","Rechazar","Reconectar","Reconectando…","Silenciar","Activar sonido","Cámara","Cámara apagada","Finalizar","Llamada conectada.","Conectando llamada…"],
+  fr: ["Appel vocal","Appel vidéo","APPEL VOCAL","APPEL VIDÉO","Appel entrant","Répondre","Refuser","Reconnecter","Reconnexion…","Couper le micro","Activer le micro","Caméra","Caméra désactivée","Terminer","Appel connecté.","Connexion de l’appel…"],
+  ar: ["مكالمة صوتية","مكالمة فيديو","مكالمة صوتية","مكالمة فيديو","مكالمة واردة","رد","رفض","إعادة الاتصال","جارٍ إعادة الاتصال…","كتم الميكروفون","تشغيل الميكروفون","الكاميرا","إيقاف الكاميرا","إنهاء","تم الاتصال.","جارٍ الاتصال…"],
+  pt: ["Chamada de voz","Chamada de vídeo","CHAMADA DE VOZ","CHAMADA DE VÍDEO","Chamada recebida","Atender","Recusar","Reconectar","Reconectando…","Silenciar","Ativar som","Câmera","Câmera desligada","Encerrar","Chamada conectada.","Conectando chamada…"],
+  de: ["Sprachanruf","Videoanruf","SPRACHANRUF","VIDEOANRUF","Eingehender Anruf","Annehmen","Ablehnen","Erneut verbinden","Verbindung wird hergestellt…","Mikrofon stummschalten","Mikrofon aktivieren","Kamera","Kamera aus","Beenden","Anruf verbunden.","Anruf wird verbunden…"],
+  ja: ["音声通話","ビデオ通話","音声通話","ビデオ通話","着信中","応答","拒否","再接続","再接続中…","マイクをミュート","マイクをオン","カメラ","カメラオフ","終了","通話が接続されました。","通話を接続中…"],
+  ko: ["음성 통화","영상 통화","음성 통화","영상 통화","수신 전화","받기","거절","다시 연결","다시 연결 중…","마이크 음소거","마이크 켜기","카메라","카메라 끄기","종료","통화가 연결되었습니다.","통화 연결 중…"],
+  id: ["Panggilan suara","Panggilan video","PANGGILAN SUARA","PANGGILAN VIDEO","Panggilan masuk","Jawab","Tolak","Hubungkan ulang","Menghubungkan ulang…","Bisukan","Aktifkan suara","Kamera","Kamera mati","Akhiri","Panggilan terhubung.","Menghubungkan panggilan…"],
+  ru: ["Голосовой звонок","Видеозвонок","ГОЛОСОВОЙ ЗВОНОК","ВИДЕОЗВОНОК","Входящий звонок","Ответить","Отклонить","Переподключить","Переподключение…","Выключить микрофон","Включить микрофон","Камера","Камера выключена","Завершить","Звонок подключён.","Подключение звонка…"],
+  zh: ["语音通话","视频通话","语音通话","视频通话","来电","接听","拒绝","重新连接","正在重新连接…","静音","取消静音","摄像头","摄像头已关闭","结束","通话已连接。","正在连接通话…"],
+  tr: ["Sesli arama","Görüntülü arama","SESLİ ARAMA","GÖRÜNTÜLÜ ARAMA","Gelen arama","Yanıtla","Reddet","Yeniden bağlan","Yeniden bağlanıyor…","Mikrofonu kapat","Mikrofonu aç","Kamera","Kamera kapalı","Bitir","Arama bağlandı.","Arama bağlanıyor…"],
+  th: ["โทรด้วยเสียง","วิดีโอคอล","โทรด้วยเสียง","วิดีโอคอล","สายเรียกเข้า","รับสาย","ปฏิเสธ","เชื่อมต่อใหม่","กำลังเชื่อมต่อใหม่…","ปิดไมค์","เปิดไมค์","กล้อง","ปิดกล้อง","วางสาย","เชื่อมต่อสายแล้ว","กำลังเชื่อมต่อสาย…"],
+  vi: ["Cuộc gọi thoại","Cuộc gọi video","GỌI THOẠI","GỌI VIDEO","Cuộc gọi đến","Trả lời","Từ chối","Kết nối lại","Đang kết nối lại…","Tắt mic","Bật mic","Máy ảnh","Đã tắt máy ảnh","Kết thúc","Đã kết nối cuộc gọi.","Đang kết nối cuộc gọi…"]
+};
+const callText = (language, key) => {
+  const keys = ["voice","video","voiceCaps","videoCaps","incoming","answer","decline","reconnect","reconnecting","mute","unmute","camera","cameraOff","end","connected","connecting"];
+  const index = keys.indexOf(key);
+  const row = CALL_LABELS[language] || CALL_LABELS.en;
+  return index >= 0 ? row[index] : translateAppText(language, key);
+};
+
 import {
   createVoiceVideoCall,
   loadPendingCalls,
@@ -57,7 +92,8 @@ if (!liveKitGlobalsRegistered) {
   }
 }
 
-function CallVideoStage({ callType, remoteName, isConnected }) {
+function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" }) {
+  const labels = { connected: callText(appLanguage, "connected"), connecting: callText(appLanguage, "connecting") };
   // The React Native LiveKit hook returns local and remote camera references.
   // Keep its documented one-argument form so the local self-preview is included.
   const tracks = useTracks([Track.Source.Camera]);
@@ -92,7 +128,7 @@ function CallVideoStage({ callType, remoteName, isConnected }) {
         <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "800", marginTop: 20 }}>{remoteName}</Text>
         <View style={{ marginTop: 10, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: "#1F1F1F", flexDirection: "row", alignItems: "center", gap: 7 }}>
           {isConnected ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#45D483" }} /> : <ActivityIndicator color="#0095F6" size="small" />}
-          <Text style={{ color: "#D1D1D1", fontSize: 12 }}>{isConnected ? "Voice call connected" : "Connecting voice call…"}</Text>
+          <Text style={{ color: "#D1D1D1", fontSize: 12 }}>{isConnected ? labels.connected : labels.connecting}</Text>
         </View>
       </View>
     );
@@ -110,7 +146,7 @@ function CallVideoStage({ callType, remoteName, isConnected }) {
             <Ionicons name="videocam" size={42} color="#FFFFFF" />
           </View>
           <ActivityIndicator color="#0095F6" size="large" style={{ marginTop: 22 }} />
-          <Text style={{ color: "#FFFFFF", marginTop: 12, fontSize: 13 }}>{isConnected ? "Waiting for the other person's video…" : "Connecting video…"}</Text>
+          <Text style={{ color: "#FFFFFF", marginTop: 12, fontSize: 13 }}>{isConnected ? labels.connected : labels.connecting}</Text>
         </View>
       )}
       <View pointerEvents="none" style={{ position: "absolute", top: 14, left: 14, right: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
@@ -143,7 +179,8 @@ function CallVideoStage({ callType, remoteName, isConnected }) {
     </View>
   );
 }
-export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true }) {
+export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true, appLanguage = "en" }) {
+  const label = (key) => callText(appLanguage, key);
   const [call, setCall] = useState(null);
   const [incoming, setIncoming] = useState(false);
   const [connection, setConnection] = useState(null);
@@ -505,23 +542,23 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       {showButtons ? <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel="Voice call"
+          accessibilityLabel={label("voice")}
           disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("audio")}
           style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
           <Ionicons name="call-outline" size={20} color="#FFFFFF" />
-          <Text style={{ color: "#E5E5E5", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>VOICE</Text>
+          <Text style={{ color: "#E5E5E5", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>{label("voiceCaps")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel="Video call"
+          accessibilityLabel={label("video")}
           disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("video")}
           style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
           <Ionicons name="videocam-outline" size={21} color="#FFFFFF" />
-          <Text style={{ color: "#E5E5E5", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>VIDEO</Text>
+          <Text style={{ color: "#E5E5E5", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>{label("videoCaps")}</Text>
         </TouchableOpacity>
       </View> : null}
 
@@ -539,7 +576,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#0095F6" }} />
               <Text style={{ color: "#0095F6", fontSize: 10, fontWeight: "800", letterSpacing: 1.4 }}>BHUMI SOCIAL • CALL</Text>
             </View>
-            <TouchableOpacity onPress={endCall} accessibilityLabel="Close call" style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#262626", borderWidth: 1, borderColor: "#363636", alignItems: "center", justifyContent: "center" }}>
+            <TouchableOpacity onPress={endCall} accessibilityLabel={translateAppText(appLanguage, "close")} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#262626", borderWidth: 1, borderColor: "#363636", alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="chevron-down" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -611,7 +648,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               }}
               style={{ flex: 1, marginTop: 18 }}
             >
-              <CallVideoStage callType={call?.type} remoteName={incoming ? call?.caller : username} isConnected={roomConnected} />
+              <CallVideoStage callType={call?.type} remoteName={incoming ? call?.caller : username} isConnected={roomConnected} appLanguage={appLanguage} />
             </LiveKitRoom>
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 28 }}>
@@ -621,9 +658,9 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                 </View>
               </View>
               <Text style={{ color: "#FFFFFF", fontSize: 25, fontWeight: "800", marginTop: 28, letterSpacing: 0.2 }}>{incoming ? call?.caller : username}</Text>
-              <Text style={{ color: "#BDBDBD", fontSize: 12, marginTop: 7, letterSpacing: 1.5 }}>{call?.type === "video" ? "VIDEO CALL" : "VOICE CALL"}</Text>
+              <Text style={{ color: "#BDBDBD", fontSize: 12, marginTop: 7, letterSpacing: 1.5 }}>{call?.type === "video" ? label("videoCaps") : label("voiceCaps")}</Text>
               <View style={{ marginTop: 20, paddingHorizontal: 17, paddingVertical: 9, borderRadius: 22, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#363636" }}>
-                <Text style={{ color: "#D1D1D1", fontSize: 12, textAlign: "center" }}>{callMessage || (incoming ? "Incoming call" : "Ringing…")}</Text>
+                <Text style={{ color: "#D1D1D1", fontSize: 12, textAlign: "center" }}>{callMessage || (incoming ? label("incoming") : label("connecting"))}</Text>
               </View>
               {busy ? <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 22 }} /> : null}
               {incoming ? (
@@ -632,13 +669,13 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                     <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#B83D50", alignItems: "center", justifyContent: "center" }}>
                       <Ionicons name="call" size={22} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
                     </View>
-                    <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 8 }}>Cancel call</Text>
+                    <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 8 }}>{label("decline")}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={answerCall} disabled={busy} activeOpacity={0.85} style={{ width: 132, minHeight: 92, borderRadius: 22, backgroundColor: "#10271F", borderWidth: 1, borderColor: "#3D9A70", alignItems: "center", justifyContent: "center", paddingVertical: 13, opacity: busy ? 0.6 : 1 }}>
                     <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#159A65", alignItems: "center", justifyContent: "center" }}>
                       <Ionicons name="call" size={22} color="#FFFFFF" />
                     </View>
-                    <Text style={{ color: "#D9F5E7", fontSize: 12, fontWeight: "800", marginTop: 8 }}>Answer call</Text>
+                    <Text style={{ color: "#D9F5E7", fontSize: 12, fontWeight: "800", marginTop: 8 }}>{label("answer")}</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -650,7 +687,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                       activeOpacity={0.85}
                       style={{ marginTop: 30, minWidth: 170, minHeight: 54, borderRadius: 18, backgroundColor: "#102A3C", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", paddingHorizontal: 18, opacity: busy ? 0.6 : 1 }}
                     >
-                      <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "800" }}>{busy ? "Reconnecting…" : "Reconnect"}</Text>
+                      <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "800" }}>{busy ? label("reconnecting") : label("reconnect")}</Text>
                     </TouchableOpacity>
                   ) : null}
                   <TouchableOpacity onPress={endCall} activeOpacity={0.85} style={{ marginTop: connectionFailed ? 18 : 48, width: 156, minHeight: 88, borderRadius: 22, backgroundColor: "#28131D", borderWidth: 1, borderColor: "#9A4054", alignItems: "center", justifyContent: "center", paddingVertical: 12 }}>
@@ -666,25 +703,25 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
 
           {connection?.token ? (
             <View style={{ marginTop: 16, marginHorizontal: 22, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12, borderRadius: 28, backgroundColor: "#171717", borderWidth: 1, borderColor: "#363636", flexDirection: "row", justifyContent: "space-around", alignItems: "center" }}>
-              <TouchableOpacity onPress={() => setMicEnabled((value) => !value)} accessibilityLabel={micEnabled ? "Mute microphone" : "Unmute microphone"} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <TouchableOpacity onPress={() => setMicEnabled((value) => !value)} accessibilityLabel={micEnabled ? label("mute") : label("unmute")} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
                 <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: micEnabled ? "#333333" : "#B83D50", borderWidth: 1, borderColor: "#555555", alignItems: "center", justifyContent: "center" }}>
                   <Ionicons name={micEnabled ? "mic" : "mic-off"} size={22} color="#FFFFFF" />
                 </View>
-                <Text style={{ color: "#E5E5E5", fontSize: 10, fontWeight: "600" }}>{micEnabled ? "Mute" : "Unmute"}</Text>
+                <Text style={{ color: "#E5E5E5", fontSize: 10, fontWeight: "600" }}>{micEnabled ? label("mute") : label("unmute")}</Text>
               </TouchableOpacity>
               {call?.type === "video" ? (
-                <TouchableOpacity onPress={() => setCameraEnabled((value) => !value)} accessibilityLabel={cameraEnabled ? "Turn camera off" : "Turn camera on"} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <TouchableOpacity onPress={() => setCameraEnabled((value) => !value)} accessibilityLabel={cameraEnabled ? label("cameraOff") : label("camera")} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
                   <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: cameraEnabled ? "#333333" : "#B83D50", borderWidth: 1, borderColor: "#555555", alignItems: "center", justifyContent: "center" }}>
                     <Ionicons name={cameraEnabled ? "videocam" : "videocam-off"} size={22} color="#FFFFFF" />
                   </View>
-                  <Text style={{ color: "#E5E5E5", fontSize: 10, fontWeight: "600" }}>{cameraEnabled ? "Camera" : "Camera off"}</Text>
+                  <Text style={{ color: "#E5E5E5", fontSize: 10, fontWeight: "600" }}>{cameraEnabled ? label("camera") : label("cameraOff")}</Text>
                 </TouchableOpacity>
               ) : null}
-              <TouchableOpacity onPress={endCall} accessibilityLabel="End call" style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <TouchableOpacity onPress={endCall} accessibilityLabel={label("end")} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
                 <View style={{ width: 62, height: 62, borderRadius: 31, backgroundColor: "#E3445B", borderWidth: 4, borderColor: "#512633", alignItems: "center", justifyContent: "center" }}>
                   <Ionicons name="call" size={23} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
                 </View>
-                <Text style={{ color: "#F2DCE1", fontSize: 10, fontWeight: "700" }}>End</Text>
+                <Text style={{ color: "#F2DCE1", fontSize: 10, fontWeight: "700" }}>{label("end")}</Text>
               </TouchableOpacity>
             </View>
           ) : null}
