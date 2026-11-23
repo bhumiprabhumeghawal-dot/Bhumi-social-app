@@ -6815,6 +6815,31 @@ export default function App() {
                               action: "filter",
                               label: "Filter",
                             },
+                            {
+                              icon: "sunny-outline",
+                              action: "brightness-up",
+                              label: "Bright +",
+                            },
+                            {
+                              icon: "moon-outline",
+                              action: "brightness-down",
+                              label: "Bright −",
+                            },
+                            {
+                              icon: "contrast-outline",
+                              action: "contrast-up",
+                              label: "Contrast",
+                            },
+                            {
+                              icon: "color-palette-outline",
+                              action: "saturation-up",
+                              label: "Saturation",
+                            },
+                            {
+                              icon: "refresh-circle-outline",
+                              action: "reset",
+                              label: "Reset",
+                            },
                           ].map((tool) => (
                             <TouchableOpacity
                               key={tool.action}

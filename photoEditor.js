@@ -41,9 +41,13 @@ async function renderPostPhotoFilter(asset, filterIndex, brightness = 0) {
   const baseUri = asset.photoBaseUri || asset.uri;
   const preset = getPostPhotoFilter(filterIndex);
   const filters = [];
+  const contrast = Number(asset?.photoContrast ?? 1);
+  const saturation = Number(asset?.photoSaturation ?? 1);
 
   if (preset.value) filters.push(preset.value);
-  if (brightness > 0) filters.push(`eq=brightness=${brightness}`);
+  if (brightness !== 0 || contrast !== 1 || saturation !== 1) {
+    filters.push(`eq=brightness=${brightness}:contrast=${contrast}:saturation=${saturation}`);
+  }
 
   if (!filters.length) {
     return {
@@ -51,6 +55,8 @@ async function renderPostPhotoFilter(asset, filterIndex, brightness = 0) {
       uri: baseUri,
       photoFilterIndex: 0,
       photoBrightness: brightness,
+      photoContrast: contrast,
+      photoSaturation: saturation,
       photoBaseUri: baseUri,
       type: 'image',
       mimeType: 'image/jpeg',
@@ -86,6 +92,8 @@ async function renderPostPhotoFilter(asset, filterIndex, brightness = 0) {
     fileSize: info.size,
     photoFilterIndex: filterIndex,
     photoBrightness: brightness,
+    photoContrast: contrast,
+    photoSaturation: saturation,
     photoBaseUri: baseUri,
   };
 }
@@ -136,14 +144,35 @@ export async function editPhotoAsset(asset, action) {
       fileName: `edited_${Date.now()}.jpg`,
       photoFilterIndex: 0,
       photoBrightness: 0,
+      photoContrast: 1,
+      photoSaturation: 1,
       photoBaseUri: result.uri,
     };
   }
 
   let filterIndex = Number(asset.photoFilterIndex ?? 0);
   let brightness = Number(asset.photoBrightness || 0);
+  let contrast = Number(asset.photoContrast ?? 1);
+  let saturation = Number(asset.photoSaturation ?? 1);
 
-  if (action === 'filter') {
+  if (action === 'brightness-up') {
+    brightness = Math.min(0.5, Number((brightness + 0.1).toFixed(1)));
+  } else if (action === 'brightness-down') {
+    brightness = Math.max(-0.5, Number((brightness - 0.1).toFixed(1)));
+  } else if (action === 'contrast-up') {
+    contrast = Math.min(1.8, Number((contrast + 0.1).toFixed(1)));
+  } else if (action === 'contrast-down') {
+    contrast = Math.max(0.5, Number((contrast - 0.1).toFixed(1)));
+  } else if (action === 'saturation-up') {
+    saturation = Math.min(2, Number((saturation + 0.1).toFixed(1)));
+  } else if (action === 'saturation-down') {
+    saturation = Math.max(0, Number((saturation - 0.1).toFixed(1)));
+  } else if (action === 'reset') {
+    filterIndex = 0;
+    brightness = 0;
+    contrast = 1;
+    saturation = 1;
+  } else if (action === 'filter') {
     filterIndex = (filterIndex + 1) % POST_PHOTO_FILTERS.length;
   } else if (action.startsWith('filter:')) {
     filterIndex = Math.max(0, Math.min(
@@ -156,5 +185,5 @@ export async function editPhotoAsset(asset, action) {
     throw new Error('Unsupported photo editing action.');
   }
 
-  return renderPostPhotoFilter(asset, filterIndex, brightness);
+  return renderPostPhotoFilter({ ...asset, photoContrast: contrast, photoSaturation: saturation }, filterIndex, brightness);
 }
