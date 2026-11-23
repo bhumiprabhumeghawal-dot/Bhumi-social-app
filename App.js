@@ -2549,6 +2549,7 @@ export default function App() {
   const [musicFadeOut, setMusicFadeOut] = React.useState(1.2);
   const [keepOriginalAudio, setKeepOriginalAudio] = React.useState(true);
   const [videoFilterIndex, setVideoFilterIndex] = React.useState(0);
+  const [videoFilterCompareOriginal, setVideoFilterCompareOriginal] = React.useState(false);
   const [voiceEffect, setVoiceEffect] = React.useState("Original");
   const chatVoiceRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const musicPlayer = useAudioPlayer(null);
@@ -6762,7 +6763,7 @@ export default function App() {
                         />
                       )}
 
-                      {isVideo && VIDEO_FILTER_PREVIEW_STYLES[videoFilterIndex] ? (
+                      {isVideo && !videoFilterCompareOriginal && VIDEO_FILTER_PREVIEW_STYLES[videoFilterIndex] ? (
                         <View
                           pointerEvents="none"
                           style={{
@@ -6792,8 +6793,11 @@ export default function App() {
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 3 }}>
                             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                              <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "800" }}>VIDEO FILTERS</Text>
+                             <TouchableOpacity disabled={busy} onPress={() => setVideoFilterCompareOriginal((value) => !value)} style={{ paddingHorizontal: 9, paddingVertical: 5, borderRadius: 12, backgroundColor: videoFilterCompareOriginal ? "rgba(217,181,109,0.22)" : "rgba(0,0,0,0.78)", borderWidth: 1, borderColor: "#D9B56D" }}>
+                               <Text style={{ color: "#D9B56D", fontSize: 9, fontWeight: "800" }}>{videoFilterCompareOriginal ? "SHOW FILTER" : "ORIGINAL"}</Text>
+                             </TouchableOpacity>
                              <TouchableOpacity disabled={busy} onPress={() => {
-                               setVideoFilterIndex(0); setVoiceEffect("Original");
+                               setVideoFilterIndex(0); setVideoFilterCompareOriginal(false); setVoiceEffect("Original");
                                setZoomEffectEnabled(false); setZoomEffectLevel(1.5); setZoomEffectDuration(3);
                                setMusicAsset(null); setMusicStart(0); setMusicVolume(0.8); setOriginalAudioVolume(1); setKeepOriginalAudio(true);
                                musicPlayer.pause();
@@ -7125,7 +7129,7 @@ export default function App() {
                         resizeMode="contain"
                       />
                     )}
-                    {isVideo && VIDEO_FILTER_PREVIEW_STYLES[videoFilterIndex] ? (
+                    {isVideo && !videoFilterCompareOriginal && VIDEO_FILTER_PREVIEW_STYLES[videoFilterIndex] ? (
                       <View
                         pointerEvents="none"
                         style={{
@@ -7221,6 +7225,9 @@ export default function App() {
                       )}
                       {isVideo ? (
                         <View style={{ width: "100%", marginTop: 6, gap: 7 }}>
+                          <TouchableOpacity disabled={busy} onPress={() => setVideoFilterCompareOriginal((value) => !value)} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14, backgroundColor: videoFilterCompareOriginal ? "rgba(217,181,109,0.22)" : "rgba(0,0,0,0.78)", borderWidth: 1, borderColor: "#D9B56D" }}>
+                            <Text style={{ color: "#D9B56D", fontSize: 10, fontWeight: "800" }}>{videoFilterCompareOriginal ? "SHOW FILTER PREVIEW" : "COMPARE ORIGINAL"}</Text>
+                          </TouchableOpacity>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
                             {VIDEO_FILTERS.map((filter, index) => (
                               <TouchableOpacity key={filter.name} onPress={() => setVideoFilterIndex(index)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: videoFilterIndex === index ? "#0095F6" : "rgba(0,0,0,0.78)" }}>
