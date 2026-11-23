@@ -4652,7 +4652,7 @@ export default function App() {
   };
 
   const removeProfilePhoto = () => {
-    Alert.alert("Remove Photo?", "Delete profile photo?", [
+    Alert.alert(appText("removePhoto") + "?", appText("removePhoto") + "?", [
       { text: "Cancel", style: "cancel" },
       {
         text: appText("alertDelete"),
@@ -11239,7 +11239,7 @@ export default function App() {
                     [
                       { text: "Cancel", style: "cancel" },
                       {
-                        text: "Log Out Other Devices",
+                        text: appText("logoutOtherDevices"),
                         style: "destructive",
                         onPress: async () => {
                           setPasswordBusy(true);
@@ -11751,7 +11751,7 @@ export default function App() {
                       numberOfLines={1}
                       style={{ color: "#F5F5F5", fontSize: 12, marginTop: 7 }}
                     >
-                      Your note
+                      {appText("yourNote")}
                     </Text>
                   </TouchableOpacity>
                   {friendsNotes.map((note, i) => (
@@ -13086,7 +13086,7 @@ export default function App() {
                   marginBottom: 14,
                 }}
               >
-                Your note
+                {appText("yourNote")}
               </Text>
               <TextInput
                 value={noteDraft}
