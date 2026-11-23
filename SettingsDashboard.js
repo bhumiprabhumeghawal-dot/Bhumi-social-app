@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Linking, Platform, StyleSheet, Image, Share
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { translateAppText } from "./localization";
 import * as FileSystem from "expo-file-system/legacy";
 import * as SecureStore from "expo-secure-store";
 import * as LocalAuthentication from "expo-local-authentication";
@@ -274,6 +275,7 @@ const SECTIONS = [
 ];
 
 export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen, onPreferencesChange, appLanguage = "en", onLanguageChange }) {
+  const t = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   const [active, setActive] = React.useState(null);
   const [languageVisible, setLanguageVisible] = React.useState(false);
   const [selectedLanguage, setSelectedLanguage] = React.useState(appLanguage);
@@ -1075,7 +1077,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               <Ionicons name="arrow-back" size={25} color={TEXT}/>
             </TouchableOpacity>
             <View style={{ flex:1 }}>
-              <Text style={{ color:TEXT,fontSize:22,fontWeight:"900",letterSpacing:-0.5 }}>Settings and activity</Text>
+              <Text style={{ color:TEXT,fontSize:22,fontWeight:"900",letterSpacing:-0.5 }}>{t("settings")}</Text>
               <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>Your account, privacy and app preferences</Text>
             </View>
           </View>
@@ -1106,7 +1108,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setLanguageVisible(true)} activeOpacity={0.85} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderWidth:1,borderColor:BORDER,borderRadius:13,padding:13,marginBottom:15 }}>
               <View style={{ width:40,height:40,borderRadius:20,backgroundColor:PANEL,alignItems:"center",justifyContent:"center",marginRight:11 }}><Ionicons name="language-outline" size={23} color={GOLD}/></View>
-              <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>Language</Text><Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>App language · {APP_LANGUAGES.find((item) => item.code === selectedLanguage)?.name || "English"}</Text></View>
+              <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{t("language")}</Text><Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>App language · {APP_LANGUAGES.find((item) => item.code === selectedLanguage)?.name || "English"}</Text></View>
               <Ionicons name="chevron-forward" size={18} color={MUTED}/>
             </TouchableOpacity>
             {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical:18 }}/> : null}
@@ -1125,7 +1127,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
               )) : (
                 <View style={{ paddingVertical:28,alignItems:"center" }}>
                   <Ionicons name="search-outline" size={28} color={MUTED}/>
-                  <Text style={{ color:TEXT,fontSize:14,fontWeight:"700",marginTop:10 }}>No settings found</Text>
+                  <Text style={{ color:TEXT,fontSize:14,fontWeight:"700",marginTop:10 }}>{t("noSettings")}</Text>
                   <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>Try another keyword</Text>
                 </View>
               )}
@@ -1134,7 +1136,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 <Text style={{ color:"#F08080",fontWeight:"900",marginLeft:9 }}>Log Out</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={onClose} style={{ alignItems:"center",padding:14,marginTop:4 }}>
-                <Text style={{ color:MUTED,fontWeight:"800" }}>Close Settings</Text>
+                <Text style={{ color:MUTED,fontWeight:"800" }}>{t("closeSettings")}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -1366,7 +1368,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.78)",justifyContent:"flex-end" }}>
           <View style={{ maxHeight:"82%",backgroundColor:BG,borderTopLeftRadius:22,borderTopRightRadius:22,borderWidth:1,borderColor:BORDER,padding:18 }}>
             <View style={{ flexDirection:"row",alignItems:"center",marginBottom:8 }}>
-              <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:19,fontWeight:"900" }}>Choose app language</Text><Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>India and international languages</Text></View>
+              <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:19,fontWeight:"900" }}>{t("choose")}</Text><Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{t("region")}</Text></View>
               <TouchableOpacity onPress={() => setLanguageVisible(false)} style={{ padding:8 }}><Ionicons name="close" size={23} color={TEXT}/></TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -1380,7 +1382,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            <Text style={{ color:MUTED,fontSize:10,lineHeight:15,marginTop:10 }}>English is the complete default interface. Additional language translations are being added progressively.</Text>
+            <Text style={{ color:MUTED,fontSize:10,lineHeight:15,marginTop:10 }}>{t("selectLanguage")}</Text>
           </View>
         </View>
       </Modal>
