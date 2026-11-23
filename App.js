@@ -5739,7 +5739,7 @@ export default function App() {
             Bhumi Social AI
           </Text>
           <Text style={{ color: "#A8A8A8", marginBottom: 22 }}>
-            Forgot password
+            {appText("forgotPassword")}
           </Text>
 
           <View style={{ flexDirection: "row", marginBottom: 18 }}>
@@ -6053,7 +6053,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "800" }}
               >
-                Get Started
+                {appText("getStarted")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -6070,7 +6070,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}
               >
-                Already have an account? Log In
+                {appText("loginPrompt")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -6104,7 +6104,7 @@ export default function App() {
           {authMode === "register" ? (
             <>
               <Text style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 9 }}>
-                Choose account type
+                {appText("chooseAccountType")}
               </Text>
               <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
                 {[
@@ -6206,12 +6206,12 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Email or username
+                {appText("emailOrUsername")}
               </Text>
               <TextInput
                 value={authUsername}
                 onChangeText={setAuthUsername}
-                placeholder="Email or username"
+                placeholder={appText("emailOrUsername")}
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!authBusy}
@@ -7834,7 +7834,7 @@ export default function App() {
             fontSize: 11,
           }}
         >
-          Server connection unavailable
+          {appText("serverConnectionUnavailable")}
         </Text>
       )}
       {activeTab !== "Reels" && busy && (
@@ -8198,7 +8198,7 @@ export default function App() {
               <Text style={{ color: "#FFFFFF" }}>{appText("noReels")}</Text>
               <TouchableOpacity onPress={createReel} style={{ padding: 14 }}>
                 <Text style={{ color: "#0095F6", fontWeight: "700" }}>
-                  Upload Reel
+                  {appText("uploadReel")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -8742,7 +8742,7 @@ export default function App() {
                       marginTop: 5,
                     }}
                   >
-                    Change Photo
+                    {appText("changePhoto")}
                   </Text>
                 </TouchableOpacity>
 
@@ -9194,7 +9194,7 @@ export default function App() {
                         }}
                       >
                         <Text style={{ color: "#FFF", fontWeight: "700" }}>
-                          Accept
+                          {appText("accept")}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -9210,7 +9210,7 @@ export default function App() {
                         }}
                       >
                         <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
-                          Reject
+                          {appText("reject")}
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -9230,7 +9230,7 @@ export default function App() {
                 <Text
                   style={{ color: "#F5F5F5", fontWeight: "800", fontSize: 19 }}
                 >
-                  Profile Settings
+                  {appText("profileSettings")}
                 </Text>
                 <TouchableOpacity
                   accessibilityRole="button"
@@ -9674,7 +9674,7 @@ export default function App() {
                         fontSize: 13,
                       }}
                     >
-                      Create First Post
+                      {appText("createFirstPost")}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -9753,7 +9753,7 @@ export default function App() {
                 <Text
                   style={{ color: "#FFFFFF", textAlign: "center", padding: 24 }}
                 >
-                  Story media is unavailable.
+                  {appText("storyMediaUnavailable")}
                 </Text>
               </View>
             )}
@@ -10151,7 +10151,7 @@ export default function App() {
               </Text>
             ) : (
               <Text style={{ color: "#8E8E93", fontSize: 13 }}>
-                No caption added
+                {appText("noCaptionAdded")}
               </Text>
             )}
             <Text
@@ -10926,7 +10926,7 @@ export default function App() {
                 marginBottom: 12,
               }}
             >
-              Update Available
+              {appText("updateAvailable")}
             </Text>
             <Text
               style={{
@@ -10980,7 +10980,7 @@ export default function App() {
               <Text
                 style={{ color: "#121212", fontWeight: "800", fontSize: 16 }}
               >
-                Share App Link
+                {appText("shareAppLink")}
               </Text>
             </TouchableOpacity>
             {!updateInfo?.force_update && (
@@ -11191,7 +11191,7 @@ export default function App() {
                   marginBottom: 18,
                 }}
               >
-                Change Password
+                {appText("changePassword")}
               </Text>
 
               {[
@@ -13140,7 +13140,7 @@ export default function App() {
                   style={{ paddingVertical: 12, alignItems: "center" }}
                 >
                   <Text style={{ color: "#B42318", fontWeight: "600" }}>
-                    Delete note
+                    {appText("deleteNote")}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -13785,7 +13785,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800" }}
               >
-                Reel comments
+                {appText("reelComments")}
               </Text>
               <TouchableOpacity onPress={() => setReelCommentsOpen(false)}>
                 <Ionicons name="close" size={27} color="#FFFFFF" />
