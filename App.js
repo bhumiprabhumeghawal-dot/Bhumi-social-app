@@ -5765,7 +5765,7 @@ export default function App() {
               }}
             >
               <Text style={{ color: "#A8A8A8", fontWeight: "600" }}>
-                Mobile (SMS unavailable)
+                {appText("mobileSmsUnavailable")}
               </Text>
             </View>
           </View>
@@ -5775,7 +5775,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Registered email
+                {appText("registeredEmailLabel")}
               </Text>
               <TextInput
                 value={forgotEmail}
@@ -5808,7 +5808,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Email verification code
+                {appText("emailVerificationCodeLabel")}
               </Text>
               <TextInput
                 value={forgotOtp}
@@ -5848,7 +5848,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                New password (4 to 24 characters)
+                {appText("newPasswordLabel")}
               </Text>
               <TextInput
                 value={forgotNewPassword}
@@ -5862,7 +5862,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Confirm new password
+                {appText("confirmNewPasswordLabel")}
               </Text>
               <TextInput
                 value={forgotConfirmPassword}
@@ -6550,7 +6550,7 @@ export default function App() {
           >
             <Ionicons name="images-outline" size={23} color="#FFFFFF" />
             <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "700" }}>
-              Choose from Gallery
+              {appText("chooseFromGallery")}
             </Text>
           </TouchableOpacity>
           <View
