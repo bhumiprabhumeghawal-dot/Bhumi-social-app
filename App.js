@@ -6034,8 +6034,7 @@ export default function App() {
                 marginTop: 14,
               }}
             >
-              Share your moments, discover Reels, and stay connected with your
-              community.
+              {appText("signupIntro")}
             </Text>
           </View>
 
@@ -6127,12 +6126,12 @@ export default function App() {
                 })}
               </View>
               <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 13 }}>
-                Creator accounts are for public creator profiles. Business accounts unlock Business Studio after signup.
+                {appText("signupCreatorDescription")}
               </Text>
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Full name / Full Name
+                {appText("signupFullName")}
               </Text>
               <TextInput
                 value={authFullName}
@@ -6153,7 +6152,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Username (your choice)
+                {appText("signupUsername")}
               </Text>
               <TextInput
                 value={authUsername}
@@ -6181,7 +6180,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Email (optional) / Email
+                {appText("signupEmailOptional")}
               </Text>
               <TextInput
                 value={authEmail}
@@ -6231,7 +6230,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Phone number (optional) / Mobile
+                {appText("signupPhoneOptional")}
               </Text>
               <TextInput
                 value={authPhoneNumber}
@@ -6253,7 +6252,7 @@ export default function App() {
           <Text
             style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
           >
-            Password (4–24 characters) / Password
+            {appText("signupPassword")}
           </Text>
           <TextInput
             value={authPassword}
@@ -6278,7 +6277,7 @@ export default function App() {
               <Text
                 style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
-                Enter password again / Confirm password
+                {appText("signupConfirmPassword")}
               </Text>
               <TextInput
                 value={authConfirmPassword}
