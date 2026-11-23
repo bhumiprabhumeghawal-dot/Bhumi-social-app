@@ -49,7 +49,7 @@ import {
   VOICE_EFFECTS,
 } from "./videoEditor";
 import { editPhotoAsset, POST_PHOTO_FILTERS, getPostPhotoFilter, applyPostPhotoFilter } from "./photoEditor";
-import { buildGoogleMusicSearchUrl, loadMusicLibrary, importAudioToMusicLibrary, updateMusicTrack, removeMusicTrack, searchLocalMusic, MUSIC_CATALOG_PROVIDERS } from "./musicLibrary";
+import { buildGoogleMusicSearchUrl, loadMusicLibrary, importAudioToMusicLibrary, updateMusicTrack, removeMusicTrack, searchLocalMusic } from "./musicLibrary";
 import {
   loadContent,
   getCachedContent,
@@ -5045,6 +5045,7 @@ export default function App() {
       setMusicLibrary((current) => [selectedAudio, ...current.filter((item) => item.id !== selectedAudio.id)]);
       setMusicAsset(selectedAudio);
       musicPlayer.replace({ uri: selectedAudio.uri });
+      musicPlayer.play();
       setMusicPlayingId(selectedAudio.id);
       setMusicSearchOpen(false);
     } catch (e) {
@@ -5058,6 +5059,7 @@ export default function App() {
     if (!track?.uri) return;
     setMusicAsset(track);
     musicPlayer.replace({ uri: track.uri });
+    musicPlayer.play();
     setMusicPlayingId(track.id);
     setMusicSearchOpen(false);
   };
