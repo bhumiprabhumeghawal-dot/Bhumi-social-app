@@ -96,7 +96,7 @@ import {
   saveSettingsPreferences,
   togglePostLike,
   loadPostById,
-  loadPostComments,
+  loadPost{postText("commentsTitle")},
   createPostComment,
   approvePostComment,
   toggleReelLike,
@@ -1028,6 +1028,7 @@ function PostMediaTapSurface({ children, style, onSingleTap, onDoubleTap }) {
 function PostCard({
   post,
   authSession,
+  appLanguage = "en",
   onOpen = () => {},
   onCreateAction = () => {},
   onOpenProfile = () => {},
@@ -1036,6 +1037,7 @@ function PostCard({
   active = true,
   autoPlay = true,
 }) {
+  const postText = (key) => translateAppText(appLanguage, key);
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
 
@@ -1157,7 +1159,7 @@ function PostCard({
     }
   };
 
-  const handleApproveComment = async (commentId) => {
+  const handle{postText("approve")}Comment = async (commentId) => {
     if (!post?.id || interactionBusy) return;
     setInteractionBusy(true);
     try {
@@ -1411,7 +1413,7 @@ function PostCard({
         )}
         <TouchableOpacity onPress={openComments}>
           <Text style={[styles.comments, { color: "#FFFFFF" }]}>
-            View all comments
+            {postText("commentsTitle")}
           </Text>
         </TouchableOpacity>
         {!!post.createdAt && (
@@ -1476,12 +1478,12 @@ function PostCard({
                     Comments
                   </Text>
                   <Text style={{ color: "#8E8E93", fontSize: 11, marginTop: 3 }}>
-                    Join the conversation
+                    {postText("joinConversation")}
                   </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => setCommentsOpen(false)}
-                  accessibilityLabel="Close comments"
+                  accessibilityLabel={postText("closeComments")}
                   style={{
                     width: 32,
                     height: 32,
@@ -1498,7 +1500,7 @@ function PostCard({
               <ScrollView style={{ flexGrow: 0, maxHeight: 360 }}>
                 {comments.length === 0 ? (
                   <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
-                    No comments yet.
+                    {postText("noComments")}
                   </Text>
                 ) : (
                   comments.map((comment) => (
@@ -1524,7 +1526,7 @@ function PostCard({
                             marginTop: 4,
                           }}
                         >
-                          Pending approval
+                          {postText("pendingApproval")}
                         </Text>
                       ) : null}
                       {comment.isPending && comment.canApprove ? (
@@ -1566,7 +1568,7 @@ function PostCard({
                 <TextInput
                   value={commentDraft}
                   onChangeText={setCommentDraft}
-                  placeholder="Write a comment..."
+                  placeholder={postText("writeComment")}
                   maxLength={2000}
                   editable={!interactionBusy}
                   style={{
@@ -1609,7 +1611,8 @@ function PostCard({
   );
 }
 
-function PostDetailActions({ post, authSession }) {
+function PostDetailActions({ post, authSession, appLanguage = "en" }) {
+  const postText = (key) => translateAppText(appLanguage, key);
   const [liked, setLiked] = React.useState(false);
   const [likeCount, setLikeCount] = React.useState(
     Number(String(post?.likes || "0").replace(/,/g, "")) || 0,
@@ -1859,7 +1862,7 @@ function PostDetailActions({ post, authSession }) {
               <ScrollView style={{ maxHeight: 360 }}>
                 {comments.length === 0 ? (
                   <Text style={{ color: "#A8A8A8", paddingVertical: 14 }}>
-                    No comments yet. Be the first to comment.
+                    {postText("noCommentsFirst")}
                   </Text>
                 ) : (
                   comments.map((item, index) => (
@@ -4148,7 +4151,7 @@ export default function App() {
       setBlockedAccounts(await loadBlockedAccounts());
     } catch (error) {
       Alert.alert(
-        "Blocked Accounts",
+        "{appText("blockedAccounts")}",
         error.message || "Could not load blocked accounts.",
       );
     } finally {
@@ -4181,7 +4184,7 @@ export default function App() {
       setRestrictedAccounts(await loadRestrictedAccounts());
     } catch (error) {
       Alert.alert(
-        "Restricted Accounts",
+        "{appText("restrictedAccounts")}",
         error.message || "Could not load restricted accounts.",
       );
     } finally {
@@ -8334,6 +8337,7 @@ export default function App() {
                         : post.avatarUrl,
                   }}
                   authSession={authSession}
+                  appLanguage={appLanguage}
                   onOpenProfile={(username) => {
                     if (username && String(username).toLowerCase() !== String(authSession?.username || "").toLowerCase()) openUserProfile(username);
                     else setActiveTab("Profile");
@@ -8966,7 +8970,7 @@ export default function App() {
                       setProfileDraft((d) => ({ ...d, displayName: v }))
                     }
                     maxLength={60}
-                    placeholder="Display Name"
+                    placeholder={appText("displayName")}
                     style={{
                       borderWidth: 1,
                       borderColor: "#303030",
@@ -8977,12 +8981,12 @@ export default function App() {
                     }}
                   />
                   <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>
-                    Username (Permanent)
+                    {appText("usernamePermanent")}
                   </Text>
                   <Text style={{ color: "#A8A8A8", paddingVertical: 10 }}>
                     @{profile.username || "you"}
                   </Text>
-                  <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>Bio</Text>
+                  <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>{appText("bio")}</Text>
                   <TextInput
                     value={profileDraft.bio}
                     onChangeText={(v) =>
@@ -8990,7 +8994,7 @@ export default function App() {
                     }
                     maxLength={300}
                     multiline
-                    placeholder="Write about yourself"
+                    placeholder={appText("writeAbout")}
                     style={{
                       borderWidth: 1,
                       borderColor: "#303030",
@@ -9017,7 +9021,7 @@ export default function App() {
                       }}
                     >
                       <Text style={{ color: "#FFF", fontWeight: "700" }}>
-                        {profileBusy ? "Saving…" : "Save"}
+                        {profileBusy ? appText("saving") : appText("save")}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -9030,7 +9034,7 @@ export default function App() {
                       }}
                       style={{ padding: 12 }}
                     >
-                      <Text style={{ color: "#A8A8A8" }}>Back</Text>
+                      <Text style={{ color: "#A8A8A8" }}>{appText("back")}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -10115,7 +10119,7 @@ export default function App() {
               </View>
             )}
           </View>
-          <PostDetailActions post={selectedPost} authSession={authSession} />
+          <PostDetailActions post={selectedPost} authSession={authSession} appLanguage={appLanguage} />
           <View
             style={{
               marginHorizontal: 16,
@@ -10212,7 +10216,7 @@ export default function App() {
               Blocked Accounts
             </Text>
             <Text style={{ color: "#A8A8A8", fontSize: 13, marginBottom: 16 }}>
-              Accounts you have blocked cannot follow or contact you.
+              {appText("blockedDescription")}
             </Text>
             {blockedAccountsLoading ? (
               <Text
@@ -10232,7 +10236,7 @@ export default function App() {
                   paddingVertical: 28,
                 }}
               >
-                You have not blocked anyone.
+                {appText("noBlockedAccounts")}
               </Text>
             ) : (
               <ScrollView
@@ -10316,7 +10320,7 @@ export default function App() {
                           fontWeight: "800",
                         }}
                       >
-                        {blockedAccountsBusy ? "Please wait" : "Unblock"}
+                        {blockedAccountsBusy ? appText("pleaseWait") : appText("unblock")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -10376,7 +10380,7 @@ export default function App() {
               Restricted Accounts
             </Text>
             <Text style={{ color: "#A8A8A8", fontSize: 13, marginBottom: 16 }}>
-              Manage people whose interactions with you are limited.
+              {appText("restrictedDescription")}
             </Text>
             {restrictedAccountsLoading ? (
               <Text
@@ -10396,7 +10400,7 @@ export default function App() {
                   paddingVertical: 28,
                 }}
               >
-                You have not restricted anyone.
+                {appText("noRestrictedAccounts")}
               </Text>
             ) : (
               <ScrollView
@@ -10480,7 +10484,7 @@ export default function App() {
                           fontWeight: "800",
                         }}
                       >
-                        {restrictedAccountsBusy ? "Please wait" : "Unrestrict"}
+                        {restrictedAccountsBusy ? appText("pleaseWait") : appText("unrestrict")}
                       </Text>
                     </TouchableOpacity>
                   </View>
