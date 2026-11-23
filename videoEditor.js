@@ -183,7 +183,7 @@ export async function addMusicToVideo(videoUri, audioUri, options = {}) {
   const streams = media?.streams || [];
   const video = streams.find((stream) => stream.codec_type === 'video');
   const hasOriginalAudio = streams.some((stream) => stream.codec_type === 'audio');
-  if (!video) throw new Error('चुनी हुई फ़ाइल में वीडियो ट्रैक नहीं मिला।');
+  if (!video) throw new Error('No video track was found in the selected file.');
 
   const duration = Math.max(0, Number(media?.format?.duration || video.duration || 0));
   const safeFadeOut = duration > 0 ? Math.min(fadeOut, Math.max(0, duration - fadeIn)) : 0;
@@ -309,7 +309,7 @@ export async function applyVideoEffects(videoUri, options = {}) {
   );
   if (missingFilters.length) {
     throw new Error(
-      `इस डिवाइस के वीडियो इंजन में ये फ़िल्टर उपलब्ध नहीं हैं: ${missingFilters.join(', ')}। कृपया दूसरा फ़िल्टर चुनें।`
+      `These filters are not supported by this device's video engine: ${missingFilters.join(', ')}. Please choose another filter.`
     );
   }
 
@@ -319,8 +319,8 @@ export async function applyVideoEffects(videoUri, options = {}) {
   const streams = media?.streams || [];
   const hasAudio = streams.some(stream => stream.codec_type === 'audio');
   const hasVideo = streams.some(stream => stream.codec_type === 'video');
-  if (!hasVideo) throw new Error('चुनी हुई फ़ाइल में वीडियो ट्रैक नहीं मिला।');
-  if (voice && !hasAudio) throw new Error('इस वीडियो में मूल आवाज़ नहीं है। Voice Effect लगाने के लिए आवाज़ वाला वीडियो चुनें।');
+  if (!hasVideo) throw new Error('No video track was found in the selected file.');
+  if (voice && !hasAudio) throw new Error('This video has no original audio. Choose a video with audio to apply a Voice Effect.');
   const videoEncoder = await pickEncoder([
     'h264_videotoolbox',
     'h264_mediacodec',
@@ -338,7 +338,7 @@ export async function applyVideoEffects(videoUri, options = {}) {
   const result = await execute(args);
   if (!result.success || result.returnCode !== 0) {
     const details = String(result.output || '').trim().slice(-900);
-    throw new Error(`वीडियो फ़िल्टर लागू नहीं हो पाया। कृपया दूसरा फ़िल्टर चुनें या वीडियो दोबारा चुनें।${details ? `\n\nतकनीकी विवरण: ${details}` : ''}`);
+    throw new Error(`The video filter could not be applied. Please choose another filter or select the video again.${details ? `\n\nTechnical details: ${details}` : ''}`);
   }
   const info = await FileSystem.getInfoAsync(outputPath);
   if (!info.exists || !info.size) throw new Error('Edited video file was not created.');
