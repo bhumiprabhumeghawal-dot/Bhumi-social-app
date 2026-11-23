@@ -156,6 +156,34 @@ const ACTION_KEYS = new Set([
   "location.history","location.liveSharing","location.nearbyFriends"
 ]);
 
+const ACCOUNT_FIELD_LABELS = {
+  en: ["Change Username","Profile QR Code","Multiple Account Management","Profile Verification Request","Download Your Data","Deactivate Account","Delete Account Request"],
+  hi: ["यूज़रनेम बदलें","प्रोफ़ाइल QR कोड","एकाधिक अकाउंट प्रबंधन","प्रोफ़ाइल सत्यापन अनुरोध","अपना डेटा डाउनलोड करें","अकाउंट निष्क्रिय करें","अकाउंट हटाने का अनुरोध"],
+  gu: ["યુઝરનેમ બદલો","પ્રોફાઇલ QR કોડ","એકથી વધુ એકાઉન્ટનું સંચાલન","પ્રોફાઇલ ચકાસણી વિનંતી","તમારો ડેટા ડાઉનલોડ કરો","એકાઉન્ટ નિષ્ક્રિય કરો","એકાઉન્ટ કાઢી નાખવાની વિનંતી"],
+  bn: ["ব্যবহারকারীর নাম পরিবর্তন","প্রোফাইল QR কোড","একাধিক অ্যাকাউন্ট পরিচালনা","প্রোফাইল যাচাইকরণের অনুরোধ","আপনার ডেটা ডাউনলোড করুন","অ্যাকাউন্ট নিষ্ক্রিয় করুন","অ্যাকাউন্ট মুছে ফেলার অনুরোধ"],
+  mr: ["वापरकर्तानाव बदला","प्रोफाइल QR कोड","एकाधिक अॅकाउंट व्यवस्थापन","प्रोफाइल पडताळणी विनंती","तुमचा डेटा डाउनलोड करा","अॅकाउंट निष्क्रिय करा","अॅकाउंट हटवण्याची विनंती"],
+  ta: ["பயனர்பெயரை மாற்று","சுயவிவர QR குறியீடு","பல கணக்கு மேலாண்மை","சுயவிவரச் சரிபார்ப்பு கோரிக்கை","உங்கள் தரவைப் பதிவிறக்கு","கணக்கைச் செயலிழக்கச் செய்","கணக்கை நீக்கக் கோரு"],
+  te: ["వినియోగదారు పేరును మార్చండి","ప్రొఫైల్ QR కోడ్","బహుళ ఖాతాల నిర్వహణ","ప్రొఫైల్ ధృవీకరణ అభ్యర్థన","మీ డేటాను డౌన్‌లోడ్ చేయండి","ఖాతాను నిష్క్రియం చేయండి","ఖాతా తొలగింపు అభ్యర్థన"],
+  pa: ["ਵਰਤੋਂਕਾਰ ਨਾਮ ਬਦਲੋ","ਪ੍ਰੋਫ਼ਾਈਲ QR ਕੋਡ","ਕਈ ਖਾਤਿਆਂ ਦਾ ਪ੍ਰਬੰਧਨ","ਪ੍ਰੋਫ਼ਾਈਲ ਤਸਦੀਕ ਬੇਨਤੀ","ਆਪਣਾ ਡਾਟਾ ਡਾਊਨਲੋਡ ਕਰੋ","ਖਾਤਾ ਅਕਿਰਿਆਸ਼ੀਲ ਕਰੋ","ਖਾਤਾ ਮਿਟਾਉਣ ਦੀ ਬੇਨਤੀ"],
+  kn: ["ಬಳಕೆದಾರ ಹೆಸರನ್ನು ಬದಲಾಯಿಸಿ","ಪ್ರೊಫೈಲ್ QR ಕೋಡ್","ಬಹು ಖಾತೆಗಳ ನಿರ್ವಹಣೆ","ಪ್ರೊಫೈಲ್ ಪರಿಶೀಲನೆ ವಿನಂತಿ","ನಿಮ್ಮ ಡೇಟಾ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ","ಖಾತೆಯನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ","ಖಾತೆ ಅಳಿಸುವ ವಿನಂತಿ"],
+  ml: ["ഉപയോക്തൃനാമം മാറ്റുക","പ്രൊഫൈൽ QR കോഡ്","ഒന്നിലധികം അക്കൗണ്ടുകളുടെ നിയന്ത്രണം","പ്രൊഫൈൽ സ്ഥിരീകരണ അഭ്യർത്ഥന","നിങ്ങളുടെ ഡാറ്റ ഡൗൺലോഡ് ചെയ്യുക","അക്കൗണ്ട് നിർജ്ജീവമാക്കുക","അക്കൗണ്ട് ഇല്ലാതാക്കാനുള്ള അഭ്യർത്ഥന"],
+  ur: ["صارف نام تبدیل کریں","پروفائل QR کوڈ","متعدد اکاؤنٹس کا انتظام","پروفائل کی تصدیق کی درخواست","اپنا ڈیٹا ڈاؤن لوڈ کریں","اکاؤنٹ غیر فعال کریں","اکاؤنٹ حذف کرنے کی درخواست"],
+  es: ["Cambiar nombre de usuario","Código QR del perfil","Gestión de varias cuentas","Solicitud de verificación del perfil","Descargar tus datos","Desactivar cuenta","Solicitar eliminación de cuenta"],
+  fr: ["Modifier le nom d’utilisateur","Code QR du profil","Gestion de plusieurs comptes","Demande de vérification du profil","Télécharger vos données","Désactiver le compte","Demande de suppression du compte"],
+  ar: ["تغيير اسم المستخدم","رمز QR للملف الشخصي","إدارة حسابات متعددة","طلب توثيق الملف الشخصي","تنزيل بياناتك","تعطيل الحساب","طلب حذف الحساب"],
+  pt: ["Alterar nome de usuário","Código QR do perfil","Gerenciamento de várias contas","Solicitação de verificação do perfil","Baixar seus dados","Desativar conta","Solicitar exclusão da conta"],
+  de: ["Benutzernamen ändern","Profil-QR-Code","Verwaltung mehrerer Konten","Antrag auf Profilverifizierung","Deine Daten herunterladen","Konto deaktivieren","Kontolöschung beantragen"],
+  ja: ["ユーザー名を変更","プロフィールQRコード","複数アカウントの管理","プロフィール認証リクエスト","データをダウンロード","アカウントを無効化","アカウント削除を申請"],
+  ko: ["사용자 이름 변경","프로필 QR 코드","여러 계정 관리","프로필 인증 요청","내 데이터 다운로드","계정 비활성화","계정 삭제 요청"],
+  id: ["Ubah nama pengguna","Kode QR profil","Pengelolaan beberapa akun","Permintaan verifikasi profil","Unduh data Anda","Nonaktifkan akun","Ajukan penghapusan akun"],
+  ru: ["Изменить имя пользователя","QR-код профиля","Управление несколькими аккаунтами","Запрос на подтверждение профиля","Скачать ваши данные","Деактивировать аккаунт","Запросить удаление аккаунта"],
+  zh: ["更改用户名","个人资料二维码","多账户管理","个人资料认证申请","下载你的数据","停用账户","申请删除账户"],
+  tr: ["Kullanıcı adını değiştir","Profil QR kodu","Birden fazla hesap yönetimi","Profil doğrulama isteği","Verilerini indir","Hesabı devre dışı bırak","Hesap silme talebi"],
+  th: ["เปลี่ยนชื่อผู้ใช้","คิวอาร์โค้ดโปรไฟล์","จัดการหลายบัญชี","คำขอยืนยันโปรไฟล์","ดาวน์โหลดข้อมูลของคุณ","ปิดใช้งานบัญชี","คำขอลบบัญชี"],
+  vi: ["Đổi tên người dùng","Mã QR hồ sơ","Quản lý nhiều tài khoản","Yêu cầu xác minh hồ sơ","Tải dữ liệu của bạn","Vô hiệu hóa tài khoản","Yêu cầu xóa tài khoản"]
+};
+const ACCOUNT_FIELD_KEYS = ["profile.usernameChange","account.profileQr","account.multipleAccounts","account.verification","account.dataDownload","account.deactivation","account.deletion"];
+
 const APPEARANCE_FIELD_LABELS = {
   en: ["Light Appearance","Bhumi Blue Theme","App Language","Larger Text","App Animations","App Icon","Display Settings","Chat Appearance"],
   hi: ["लाइट थीम","भूमि ब्लू थीम","ऐप की भाषा","बड़ा टेक्स्ट","ऐप एनिमेशन","ऐप आइकन","डिस्प्ले सेटिंग्स","चैट का रूप"],
@@ -1020,9 +1048,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const renderField = (field) => {
     const [key, originalTitle, subtitle, defaultValue] = field;
     const appearanceIndex = APPEARANCE_FIELD_KEYS.indexOf(key);
+    const accountIndex = ACCOUNT_FIELD_KEYS.indexOf(key);
     const appearanceLabels = APPEARANCE_FIELD_LABELS[appLanguage] || APPEARANCE_FIELD_LABELS.en;
-    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : originalTitle;
-    const fieldSubtitle = appearanceIndex >= 0 && appLanguage !== "en" ? "" : subtitle;
+    const accountLabels = ACCOUNT_FIELD_LABELS[appLanguage] || ACCOUNT_FIELD_LABELS.en;
+    const title = appearanceIndex >= 0 ? appearanceLabels[appearanceIndex] : accountIndex >= 0 ? accountLabels[accountIndex] : originalTitle;
+    const fieldSubtitle = (appearanceIndex >= 0 || accountIndex >= 0) && appLanguage !== "en" ? "" : subtitle;
     const value = preferences[key] ?? defaultValue;
     const isAction = ACTION_KEYS.has(key);
     return (
