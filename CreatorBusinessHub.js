@@ -189,8 +189,8 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
             </View>
           ) : null}
           <View style={{ backgroundColor: "#121212", borderColor: GOLD, borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 14 }}>
-            <Text style={{ color: GOLD, fontWeight: "900", fontSize: 12 }}>ACCOUNT TYPE</Text>
-            <Text style={{ color: MUTED, fontSize: 11, marginTop: 4 }}>Choose the tools that match how you use Bhumi Social AI.</Text>
+            <Text style={{ color: GOLD, fontWeight: "900", fontSize: 12 }}>{t("account").toUpperCase()}</Text>
+            <Text style={{ color: MUTED, fontSize: 11, marginTop: 4 }}>{t("creatorHubIntro")}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 12 }}>
               {[
                 ["personal", "Personal"], ["creator", "Creator"],
@@ -201,7 +201,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
                 </TouchableOpacity>
               ))}
             </View>
-            <Text style={{ color: MUTED, fontSize: 10, marginTop: 2 }}>Your account type is saved securely on the server. You can change it whenever needed.</Text>
+            <Text style={{ color: MUTED, fontSize: 10, marginTop: 2 }}>{t("creatorAccountSaved")}</Text>
           </View>
 
           {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical: 20 }} /> : null}
@@ -244,12 +244,12 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
               ) : null}
               {tab === "catalog" ? (
                 <>
-                  <Text style={{ color: TEXT, fontWeight: "900", fontSize: 15, marginBottom: 10 }}>Add product or service</Text>
+                  <Text style={{ color: TEXT, fontWeight: "900", fontSize: 15, marginBottom: 10 }}>{t("productsServices")}</Text>
                   <TextInput value={form.title} onChangeText={title => setForm(current => ({ ...current, title }))} placeholder="Product / service name" placeholderTextColor="#8E8E8E" style={inputStyle}/>
                   <TextInput value={form.price} onChangeText={price => setForm(current => ({ ...current, price }))} placeholder="Price (e.g. 499)" placeholderTextColor="#8E8E8E" keyboardType="decimal-pad" style={inputStyle}/>
                   <TextInput value={form.description} onChangeText={description => setForm(current => ({ ...current, description }))} placeholder="Description" placeholderTextColor="#8E8E8E" multiline style={[inputStyle, { minHeight: 70, textAlignVertical: "top" }]}/>
                   {actionButton(saving ? "ADDING..." : "ADD TO CATALOG", addItem, saving)}
-                  <Text style={{ color: GOLD, fontWeight: "900", fontSize: 14, marginTop: 22, marginBottom: 10 }}>YOUR CATALOG ({items.length})</Text>
+                  <Text style={{ color: GOLD, fontWeight: "900", fontSize: 14, marginTop: 22, marginBottom: 10 }}>{t("productsServices").toUpperCase()} ({items.length})</Text>
                   {items.map(item => (
                     <View key={String(item.id)} style={{ backgroundColor: PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 8, flexDirection: "row", alignItems: "center" }}>
                       <View style={{ flex: 1 }}>
@@ -259,7 +259,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
                       <TouchableOpacity onPress={() => setConfirmDeleteId(item.id)}><Ionicons name="trash-outline" color="#F08080" size={19}/></TouchableOpacity>
                     </View>
                   ))}
-                  {!items.length ? <Text style={{ color: MUTED, fontSize: 12 }}>No products or services added yet.</Text> : null}
+                  {!items.length ? <Text style={{ color: MUTED, fontSize: 12 }}>{t("emptyBusinessCatalog")}</Text> : null}
                 </>
               ) : null}
             </>
