@@ -1054,7 +1054,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     const accountLabels = ACCOUNT_FIELD_LABELS[appLanguage] || ACCOUNT_FIELD_LABELS.en;
     const locationLabels = LOCATION_FIELD_LABELS[appLanguage] || LOCATION_FIELD_LABELS.en;
     const translatedFieldTitle = translateAppTextValue(appLanguage, originalTitle);
-    const hasFieldTranslation = translatedFieldTitle && translatedFieldTitle !== originalTitle;
+    const hasFieldTranslation = translatedFieldTitle && translatedFieldTitle !== originalTitle && translatedFieldTitle !== t("translationUnavailable");
     // Never substitute a section heading for an untranslated field name.
     // A generic localized label is less misleading than a duplicated heading
     // or English text leaking into a non-English settings screen.
