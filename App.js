@@ -4151,7 +4151,7 @@ export default function App() {
       setBlockedAccounts(await loadBlockedAccounts());
     } catch (error) {
       Alert.alert(
-        "{appText("blockedAccounts")}",
+        appText("blockedAccounts"),
         error.message || "Could not load blocked accounts.",
       );
     } finally {
@@ -4184,7 +4184,7 @@ export default function App() {
       setRestrictedAccounts(await loadRestrictedAccounts());
     } catch (error) {
       Alert.alert(
-        "{appText("restrictedAccounts")}",
+        appText("restrictedAccounts"),
         error.message || "Could not load restricted accounts.",
       );
     } finally {
@@ -9458,7 +9458,7 @@ export default function App() {
                     <Text
                       style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}
                     >
-                      Your saved posts and reels
+                      {appText("savedContentDescription")}
                     </Text>
                   </View>
                 </View>
@@ -14110,8 +14110,8 @@ export default function App() {
                 onPress={async()=>{
                   try {
                     const result = await LocalAuthentication.authenticateAsync({
-                      promptMessage:"Unlock Bhumi Social AI",
-                      cancelLabel:"Use App PIN",
+                      promptMessage:appText("appLockedTitle"),
+                      cancelLabel:appText("useAppPin"),
                       disableDeviceFallback:true,
                     });
                     if (result.success) {
@@ -14120,7 +14120,7 @@ export default function App() {
                       setAppPinError("");
                     }
                   } catch (error) {
-                    setAppPinError(error?.message || appText("unlockWithBiometrics"));
+                    setAppPinError(error?.message || appText("biometricUnlockFailed"));
                   }
                 }}
                 style={{ width:"100%",backgroundColor:"#17354A",borderRadius:13,padding:13,alignItems:"center",marginTop:14,flexDirection:"row",justifyContent:"center" }}
