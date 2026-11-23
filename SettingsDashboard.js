@@ -33,6 +33,11 @@ const APP_LANGUAGES = [
   { code:"ja", name:"Japanese", native:"日本語", region:"International" },
   { code:"ko", name:"Korean", native:"한국어", region:"International" },
   { code:"id", name:"Indonesian", native:"Bahasa Indonesia", region:"International" },
+  { code:"ru", name:"Russian", native:"Русский", region:"International" },
+  { code:"zh", name:"Chinese (Simplified)", native:"简体中文", region:"International" },
+  { code:"tr", name:"Turkish", native:"Türkçe", region:"International" },
+  { code:"th", name:"Thai", native:"ไทย", region:"International" },
+  { code:"vi", name:"Vietnamese", native:"Tiếng Việt", region:"International" },
 ];
 const GOLD = "#0095F6";
 const BG = "#000000";
