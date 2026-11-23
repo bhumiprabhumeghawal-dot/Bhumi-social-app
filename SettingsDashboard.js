@@ -1288,13 +1288,13 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           </View>
           {securityLoading ? <ActivityIndicator color={GOLD}/> : null}
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={{ color:TEXT,fontSize:15,fontWeight:"900",marginBottom:8 }}>Recent Logins</Text>
+            <Text style={{ color:TEXT,fontSize:15,fontWeight:"900",marginBottom:8 }}>{t("section_security")}</Text>
             {loginHistory.length ? loginHistory.map((item)=>(
               <View key={String(item.id)} style={{ backgroundColor:PANEL,borderRadius:13,padding:13,marginBottom:8 }}>
                 <View style={{ flexDirection:"row",alignItems:"center" }}>
                   <Ionicons name="phone-portrait-outline" size={20} color={GOLD}/>
                   <Text style={{ color:TEXT,fontSize:12,fontWeight:"800",flex:1,marginLeft:9 }} numberOfLines={2}>{item.device_label || "Unknown device"}</Text>
-                  {item.is_current ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"900" }}>THIS DEVICE</Text> : null}
+                  {item.is_current ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"900" }}>{t("enabledDevice")}</Text> : null}
                 </View>
                 <Text style={{ color:MUTED,fontSize:11,marginTop:7 }}>{new Date(item.created_at).toLocaleString()}</Text>
                 <Text style={{ color:MUTED,fontSize:10,marginTop:3 }}>{item.session_active ? "Session active" : "Signed out / expired"}</Text>
@@ -1309,11 +1309,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                   {item.is_current ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"900" }}>CURRENT</Text> : null}
                 </View>
                 <Text style={{ color:MUTED,fontSize:10,marginTop:6 }}>Last active: {item.last_seen_at ? new Date(item.last_seen_at).toLocaleString() : new Date(item.created_at).toLocaleString()}</Text>
-                {!item.is_current ? <TouchableOpacity onPress={async()=>{try{await revokeActiveSession(item.id);await refreshSecurityData();}catch(error){setNotice({title:"Could not sign out device",message:error?.message||"Please try again."});}}} style={{ alignSelf:"flex-start",paddingVertical:8,marginTop:4 }}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>Sign out this device</Text></TouchableOpacity> : null}
+                {!item.is_current ? <TouchableOpacity onPress={async()=>{try{await revokeActiveSession(item.id);await refreshSecurityData();}catch(error){setNotice({title:"Could not sign out device",message:error?.message||"Please try again."});}}} style={{ alignSelf:"flex-start",paddingVertical:8,marginTop:4 }}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>{t("logOut")}</Text></TouchableOpacity> : null}
               </View>
-            )) : <Text style={{ color:MUTED,fontSize:12 }}>No active sessions found.</Text>}
+            )) : <Text style={{ color:MUTED,fontSize:12 }}>{t("noNotificationsYet")}</Text>}
             <TouchableOpacity onPress={async()=>{try{await logoutOtherSessions();await refreshSecurityData();setNotice({title:"Other devices signed out",message:"All other active sessions have been ended. This device remains signed in."});}catch(error){setNotice({title:"Could not sign out other devices",message:error?.message||"Please try again."});}}} style={{ backgroundColor:"#35191D",borderRadius:12,padding:13,alignItems:"center",marginTop:15 }}>
-              <Text style={{ color:"#F08080",fontWeight:"900" }}>Sign Out All Other Devices</Text>
+              <Text style={{ color:"#F08080",fontWeight:"900" }}>{t("logOut")}</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -1486,8 +1486,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       <Modal visible={qrVisible && visible} transparent animationType="fade" onRequestClose={() => setQrVisible(false)}>
         <View style={{ flex:1, backgroundColor:"rgba(0,0,0,0.82)", justifyContent:"center", alignItems:"center", padding:24 }}>
           <View style={{ width:"100%", maxWidth:340, backgroundColor:"#FFFFFF", borderRadius:22, padding:22, alignItems:"center" }}>
-            <Text style={{ color:"#111111", fontSize:19, fontWeight:"900" }}>Your profile QR code</Text>
-            <Text style={{ color:"#666666", fontSize:12, marginTop:5, marginBottom:18 }}>Scan to open this Bhumi Social AI profile</Text>
+            <Text style={{ color:"#111111", fontSize:19, fontWeight:"900" }}>{t("profile")}</Text>
+            <Text style={{ color:"#666666", fontSize:12, marginTop:5, marginBottom:18 }}>{t("shareProfileAction")}</Text>
             <Image source={{ uri:"https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=" + encodeURIComponent("bhumisocial://profile/" + (username || "")) }} style={{ width:250, height:250 }} resizeMode="contain" accessibilityLabel="Profile QR code" />
             <Text style={{ color:"#222222", fontWeight:"800", marginTop:12 }}>@{username || "your-profile"}</Text>
             <TouchableOpacity onPress={() => Share.share({ message:"Find me on Bhumi Social AI: bhumisocial://profile/" + (username || "") + "\nGet Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download" })} style={{ backgroundColor:"#0095F6", borderRadius:13, paddingVertical:13, paddingHorizontal:22, marginTop:18, width:"100%", alignItems:"center" }}>
