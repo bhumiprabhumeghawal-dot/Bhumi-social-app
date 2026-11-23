@@ -273,11 +273,11 @@ const SECTIONS = [
   ]},
 ];
 
-export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen, onPreferencesChange }) {
+export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen, onPreferencesChange, appLanguage = "en", onLanguageChange }) {
   const [active, setActive] = React.useState(null);
   const [languageVisible, setLanguageVisible] = React.useState(false);
-  const [selectedLanguage, setSelectedLanguage] = React.useState("en");
-  React.useEffect(() => { SecureStore.getItemAsync("bhumi_app_language").then((value) => { if (APP_LANGUAGES.some((item) => item.code === value)) setSelectedLanguage(value); }).catch(() => {}); }, []);
+  const [selectedLanguage, setSelectedLanguage] = React.useState(appLanguage);
+  React.useEffect(() => { setSelectedLanguage(appLanguage || "en"); }, [appLanguage]);
   const [hubVisible, setHubVisible] = React.useState(false);
   const [qrVisible, setQrVisible] = React.useState(false);
   const [pinSetupVisible, setPinSetupVisible] = React.useState(false);
@@ -1372,7 +1372,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             <ScrollView showsVerticalScrollIndicator={false}>
               {APP_LANGUAGES.map((item) => (
                 <TouchableOpacity key={item.code} onPress={async () => {
-                  try { await SecureStore.setItemAsync("bhumi_app_language",item.code); setSelectedLanguage(item.code); setLanguageVisible(false); }
+                  try { await SecureStore.setItemAsync("bhumi_app_language",item.code); setSelectedLanguage(item.code); onLanguageChange?.(item.code); setLanguageVisible(false); }
                   catch (error) { setNotice({title:"Could not save language",message:error?.message || "Please try again."}); }
                 }} style={{ flexDirection:"row",alignItems:"center",paddingVertical:12,borderBottomWidth:1,borderBottomColor:BORDER }}>
                   <View style={{ flex:1 }}><Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{item.name} · {item.native}</Text><Text style={{ color:MUTED,fontSize:10,marginTop:3 }}>{item.region}</Text></View>

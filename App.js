@@ -2287,6 +2287,15 @@ export default function App() {
   }, []);
 
   const [activeTab, setActiveTab] = React.useState("Home");
+  const [appLanguage, setAppLanguage] = React.useState("en");
+  React.useEffect(() => {
+    let active = true;
+    SecureStore.getItemAsync("bhumi_app_language")
+      .then((value) => { if (active && value) setAppLanguage(value); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
   const [appPinLocked, setAppPinLocked] = React.useState(false);
   const [appBiometricEnabled, setAppBiometricEnabled] = React.useState(false);
   const [appPinInput, setAppPinInput] = React.useState("");
@@ -10140,6 +10149,8 @@ export default function App() {
       </Modal>
 
       <SettingsDashboard
+        appLanguage={appLanguage}
+        onLanguageChange={setAppLanguage}
         visible={settingsHubOpen}
         username={authSession?.username || ""}
         onClose={() => setSettingsHubOpen(false)}
