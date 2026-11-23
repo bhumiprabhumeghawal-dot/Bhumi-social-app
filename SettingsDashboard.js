@@ -1283,7 +1283,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         <View style={{ flex:1,backgroundColor:"#000000",paddingTop:Platform.OS==="android"?35:55,paddingHorizontal:18,paddingBottom:20 }}>
           <View style={{ flexDirection:"row",alignItems:"center",marginBottom:16 }}>
             <TouchableOpacity onPress={()=>setSecurityVisible(false)} style={{ width:38 }}><Ionicons name="arrow-back" size={24} color={TEXT}/></TouchableOpacity>
-            <Text style={{ color:TEXT,fontSize:20,fontWeight:"900",flex:1 }}>Login & Security</Text>
+            <Text style={{ color:TEXT,fontSize:20,fontWeight:"900",flex:1 }}>{t("section_security")}</Text>
             <TouchableOpacity onPress={refreshSecurityData}><Ionicons name="refresh" size={21} color={GOLD}/></TouchableOpacity>
           </View>
           {securityLoading ? <ActivityIndicator color={GOLD}/> : null}
@@ -1306,7 +1306,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 <View style={{ flexDirection:"row",alignItems:"center" }}>
                   <Ionicons name="laptop-outline" size={20} color={GOLD}/>
                   <Text style={{ color:TEXT,fontSize:12,fontWeight:"800",flex:1,marginLeft:9 }} numberOfLines={2}>{item.device_label || "Unknown device"}</Text>
-                  {item.is_current ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"900" }}>CURRENT</Text> : null}
+                  {item.is_current ? <Text style={{ color:"#65C18C",fontSize:10,fontWeight:"900" }}>{t("enabledDevice")}</Text> : null}
                 </View>
                 <Text style={{ color:MUTED,fontSize:10,marginTop:6 }}>Last active: {item.last_seen_at ? new Date(item.last_seen_at).toLocaleString() : new Date(item.created_at).toLocaleString()}</Text>
                 {!item.is_current ? <TouchableOpacity onPress={async()=>{try{await revokeActiveSession(item.id);await refreshSecurityData();}catch(error){setNotice({title:"Could not sign out device",message:error?.message||"Please try again."});}}} style={{ alignSelf:"flex-start",paddingVertical:8,marginTop:4 }}><Text style={{ color:"#F08080",fontSize:11,fontWeight:"900" }}>{t("logOut")}</Text></TouchableOpacity> : null}
@@ -1445,10 +1445,10 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
       <Modal visible={pinSetupVisible && visible} transparent animationType="fade" onRequestClose={() => setPinSetupVisible(false)}>
         <View style={{ flex:1,backgroundColor:"rgba(0,0,0,0.82)",justifyContent:"center",padding:24 }}>
           <View style={{ backgroundColor:"#121212",borderRadius:20,borderWidth:1,borderColor:"#303030",padding:20 }}>
-            <Text style={{ color:TEXT,fontSize:19,fontWeight:"900" }}>{pinAlreadySet ? "Change App PIN" : "Set App PIN"}</Text>
+            <Text style={{ color:TEXT,fontSize:19,fontWeight:"900" }}>{pinAlreadySet ? t("changeAppPinTitle") : t("setAppPinTitle")}</Text>
             <Text style={{ color:MUTED,fontSize:12,lineHeight:18,marginTop:7 }}>{t("pinInstruction")}</Text>
-            <TextInput value={pinValue} onChangeText={(v)=>setPinValue(v.replace(/\D/g,"").slice(0,6))} placeholder="New 4–6 digit PIN" placeholderTextColor="#777777" keyboardType="number-pad" secureTextEntry maxLength={6} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:12,padding:13,marginTop:16,fontSize:18,letterSpacing:5 }} />
-            <TextInput value={pinConfirmValue} onChangeText={(v)=>setPinConfirmValue(v.replace(/\D/g,"").slice(0,6))} placeholder="Confirm PIN" placeholderTextColor="#777777" keyboardType="number-pad" secureTextEntry maxLength={6} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:12,padding:13,marginTop:10,fontSize:18,letterSpacing:5 }} />
+            <TextInput value={pinValue} onChangeText={(v)=>setPinValue(v.replace(/\D/g,"").slice(0,6))} placeholder={t("newPinPlaceholder")} placeholderTextColor="#777777" keyboardType="number-pad" secureTextEntry maxLength={6} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:12,padding:13,marginTop:16,fontSize:18,letterSpacing:5 }} />
+            <TextInput value={pinConfirmValue} onChangeText={(v)=>setPinConfirmValue(v.replace(/\D/g,"").slice(0,6))} placeholder={t("confirmPinPlaceholder")} placeholderTextColor="#777777" keyboardType="number-pad" secureTextEntry maxLength={6} style={{ color:TEXT,borderWidth:1,borderColor:BORDER,borderRadius:12,padding:13,marginTop:10,fontSize:18,letterSpacing:5 }} />
             <TouchableOpacity onPress={async()=>{
               if(pinValue.length<4||pinValue.length>6){setNotice({title:"Invalid PIN",message:"Enter a PIN containing 4 to 6 digits."});return;}
               if(pinValue!==pinConfirmValue){setNotice({title:"PIN mismatch",message:"The two PIN entries do not match."});return;}
@@ -1475,7 +1475,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                 setNotice({title:"App Lock disabled",message:"The device PIN requirement has been removed."});
               }catch(error){setNotice({title:"Could not disable App Lock",message:error?.message||"Please try again."});}
             }} style={{ padding:13,alignItems:"center",marginTop:4 }}>
-              <Text style={{ color:"#F08080",fontWeight:"800" }}>Disable App Lock</Text>
+              <Text style={{ color:"#F08080",fontWeight:"800" }}>{t("disableAppLockLabel")}</Text>
             </TouchableOpacity> : null}
             <TouchableOpacity onPress={()=>setPinSetupVisible(false)} style={{ padding:10,alignItems:"center" }}>
               <Text style={{ color:MUTED,fontWeight:"800" }}>{t("cancel")}</Text>
