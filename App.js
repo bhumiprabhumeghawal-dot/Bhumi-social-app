@@ -7264,7 +7264,7 @@ export default function App() {
                       {isVideo ? (
                         <View style={{ width: "100%", marginTop: 6, gap: 7 }}>
                           <TouchableOpacity disabled={busy} onPress={() => setVideoFilterCompareOriginal((value) => !value)} style={{ alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14, backgroundColor: videoFilterCompareOriginal ? "rgba(217,181,109,0.22)" : "rgba(0,0,0,0.78)", borderWidth: 1, borderColor: "#D9B56D" }}>
-                            <Text style={{ color: "#D9B56D", fontSize: 10, fontWeight: "800" }}>{videoFilterCompareOriginal ? "SHOW FILTER PREVIEW" : "COMPARE ORIGINAL"}</Text>
+                            <Text style={{ color: "#D9B56D", fontSize: 10, fontWeight: "800" }}>{videoFilterCompareOriginal ? appText("showFilterPreviewLabel") : appText("compareOriginalLabel")}</Text>
                           </TouchableOpacity>
                           <Text style={{ color: "#A8A8A8", fontSize: 10, fontWeight: "600" }}>{appText("previewTintNote")}</Text>
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
@@ -7277,7 +7277,7 @@ export default function App() {
                           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 4 }}>
                             {VOICE_EFFECTS.map((effect) => (
                               <TouchableOpacity key={effect.name} onPress={() => setVoiceEffect(effect.name)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, backgroundColor: voiceEffect === effect.name ? "#0095F6" : "rgba(0,0,0,0.78)" }}>
-                                <Text style={{ color: voiceEffect === effect.name ? "#121212" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{effect.name} Voice</Text>
+                                <Text style={{ color: voiceEffect === effect.name ? "#121212" : "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{effect.name} {appText("voiceLabel")}</Text>
                               </TouchableOpacity>
                             ))}
                           </ScrollView>
@@ -7294,7 +7294,7 @@ export default function App() {
                         paddingHorizontal: 12,
                         paddingBottom: 8,
                       }}>
-                        Filters
+                        {appText("filtersLabel")}
                       </Text>
                       <ScrollView
                         horizontal
