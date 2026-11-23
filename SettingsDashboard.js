@@ -1149,7 +1149,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             ) : null}
             {section.legacy ? (
               <TouchableOpacity onPress={() => { setActive(null); onLegacyOpen?.(section.legacy); }} style={{ backgroundColor:GOLD,borderRadius:13,padding:15,alignItems:"center",marginTop:8 }}>
-                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{t("openExistingSection")} {section.title}</Text>
+                <Text style={{ color:"#FFFFFF",fontWeight:"900" }}>{t("openExistingSection")} {appLanguage === "en" ? section.title : t("section_" + section.key)}</Text>
               </TouchableOpacity>
             ) : null}
             {section.key === "about" ? (
@@ -1502,8 +1502,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             <View style={{ width:42, height:42, borderRadius:21, backgroundColor:"#1C1C1E", alignItems:"center", justifyContent:"center", marginBottom:13 }}>
               <Ionicons name="information-circle-outline" size={23} color={GOLD}/>
             </View>
-            <Text style={{ color:TEXT, fontSize:17, fontWeight:"900" }}>{notice?.title || "Bhumi Social AI"}</Text>
-            <Text style={{ color:MUTED, fontSize:13, lineHeight:19, marginTop:8 }}>{notice?.message || ""}</Text>
+            <Text style={{ color:TEXT, fontSize:17, fontWeight:"900" }}>{translateAppTextValue(appLanguage, notice?.title || "Bhumi Social AI")}</Text>
+            <Text style={{ color:MUTED, fontSize:13, lineHeight:19, marginTop:8 }}>{translateAppTextValue(appLanguage, notice?.message || "")}</Text>
             <TouchableOpacity onPress={() => setNotice(null)} style={{ marginTop:18, backgroundColor:GOLD, borderRadius:13, paddingVertical:12, alignItems:"center" }}>
               <Text style={{ color:"#FFFFFF", fontSize:13, fontWeight:"900" }}>{t("close")}</Text>
             </TouchableOpacity>
