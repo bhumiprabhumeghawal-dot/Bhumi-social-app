@@ -7808,7 +7808,7 @@ export default function App() {
                 <View style={{ padding: 22, alignItems: "center" }}>
                   <Ionicons name="musical-notes-outline" size={30} color="#777777" />
                   <Text style={{ color: "#DDDDDD", fontWeight: "700", marginTop: 8 }}>{appText("noSavedSongsLabel")}</Text>
-                  <Text style={{ color: "#888888", fontSize: 11, textAlign: "center", marginTop: 4 }}>Google Search or add an audio file you have permission to use. Saved songs will remain here for next time.</Text>
+                  <Text style={{ color: "#888888", fontSize: 11, textAlign: "center", marginTop: 4 }}>{appText("musicLibraryHelp")}</Text>
                 </View>
               )}
             </ScrollView>
@@ -7818,7 +7818,7 @@ export default function App() {
                 <Text style={{ color: "#8CCBFF", fontSize: 11, marginTop: 3 }}>{appText("songAddedToEditor")}</Text>
               </View>
             ) : null}
-            <Text style={{ color: "#777777", fontSize: 10, lineHeight: 15 }}>Google Search Opens web results, not a direct audio stream. The selected file is securely saved in the app's private Music Library  folder. A licensed streaming catalog can be connected to this system later.</Text>
+            <Text style={{ color: "#777777", fontSize: 10, lineHeight: 15 }}>{appText("musicLibraryNotice")}</Text>
           </View>
         </View>
       </Modal>
