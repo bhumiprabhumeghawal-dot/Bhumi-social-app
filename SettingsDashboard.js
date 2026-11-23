@@ -1040,7 +1040,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             </TouchableOpacity>
             <View style={{ flex:1 }}>
               <Text style={{ color:TEXT,fontSize:19,fontWeight:"900", letterSpacing:-0.35 }}>{t("section_" + section.key) || section.title}</Text>
-              <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{section.subtitle}</Text>
+              <Text style={{ color:MUTED,fontSize:11,marginTop:4 }}>{getSectionSubtitle(appLanguage, section.key, section.subtitle)}</Text>
             </View>
           </View>
           <ScrollView contentContainerStyle={{ padding:18,paddingBottom: Platform.OS === "android" ? 64 : 40 }} keyboardShouldPersistTaps="handled">
@@ -1159,8 +1159,8 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
                     <Ionicons name={section.icon} size={22} color={GOLD}/>
                   </View>
                   <View style={{ flex:1 }}>
-                    <Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{section.title}</Text>
-                    <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{section.subtitle}</Text>
+                    <Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{t("section_" + section.key) || section.title}</Text>
+                    <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{getSectionSubtitle(appLanguage, section.key, section.subtitle)}</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={19} color={MUTED}/>
                 </TouchableOpacity>
