@@ -216,14 +216,14 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
               </View>
               {tab === "overview" ? (
                 <>
-                  {card("Business Dashboard", "Manage your public business profile and product catalog.", "storefront-outline")}
-                  {card("Catalog Items", String(items.length) + " products or services currently listed.", "pricetags-outline")}
-                  {card("Orders & Payments", "Order checkout, payment settlement and refunds are not connected yet.", "receipt-outline")}
-                  {card("Promotions & Brand Deals", "Prepare a campaign brief or contact the team. Automated campaign booking is not enabled.", "megaphone-outline")}
-                  {actionButton("REQUEST BRAND COLLABORATION", () => contactCreatorTeam("Business Brand Collaboration Request"))}
-                  {actionButton("CREATE PROMOTION BRIEF", createPromotionBrief)}
-                  {actionButton("EDIT BUSINESS PROFILE", () => setTab("profile"))}
-                  {actionButton("MANAGE PRODUCT CATALOG", () => setTab("catalog"))}
+                  {card(t("businessDashboardTitle"), t("businessDashboardDescription"), "storefront-outline")}
+                  {card(t("catalogItemsTitle"), t("catalogItemsDescription").replace("{count}", String(items.length)), "pricetags-outline")}
+                  {card(t("ordersPaymentsTitle"), t("ordersPaymentsDescription"), "receipt-outline")}
+                  {card(t("promotionsDealsTitle"), t("promotionsDealsDescription"), "megaphone-outline")}
+                  {actionButton(t("requestBrandCollabAction").toUpperCase(), () => contactCreatorTeam("Business Brand Collaboration Request"))}
+                  {actionButton(t("createPromotionBriefAction").toUpperCase(), createPromotionBrief)}
+                  {actionButton(t("editBusinessProfileAction").toUpperCase(), () => setTab("profile"))}
+                  {actionButton(t("manageProductCatalogAction").toUpperCase(), () => setTab("catalog"))}
                 </>
               ) : null}
               {tab === "profile" ? (
@@ -232,8 +232,8 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
                   {field(t("categoryField"), "category")}
                   {field(t("descriptionField"), "description", true)}
                   {field(t("phoneField"), "phone")}
-                  {field("WhatsApp", "whatsapp")}
-                  {field("Email", "email")}
+                  {field(t("whatsappField"), "whatsapp")}
+                  {field(t("emailField"), "email")}
                   {field(t("websiteField"), "website")}
                   {field(t("addressField"), "address", true)}
                   {field(t("cityField"), "city")}
@@ -254,7 +254,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
                     <View key={String(item.id)} style={{ backgroundColor: PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 8, flexDirection: "row", alignItems: "center" }}>
                       <View style={{ flex: 1 }}>
                         <Text style={{ color: TEXT, fontWeight: "800" }}>{item.title}</Text>
-                        <Text style={{ color: MUTED, fontSize: 11, marginTop: 3 }}>{item.price ? "₹" + item.price : "Price not set"} · {item.description || "No description"}</Text>
+                        <Text style={{ color: MUTED, fontSize: 11, marginTop: 3 }}>{item.price ? "₹" + item.price : t("priceNotSet")} · {item.description || t("noDescription")}</Text>
                       </View>
                       <TouchableOpacity onPress={() => setConfirmDeleteId(item.id)}><Ionicons name="trash-outline" color="#F08080" size={19}/></TouchableOpacity>
                     </View>
@@ -266,7 +266,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
           ) : null}
           {!loading && accountType !== "business" ? (
             <>
-              {card("Creator Studio", "Your creator workspace and content performance.", "sparkles-outline")}
+              {card(t("creatorStudioTitle"), t("creatorStudioDescription"), "sparkles-outline")}
               <View style={{ flexDirection: "row", marginBottom: 12 }}>
                 {[[ "POSTS", posts.length ], [ "FOLLOWERS", followerCount ], [ "FOLLOWING", followingCount ]].map(([label, value]) => (
                   <View key={label} style={{ flex: 1, backgroundColor: PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 13, padding: 11, marginRight: 6 }}>
@@ -275,14 +275,14 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
                   </View>
                 ))}
               </View>
-              {card("Content Analytics", "Live totals from your profile: published posts, followers and following. Views, reach, watch time and engagement trends require impression analytics.", "analytics-outline")}
-              {card("Brand Collaboration", "Creator campaign matching and brand contracts are the next development stage.", "handshake-outline")}
-              {card("Monetization", "Creator payouts will be enabled only after payment provider, eligibility and tax checks are configured.", "wallet-outline")}
-              {card("Promotions", "Prepare and share a campaign brief. Paid promotion checkout is not enabled yet.", "megaphone-outline")}
+              {card(t("contentAnalyticsTitle"), t("contentAnalyticsDescription"), "analytics-outline")}
+              {card(t("brandCollaborationTitle"), t("brandCollaborationDescription"), "handshake-outline")}
+              {card(t("monetizationTitle"), t("monetizationDescription"), "wallet-outline")}
+              {card(t("promotionsTitle"), t("promotionsDescription"), "megaphone-outline")}
               {actionButton("REQUEST BRAND COLLABORATION", () => contactCreatorTeam("Brand Collaboration Request"))}
-              {actionButton("ASK ABOUT MONETIZATION", () => contactCreatorTeam("Creator Monetization Eligibility"))}
+              {actionButton(t("askMonetizationAction").toUpperCase(), () => contactCreatorTeam("Creator Monetization Eligibility"))}
               {actionButton("CREATE PROMOTION BRIEF", createPromotionBrief)}
-              {actionButton("REFRESH CREATOR DATA", refresh, loading)}
+              {actionButton(t("refreshCreatorDataAction").toUpperCase(), refresh, loading)}
             </>
           ) : null}
         </ScrollView>
