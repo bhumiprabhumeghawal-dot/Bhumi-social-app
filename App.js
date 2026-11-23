@@ -5742,7 +5742,7 @@ export default function App() {
                 marginRight: 8,
               }}
             >
-              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>Email</Text>
+              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{appText("emailLabel")}</Text>
             </View>
             <View
               style={{
@@ -6408,11 +6408,11 @@ export default function App() {
               <TextInput value={liveLink} onChangeText={setLiveLink} placeholder="Add a link" placeholderTextColor="#BBBBBB" autoCapitalize="none" style={{ color: "#FFFFFF", backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 14 }} />
               <TextInput value={liveTitle} onChangeText={setLiveTitle} placeholder="Add a title" placeholderTextColor="#BBBBBB" style={{ color: "#FFFFFF", backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 14 }} />
               <View style={{ backgroundColor: "rgba(25,25,25,0.88)", borderRadius: 12, padding: 12 }}>
-                <Text style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 10 }}>Audience</Text>
+                <Text style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 10 }}>{appText("audienceLabel")}</Text>
                 <View style={{ flexDirection: "row", gap: 8 }}>
                   {["Public", "Followers", "Close Friends"].map(item => (
                     <TouchableOpacity key={item} onPress={() => setLiveAudience(item)} style={{ flex: 1, padding: 10, borderRadius: 20, alignItems: "center", backgroundColor: liveAudience === item ? "#1877F2" : "#444444" }}>
-                      <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{item}</Text>
+                      <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{item === "Public" ? appText("publicLabel") : item === "Followers" ? appText("followers") : appText("closeFriends")}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -8220,7 +8220,7 @@ export default function App() {
                         <View style={{ width: 68, alignItems: "center" }}>
                           <Story
                             item={{
-                              name: "Your story",
+                              name: appText("yourStory"),
                               color: "#DDE7F5",
                               own: true,
                               uri: profile?.avatarUrl,
@@ -8232,7 +8232,7 @@ export default function App() {
                           />
                           <TouchableOpacity
                             onPress={createStory}
-                            accessibilityLabel="Add Status"
+                            accessibilityLabel={appText("addStatus")}
                             style={{
                               position: "absolute",
                               right: 0,
@@ -8768,7 +8768,7 @@ export default function App() {
                         {profile.postsCount ?? 0}
                       </Text>
                       <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
-                        Posts
+                        {appText("postsLabel")}
                       </Text>
                     </View>
                     <TouchableOpacity
@@ -8785,7 +8785,7 @@ export default function App() {
                         {profile.followersCount ?? 0}
                       </Text>
                       <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
-                        Followers
+                        {appText("followers")}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -8802,7 +8802,7 @@ export default function App() {
                         {profile.followingCount ?? 0}
                       </Text>
                       <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
-                        Following
+                        {appText("following")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -8827,7 +8827,7 @@ export default function App() {
                       marginBottom: 10,
                     }}
                   >
-                    Your Status
+                    {appText("yourStatus")}
                   </Text>
                   {(() => {
                     const ownStoryGroup = groupedStories.find(
@@ -8845,7 +8845,7 @@ export default function App() {
                           <Story
                             item={{
                               ...ownStoryGroup.items[0],
-                              name: "Your story",
+                              name: appText("yourStory"),
                               own: true,
                             }}
                             onPress={() => openStoryGroup(ownStoryGroup.items)}
@@ -8870,7 +8870,7 @@ export default function App() {
                             color="#0095F6"
                           />
                           <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
-                            Add Status
+                            {appText("addStatus")}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -8900,7 +8900,7 @@ export default function App() {
                       {profile.businessProfile.businessName || "Business"}
                     </Text>
                     <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#303030", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
-                      <Text style={{ color: "#0095F6", fontSize: 9, fontWeight: "800" }}>BUSINESS</Text>
+                      <Text style={{ color: "#0095F6", fontSize: 9, fontWeight: "800" }}>{appText("businessLabel")}</Text>
                     </View>
                   </View>
                   {!!profile.businessProfile.category && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 6 }}>{profile.businessProfile.category}</Text>}
@@ -8913,11 +8913,11 @@ export default function App() {
                       </Text>
                     </View>
                   )}
-                  {!!profile.businessProfile.serviceAreas && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Serving: {profile.businessProfile.serviceAreas}</Text>}
-                  {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Service radius: {profile.businessProfile.serviceRadiusKm} km</Text>}
-                  {!!profile.businessProfile.address && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>Address: {profile.businessProfile.address}</Text>}
-                  {!!profile.businessProfile.openingHours && <Text style={{ color: "#A8A8A8", fontSize: 12 }}>Hours: {profile.businessProfile.openingHours}</Text>}
-                  {!!profile.businessProfile.phone && <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 6 }}>Phone: {profile.businessProfile.phone}</Text>}
+                  {!!profile.businessProfile.serviceAreas && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>{appText("serving")} {profile.businessProfile.serviceAreas}</Text>}
+                  {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>{appText("serviceRadius")} {profile.businessProfile.serviceRadiusKm} km</Text>}
+                  {!!profile.businessProfile.address && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>{appText("addressLabel")} {profile.businessProfile.address}</Text>}
+                  {!!profile.businessProfile.openingHours && <Text style={{ color: "#A8A8A8", fontSize: 12 }}>{appText("hoursLabel")} {profile.businessProfile.openingHours}</Text>}
+                  {!!profile.businessProfile.phone && <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 6 }}>{appText("phoneLabel")} {profile.businessProfile.phone}</Text>}
                   {!!profile.businessProfile.whatsapp && <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9 }}>
                     {!!profile.businessProfile.phone && (
@@ -8929,7 +8929,7 @@ export default function App() {
                     {!!profile.businessProfile.whatsapp && (
                       <TouchableOpacity onPress={() => Linking.openURL("https://wa.me/" + profile.businessProfile.whatsapp.replace(/[^0-9]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
                         <Ionicons name="logo-whatsapp" size={14} color="#0095F6" />
-                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>WhatsApp</Text>
+                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>{appText("whatsappLabel")}</Text>
                       </TouchableOpacity>
                     )}
                     {!!profile.businessProfile.email && (
@@ -11833,7 +11833,7 @@ export default function App() {
                         <View style={{ width: 72, alignItems: "center" }}>
                           <Story
                             item={{
-                              name: "Your story",
+                              name: appText("yourStory"),
                               color: "#DDE7F5",
                               own: true,
                               uri: profile?.avatarUrl,
@@ -13242,9 +13242,9 @@ export default function App() {
                   )}
                   <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-evenly", marginLeft: 12 }}>
                     {[
-                      ["postsCount", "Posts"],
-                      ["followersCount", "Followers"],
-                      ["followingCount", "Following"]
+                      ["postsCount", appText("postsLabel")],
+                      ["followersCount", appText("followers")],
+                      ["followingCount", appText("following")]
                     ].map(([field, label]) => (
                       <TouchableOpacity
                         key={field}
@@ -13301,7 +13301,7 @@ export default function App() {
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 11 }}>
                       {!!viewedProfile.businessProfile.phone && (
                         <TouchableOpacity onPress={() => Linking.openURL("tel:" + viewedProfile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#242424", paddingHorizontal: 11, paddingVertical: 8, borderRadius: 9 }}>
-                          <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>Call</Text>
+                          <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{appText("callAction")}</Text>
                         </TouchableOpacity>
                       )}
                       {!!viewedProfile.businessProfile.whatsapp && (
@@ -13311,7 +13311,7 @@ export default function App() {
                       )}
                       {!!viewedProfile.businessProfile.website && (
                         <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(viewedProfile.businessProfile.website) ? viewedProfile.businessProfile.website : "https://" + viewedProfile.businessProfile.website)} style={{ backgroundColor: "#242424", paddingHorizontal: 11, paddingVertical: 8, borderRadius: 9 }}>
-                          <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>Website</Text>
+                          <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{appText("websiteAction")}</Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -13320,7 +13320,7 @@ export default function App() {
 
                 {!!viewedProfile.businessCatalog?.length && (
                   <View style={{ marginTop: 13 }}>
-                    <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800", marginBottom: 8 }}>Products & Services</Text>
+                    <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800", marginBottom: 8 }}>{appText("productsServices")}</Text>
                     {viewedProfile.businessCatalog.slice(0, 6).map((item) => (
                       <View key={String(item.id)} style={{ padding: 11, marginBottom: 7, borderRadius: 10, backgroundColor: "#151515", borderWidth: 1, borderColor: "#292929" }}>
                         <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{item.title}</Text>
