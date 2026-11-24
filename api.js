@@ -930,6 +930,18 @@ export async function togglePostLike(postId, activeSession = null) {
   return data;
 }
 
+export async function togglePostRepost(postId, activeSession = null) {
+  const session = activeSession?.token && activeSession?.username ? activeSession : await getAuthSession();
+  if (!session?.token || !session?.username) throw new Error('Please log in to repost this post.');
+  const response = await fetch(`${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/repost`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not repost this post.');
+  return data;
+}
+
 export async function sendPostFlowerGift(contentId) {
   const response = await fetch(`${API_BASE_URL}/api/posts/${encodeURIComponent(contentId)}/gifts`, {
     method: 'POST',
