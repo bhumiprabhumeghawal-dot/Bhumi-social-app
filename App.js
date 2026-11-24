@@ -11080,7 +11080,8 @@ export default function App() {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{
                     paddingHorizontal: 18,
-                    paddingTop: 2,
+                    // Keep the note bubbles fully inside the horizontal list viewport.
+                    paddingTop: 20,
                     paddingBottom: 8,
                     gap: 16,
                   }}
