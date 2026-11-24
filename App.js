@@ -3718,6 +3718,21 @@ export default function App() {
     }
   };
 
+  const handleReelRepost = async (reel) => {
+    const id = Number(reel?.id);
+    const username = String(reel?.user || reel?.username || "").replace(/^@/, "");
+    if (!Number.isSafeInteger(id) || id <= 0 || username.toLowerCase() === String(authSession?.username || "").toLowerCase() || reelBusyState["repost-" + id]) return;
+    setReelBusyState((prev) => ({ ...prev, ["repost-" + id]: true }));
+    try {
+      const result = await togglePostRepost(id, authSession);
+      setReels((prev) => prev.map((item) => Number(item.id) === id ? { ...item, isReposted: !!result.reposted, repostsCount: Number(result.reposts) || 0 } : item));
+    } catch (e) {
+      Alert.alert(appText("alertSaveFailed"), e.message || appText("alertTryAgain"));
+    } finally {
+      setReelBusyState((prev) => ({ ...prev, ["repost-" + id]: false }));
+    }
+  };
+
   const handleReelSave = async (reel) => {
     const id = Number(reel?.id);
     if (!Number.isSafeInteger(id) || id <= 0 || reelBusyState[`save-${id}`])
@@ -8264,6 +8279,12 @@ export default function App() {
                               {Number(r.commentsCount || 0)}
                             </Text>
                           </TouchableOpacity>
+                          {username.toLowerCase() !== String(authSession?.username || "").toLowerCase() ? (
+                            <TouchableOpacity disabled={!hasServerId || !!reelBusyState["repost-" + id]} onPress={() => handleReelRepost(r)} style={{ alignItems: "center" }} accessibilityLabel="Repost">
+                              <Ionicons name="repeat" size={29} color={r.isReposted ? "#16A765" : "#FFFFFF"} />
+                              <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>{Number(r.repostsCount || 0)}</Text>
+                            </TouchableOpacity>
+                          ) : null}
                           <TouchableOpacity
                             onPress={() => handleReelShare(r)}
                             style={{ alignItems: "center" }}
