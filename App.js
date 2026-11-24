@@ -96,6 +96,7 @@ import {
   loadSettingsPreferences,
   saveSettingsPreferences,
   togglePostLike,
+  togglePostRepost,
   sendPostFlowerGift,
   loadPostById,
   loadPostComments,
