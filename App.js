@@ -224,8 +224,16 @@ function Story({ item, onPress, lightAppearance = false }) {
       activeOpacity={0.8}
       onPress={onPress}
     >
-      <View style={[styles.storyRing, item.own && styles.ownRing]}>
-        <View style={[styles.storyInnerRing, item.own && styles.ownStoryInnerRing]}>
+      <View style={[
+        styles.storyRing,
+        { borderWidth: item.hasStatus ? 2 : 0, padding: item.hasStatus ? 0 : 2 },
+        item.own && styles.ownRing,
+      ]}>
+        <View style={[
+          styles.storyInnerRing,
+          { borderWidth: item.hasStatus ? 2 : 0 },
+          item.own && styles.ownStoryInnerRing,
+        ]}>
         <View
           style={[
             styles.storyAvatar,
@@ -12649,7 +12657,7 @@ export default function App() {
                   nestedScrollEnabled horizontal showsHorizontalScrollIndicator={false}>
                           {stories.map((story, index) => (
                             <Story key={String(story.id || story._id || index)}
-                              item={{ ...story, name: viewedProfile.displayName || viewedProfile.username, own: false }}
+                              item={{ ...story, name: viewedProfile.displayName || viewedProfile.username, own: false, hasStatus: true }}
                               onPress={() => openStoryGroup(stories)} />
                           ))}
                         </ScrollView>
