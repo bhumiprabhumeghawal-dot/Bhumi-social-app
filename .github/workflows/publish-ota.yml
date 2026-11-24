@@ -44,9 +44,30 @@ jobs:
           fi
           echo "Expo token is present (value hidden)."
 
-      - name: Publish update to Expo production channel
-        if: ${{ inputs.confirm_production == 'YES' }}
-        run: npx eas-cli@latest update --branch production --platform all --message "Bhumi Social AI production update"
+      - name: Verify Expo account, project, production branch and channel access
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           CI: "1"
+        run: |
+          export EXPO_TOKEN="$(printf '%s' "$EXPO_TOKEN" | tr -d '[:space:]')"
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "ERROR: EXPO_TOKEN is empty after trimming whitespace."
+            exit 1
+          fi
+          echo "Checking Expo account..."
+          npx eas-cli@latest whoami
+          echo "Checking configured EAS project..."
+          npx eas-cli@latest project:info
+          echo "Checking production branch access..."
+          npx eas-cli@latest branch:list
+          echo "Checking production channel mapping..."
+          npx eas-cli@latest channel:list
+
+      - name: Publish update to Expo production channel
+        if: ${{ inputs.confirm_production == 'YES' }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          CI: "1"
+        run: |
+          export EXPO_TOKEN="$(printf '%s' "$EXPO_TOKEN" | tr -d '[:space:]')"
+          npx eas-cli@latest update --branch production --platform all --message "Bhumi Social AI production update ${{ github.sha }}"
