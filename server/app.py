@@ -144,12 +144,11 @@ def init_db():
             )
         """)
         for table in ("post_comments", "reel_comments"):
-            try:
-                db.execute(
-                    f"ALTER TABLE {table} ADD COLUMN approved INTEGER NOT NULL DEFAULT 1"
-                )
-            except Exception:
-                pass
+            for column_sql in ("ADD COLUMN approved INTEGER NOT NULL DEFAULT 1", "ADD COLUMN parent_comment_id INTEGER"):
+                try:
+                    db.execute(f"ALTER TABLE {table} {column_sql}")
+                except Exception:
+                    pass
 
         db.execute("""
             CREATE INDEX IF NOT EXISTS idx_reel_comments_content
@@ -2399,7 +2398,7 @@ def list_post_comments(content_id):
             return jsonify({"error": "Post not found"}), 404
 
         rows = db.execute("""
-            SELECT id, username, text, created_at,
+            SELECT id, username, text, created_at, parent_comment_id,
                    COALESCE(approved, 1) AS approved
             FROM post_comments
             WHERE content_id=?
@@ -2418,6 +2417,7 @@ def list_post_comments(content_id):
                 "username": row["username"],
                 "text": row["text"],
                 "createdAt": row["created_at"],
+                "parentCommentId": row["parent_comment_id"],
                 "isPending": not bool(row["approved"]),
                 "canApprove": bool(viewer) and viewer.lower() == post["username"].lower(),
             } for row in rows],
@@ -2429,6 +2429,7 @@ def create_post_comment(content_id):
     username = g.auth_username
     data = request.get_json(silent=True) or {}
     text = str(data.get("text", "")).strip()
+    parent_comment_id = data.get("parent_comment_id")
 
     if not text:
         return jsonify({"error": "Comment cannot be empty"}), 400
@@ -2454,14 +2455,19 @@ def create_post_comment(content_id):
         """, (post["username"], username)).fetchone()
         approved = 0 if restricted else 1
 
+        if parent_comment_id not in (None, ""):
+            parent = db.execute("SELECT id FROM post_comments WHERE id=? AND content_id=?", (parent_comment_id, content_id)).fetchone()
+            if parent is None:
+                return jsonify({"error": "Reply target comment not found."}), 404
+
         cursor = db.execute("""
             INSERT INTO post_comments
-                (content_id, username, text, created_at, approved)
-            VALUES (?, ?, ?, ?, ?)
-        """, (content_id, username, text, now, approved))
+                (content_id, username, text, created_at, approved, parent_comment_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (content_id, username, text, now, approved, parent_comment_id or None))
 
         row = db.execute("""
-            SELECT id, username, text, created_at, approved
+            SELECT id, username, text, created_at, approved, parent_comment_id
             FROM post_comments WHERE id=?
         """, (cursor.lastrowid,)).fetchone()
 
@@ -2475,6 +2481,7 @@ def create_post_comment(content_id):
                 "username": row["username"],
                 "text": row["text"],
                 "createdAt": row["created_at"],
+                "parentCommentId": row["parent_comment_id"],
                 "isPending": not bool(row["approved"]),
                 "canApprove": False,
             },
@@ -2558,7 +2565,7 @@ def list_reel_comments(content_id):
             return jsonify({"error": "Reel not found"}), 404
 
         rows = db.execute("""
-            SELECT id, username, text, created_at,
+            SELECT id, username, text, created_at, parent_comment_id,
                    COALESCE(approved, 1) AS approved
             FROM reel_comments
             WHERE content_id=?
@@ -2577,6 +2584,7 @@ def list_reel_comments(content_id):
                 "username": row["username"],
                 "text": row["text"],
                 "createdAt": row["created_at"],
+                "parentCommentId": row["parent_comment_id"],
                 "isPending": not bool(row["approved"]),
                 "canApprove": bool(viewer) and viewer.lower() == reel["username"].lower(),
             } for row in rows],
@@ -2588,6 +2596,7 @@ def create_reel_comment(content_id):
     username = g.auth_username
     data = request.get_json(silent=True) or {}
     text = str(data.get("text", "")).strip()
+    parent_comment_id = data.get("parent_comment_id")
 
     if not text:
         return jsonify({"error": "Comment cannot be empty"}), 400
@@ -2613,14 +2622,19 @@ def create_reel_comment(content_id):
         """, (reel["username"], username)).fetchone()
         approved = 0 if restricted else 1
 
+        if parent_comment_id not in (None, ""):
+            parent = db.execute("SELECT id FROM reel_comments WHERE id=? AND content_id=?", (parent_comment_id, content_id)).fetchone()
+            if parent is None:
+                return jsonify({"error": "Reply target comment not found."}), 404
+
         cursor = db.execute("""
             INSERT INTO reel_comments
-                (content_id, username, text, created_at, approved)
-            VALUES (?, ?, ?, ?, ?)
-        """, (content_id, username, text, now, approved))
+                (content_id, username, text, created_at, approved, parent_comment_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (content_id, username, text, now, approved, parent_comment_id or None))
 
         row = db.execute("""
-            SELECT id, username, text, created_at, approved
+            SELECT id, username, text, created_at, approved, parent_comment_id
             FROM reel_comments WHERE id=?
         """, (cursor.lastrowid,)).fetchone()
 
@@ -2639,6 +2653,7 @@ def create_reel_comment(content_id):
                 "username": row["username"],
                 "text": row["text"],
                 "createdAt": row["created_at"],
+                "parentCommentId": row["parent_comment_id"],
                 "isPending": not bool(row["approved"]),
                 "canApprove": False,
             },
