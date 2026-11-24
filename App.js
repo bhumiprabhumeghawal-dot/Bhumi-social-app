@@ -2565,11 +2565,14 @@ export default function App() {
       }
     };
 
-    // Temporarily pause automatic OTA checks while investigating the
-    // Android process exit shortly after launch. APK updates remain available.
-    // Re-enable OTA checks after the startup crash is confirmed fixed.
+    // Keep OTA updates enabled, but wait until the app has been stable
+    // for 30 seconds before the first check to avoid competing with startup.
+    const firstCheck = setTimeout(checkForAppUpdate, 30000);
+    const interval = setInterval(checkForAppUpdate, 6 * 60 * 60 * 1000);
     return () => {
       active = false;
+      clearTimeout(firstCheck);
+      clearInterval(interval);
     };
   }, []);
 
