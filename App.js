@@ -633,19 +633,6 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
     };
   }, [active, audioUrl, muted, soundtrackPlayer]);
 
-  const soundtrackPlayer = useAudioPlayer(audioUrl || null);
-  React.useEffect(() => {
-    try {
-      soundtrackPlayer.loop = true;
-      if (active && audioUrl && !muted) soundtrackPlayer.play();
-      else soundtrackPlayer.pause();
-    } catch (error) {
-      console.log("ZOOMABLE_SOUNDTRACK_ERROR:", error?.message);
-    }
-    return () => {
-      try { soundtrackPlayer.pause(); } catch (error) {}
-    };
-  }, [active, audioUrl, muted, soundtrackPlayer]);
   const player = useVideoPlayer({ uri, useCaching: true }, (p) => {
     p.loop = loop;
     p.muted = muted;
@@ -754,6 +741,19 @@ function ReelVideoZoomable({
   onPlayToEnd,
   onTimeUpdate,
 }) {
+  const soundtrackPlayer = useAudioPlayer(audioUrl || null);
+  React.useEffect(() => {
+    try {
+      soundtrackPlayer.loop = true;
+      if (active && audioUrl && !muted) soundtrackPlayer.play();
+      else soundtrackPlayer.pause();
+    } catch (error) {
+      console.log("ZOOMABLE_SOUNDTRACK_ERROR:", error?.message);
+    }
+    return () => {
+      try { soundtrackPlayer.pause(); } catch (error) {}
+    };
+  }, [active, audioUrl, muted, soundtrackPlayer]);
   const player = useVideoPlayer({ uri, useCaching: true }, (p) => {
     p.loop = loop;
     p.muted = muted;
