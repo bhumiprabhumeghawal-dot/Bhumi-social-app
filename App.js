@@ -3271,6 +3271,21 @@ export default function App() {
     setSecretMenuOpen(false); setSecretChatOpen(false); setSecretSelectionMode(true);
     setSecretSelectedUsers([...secretChatUsers]); setChatSearchQuery(""); setChatError("");
   };
+  const restoreSecretChatUser = async (username) => {
+    const key = String(username || "").trim().toLowerCase();
+    if (!key) return;
+    const next = secretChatUsers.filter((item) => String(item).toLowerCase() !== key);
+    try {
+      await SecureStore.setItemAsync(secretChatStorageKey, JSON.stringify(next));
+      setSecretChatUsers(next);
+      setSecretChatOpen(next.length > 0);
+      setChatInboxTab("All");
+      setChatSearchQuery("");
+      setChatError("");
+    } catch (error) {
+      setChatError(error?.message || "Could not move this chat back to Inbox.");
+    }
+  };
   const closeMessages = () => {
     if (selectedChatUser)
       updateChatTyping(selectedChatUser, false).catch(() => {});
@@ -11648,8 +11663,8 @@ export default function App() {
                               {secretSelectedUsers.some((item) => item.toLowerCase() === String(username).toLowerCase()) ? <Ionicons name="checkmark" size={18} color="#FFFFFF" /> : null}
                             </TouchableOpacity>
                           ) : secretChatOpen ? (
-                            <TouchableOpacity onPress={() => { setSecretChatOpen(false); setChatSearchQuery(""); }} style={{ padding: 8 }}>
-                              <Ionicons name="lock-closed" size={17} color="#A8A8A8" />
+                            <TouchableOpacity onPress={() => restoreSecretChatUser(username)} accessibilityRole="button" accessibilityLabel="Move chat back to Inbox" style={{ padding: 8, borderRadius: 10, backgroundColor: "#1C1C1E" }}>
+                              <Ionicons name="lock-open-outline" size={19} color="#3797F0" />
                             </TouchableOpacity>
                           ) : (
                           <View style={{ alignItems: "flex-end", minWidth: 38 }}>
