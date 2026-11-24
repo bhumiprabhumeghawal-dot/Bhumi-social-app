@@ -10813,6 +10813,7 @@ export default function App() {
                 flexDirection: "row",
                 alignItems: "center",
                 paddingHorizontal: 16,
+                marginTop: selectedChatUser ? 0 : 30,
                 paddingTop: selectedChatUser ? 30 : 34,
                 paddingBottom: 6,
                 backgroundColor: "#000000",
