@@ -1257,6 +1257,7 @@ function PostCard({
           id: `local-${Date.now()}`,
           username: authSession?.username || "you",
           text,
+          parentCommentId: replyingToComment?.id || null,
         },
       ]);
       setCommentDraft("");
@@ -1889,6 +1890,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
           id: `local-${Date.now()}`,
           username: authSession?.username || "you",
           text: value,
+          parentCommentId: replyingToDetailComment?.id || null,
         },
       ]);
       setCommentCount((count) => count + 1);
@@ -2060,6 +2062,10 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
                       key={String(item.id || index)}
                       style={{
                         paddingVertical: 10,
+                        marginLeft: item.parentCommentId ? 18 : 0,
+                        paddingLeft: item.parentCommentId ? 9 : 0,
+                        borderLeftWidth: item.parentCommentId ? 2 : 0,
+                        borderLeftColor: "#333333",
                         borderBottomWidth: 1,
                         borderBottomColor: "#262626",
                       }}
@@ -2111,6 +2117,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
                   ))
                 )}
               </ScrollView>
+              {replyingToDetailComment ? <TouchableOpacity onPress={() => setReplyingToDetailComment(null)} style={{ alignSelf: "flex-start", marginTop: 5 }}><Text style={{ color: "#0095F6", fontSize: 11 }}>Replying to @{replyingToDetailComment.username || "user"} · Cancel</Text></TouchableOpacity> : null}
               <View
                 style={{
                   flexDirection: "row",
@@ -13276,7 +13283,7 @@ export default function App() {
                     <Text style={{ fontWeight: "800" }}>
                       @{item.username || "user"}{" "}
                     </Text>
-                    {item.text}
+                    {item.parentCommentId ? <Text style={{ color: "#8E8E93", fontSize: 10 }}>Reply · </Text> : null}{item.text}
                   </Text>
                   {!!item.createdAt ? (
                     <Text
