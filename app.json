@@ -88,7 +88,7 @@
       "requestHeaders": {
         "expo-channel-name": "production"
       },
-      "checkAutomatically": "ON_LOAD",
+      "checkAutomatically": "NEVER",
       "fallbackToCacheTimeout": 0
     },
     "runtimeVersion": {
