@@ -10765,7 +10765,7 @@ export default function App() {
                 flexDirection: "row",
                 alignItems: "center",
                 paddingHorizontal: 16,
-                paddingTop: 4,
+                paddingTop: selectedChatUser ? 10 : 4,
                 paddingBottom: 6,
                 backgroundColor: "#000000",
                 minHeight: 58,
