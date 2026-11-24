@@ -2287,7 +2287,7 @@ def toggle_post_repost(content_id):
     now = datetime.now(timezone.utc).isoformat()
     with get_db() as db:
         post = db.execute(
-            "SELECT id, username FROM content WHERE id=? AND kind='posts'",
+            "SELECT id, username FROM content WHERE id=? AND kind IN ('posts', 'reels')",
             (content_id,),
         ).fetchone()
         if post is None or not can_view_content(db, post["username"], username):
