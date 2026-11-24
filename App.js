@@ -2508,22 +2508,12 @@ export default function App() {
   const [appLanguage, setAppLanguage] = React.useState("en");
   const appText = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   // BHUMI_CRASH_DISPLAY
+  // Clear stale diagnostic reports silently. Showing a native Alert on launch
+  // caused queued crash-report popups to appear one after another.
   React.useEffect(() => {
-    let active = true;
-    SecureStore.getItemAsync("bhumi_last_crash_report")
-      .then(async (report) => {
-        if (!report || !active) return;
-        await SecureStore.deleteItemAsync("bhumi_last_crash_report");
-        if (active) {
-          Alert.alert(translateAppText(appLanguage, "crashReportTitle"), report);
-        }
-      })
-      .catch((error) => console.error("Crash report read failed:", error));
-
-    return () => {
-      active = false;
-    };
-  }, [appLanguage]);
+    SecureStore.deleteItemAsync("bhumi_last_crash_report")
+      .catch((error) => console.error("Crash report cleanup failed:", error));
+  }, []);
 
   React.useEffect(() => {
     let active = true;
