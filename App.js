@@ -8956,7 +8956,7 @@ export default function App() {
                     </TouchableOpacity>
                     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
                       <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>
-                        @{profile.username || authSession?.username || ""}
+                        {profile.displayName || profile.username || authSession?.username || ""}
                       </Text>
                     </View>
                     <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center" }}>
