@@ -15,3 +15,21 @@
 .small-orb{width:48px;height:48px;font-size:22px;margin:0}
 .install-btn{border:1px solid #9a753d;border-radius:11px;background:#21172a;color:#f3d58e;padding:9px 13px;font-weight:800}
 \n/* iPhone Safari: prevent automatic input zoom and respect safe-area touch targets. */\n@media (max-width: 640px){input,select,textarea,button{font-size:16px}button,.install-btn,.install-guide-btn{min-height:44px}.app-shell{min-height:100svh;min-height:100dvh}.auth-card{margin-top:24px;padding:26px 18px}.install-modal{padding:max(18px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom))}}\n
+/* Cross-device layout and Notes */
+.app-shell{max-width:1180px;width:100%;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+.notes-panel{border:1px solid #3a2c49;border-radius:18px;background:linear-gradient(160deg,#1b1427,#100c17);padding:14px;margin:0 0 16px}
+.notes-panel h2{font:600 21px 'Playfair Display',Georgia,serif;margin:5px 0 12px}
+.note-compose{display:flex;align-items:center;gap:9px;margin:8px 0 12px}
+.note-compose input{flex:1;min-width:0;margin:0}
+.note-compose .small-primary{white-space:nowrap}
+.notes-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:9px}
+.note-card{display:flex;align-items:flex-start;gap:10px;min-width:0;padding:11px;border:1px solid #ffffff14;border-radius:14px;background:#0e0918}
+.note-card.own-note{border-color:#bd8c3766;background:#21172a}
+.note-copy{min-width:0;flex:1}
+.note-copy strong{display:block;font-size:12px;overflow-wrap:anywhere}
+.note-copy p{margin:6px 0;color:#f2eaf8;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
+.note-copy small{color:var(--muted);font-size:10px}
+.media{max-width:100%;height:auto}
+@media(min-width:900px){.app-shell main{width:100%}.dm-layout{grid-template-columns:minmax(280px,.85fr) minmax(0,1.65fr)}.chat-messages{max-height:min(62vh,700px)}}
+@media(max-width:640px){.note-compose{flex-wrap:wrap}.note-compose input{flex-basis:100%}.notes-list{grid-template-columns:1fr}.app-shell{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
