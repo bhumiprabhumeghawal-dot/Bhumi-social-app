@@ -14,3 +14,4 @@ Profile menu cleanup: 5d09745436a5621aeb3c311a3e73d537a203efb8
 Profile status ring visibility fix: 823fc8d64396d7a5525c953fb85eb4edf5d849b4
 Profile circle sizing normalized: f236e9e0ff6da3cb7f17d0eaecf4387aedf0e3b3
 Remove duplicate profile username header: 17992a825cf8a305c6c18e0abfd4700f6d82a466
+Lower DM call buttons within header strip: 56f584de451181c7ad36379fd0d0e1fc2957e996
