@@ -8963,12 +8963,12 @@ export default function App() {
                     </View>
                   </View>
 
-                  <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingTop: 17, paddingBottom: 25 }}>
-                    <TouchableOpacity onPress={chooseProfilePhoto} disabled={profileBusy} style={{ width: 150, alignItems: "flex-start" }}>
-                      <View style={{ width: 120, height: 120, borderRadius: 60, padding: 2, borderWidth: 2, borderColor: "#34383E", alignItems: "center", justifyContent: "center" }}>
-                        {profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "#26292D" }} /> : <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "#26292D", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 42, fontWeight: "700" }}>{(profile.displayName || "Y").charAt(0).toUpperCase()}</Text></View>}
+                  <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 18 }}>
+                    <TouchableOpacity onPress={chooseProfilePhoto} disabled={profileBusy} style={{ width: 112, alignItems: "flex-start" }}>
+                      <View style={{ width: 96, height: 96, borderRadius: 48, padding: 2, borderWidth: 2, borderColor: "#34383E", alignItems: "center", justifyContent: "center" }}>
+                        {profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: "#26292D" }} /> : <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "#26292D", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 34, fontWeight: "700" }}>{(profile.displayName || "Y").charAt(0).toUpperCase()}</Text></View>}
                       </View>
-                      <View style={{ position: "absolute", right: 0, bottom: 1, width: 34, height: 34, borderRadius: 17, backgroundColor: "#FFFFFF", borderWidth: 3, borderColor: "#000000", alignItems: "center", justifyContent: "center" }}><Ionicons name="add" size={22} color="#111111" /></View>
+                      <View style={{ position: "absolute", right: 0, bottom: 1, width: 27, height: 27, borderRadius: 14, backgroundColor: "#FFFFFF", borderWidth: 3, borderColor: "#000000", alignItems: "center", justifyContent: "center" }}><Ionicons name="add" size={18} color="#111111" /></View>
                     </TouchableOpacity>
                     <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                       {[
@@ -8994,15 +8994,15 @@ export default function App() {
                     <TouchableOpacity onPress={() => Share.share({ message: "@" + (profile.username || "you") + " on Bhumi Social AI" })} style={{ flex: 1, backgroundColor: "#292D32", borderRadius: 11, paddingVertical: 12, alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}>Share profile</Text></TouchableOpacity>
                   </View>
 
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 19, gap: 27, paddingBottom: 22 }}>
-                    <TouchableOpacity onPress={createStory} style={{ width: 130, alignItems: "center" }}>
-                      <View style={{ width: 126, height: 126, borderRadius: 63, borderWidth: 1.5, borderColor: "#D9D9D9", alignItems: "center", justifyContent: "center" }}><Ionicons name="add" size={48} color="#FFFFFF" /></View>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 19, gap: 18, paddingBottom: 18 }}>
+                    <TouchableOpacity onPress={createStory} style={{ width: 104, alignItems: "center" }}>
+                      <View style={{ width: 96, height: 96, borderRadius: 48, borderWidth: 1.5, borderColor: "#D9D9D9", alignItems: "center", justifyContent: "center" }}><Ionicons name="add" size={38} color="#FFFFFF" /></View>
                       <Text style={{ color: "#FFFFFF", fontSize: 14, marginTop: 7 }}>New</Text>
                     </TouchableOpacity>
                     {groupedStories.filter((group) => !group.own).map((group, index) => (
                       <TouchableOpacity key={group.username || group.name || index} onPress={() => openStoryGroup(group.items)} style={{ width: 130, alignItems: "center" }}>
-                        <View style={{ width: 126, height: 126, borderRadius: 63, borderWidth: 4, borderColor: "#34383E", padding: 4 }}>
-                          {group.items?.[0]?.uri ? <Image source={{ uri: group.items[0].uri }} style={{ width: "100%", height: "100%", borderRadius: 60 }} /> : <View style={{ flex: 1, borderRadius: 60, backgroundColor: "#292D32", alignItems: "center", justifyContent: "center" }}><Ionicons name="images-outline" size={34} color="#FFFFFF" /></View>}
+                        <View style={{ width: 96, height: 96, borderRadius: 48, borderWidth: 3, borderColor: "#34383E", padding: 3 }}>
+                          {group.items?.[0]?.uri ? <Image source={{ uri: group.items[0].uri }} style={{ width: "100%", height: "100%", borderRadius: 45 }} /> : <View style={{ flex: 1, borderRadius: 45, backgroundColor: "#292D32", alignItems: "center", justifyContent: "center" }}><Ionicons name="images-outline" size={27} color="#FFFFFF" /></View>}
                         </View>
                         <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 14, marginTop: 7 }}>Highlights</Text>
                       </TouchableOpacity>
@@ -12508,15 +12508,15 @@ export default function App() {
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   {viewedProfile.avatarUrl ? (
                     <Image source={{ uri: viewedProfile.avatarUrl }}
-                      style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "#1C1C1E" }} />
+                      style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: "#1C1C1E" }} />
                   ) : (
                     <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
-                      <Text style={{ fontSize: 32, fontWeight: "800", color: "#FFFFFF" }}>
+                      <Text style={{ fontSize: 28, fontWeight: "800", color: "#FFFFFF" }}>
                         {String(viewedProfile.displayName || viewedProfile.username || "?").slice(0, 1).toUpperCase()}
                       </Text>
                     </View>
                   )}
-                  <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between", marginLeft: 14 }}>
+                  <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between", marginLeft: 10 }}>
                     {[
                       ["postsCount", appText("postsLabel")],
                       ["followersCount", appText("followers")],
