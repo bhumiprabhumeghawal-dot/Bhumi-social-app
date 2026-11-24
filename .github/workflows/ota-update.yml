@@ -52,3 +52,5 @@ jobs:
         run: |
           export EXPO_TOKEN="$(printf '%s' "$EXPO_TOKEN" | tr -d '[:space:]')"
           npx eas-cli@latest update --branch production --platform all --message "Bhumi Social AI update ${{ github.sha }}" --non-interactive
+
+# Trigger OTA publication for the latest crash-popup cleanup commit.
