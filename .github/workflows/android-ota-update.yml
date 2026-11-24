@@ -1,0 +1,55 @@
+name: Publish Android OTA Update
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '**/*.js'
+      - '**/*.jsx'
+      - '**/*.ts'
+      - '**/*.tsx'
+      - 'assets/**'
+      - '!android/**'
+      - '!ios/**'
+      - '!node_modules/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ota-production
+  cancel-in-progress: true
+
+jobs:
+  publish-ota:
+    name: Publish production OTA update
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Expo token
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Add the Expo access token as the GitHub Actions secret EXPO_TOKEN."
+            exit 1
+          fi
+
+      - name: Publish Android update to production
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx eas-cli@latest update --branch production --platform android --message "Automatic OTA update: ${GITHUB_SHA}" --non-interactive
