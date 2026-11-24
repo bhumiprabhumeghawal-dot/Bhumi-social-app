@@ -991,13 +991,13 @@ export async function loadPostComments(postId) {
   return data.comments || [];
 }
 
-export async function createPostComment(postId, text) {
+export async function createPostComment(postId, text, parentCommentId = null) {
   const response = await fetch(
     `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`,
     {
       method: 'POST',
       headers: await authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, ...(parentCommentId ? { parent_comment_id: parentCommentId } : {}) }),
     }
   );
   const data = await response.json();
@@ -1345,11 +1345,11 @@ export async function loadReelComments(reelId) {
   return data.comments || [];
 }
 
-export async function createReelComment(reelId, text) {
+export async function createReelComment(reelId, text, parentCommentId = null) {
   const response = await fetch(`${API_BASE_URL}/api/reels/${encodeURIComponent(reelId)}/comments`, {
     method: 'POST',
     headers: await authHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, ...(parentCommentId ? { parent_comment_id: parentCommentId } : {}) }),
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not create reel comment.');
