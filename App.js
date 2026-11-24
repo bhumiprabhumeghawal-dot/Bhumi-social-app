@@ -3997,8 +3997,7 @@ export default function App() {
         );
         setReelSavedState((current) => ({ ...current, [id]: false }));
       }
-    } catch (e) {
-      Alert.alert(appText("alertSaved"), appText("alertTryAgain"));
+    } catch (e) {      Alert.alert(appText("alertSaved"), appText("alertTryAgain"));
     }
   };
 
@@ -7997,8 +7996,7 @@ export default function App() {
               maxToRenderPerBatch={2}
               windowSize={5}
               removeClippedSubviews={false}
-              getItemLayout={(_, index) => ({
-                length: reelViewportHeight,
+              getItemLayout={(_, index) => ({                length: reelViewportHeight,
                 offset: reelViewportHeight * index,
                 index,
               })}
@@ -11566,8 +11564,8 @@ export default function App() {
                 flexDirection: "row",
                 alignItems: "center",
                 paddingHorizontal: 16,
-                paddingTop: 16,
-                paddingBottom: 10,
+                paddingTop: 4,
+                paddingBottom: 6,
                 backgroundColor: "#000000",
                 minHeight: 58,
               }}
@@ -11607,9 +11605,9 @@ export default function App() {
                 >
                   <View
                     style={{
-                      width: 43,
-                      height: 43,
-                      borderRadius: 22,
+                      width: 38,
+                      height: 38,
+                      borderRadius: 19,
                       backgroundColor: "#1C1C1E",
                       alignItems: "center",
                       justifyContent: "center",
@@ -11637,7 +11635,7 @@ export default function App() {
                               ).avatarUrl
                             : `https://bhumi-social-app-1.onrender.com${messageConversations.find((c) => String(c.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl}`,
                         }}
-                        style={{ width: 43, height: 43, borderRadius: 22 }}
+                        style={{ width: 38, height: 38, borderRadius: 19 }}
                       />
                     ) : (
                       <Text
@@ -11655,8 +11653,8 @@ export default function App() {
                     <Text
                       numberOfLines={1}
                       style={{
-                        fontSize: 17,
-                        fontWeight: "800",
+                        fontSize: 16,
+                        fontWeight: "700",
                         color: "#F5F5F5",
                       }}
                     >
@@ -11675,8 +11673,8 @@ export default function App() {
                     </View>
                   </View>
                   <VoiceVideoCallControls username={selectedChatUser} enableIncoming={false} appLanguage={appLanguage} />
-                  <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel={appText("chatPersonalization")} style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "transparent", borderWidth: 0, borderColor: "transparent", alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="color-palette-outline" size={21} color="#F5F5F5" />
+                  <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel={appText("chatPersonalization")} style={{ width: 36, height: 40, alignItems: "center", justifyContent: "center" }}>
+                    <Ionicons name="information-circle-outline" size={25} color="#F5F5F5" />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -11997,8 +11995,7 @@ export default function App() {
                     flexDirection: "row",
                     paddingHorizontal: 18,
                     marginBottom: 4,
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#303030",
+                    borderBottomWidth: 1,                    borderBottomColor: "#303030",
                   }}
                 >
                   {["All", "Primary", "General", "Requests"].map((tab) => {
@@ -12418,12 +12415,12 @@ export default function App() {
                           flexDirection: "row",
                           alignItems: "flex-end",
                           justifyContent: mine ? "flex-end" : "flex-start",
-                          paddingHorizontal: 2,
-                          marginVertical: 6,
+                          paddingHorizontal: 0,
+                          marginVertical: 3,
                         }}
                       >
                         {!mine ? (
-                          <View style={{ width: 27, height: 27, borderRadius: 14, marginRight: 7, marginBottom: 2, backgroundColor: "transparent", borderWidth: 1, borderColor: chatThemeColors.accent, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                          <View style={{ width: 24, height: 24, borderRadius: 12, marginRight: 7, marginBottom: 2, backgroundColor: "transparent", borderWidth: 1, borderColor: chatThemeColors.accent, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                             {messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase())?.avatarUrl ? (
                               <Image source={{ uri: String(messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl).startsWith("http") ? messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl : "https://bhumi-social-app-1.onrender.com" + messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl }} style={{ width: 27, height: 27, borderRadius: 14 }} />
                             ) : <Text style={{ color: "#F5F5F5", fontSize: 11, fontWeight: "800" }}>{String(selectedChatUser || "?").slice(0,1).toUpperCase()}</Text>}
@@ -12436,11 +12433,11 @@ export default function App() {
                             setChatUnsendTarget(message);
                           }}
                           style={{
-                            maxWidth: "82%",
+                            maxWidth: "78%",
                             backgroundColor: mine ? chatThemeColors.mine : chatThemeColors.other,
-                            borderRadius: 16,
-                            paddingHorizontal: 2,
-                            paddingVertical: 2,
+                            borderRadius: 20,
+                            paddingHorizontal: 12,
+                            paddingVertical: 9,
                             borderWidth: 0,
                             borderColor: "transparent",
                             elevation: 0,
@@ -12681,46 +12678,7 @@ export default function App() {
                             ) : null}
                           </View>
                         </TouchableOpacity>
-                        {mine ? (
-                          <View
-                            style={{
-                              width: 30,
-                              height: 30,
-                              borderRadius: 15,
-                              marginLeft: 7,
-                              marginBottom: 2,
-                              backgroundColor: "#1C1C1E",
-                              borderWidth: 0,
-                              borderColor: "transparent",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              overflow: "hidden",
-                            }}
-                          >
-                            {profile?.avatarUrl ? (
-                              <Image
-                                source={{ uri: profile.avatarUrl }}
-                                style={{
-                                  width: 30,
-                                  height: 30,
-                                  borderRadius: 15,
-                                }}
-                              />
-                            ) : (
-                              <Text
-                                style={{
-                                  color: "#F5F5F5",
-                                  fontSize: 12,
-                                  fontWeight: "800",
-                                }}
-                              >
-                                {String(authSession?.username || "Y")
-                                  .slice(0, 1)
-                                  .toUpperCase()}
-                              </Text>
-                            )}
-                          </View>
-                        ) : null}
+
                       </View>
                     );
                   })}
@@ -12997,9 +12955,9 @@ export default function App() {
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      paddingHorizontal: 12,
-                      paddingVertical: 9,
-                      marginBottom: Platform.OS === "android" ? 6 : 0,
+                      paddingHorizontal: 14,
+                      paddingVertical: 7,
+                      marginBottom: Platform.OS === "android" ? 4 : 0,
                       borderTopWidth: StyleSheet.hairlineWidth,
                       borderTopColor: "#303030",
                       backgroundColor: "#000000",
@@ -13058,11 +13016,11 @@ export default function App() {
                         flex: 1,
                         minHeight: 44,
                         maxHeight: 110,
-                        backgroundColor: "#1C1C1E",
-                        borderWidth: 1,
-                        borderColor: "#303030",
+                        backgroundColor: "#262626",
+                        borderWidth: 0,
+                        borderColor: "transparent",
                         borderRadius: 24,
-                        paddingHorizontal: 16,
+                        paddingHorizontal: 17,
                         paddingVertical: 10,
                         color: "#F5F5F5",
                         fontSize: 15,
@@ -13076,16 +13034,16 @@ export default function App() {
                       }
                       accessibilityLabel={appText("postComment")}
                       style={{
-                        width: 42,
-                        height: 42,
-                        borderRadius: 21,
+                        width: 34,
+                        height: 40,
+                        borderRadius: 18,
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor: "#0095F6",
-                        elevation: 1,
+                        backgroundColor: "transparent",
+                        elevation: 0,
                       }}
                     >
-                      <Ionicons name="send" size={19} color="#FFFFFF" />
+                      <Ionicons name="send" size={22} color="#0095F6" />
                     </TouchableOpacity>
                   </View>
                 </View>
