@@ -930,6 +930,24 @@ export async function togglePostLike(postId, activeSession = null) {
   return data;
 }
 
+export async function sendPostFlowerGift(contentId) {
+  const response = await fetch(`${API_BASE_URL}/api/posts/${encodeURIComponent(contentId)}/gifts`, {
+    method: 'POST',
+    headers: await authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ giftType: 'flower' }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not send flower gift.');
+  return data;
+}
+
+export async function loadGiftHistory() {
+  const response = await fetch(`${API_BASE_URL}/api/gifts/history`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load gift history.');
+  return data.gifts || [];
+}
+
 export async function loadPostComments(postId) {
   const response = await fetch(
     `${API_BASE_URL}/api/posts/${encodeURIComponent(postId)}/comments`,
