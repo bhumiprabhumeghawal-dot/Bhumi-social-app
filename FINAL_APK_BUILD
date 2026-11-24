@@ -24,3 +24,5 @@ Profile header duplicate-name removal build trigger: d3d78c7dee0d29e6efc007b99ec
 APK build requested for current inbox syntax and crash diagnosis.
 
 Horizontal swipe navigation for Home, Reels, Inbox, Search and Profile: 461dc6f73bb0ea9700f9ce600a0c71ac23d598b6
+
+Crash fix + silent stale-report cleanup APK build: 880d970a092ff614063d442cfed1601864c0630e
