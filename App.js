@@ -4082,7 +4082,7 @@ export default function App() {
     const kind = String(item.kind || "");
     const actor = String(item.actor || "").trim();
 
-    if (kind === "like" || kind === "comment" || kind === "reel_like" || kind === "reel_comment") {
+    if (kind === "like" || kind === "gift_flower" || kind === "comment" || kind === "reel_like" || kind === "reel_comment") {
       if (!item.referenceId) {
         Alert.alert(
           appText("alertPostUnavailable"),
@@ -13669,7 +13669,7 @@ export default function App() {
               <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
                 {notificationsList.filter((item) => {
                   if (notificationFilter === "All") return true;
-                  if (notificationFilter === "Likes") return item.kind === "like" || item.kind === "reel_like";
+                  if (notificationFilter === "Likes") return item.kind === "like" || item.kind === "gift_flower" || item.kind === "reel_like";
                   if (notificationFilter === "Comments") return item.kind === "comment" || item.kind === "reel_comment";
                   if (notificationFilter === "Messages") return item.kind === "message";
                   return ["follow", "follow_request", "follow_accepted", "follow_rejected"].includes(item.kind);
@@ -13681,6 +13681,7 @@ export default function App() {
                     follow_accepted: "accepted your follow request",
                     follow_rejected: "declined your follow request",
                     like: "liked your post",
+                    gift_flower: "sent you a flower 🌸",
                     comment: "commented on your post",
                     reel_like: "liked your reel",
                     reel_comment: "commented on your reel",
