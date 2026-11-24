@@ -96,6 +96,7 @@ import {
   loadSettingsPreferences,
   saveSettingsPreferences,
   togglePostLike,
+  sendPostFlowerGift,
   loadPostById,
   loadPostComments,
   createPostComment,
@@ -1118,6 +1119,7 @@ function PostCard({
   const [comments, setComments] = React.useState([]);
   const [commentDraft, setCommentDraft] = React.useState("");
   const [interactionBusy, setInteractionBusy] = React.useState(false);
+  const [flowerGiftBusy, setFlowerGiftBusy] = React.useState(false);
   const [postFooterHeight, setPostFooterHeight] = React.useState(150);
   const mediaHeight =
     pageHeight > 0 ? Math.max(0, pageHeight - 58 - postFooterHeight) : 420;
@@ -1159,6 +1161,23 @@ function PostCard({
       Alert.alert(postText("alertSaveFailed"), postText("alertTryAgain"));
     } finally {
       setInteractionBusy(false);
+    }
+  };
+
+  const sendFlowerGift = async () => {
+    if (flowerGiftBusy) return;
+    if (!post?.id || post?.isStarterPost || post?.isStarterReel || String(post?.id || "").startsWith("bhumi-starter-")) {
+      showReactionBurst("🌸");
+      return;
+    }
+    setFlowerGiftBusy(true);
+    try {
+      await sendPostFlowerGift(post.id);
+      showReactionBurst("🌸");
+    } catch (error) {
+      Alert.alert(postText("alertSaveFailed"), error.message || postText("alertTryAgain"));
+    } finally {
+      setFlowerGiftBusy(false);
     }
   };
 
@@ -1453,6 +1472,9 @@ function PostCard({
           </TouchableOpacity>
           <TouchableOpacity onPress={openComments}>
             <Ionicons name="chatbubble-outline" size={24} color="#0095F6" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={sendFlowerGift} disabled={flowerGiftBusy}>
+            <Ionicons name="flower-outline" size={24} color={flowerGiftBusy ? "#777777" : "#E9A7C8"} />
           </TouchableOpacity>
           <TouchableOpacity onPress={sharePost}>
             <Ionicons name="paper-plane-outline" size={25} color={uiTextColor} />
