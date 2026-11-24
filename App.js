@@ -10875,17 +10875,16 @@ export default function App() {
                           selectedChatUser.toLowerCase(),
                       )?.displayName || selectedChatUser}
                     </Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 3, gap: 5 }}>
-                      <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: chatPresence?.isOnline ? "#25D366" : "#8B8B93" }} />
-                      <Text numberOfLines={1} style={{ fontSize: 11, color: chatPresence?.isOnline ? "#25D366" : "#A7A9AE" }}>
-                        {chatPresence?.hidden ? appText("chatActivityHidden") : chatPresence?.isOnline ? appText("chatOnline") : chatPresence?.lastSeenAt ? (appText("chatOffline") + " · " + formatLastSeen(chatPresence.lastSeenAt, appLanguage)) : appText("chatOffline")}
-                        {chatPreferences.favorite ? "  ★ " + appText("chatFavorite") : ""}{chatPreferences.closeFriend ? " · " + appText("chatCloseFriend") : ""}
+                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 2, gap: 5 }}>
+                      <Text numberOfLines={1} style={{ fontSize: 12, color: "#A7A9AE", flex: 1 }}>
+                        @{selectedChatUser}
                       </Text>
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: chatPresence?.isOnline ? "#25D366" : "#8B8B93" }} />
                     </View>
                   </View>
                   <VoiceVideoCallControls username={selectedChatUser} enableIncoming={false} appLanguage={appLanguage} />
                   <TouchableOpacity onPress={() => setChatPersonalizationOpen(true)} accessibilityLabel={appText("chatPersonalization")} style={{ width: 36, height: 40, alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="information-circle-outline" size={25} color="#F5F5F5" />
+                    <Ionicons name="pricetag-outline" size={25} color="#F5F5F5" />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -12167,96 +12166,72 @@ export default function App() {
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      paddingHorizontal: 14,
-                      paddingVertical: 7,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
                       marginBottom: Platform.OS === "android" ? 4 : 0,
                       borderTopWidth: StyleSheet.hairlineWidth,
                       borderTopColor: "#303030",
                       backgroundColor: "#000000",
-                      gap: 9,
+                      gap: 8,
                       elevation: 7,
                     }}
                   >
                     <TouchableOpacity
-                      onPress={() => chooseChatMedia(false)}
-                      accessibilityLabel={appText("createPostGallery")}
-                    >
-                      <Ionicons
-                        name="images-outline"
-                        size={25}
-                        color="#F5F5F5"
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
                       onPress={() => chooseChatMedia(true)}
                       accessibilityLabel={appText("createPhotoPost")}
+                      style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#0095F6" }}
                     >
-                      <Ionicons
-                        name="camera-outline"
-                        size={25}
-                        color="#F5F5F5"
+                      <Ionicons name="camera" size={25} color="#FFFFFF" />
+                    </TouchableOpacity>
+                    <View style={{ flex: 1, minHeight: 46, borderRadius: 24, backgroundColor: "#262626", flexDirection: "row", alignItems: "center", paddingLeft: 15, paddingRight: 7, gap: 8 }}>
+                      <TextInput
+                        value={chatDraft}
+                        onChangeText={handleChatDraftChange}
+                        placeholder={appText("newMessage")}
+                        placeholderTextColor="#8E8E93"
+                        multiline
+                        maxLength={5000}
+                        style={{
+                          flex: 1,
+                          minHeight: 42,
+                          maxHeight: 100,
+                          paddingVertical: 9,
+                          color: "#F5F5F5",
+                          fontSize: 15,
+                          textAlignVertical: "center",
+                        }}
                       />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={chooseChatDocument} accessibilityLabel={appText("createPostGallery")}>
-                      <Ionicons name="document-attach-outline" size={23} color="#F5F5F5" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={isChatRecording ? stopChatVoiceRecording : startChatVoiceRecording}
-                      disabled={chatBusy}
-                      accessibilityLabel={isChatRecording ? "Stop voice recording" : "Start voice recording"}
-                      style={{ width: 34, height: 40, alignItems: "center", justifyContent: "center" }}
-                    >
-                      <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#0095F6"} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => setChatEmojiOpen((v) => !v)}
-                      accessibilityLabel={appText("chatPersonalization")}
-                    >
-                      <Ionicons
-                        name="happy-outline"
-                        size={25}
-                        color="#F5F5F5"
-                      />
-                    </TouchableOpacity>
-                    <TextInput
-                      value={chatDraft}
-                      onChangeText={handleChatDraftChange}
-                      placeholder={appText("newMessage")}
-                      multiline
-                      maxLength={5000}
-                      style={{
-                        flex: 1,
-                        minHeight: 44,
-                        maxHeight: 110,
-                        backgroundColor: "#262626",
-                        borderWidth: 0,
-                        borderColor: "transparent",
-                        borderRadius: 24,
-                        paddingHorizontal: 17,
-                        paddingVertical: 10,
-                        color: "#F5F5F5",
-                        fontSize: 15,
-                        textAlignVertical: "center",
-                      }}
-                    />
-                    <TouchableOpacity
-                      onPress={sendChatDraft}
-                      disabled={
-                        chatBusy || isChatRecording || (!chatDraft.trim() && !chatMediaDraft)
-                      }
-                      accessibilityLabel={appText("postComment")}
-                      style={{
-                        width: 34,
-                        height: 40,
-                        borderRadius: 18,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: "transparent",
-                        elevation: 0,
-                      }}
-                    >
-                      <Ionicons name="send" size={22} color="#0095F6" />
-                    </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={isChatRecording ? stopChatVoiceRecording : startChatVoiceRecording}
+                        disabled={chatBusy}
+                        accessibilityLabel={isChatRecording ? "Stop voice recording" : "Start voice recording"}
+                        style={{ width: 28, height: 40, alignItems: "center", justifyContent: "center" }}
+                      >
+                        <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#F5F5F5"} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => chooseChatMedia(false)}
+                        accessibilityLabel={appText("createPostGallery")}
+                        style={{ width: 28, height: 40, alignItems: "center", justifyContent: "center" }}
+                      >
+                        <Ionicons name="image-outline" size={24} color="#F5F5F5" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => setChatEmojiOpen((v) => !v)}
+                        accessibilityLabel={appText("chatPersonalization")}
+                        style={{ width: 28, height: 40, alignItems: "center", justifyContent: "center" }}
+                      >
+                        <Ionicons name="happy-outline" size={24} color="#F5F5F5" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={chatDraft.trim() || chatMediaDraft ? sendChatDraft : chooseChatDocument}
+                        disabled={chatBusy || isChatRecording || (!!(chatDraft.trim() || chatMediaDraft) && !chatDraft.trim() && !chatMediaDraft)}
+                        accessibilityLabel={chatDraft.trim() || chatMediaDraft ? appText("postComment") : appText("createPostGallery")}
+                        style={{ width: 30, height: 40, alignItems: "center", justifyContent: "center" }}
+                      >
+                        <Ionicons name={chatDraft.trim() || chatMediaDraft ? "send" : "add-circle-outline"} size={25} color="#F5F5F5" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
