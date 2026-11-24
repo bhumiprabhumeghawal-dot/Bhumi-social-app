@@ -9,3 +9,5 @@ Build APK for latest language-system fixes (commits c979ab3, b120ed9, bdf7a23, 6
 Build APK for navigation spacing and app-wide horizontal scrolling (commits 28603543, 6d29549).
 
 Build APK for Home Feed light and dark theme updates (commits 3059644, 819adf9).
+
+Build APK after SettingsDashboard feed-list syntax fix (commit 6ea0dd8).
