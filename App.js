@@ -11525,7 +11525,10 @@ export default function App() {
                 >
                   {secretSelectionMode ? (
                     <View style={{ paddingHorizontal: 18, paddingTop: 10, paddingBottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                      <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>Send to</Text>
+                      <TouchableOpacity onPress={() => { setSecretSelectionMode(false); setSecretSelectedUsers([]); setChatSearchQuery(""); setChatError(""); setSecretChatOpen(secretChatUsers.length > 0); }} style={{ paddingVertical: 8, paddingRight: 12 }}>
+                        <Text style={{ color: "#A8A8A8", fontSize: 14, fontWeight: "700" }}>Cancel</Text>
+                      </TouchableOpacity>
+                      <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800", flex: 1 }}>Send to</Text>
                       <TouchableOpacity onPress={saveSecretChatUsers} disabled={secretSelectedUsers.length === 0} style={{ backgroundColor: secretSelectedUsers.length ? "#3797F0" : "#343434", borderRadius: 20, paddingHorizontal: 18, paddingVertical: 8 }}>
                         <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Next ({secretSelectedUsers.length}/10)</Text>
                       </TouchableOpacity>
