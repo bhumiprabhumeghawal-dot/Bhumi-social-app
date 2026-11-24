@@ -3278,7 +3278,8 @@ export default function App() {
     try {
       await SecureStore.setItemAsync(secretChatStorageKey, JSON.stringify(next));
       setSecretChatUsers(next);
-      setSecretChatOpen(next.length > 0);
+      // Return to the normal All inbox immediately after removing a person.
+      setSecretChatOpen(false);
       setChatInboxTab("All");
       setChatSearchQuery("");
       setChatError("");
@@ -11663,8 +11664,9 @@ export default function App() {
                               {secretSelectedUsers.some((item) => item.toLowerCase() === String(username).toLowerCase()) ? <Ionicons name="checkmark" size={18} color="#FFFFFF" /> : null}
                             </TouchableOpacity>
                           ) : secretChatOpen ? (
-                            <TouchableOpacity onPress={() => restoreSecretChatUser(username)} accessibilityRole="button" accessibilityLabel="Move chat back to Inbox" style={{ padding: 8, borderRadius: 10, backgroundColor: "#1C1C1E" }}>
-                              <Ionicons name="lock-open-outline" size={19} color="#3797F0" />
+                            <TouchableOpacity onPress={() => restoreSecretChatUser(username)} accessibilityRole="button" accessibilityLabel="Move chat back to All inbox" style={{ flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 9, paddingVertical: 8, borderRadius: 10, backgroundColor: "#1C1C1E" }}>
+                              <Ionicons name="lock-open-outline" size={17} color="#3797F0" />
+                              <Text style={{ color: "#3797F0", fontSize: 11, fontWeight: "800" }}>Move to All</Text>
                             </TouchableOpacity>
                           ) : (
                           <View style={{ alignItems: "flex-end", minWidth: 38 }}>
