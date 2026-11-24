@@ -540,26 +540,24 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
 
   return (
     <>
-      {showButtons ? <View style={{ flexDirection: "row", alignItems: "center", gap: 9, transform: [{ translateY: 6 }], marginRight: 4 }}>
+      {showButtons ? <View style={{ flexDirection: "row", alignItems: "center", gap: 14, marginRight: 2 }}>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={label("voice")}
           disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("audio")}
-          style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
+          style={{ width: 32, height: 38, alignItems: "center", justifyContent: "center", backgroundColor: "transparent", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
-          <Ionicons name="call-outline" size={20} color="#FFFFFF" />
-          <Text style={{ color: "#E5E5E5", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>{label("voiceCaps")}</Text>
+          <Ionicons name="call-outline" size={23} color="#FFFFFF" />
         </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={label("video")}
           disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("video")}
-          style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
+          style={{ width: 32, height: 38, alignItems: "center", justifyContent: "center", backgroundColor: "transparent", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
-          <Ionicons name="videocam-outline" size={21} color="#FFFFFF" />
-          <Text style={{ color: "#E5E5E5", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>{label("videoCaps")}</Text>
+          <Ionicons name="videocam-outline" size={23} color="#FFFFFF" />
         </TouchableOpacity>
       </View> : null}
 
