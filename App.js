@@ -3021,6 +3021,10 @@ export default function App() {
   // SOCIALAPP_DIRECT_MESSAGES_V1
   const [messagesOpen, setMessagesOpen] = React.useState(false);
   const [messageConversations, setMessageConversations] = React.useState([]);
+  const unreadDirectMessageCount = React.useMemo(
+    () => messageConversations.reduce((total, item) => total + Math.max(0, Number(item.unreadCount || 0)), 0),
+    [messageConversations],
+  );
   const [selectedChatUser, setSelectedChatUser] = React.useState("");
   const [chatImagePreviewUri, setChatImagePreviewUri] = React.useState(null);
   const [chatPersonalizationOpen, setChatPersonalizationOpen] = React.useState(false);
@@ -3291,6 +3295,34 @@ export default function App() {
       setChatBusy(false);
     }
   };
+
+  React.useEffect(() => {
+    if (!authSession?.username) {
+      setUnreadNotificationCount(0);
+      setMessageConversations([]);
+      return undefined;
+    }
+    let active = true;
+    const refreshUnreadBadges = async () => {
+      try {
+        const [conversations, notifications] = await Promise.all([
+          loadMessageConversations(),
+          loadNotifications(),
+        ]);
+        if (!active) return;
+        setMessageConversations(Array.isArray(conversations) ? conversations : []);
+        setUnreadNotificationCount(Number(notifications?.unreadCount || 0));
+      } catch (error) {
+        console.warn("Unread badge refresh failed:", error?.message || error);
+      }
+    };
+    refreshUnreadBadges();
+    const interval = setInterval(refreshUnreadBadges, 15000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [authSession?.username]);
 
   const openDirectChat = async (username) => {
     const target = String(username || "").trim();
@@ -5658,7 +5690,9 @@ export default function App() {
             <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} hitSlop={8} style={{ width: 38, height: 44, alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="notifications-outline" size={26} color={lightAppearance ? "#171717" : "#F5F5F5"} />
               {unreadNotificationCount > 0 && (
-                <View style={{ position: "absolute", top: 5, right: 3, minWidth: 9, height: 9, borderRadius: 5, backgroundColor: "#FF3040", borderWidth: 1, borderColor: lightAppearance ? "#FFFFFF" : "#000000" }} />
+                <View style={{ position: "absolute", top: 1, right: -2, minWidth: 17, height: 17, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#FF3040", borderWidth: 1, borderColor: lightAppearance ? "#FFFFFF" : "#000000", alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "800" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text>
+                </View>
               )}
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setSettingsHubOpen(true)} accessibilityLabel={appText("settings")} hitSlop={8} style={{ width: 38, height: 44, alignItems: "center", justifyContent: "center" }}>
@@ -9087,7 +9121,11 @@ export default function App() {
                 color={activeTab === tab.name ? (lightAppearance ? "#111111" : "#F5F5F5") : (lightAppearance ? "#777777" : "#A8A8A8")}
               />
             )}
-            {tab.name === "Chat" ? <View style={{ position: "absolute", right: "31%", bottom: 8, width: 7, height: 7, borderRadius: 4, backgroundColor: "#E1306C" }} /> : null}
+            {tab.name === "Chat" && unreadDirectMessageCount > 0 ? (
+              <View style={{ position: "absolute", right: "22%", top: 1, minWidth: 17, height: 17, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#FF3040", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: lightAppearance ? "#FFFFFF" : "#000000" }}>
+                <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "800" }}>{unreadDirectMessageCount > 99 ? "99+" : unreadDirectMessageCount}</Text>
+              </View>
+            ) : null}
           </TouchableOpacity>
         ))}
       </View>
@@ -12275,6 +12313,11 @@ export default function App() {
                       color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
                     />
                   )}
+                  {tab.name === "Chat" && unreadDirectMessageCount > 0 ? (
+                    <View style={{ position: "absolute", right: "22%", top: 1, minWidth: 17, height: 17, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#FF3040", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#000000" }}>
+                      <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "800" }}>{unreadDirectMessageCount > 99 ? "99+" : unreadDirectMessageCount}</Text>
+                    </View>
+                  ) : null}
                 </TouchableOpacity>
               ))}
             </View>
