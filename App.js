@@ -22,9 +22,11 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import * as DocumentPicker from "expo-document-picker";
 import { useAudioPlayer, useAudioPlayerStatus, useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from "expo-audio";
 import {
-  Gesture,
   GestureDetector,
   ScrollView as GestureScrollView,
+  usePinchGesture,
+  usePanGesture,
+  useSimultaneousGestures,
 } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
@@ -276,11 +278,12 @@ function ZoomableImage({ uri, style, onZoomChange, showControls = true, appLangu
     setZoomLevel(1);
   };
 
-  const pinch = Gesture.Pinch()
-    .onUpdate((event) => {
+  const gesture = usePinchGesture({
+    runOnJS: true,
+    onUpdate: (event) => {
       scale.value = Math.max(1, Math.min(savedScale.value * event.scale, 5));
-    })
-    .onEnd(() => {
+    },
+    onDeactivate: () => {
       savedScale.value = scale.value;
       if (scale.value <= 1) {
         translateX.value = 0;
@@ -289,22 +292,8 @@ function ZoomableImage({ uri, style, onZoomChange, showControls = true, appLangu
         savedY.value = 0;
       }
       setZoomLevel(scale.value);
-    })
-    .runOnJS(true);
-
-  const pan = Gesture.Pan()
-    .onUpdate((event) => {
-      if (scale.value > 1) {
-        translateX.value = savedX.value + event.translationX;
-        translateY.value = savedY.value + event.translationY;
-      }
-    })
-    .onEnd(() => {
-      savedX.value = translateX.value;
-      savedY.value = translateY.value;
-    });
-
-  const gesture = pinch;
+    },
+  });
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -501,11 +490,13 @@ function PinchZoomImage({
     }
   };
 
-  const pinch = Gesture.Pinch()
-    .onUpdate((event) => {
+  const pinch = usePinchGesture({
+    runOnJS: true,
+    simultaneousWith: nativeScrollGesture,
+    onUpdate: (event) => {
       scale.value = Math.max(1, Math.min(savedScale.value * event.scale, 5));
-    })
-    .onEnd(() => {
+    },
+    onDeactivate: () => {
       savedScale.value = scale.value;
       setZoomLevel(scale.value);
       onZoomChange?.(scale.value);
@@ -517,19 +508,25 @@ function PinchZoomImage({
         savedX.value = 0;
         savedY.value = 0;
       }
-    });
+    },
+  });
 
-  const pan = Gesture.Pan()
-    .onUpdate((event) => {
+  const pan = usePanGesture({
+    enabled: zoomLevel > 1,
+    runOnJS: true,
+    simultaneousWith: nativeScrollGesture,
+    onUpdate: (event) => {
       if (scale.value > 1) {
         translateX.value = savedX.value + event.translationX;
         translateY.value = savedY.value + event.translationY;
       }
-    })
-    .onEnd(() => {
+    },
+    onDeactivate: () => {
       savedX.value = translateX.value;
       savedY.value = translateY.value;
-    });
+    },
+  });
+  const combinedGesture = useSimultaneousGestures(pinch, pan);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -560,18 +557,7 @@ function PinchZoomImage({
           backgroundColor: "#000000",
         }}
       >
-        <GestureDetector
-          gesture={(() => {
-            // Keep JS callbacks on the leaf gestures, not the composed gesture.
-            pinch.runOnJS(true);
-            pan.runOnJS(true);
-            if (nativeScrollGesture) {
-              pinch.simultaneousWithExternalGesture(nativeScrollGesture);
-              pan.simultaneousWithExternalGesture(nativeScrollGesture);
-            }
-            return Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1));
-          })()}
-        >
+        <GestureDetector gesture={combinedGesture}>
           <Animated.Image
             source={{ uri }}
             style={[{ width: "100%", height: "100%" }, animatedStyle]}
@@ -781,11 +767,14 @@ function ReelVideoZoomable({
   const savedY = useSharedValue(0);
   const [zoomLevel, setZoomLevel] = React.useState(1);
 
-  const pinch = Gesture.Pinch()
-    .onUpdate((event) => {
+  const pinch = usePinchGesture({
+    enabled: zoomEnabled,
+    runOnJS: true,
+    simultaneousWith: nativeScrollGesture,
+    onUpdate: (event) => {
       scale.value = Math.max(1, Math.min(savedScale.value * event.scale, 5));
-    })
-    .onEnd(() => {
+    },
+    onDeactivate: () => {
       savedScale.value = scale.value;
       setZoomLevel(scale.value);
       onZoomChange?.(scale.value);
@@ -797,31 +786,25 @@ function ReelVideoZoomable({
         savedX.value = 0;
         savedY.value = 0;
       }
-    });
+    },
+  });
 
-  const pan = Gesture.Pan()
-    .onUpdate((event) => {
+  const pan = usePanGesture({
+    enabled: zoomEnabled && zoomLevel > 1,
+    runOnJS: true,
+    simultaneousWith: nativeScrollGesture,
+    onUpdate: (event) => {
       if (scale.value > 1) {
         translateX.value = savedX.value + event.translationX;
         translateY.value = savedY.value + event.translationY;
       }
-    })
-    .onEnd(() => {
+    },
+    onDeactivate: () => {
       savedX.value = translateX.value;
       savedY.value = translateY.value;
-    });
-
-  // Configure JS callbacks on the individual gestures. Composed gestures
-  // do not expose runOnJS() in every RNGH version.
-  pinch.runOnJS?.(true);
-  pan.runOnJS?.(true);
-  if (nativeScrollGesture) {
-    pinch.simultaneousWithExternalGesture(nativeScrollGesture);
-    pan.simultaneousWithExternalGesture(nativeScrollGesture);
-  }
-  const gesture = zoomEnabled
-    ? Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1))
-    : null;
+    },
+  });
+  const gesture = useSimultaneousGestures(pinch, pan);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
@@ -3454,18 +3437,15 @@ export default function App() {
     [storyIndex, storyQueue],
   );
 
-  const storySwipeGesture = React.useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetY([-12, 12])
-        .onEnd((event) => {
-          if (storyImageZoomed) return;
-          if (event.translationY < -60) moveStory(1);
-          else if (event.translationY > 60) moveStory(-1);
-        })
-        .runOnJS(true),
-    [moveStory, storyImageZoomed],
-  );
+  const storySwipeGesture = usePanGesture({
+    runOnJS: true,
+    activeOffsetY: [-12, 12],
+    onDeactivate: (event) => {
+      if (storyImageZoomed || event.canceled) return;
+      if (event.translationY < -60) moveStory(1);
+      else if (event.translationY > 60) moveStory(-1);
+    },
+  });
 
   React.useEffect(() => {
     if (!selectedStory) {
