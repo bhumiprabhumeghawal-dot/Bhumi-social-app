@@ -2,17 +2,6 @@ name: Publish Android OTA Update
 
 on:
   workflow_dispatch:
-      - master
-    paths:
-      - '**/*.js'
-      - '**/*.jsx'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - 'assets/**'
-      - '!android/**'
-      - '!ios/**'
-      - '!node_modules/**'
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -51,4 +40,4 @@ jobs:
       - name: Publish Android update to production
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: npx eas-cli@latest update --branch production --platform android --message "Automatic OTA update: ${GITHUB_SHA}" --non-interactive
+        run: npx eas-cli@latest update --branch production --platform android --message "Manual Android OTA update: ${GITHUB_SHA}" --non-interactive
