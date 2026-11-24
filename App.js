@@ -1613,6 +1613,7 @@ function PostCard({
         onRequestClose={() => setCommentsOpen(false)}
       >
         <KeyboardAvoidingView
+          {...tabSwipeResponder.panHandlers}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
@@ -2477,6 +2478,9 @@ const VIDEO_FILTER_PREVIEW_STYLES = [
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("Home");
   const tabSwipeDistance = React.useRef(0);
+  const mainTabSwipeActionRef = React.useRef(null);
+  const activeTabForSwipeRef = React.useRef("Home");
+  activeTabForSwipeRef.current = activeTab;
   const mainTabs = React.useMemo(() => ["Home", "Reels", "Chat", "Search", "Profile"], []);
   const shouldChangeMainTabBySwipe = React.useCallback((_event, gestureState) =>
     Math.abs(gestureState.dx) > 28 &&
@@ -2494,12 +2498,11 @@ export default function App() {
       const distance = gestureState.dx || tabSwipeDistance.current;
       tabSwipeDistance.current = 0;
       if (Math.abs(distance) < 70) return;
-      setActiveTab((current) => {
-        const index = mainTabs.indexOf(current);
-        if (index < 0) return current;
-        const nextIndex = Math.max(0, Math.min(mainTabs.length - 1, index + (distance < 0 ? 1 : -1)));
-        return mainTabs[nextIndex];
-      });
+      const currentIndex = mainTabs.indexOf(activeTabForSwipeRef.current);
+      if (currentIndex < 0) return;
+      const nextIndex = Math.max(0, Math.min(mainTabs.length - 1, currentIndex + (distance < 0 ? 1 : -1)));
+      const nextTab = mainTabs[nextIndex];
+      if (nextTab && nextTab !== activeTabForSwipeRef.current) mainTabSwipeActionRef.current?.(nextTab);
     },
     onPanResponderTerminate: () => { tabSwipeDistance.current = 0; },
   }), [mainTabs, shouldChangeMainTabBySwipe]);
@@ -3434,6 +3437,17 @@ export default function App() {
     } finally {
       setChatBusy(false);
     }
+  };
+
+  mainTabSwipeActionRef.current = (name) => {
+    if (name === "Chat") {
+      setActiveTab("Chat");
+      openMessages();
+      return;
+    }
+    if (messagesOpen) closeMessages();
+    setActiveTab(name);
+    if (name === "Home") refreshContent();
   };
 
   React.useEffect(() => {
@@ -5892,6 +5906,7 @@ export default function App() {
 
   const handleTab = (name) => {
     if (name === "Chat") {
+      setActiveTab("Chat");
       openMessages();
       return;
     }
@@ -12484,7 +12499,10 @@ export default function App() {
                   style={styles.navItem}
                   onPress={() => {
                     if (tab.name === "Chat") {
-                      if (!messagesOpen) openMessages();
+                      if (!messagesOpen) {
+                        setActiveTab("Chat");
+                        openMessages();
+                      }
                       return;
                     }
                     closeMessages();
