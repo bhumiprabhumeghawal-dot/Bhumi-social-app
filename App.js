@@ -10915,10 +10915,18 @@ export default function App() {
                       )?.displayName || selectedChatUser}
                     </Text>
                     <View style={{ flexDirection: "row", alignItems: "center", marginTop: 2, gap: 5 }}>
-                      <Text numberOfLines={1} style={{ fontSize: 12, color: "#A7A9AE", flex: 1 }}>
-                        @{selectedChatUser}
-                      </Text>
-                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: chatPresence?.isOnline ? "#25D366" : "#8B8B93" }} />
+                      {chatPresence?.isOnline ? (
+                        <>
+                          <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#25D366" }} />
+                          <Text numberOfLines={1} style={{ fontSize: 12, color: "#25D366", fontWeight: "600", flex: 1 }}>
+                            Active now
+                          </Text>
+                        </>
+                      ) : (
+                        <Text numberOfLines={1} style={{ fontSize: 12, color: "#A7A9AE", flex: 1 }}>
+                          @{selectedChatUser}
+                        </Text>
+                      )}
                     </View>
                   </View>
                   <VoiceVideoCallControls username={selectedChatUser} enableIncoming={false} appLanguage={appLanguage} />
