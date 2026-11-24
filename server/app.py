@@ -5109,7 +5109,7 @@ def _people_notification(db, recipient, actor, kind, reference_id, now):
         (id, recipient, actor, kind, reference_id, created_at, is_read)
         VALUES (?, ?, ?, ?, ?, ?, 0)
     """, (notification_id, recipient, actor, kind, reference_id, now))
-    if kind in {"like", "comment", "reel_like", "reel_comment", "follow", "follow_request", "follow_accepted", "follow_rejected"}:
+    if kind in {"like", "gift_flower", "comment", "reel_like", "reel_comment", "follow", "follow_request", "follow_accepted", "follow_rejected"}:
         # Do not hold the request's database transaction open while contacting Expo.
         threading.Thread(
             target=_send_social_activity_push,
