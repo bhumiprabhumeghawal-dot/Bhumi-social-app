@@ -16,3 +16,5 @@ Profile circle sizing normalized: f236e9e0ff6da3cb7f17d0eaecf4387aedf0e3b3
 Remove duplicate profile username header: 17992a825cf8a305c6c18e0abfd4700f6d82a466
 Lower DM call buttons within header strip: 56f584de451181c7ad36379fd0d0e1fc2957e996
 DM header icons lowered; call/video buttons reduced to bare icons: 45b923d4628cfd69475eceaa329fff7e6b9bc179
+
+Profile header cleanup: removed duplicate upper row and three-line menu; centered @username between plus and notification bell. App.js commit: 1e7da946ed69bf44dc470cf671305919a5567550
