@@ -13,9 +13,13 @@ Build APK for Home Feed light and dark theme updates (commits 3059644, 819adf9).
 Build APK after SettingsDashboard feed-list syntax fix (commit 6ea0dd8).
 
 Build APK for latest PostCard appText startup crash fix (commit 0438b1f539433e5b8dcc09be1a1837ac16117f72).
+
 Build APK for Android Intl.RelativeTimeFormat startup crash fix (commit 883d6c219380877d88de26f079268573333f606c).
+
 Build APK for Home header plus and heart icons 20px lower (commit 960ab91c7e0abb7ced1a96c9c26bac043e3ef50e).
+
 Build APK for floating heart reaction animation after successful likes (commit 964a08fed12a02ae47b85a88588ac31330632089).
+
 Build APK for combined inbox story-note profile and flower gift sending (commits 15817bb96d6565b4775b151895909f6206e93d89, 5e278269a892527a52d0f400d9f5043ab1575001, 8d76c28932a9ba4ed564284d38d3258cd057d513, 7cd01b0124fbbf5f971dff6bd6678a4ad6ef85b5, 75cdb28d4b932ec1988be3e89b37b247f16c538c, 07087940c356ce78a53cf0d1d4a80d06d040ee9a).
 
 Build APK for Home Feed three-dot menus with Not Interested and Report options (commit 69a412c).
@@ -27,3 +31,5 @@ Build APK for Home scrolling brand controls and Instagram-style repost on Reels 
 Build APK for latest committed Bhumi Social AI updates including restored repost double-arrow on posts and reels, unified DM layout, and current master HEAD aa8ccdb22c2bd1371812c661949640cbd20169ff.
 
 Build APK after RNGH 3 hook API migration and RN 0.88 compatible dependency (commit 3cb2144, e7e3449, 32e460a).
+
+Build APK for post video mute/unmute control with audio enabled by default (commit b9a5ddfb9df2c0435421b4458507ac957cf7f016).
