@@ -600,10 +600,11 @@ function PinchZoomImage({
   );
 }
 function ReelVideo(props) {
-  if (props.zoomEnabled === false) {
-    return <ReelVideoPlain {...props} />;
-  }
-  return <ReelVideoZoomable {...props} />;
+  // Keep video playback on the stable non-zoom path.
+  // The zoomable video gesture hook path was causing a release render crash
+  // (TypeError: undefined is not a function in ReelVideoZoomable).
+  // Image zoom remains available through ZoomableImage.
+  return <ReelVideoPlain {...props} />;
 }
 
 const ReelVideoPlain = React.memo(function ReelVideoPlain({
