@@ -12379,16 +12379,57 @@ export default function App() {
                 padding: 20,
               }}
             >
-              <Text
+              <View
                 style={{
-                  fontSize: 19,
-                  fontWeight: "700",
-                  color: "#FFFFFF",
-                  marginBottom: 14,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 16,
+                  gap: 12,
                 }}
               >
-                {appText("yourNote")}
-              </Text>
+                {profile?.avatarUrl ? (
+                  <Image
+                    source={{ uri: profile.avatarUrl }}
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      borderWidth: 2,
+                      borderColor: "#3797F0",
+                    }}
+                  />
+                ) : (
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      backgroundColor: "#262626",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderWidth: 2,
+                      borderColor: "#3797F0",
+                    }}
+                  >
+                    <Text style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800" }}>
+                      {String(profile?.displayName || authSession?.username || "Y").slice(0, 1).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 17, fontWeight: "700", color: "#FFFFFF" }}>
+                    {profile?.displayName || authSession?.username || "Your profile"}
+                  </Text>
+                  {!!authSession?.username && (
+                    <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 2 }}>
+                      @{authSession.username}
+                    </Text>
+                  )}
+                  <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 3 }}>
+                    {appText("yourNote")}
+                  </Text>
+                </View>
+              </View>
               <TextInput
                 value={noteDraft}
                 onChangeText={setNoteDraft}
