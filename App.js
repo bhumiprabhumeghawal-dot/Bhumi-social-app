@@ -3268,6 +3268,15 @@ export default function App() {
     } catch (error) { setChatError(error?.message || "Could not save Secret Chat list."); }
   };
   const openSecretChatSelection = () => {
+    // Tapping Secret Chat again closes its panel without entering selection.
+    if (secretChatOpen && !secretSelectionMode) {
+      setSecretMenuOpen(false);
+      setSecretChatOpen(false);
+      setSecretSelectedUsers([]);
+      setChatSearchQuery("");
+      setChatError("");
+      return;
+    }
     setSecretMenuOpen(false); setSecretChatOpen(false); setSecretSelectionMode(true);
     setSecretSelectedUsers([...secretChatUsers]); setChatSearchQuery(""); setChatError("");
   };
