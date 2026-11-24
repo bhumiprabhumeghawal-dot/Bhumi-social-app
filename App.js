@@ -11742,6 +11742,7 @@ export default function App() {
                     />
                   </TouchableOpacity>
                 </View>
+                {friendsNotes.length > 0 ? (
                 <ScrollView
                   nestedScrollEnabled
                   horizontal
@@ -11753,95 +11754,6 @@ export default function App() {
                     gap: 16,
                   }}
                 >
-                  <TouchableOpacity
-                    onPress={() => {
-                      setNoteDraft(ownNote?.text || "");
-                      setNoteError("");
-                      setNoteComposerOpen(true);
-                    }}
-                    style={{ width: 76, alignItems: "center" }}
-                  >
-                    <View
-                      style={{
-                        width: 68,
-                        height: 68,
-                        borderRadius: 34,
-                        backgroundColor: "#000000",
-                        borderWidth: 2,
-                        borderColor: ownNote ? "#0095F6" : "#DBDBDB",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        overflow: "visible",
-                      }}
-                    >
-                      {profile?.avatarUrl ? (
-                        <Image
-                          source={{ uri: profile.avatarUrl }}
-                          style={{ width: 64, height: 64, borderRadius: 32 }}
-                        />
-                      ) : (
-                        <Ionicons
-                          name="happy-outline"
-                          size={48}
-                          color="#737373"
-                        />
-                      )}
-                      {ownNote?.text ? (
-                        <View
-                          style={{
-                            position: "absolute",
-                            top: -13,
-                            left: -8,
-                            right: -8,
-                            minHeight: 29,
-                            paddingHorizontal: 7,
-                            paddingVertical: 5,
-                            borderRadius: 12,
-                            backgroundColor: "#000000",
-                            borderWidth: 1,
-                            borderColor: "#303030",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            zIndex: 2,
-                          }}
-                        >
-                          <Text
-                            numberOfLines={2}
-                            style={{
-                              color: "#F5F5F5",
-                              fontSize: 9,
-                              textAlign: "center",
-                            }}
-                          >
-                            {ownNote.text}
-                          </Text>
-                        </View>
-                      ) : null}
-                      <View
-                        style={{
-                          position: "absolute",
-                          right: 0,
-                          bottom: 0,
-                          width: 24,
-                          height: 24,
-                          borderRadius: 12,
-                          backgroundColor: "#3797F0",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          borderWidth: 2,
-                          borderColor: "#303030",
-                        }}
-                      >
-                        <Ionicons name="add" size={17} color="#F5F5F5" />
-                      </View>
-                    </View>
-                    <Text
-                      numberOfLines={1}
-                      style={{ color: "#F5F5F5", fontSize: 12, marginTop: 7 }}
-                    >
-                      {appText("yourNote")}
-                    </Text>
-                  </TouchableOpacity>
                   {friendsNotes.map((note, i) => (
                     <TouchableOpacity
                       key={String(note.username) + "-note-" + i}
@@ -11922,6 +11834,7 @@ export default function App() {
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
+                ) : null}
 
                 {/* INSTAGRAM_STYLE_INBOX_STORIES_V1 */}
                 <View style={{ paddingTop: 10, paddingBottom: 8 }}>
@@ -11935,6 +11848,20 @@ export default function App() {
                       const ownGroup = groupedStories.find((group) => group.own);
                       return (
                         <View style={{ width: 72, alignItems: "center" }}>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setNoteDraft(ownNote?.text || "");
+                              setNoteError("");
+                              setNoteComposerOpen(true);
+                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel={appText("yourNote")}
+                            style={{ position: "absolute", top: -9, left: -8, maxWidth: 88, minHeight: 27, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 13, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: ownNote?.text ? "#3797F0" : "#444444", zIndex: 5, elevation: 6, alignItems: "center", justifyContent: "center" }}
+                          >
+                            <Text numberOfLines={2} style={{ color: "#F5F5F5", fontSize: 9, textAlign: "center", fontWeight: "600" }}>
+                              {ownNote?.text || ("＋ " + appText("yourNote"))}
+                            </Text>
+                          </TouchableOpacity>
                           <Story
                             item={{
                               name: appText("yourStory"),
