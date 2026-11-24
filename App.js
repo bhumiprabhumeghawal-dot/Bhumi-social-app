@@ -173,16 +173,27 @@ function formatLastSeen(value, language = "en") {
   const locale = localeByLanguage[language] || localeByLanguage.en;
   const diff = Math.max(0, Date.now() - stamp);
   const mins = Math.floor(diff / 60000);
-  const relative = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
-  if (mins < 1) return relative.format(0, "second");
-  if (mins < 60) return relative.format(-mins, "minute");
+  // Some Android/Hermes runtimes do not provide Intl.RelativeTimeFormat.
+  // Never construct an unavailable Intl formatter during App render.
+  const RelativeTimeFormat =
+    typeof Intl !== "undefined" && typeof Intl.RelativeTimeFormat === "function"
+      ? Intl.RelativeTimeFormat
+      : null;
+  const relative = RelativeTimeFormat
+    ? new RelativeTimeFormat(locale, { numeric: "auto" })
+    : null;
+  if (mins < 1) return relative ? relative.format(0, "second") : "just now";
+  if (mins < 60) return relative ? relative.format(-mins, "minute") : mins + " min ago";
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return relative.format(-hours, "hour");
+  if (hours < 24) return relative ? relative.format(-hours, "hour") : hours + " hr ago";
   const days = Math.floor(hours / 24);
-  if (days < 7) return relative.format(-days, "day");
-  return new Intl.DateTimeFormat(locale, {
-    day: "numeric", month: "short", year: "numeric",
-  }).format(stamp);
+  if (days < 7) return relative ? relative.format(-days, "day") : days + " days ago";
+  if (typeof Intl !== "undefined" && typeof Intl.DateTimeFormat === "function") {
+    return new Intl.DateTimeFormat(locale, {
+      day: "numeric", month: "short", year: "numeric",
+    }).format(stamp);
+  }
+  return new Date(stamp).toDateString();
 }
 
 function isVersionNewer(latest, current) {
