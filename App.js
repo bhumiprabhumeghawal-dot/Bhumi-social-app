@@ -5540,16 +5540,7 @@ export default function App() {
           </View>
         </>
       ) : activeTab === "Home" ? (
-        <>
-          <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("createPhotoPost")} style={{ width: 42, alignItems: "flex-start", justifyContent: "center", transform: [{ translateY: 20 }] }}>
-            <Ionicons name="add" size={38} color={lightAppearance ? "#111111" : "#F5F5F5"} />
-          </TouchableOpacity>
-          <Text style={[styles.brand, { flex: 1, textAlign: "center", fontSize: 27, fontWeight: "700", letterSpacing: -1, color: lightAppearance ? "#111111" : "#F5F5F5" }]} numberOfLines={1}>Bhumi Social AI</Text>
-          <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center", position: "relative", transform: [{ translateY: 20 }] }}>
-            <Ionicons name="heart-outline" size={32} color={lightAppearance ? "#111111" : "#F5F5F5"} />
-            {unreadNotificationCount > 0 ? <View style={{ position: "absolute", right: -1, top: 2, width: 10, height: 10, borderRadius: 5, backgroundColor: "#E1306C" }} /> : null}
-          </TouchableOpacity>
-        </>
+        <View style={{ width: "100%", height: 58, backgroundColor: lightAppearance ? "#FFFFFF" : "#000000" }} />
       ) : (
         <>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flex: 1 }}>
@@ -8360,7 +8351,7 @@ export default function App() {
         </View>
       ) : activeTab === "Home" ? (
         <View style={[styles.content, { flex: 1, backgroundColor: lightAppearance ? "#FFFFFF" : "#000000" }]}>
-          {/* Keep the Instagram-style top bar fixed; only stories and feed content scroll. */}
+          {/* Keep the top status/network strip empty and fixed. Brand controls scroll with Stories. */}
           {renderAppHeader()}
             <FlatList
               ListHeaderComponent={
@@ -8372,6 +8363,16 @@ export default function App() {
                     }
                   }}
                 >
+                  <View style={{ height: 58, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: lightAppearance ? "#FFFFFF" : "#000000" }}>
+                    <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("createPhotoPost")} style={{ width: 42, alignItems: "flex-start", justifyContent: "center" }}>
+                      <Ionicons name="add" size={34} color={lightAppearance ? "#111111" : "#F5F5F5"} />
+                    </TouchableOpacity>
+                    <Text style={{ flex: 1, textAlign: "center", fontSize: 25, fontWeight: "700", letterSpacing: -1, color: lightAppearance ? "#111111" : "#F5F5F5" }} numberOfLines={1}>Bhumi Social AI</Text>
+                    <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center", position: "relative" }}>
+                      <Ionicons name="heart-outline" size={29} color={lightAppearance ? "#111111" : "#F5F5F5"} />
+                      {unreadNotificationCount > 0 ? <View style={{ position: "absolute", right: 0, top: 0, width: 9, height: 9, borderRadius: 5, backgroundColor: "#E1306C" }} /> : null}
+                    </TouchableOpacity>
+                  </View>
                   <ScrollView
                   nestedScrollEnabled
                     horizontal
