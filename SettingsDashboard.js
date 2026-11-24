@@ -551,7 +551,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     try {
       setFeedLists(await loadFeedUserLists());
     } catch (error) {
-      setNotice({ title:"{t("section_feed")}", message:error?.message || "Could not load account lists." });
+      setNotice({ title:t("section_feed"), message:error?.message || "Could not load account lists." });
     } finally {
       setFeedListsLoading(false);
     }
