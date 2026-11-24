@@ -6322,9 +6322,9 @@ export default function App() {
                     position: "absolute",
                     right: 8,
                     bottom: 12,
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
+                    width: 38,
+                      height: 38,
+                      borderRadius: 19,
                     backgroundColor: "#0095F6",
                     alignItems: "center",
                     justifyContent: "center",
@@ -12467,9 +12467,12 @@ export default function App() {
           >
             <View
               style={{
+                width: "100%",
+                maxWidth: 340,
+                alignSelf: "center",
                 backgroundColor: "#000000",
-                borderRadius: 20,
-                padding: 20,
+                borderRadius: 16,
+                padding: 14,
               }}
             >
               <View
@@ -12610,9 +12613,12 @@ export default function App() {
             activeOpacity={1}
             onPress={() => {}}
             style={{
+              width: "100%",
+              maxWidth: 320,
+              alignSelf: "center",
               backgroundColor: "#000000",
-              borderRadius: 20,
-              padding: 22,
+              borderRadius: 16,
+              padding: 16,
             }}
           >
             <Text
@@ -12625,7 +12631,7 @@ export default function App() {
             >
               {noteViewer?.displayName || noteViewer?.username || "Note"}
             </Text>
-            <Text style={{ fontSize: 18, color: "#FFFFFF", lineHeight: 26 }}>
+            <Text style={{ fontSize: 15, color: "#FFFFFF", lineHeight: 22 }}>
               {noteViewer?.text || ""}
             </Text>
             <TouchableOpacity
