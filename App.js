@@ -6707,7 +6707,7 @@ export default function App() {
         if (friendKey === String(authSession?.username || "").toLowerCase()) return false;
       } else if (secretChatOpen ? !isSecret : isSecret) return false;
       if (!secretSelectionMode && chatFriendFilter === "Favourite" && !chatFriendPrefs["messages.favorite." + friendKey]) return false;
-      if (chatFriendFilter === "Close" && !chatFriendPrefs["messages.closeFriend." + friendKey]) return false;
+      if (!secretSelectionMode && chatFriendFilter === "Close" && !chatFriendPrefs["messages.closeFriend." + friendKey]) return false;
       if (!secretSelectionMode && chatInboxTab === "Requests" && !isRequest) return false;
       if (!secretSelectionMode && (chatInboxTab === "Primary" || chatInboxTab === "General") && folder !== chatInboxTab.toLowerCase()) return false;
       if (!secretSelectionMode && chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
