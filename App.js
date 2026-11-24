@@ -2453,25 +2453,31 @@ export default function App() {
   const [activeTab, setActiveTab] = React.useState("Home");
   const tabSwipeDistance = React.useRef(0);
   const mainTabs = React.useMemo(() => ["Home", "Reels", "Chat", "Search", "Profile"], []);
+  const shouldChangeMainTabBySwipe = React.useCallback((_event, gestureState) =>
+    Math.abs(gestureState.dx) > 28 &&
+    Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.25,
+  []);
   const tabSwipeResponder = React.useMemo(() => PanResponder.create({
-    onMoveShouldSetPanResponder: (_event, gestureState) =>
-      Math.abs(gestureState.dx) > 24 &&
-      Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.2,
+    // Capture horizontal gestures before nested lists/cards can consume them.
+    // Vertical gestures are deliberately left to the feed and reel scrollers.
+    onMoveShouldSetPanResponderCapture: shouldChangeMainTabBySwipe,
+    onMoveShouldSetPanResponder: shouldChangeMainTabBySwipe,
     onPanResponderMove: (_event, gestureState) => {
       tabSwipeDistance.current = gestureState.dx || 0;
     },
     onPanResponderRelease: (_event, gestureState) => {
       const distance = gestureState.dx || tabSwipeDistance.current;
       tabSwipeDistance.current = 0;
-      if (Math.abs(distance) < 75) return;
+      if (Math.abs(distance) < 70) return;
       setActiveTab((current) => {
         const index = mainTabs.indexOf(current);
         if (index < 0) return current;
-        return mainTabs[Math.max(0, Math.min(mainTabs.length - 1, index + (distance < 0 ? 1 : -1)))];
+        const nextIndex = Math.max(0, Math.min(mainTabs.length - 1, index + (distance < 0 ? 1 : -1)));
+        return mainTabs[nextIndex];
       });
     },
     onPanResponderTerminate: () => { tabSwipeDistance.current = 0; },
-  }), [mainTabs]);
+  }), [mainTabs, shouldChangeMainTabBySwipe]);
   const [appLanguage, setAppLanguage] = React.useState("en");
   const appText = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   // BHUMI_CRASH_DISPLAY
