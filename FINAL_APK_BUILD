@@ -11,3 +11,5 @@ Build APK for navigation spacing and app-wide horizontal scrolling (commits 2860
 Build APK for Home Feed light and dark theme updates (commits 3059644, 819adf9).
 
 Build APK after SettingsDashboard feed-list syntax fix (commit 6ea0dd8).
+
+Build APK for latest PostCard appText startup crash fix (commit 0438b1f539433e5b8dcc09be1a1837ac16117f72).
