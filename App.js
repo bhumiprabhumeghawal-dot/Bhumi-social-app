@@ -2235,12 +2235,12 @@ function CustomAlertHost({ appLanguage = "en" }) {
         <View
           style={{
             width: "100%",
-            maxWidth: 360,
-            backgroundColor: "#121212",
-            borderRadius: 20,
+            maxWidth: 310,
+            backgroundColor: "#171717",
+            borderRadius: 16,
             borderWidth: 1,
-            borderColor: "#262626",
-            padding: 18,
+            borderColor: "#303030",
+            padding: 14,
             alignItems: "center",
             elevation: 18,
             shadowColor: "#000000",
@@ -2251,24 +2251,24 @@ function CustomAlertHost({ appLanguage = "en" }) {
         >
           <View
             style={{
-              width: 52,
-              height: 52,
-              borderRadius: 26,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
               backgroundColor: accent + "18",
               alignItems: "center",
               justifyContent: "center",
               marginBottom: 12,
             }}
           >
-            <Ionicons name={icon} size={29} color={accent} />
+            <Ionicons name={icon} size={22} color={accent} />
           </View>
           <Text
             style={{
               color: "#FFFFFF",
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: "800",
               textAlign: "center",
-              marginBottom: 8,
+              marginBottom: 6,
             }}
           >
             {alertData.title}
@@ -2277,10 +2277,10 @@ function CustomAlertHost({ appLanguage = "en" }) {
             <Text
               style={{
                 color: "#A8A8A8",
-                fontSize: 14,
-                lineHeight: 20,
+                fontSize: 12,
+                lineHeight: 17,
                 textAlign: "center",
-                marginBottom: 20,
+                marginBottom: 14,
               }}
             >
               {alertData.message}
@@ -2311,11 +2311,11 @@ function CustomAlertHost({ appLanguage = "en" }) {
                   }}
                   style={{
                     flex: alertData.buttons.length > 1 ? 1 : undefined,
-                    minHeight: 44,
+                    minHeight: 38,
                     borderWidth: cancel ? 1 : 0,
                     borderColor: "#363636",
                     paddingHorizontal: 12,
-                    borderRadius: 14,
+                    borderRadius: 10,
                     alignItems: "center",
                     justifyContent: "center",
                     backgroundColor: primary
@@ -2327,7 +2327,7 @@ function CustomAlertHost({ appLanguage = "en" }) {
                 >
                   <Text
                     style={{
-                      fontSize: 15,
+                      fontSize: 13,
                       fontWeight: "700",
                       color: primary ? "#FFFFFF" : "#E5E5E5",
                       textAlign: "center",
@@ -8079,10 +8079,10 @@ export default function App() {
         onRequestClose={() => setMusicSearchOpen(false)}
       >
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center", padding: 16 }}>
-          <View style={{ maxHeight: "88%", backgroundColor: "#151515", borderRadius: 22, borderWidth: 1, borderColor: "#343434", padding: 16, gap: 12 }}>
+          <View style={{ width: "100%", maxWidth: 350, maxHeight: "74%", alignSelf: "center", backgroundColor: "#151515", borderRadius: 17, borderWidth: 1, borderColor: "#343434", padding: 12, gap: 9 }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <View>
-                <Text style={{ color: "#FFFFFF", fontSize: 20, fontWeight: "800" }}>{appText("musicStudioTitle")}</Text>
+                <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800" }}>{appText("musicStudioTitle")}</Text>
                 <Text style={{ color: "#999999", fontSize: 11, marginTop: 3 }}>{appText("musicStudioSubtitle")}</Text>
               </View>
               <TouchableOpacity onPress={() => setMusicSearchOpen(false)} style={{ padding: 5 }}>
@@ -8119,7 +8119,7 @@ export default function App() {
               ))}
               <Text style={{ color: "#888888", fontSize: 11, alignSelf: "center", marginLeft: "auto" }}>{musicLibrary.length} saved</Text>
             </View>
-            <ScrollView style={{ maxHeight: 300 }} keyboardShouldPersistTaps="handled">
+            <ScrollView style={{ maxHeight: 210 }} keyboardShouldPersistTaps="handled">
               {!musicLibraryLoaded ? (
                 <View style={{ padding: 24, alignItems: "center" }}><ActivityIndicator color="#FFFFFF" /><Text style={{ color: "#999999", marginTop: 8 }}>{appText("loadingLibraryLabel")}</Text></View>
               ) : searchLocalMusic(musicSearchQuery, musicLibrary.filter((track) => musicLibraryFilter === "favorites" ? track.favorite : true)).length ? (
@@ -11064,8 +11064,9 @@ export default function App() {
 
             {secretMenuOpen && !selectedChatUser ? (
               <View style={{ position: "absolute", top: 54, right: 14, zIndex: 50, elevation: 12, backgroundColor: "#262626", borderRadius: 12, paddingVertical: 5, minWidth: 160, borderWidth: 1, borderColor: "#3A3A3A" }}>
-                <TouchableOpacity onPress={openSecretChatSelection} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
-                  <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "700" }}>Secret Chat</Text>
+                <TouchableOpacity onPress={openSecretChatSelection} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 13, paddingVertical: 11 }}>
+                  <Ionicons name="lock-closed-outline" size={18} color="#FFFFFF" />
+                  <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700", marginLeft: 10 }}>Secret Chat</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
