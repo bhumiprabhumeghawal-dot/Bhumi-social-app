@@ -5638,7 +5638,7 @@ export default function App() {
   };
 
   const renderAppHeader = () => (
-    <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative", backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderBottomColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
+    <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative", backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderBottomColor: lightAppearance ? "#E5E5E5" : "#262626" }, activeTab === "Profile" ? { height: 72, marginTop: 8, paddingTop: 8 } : null]}>
       {activeTab === "Profile" ? (
         <>
           <View style={{ width: 42, alignItems: "flex-start", justifyContent: "center", zIndex: 2 }}>
@@ -13457,9 +13457,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#000000" },
   content: { flex: 1 },
   header: {
-    height: 72,
-    marginTop: 8,
-    paddingTop: 8,
+    height: 58,
+    marginTop: 0,
+    paddingTop: 0,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
