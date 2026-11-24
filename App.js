@@ -31,6 +31,7 @@ import Animated, {
   useAnimatedStyle,
   withSequence,
   withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import {Alert as NativeAlert,
   Share,
@@ -1049,6 +1050,37 @@ function PostMediaTapSurface({ children, style, onSingleTap, onDoubleTap }) {
   );
 }
 
+function FloatingReactionParticle({ emoji, index, trigger }) {
+  const progress = useSharedValue(0);
+  React.useEffect(() => {
+    progress.value = 0;
+    progress.value = withTiming(1, { duration: 1050 });
+  }, [trigger]);
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: 1 - progress.value,
+    transform: [
+      { translateY: -155 * progress.value },
+      { translateX: (index - 2.5) * 19 * progress.value },
+      { scale: 0.72 + 0.58 * progress.value },
+    ],
+  }));
+  return (
+    <Animated.View pointerEvents="none" style={[{ position: "absolute", left: "50%", top: "48%", zIndex: 90 }, animatedStyle]}>
+      <Text style={{ fontSize: index % 2 ? 27 : 34, marginLeft: (index - 2.5) * 9 }}>{emoji}</Text>
+    </Animated.View>
+  );
+}
+
+function FloatingReactionBurst({ reaction }) {
+  if (!reaction || !reaction.id) return null;
+  return (
+    <View pointerEvents="none" style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, zIndex: 90, overflow: "hidden" }}>
+      {Array.from({ length: 6 }, (_, index) => (
+        <FloatingReactionParticle key={reaction.id + "-" + index} emoji={reaction.emoji || "❤️"} index={index} trigger={reaction.id} />
+      ))}
+    </View>
+  );
+}
 function PostCard({
   post,
   authSession,
@@ -1067,6 +1099,8 @@ function PostCard({
   const postText = (key) => translateAppText(appLanguage, key);
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
+  const [reactionBurst, setReactionBurst] = React.useState(null);
+  const showReactionBurst = (emoji = "❤️") => setReactionBurst({ id: Date.now() + Math.random(), emoji });
 
   const [liked, setLiked] = React.useState(Boolean(post?.isLiked));
   const [likeCount, setLikeCount] = React.useState(
@@ -1107,6 +1141,7 @@ function PostCard({
       post?.isStarterReel ||
       String(post?.id || "").startsWith("bhumi-starter-")
     ) {
+      if (!liked) showReactionBurst("❤️");
       setLiked((previous) => {
         setLikeCount((count) => Math.max(0, count + (previous ? -1 : 1)));
         return !previous;
@@ -1119,6 +1154,7 @@ function PostCard({
       const result = await togglePostLike(post.id, authSession);
       setLiked(Boolean(result.liked));
       setLikeCount(Number(result.likes) || 0);
+      if (result.liked) showReactionBurst("❤️");
     } catch (error) {
       Alert.alert(postText("alertSaveFailed"), postText("alertTryAgain"));
     } finally {
@@ -1375,6 +1411,7 @@ function PostCard({
             )}
           </PostMediaTapSurface>
         )}
+        <FloatingReactionBurst reaction={reactionBurst} />
         {post.mediaItems?.length > 1 && (
           <Text
             style={{
