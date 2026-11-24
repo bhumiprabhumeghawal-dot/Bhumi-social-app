@@ -8099,6 +8099,7 @@ export default function App() {
                       <ReelVideo
                     appLanguage={appLanguage}
                         uri={r.uri}
+                        audioUrl={r.audioUrl}
                         height={rowHeight}
                         active={
                           activeTab === "Reels" &&
@@ -10283,7 +10284,7 @@ export default function App() {
                     >
                       {media.uri && media.mediaType === "video" ? (
                         <ReelVideo
-                    appLanguage={appLanguage} uri={media.uri} zoomControls />
+                    appLanguage={appLanguage} uri={media.uri} audioUrl={media.audioUrl || selectedPost.audioUrl} zoomControls />
                       ) : media.uri ? (
                         <ZoomableImage
                           uri={media.uri}
@@ -10327,7 +10328,7 @@ export default function App() {
               </>
             ) : selectedPost?.uri && selectedPost.mediaType === "video" ? (
               <ReelVideo
-                    appLanguage={appLanguage} uri={selectedPost.uri} zoomControls />
+                    appLanguage={appLanguage} uri={selectedPost.uri} audioUrl={selectedPost.audioUrl} zoomControls />
             ) : selectedPost?.uri ? (
               <ZoomableImage
                 uri={selectedPost.uri}
