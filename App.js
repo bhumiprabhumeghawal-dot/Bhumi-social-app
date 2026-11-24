@@ -8108,8 +8108,7 @@ export default function App() {
                         }
                         muted={mutedReels}
                         contentFit="cover"
-                        zoomEnabled
-                        onZoomChange={(level) => setReelZoomed(level > 1.01)}
+                        zoomEnabled={false}
                       />
                     ) : null}
                     {appSettingsPreferences["feed.reelsAutoPlay"] === false && !manualReelPlay && index === activeReelIndex ? (
