@@ -1474,7 +1474,7 @@ function PostCard({
             accessibilityHint="Toggle the sound of this post video"
             style={{
               position: "absolute",
-              top: 14,
+              top: 58,
               right: 14,
               zIndex: 25,
               width: 42,
@@ -8143,7 +8143,7 @@ export default function App() {
                         bottom: 0,
                         justifyContent: "space-between",
                         paddingHorizontal: 15,
-                        paddingTop: 15,
+                        paddingTop: 58,
                         paddingBottom: 18,
                       }}
                     >
@@ -10028,7 +10028,7 @@ export default function App() {
             <View
               style={{
                 position: "absolute",
-                top: 25,
+                top: 58,
                 left: 12,
                 right: 12,
                 height: 48,
@@ -14431,7 +14431,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     backgroundColor: "#000000",
   },
-  navItem: { flex: 1, height: 44, alignItems: "center", justifyContent: "center", transform: [{ translateY: -10 }] },
+  navItem: { flex: 1, height: 44, alignItems: "center", justifyContent: "center", transform: [{ translateY: -20 }] },
   activeNavItem: { backgroundColor: "#26292D", borderRadius: 28, marginHorizontal: 5 },
   navIcon: { fontSize: 24, color: "#8E8E93" },
   activeNavIcon: { color: "#0095F6", fontWeight: "800" },
