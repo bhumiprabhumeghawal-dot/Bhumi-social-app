@@ -5641,7 +5641,7 @@ export default function App() {
     <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative", backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderBottomColor: lightAppearance ? "#E5E5E5" : "#262626" }, activeTab === "Profile" ? { height: 72, marginTop: 8, paddingTop: 8 } : null]}>
       {activeTab === "Profile" ? (
         <>
-          <View style={{ width: 42, alignItems: "flex-start", justifyContent: "center", zIndex: 2 }}>
+          <View style={{ width: 42, alignItems: "flex-start", justifyContent: "center", zIndex: 2, transform: [{ translateY: 10 }] }}>
             <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("create")} hitSlop={8} style={{ padding: 3 }}>
               <Ionicons name="add-square-outline" size={27} color={lightAppearance ? "#171717" : "#F5F5F5"} />
             </TouchableOpacity>
@@ -5652,7 +5652,7 @@ export default function App() {
           >
             {profile?.username ? `@${profile.username}` : appText("profileTab")}
           </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 13, zIndex: 2 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 13, zIndex: 2, transform: [{ translateY: 10 }] }}>
             <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} hitSlop={8} style={{ width: 38, height: 44, alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="notifications-outline" size={26} color={lightAppearance ? "#171717" : "#F5F5F5"} />
               {unreadNotificationCount > 0 && (
