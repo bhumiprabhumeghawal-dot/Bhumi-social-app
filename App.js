@@ -12484,7 +12484,7 @@ export default function App() {
                 </View>
               </View>
               </View>
-            )}
+            ) : null}
             </ScrollView>
             <View style={[styles.bottomNav, selectedChatUser && { display: "none" }]}>
               {[
