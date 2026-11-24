@@ -2440,6 +2440,24 @@ const VIDEO_FILTER_PREVIEW_STYLES = [
 
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("Home");
+  const tabSwipeDistance = React.useRef(0);
+  const mainTabs = React.useMemo(() => ["Home", "Reels", "Chat", "Search", "Profile"], []);
+  const tabSwipeGesture = usePanGesture({
+    runOnJS: true,
+    activeOffsetX: [-24, 24],
+    failOffsetY: [-18, 18],
+    onUpdate: (event) => { tabSwipeDistance.current = event.translationX || 0; },
+    onDeactivate: () => {
+      const distance = tabSwipeDistance.current;
+      tabSwipeDistance.current = 0;
+      if (Math.abs(distance) < 75) return;
+      setActiveTab((current) => {
+        const index = mainTabs.indexOf(current);
+        if (index < 0) return current;
+        return mainTabs[Math.max(0, Math.min(mainTabs.length - 1, index + (distance < 0 ? 1 : -1)))];
+      });
+    },
+  });
   const [appLanguage, setAppLanguage] = React.useState("en");
   const appText = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   // BHUMI_CRASH_DISPLAY
@@ -8015,7 +8033,7 @@ export default function App() {
         <Text style={{ padding: 5, color: "#0095F6" }}>{appText("uploadMediaProgress")}</Text>
       )}
 
-      {activeTab === "Reels" ? (
+      <GestureDetector gesture={tabSwipeGesture}>\n        <View style={{ flex: 1 }}>\n      {activeTab === "Reels" ? (
         <View
           style={{ flex: 1, backgroundColor: "#000000" }}
           onLayout={(event) => {
@@ -9900,7 +9918,7 @@ export default function App() {
         </View>
       )}
 
-      <View style={[styles.bottomNav, { backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderTopColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
+        </View>\n      </GestureDetector>\n\n      <View style={[styles.bottomNav, { backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderTopColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
         {[
           { name: "Home", icon: "home-outline", activeIcon: "home" },
           { name: "Reels", icon: "play-outline", activeIcon: "play" },
