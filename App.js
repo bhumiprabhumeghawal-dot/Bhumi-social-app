@@ -2591,16 +2591,43 @@ export default function App() {
     let checking = false;
 
     const checkForAppUpdate = async () => {
-      if (!active || checking || !Updates.isEnabled || AppState.currentState !== "active") return;
+      if (!active || checking || AppState.currentState !== "active") return;
       checking = true;
       try {
-        const result = await Updates.checkForUpdateAsync();
-        if (active && result.isAvailable) {
-          setUpdateInfo({ message: "A new Bhumi Social AI update is ready. Update safely inside the app." });
+        // APK version checks must run even when Expo OTA is disabled in an installed build.
+        const response = await fetch("https://bhumi-social-app-1.onrender.com/api/app-version", {
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok) throw new Error(`Version check failed (${response.status})`);
+        const latest = await response.json();
+        const installedVersion = appConfig.expo?.version || "1.0.0";
+
+        if (active && isVersionNewer(latest?.version, installedVersion)) {
+          setUpdateInfo({
+            updateType: "apk",
+            version: latest.version,
+            apk_url: latest.apk_url,
+            download_url: latest.download_url,
+            force_update: latest.force_update === true,
+            message: latest.message || `Bhumi Social AI version ${latest.version} is ready. Download and install the update.`,
+          });
           setUpdatePromptVisible(true);
+          return;
+        }
+
+        // OTA updates are checked separately and never block the APK-version check.
+        if (Updates.isEnabled) {
+          const result = await Updates.checkForUpdateAsync();
+          if (active && result.isAvailable) {
+            setUpdateInfo({
+              updateType: "ota",
+              message: "A new Bhumi Social AI update is ready. Update safely inside the app.",
+            });
+            setUpdatePromptVisible(true);
+          }
         }
       } catch (error) {
-        console.warn("In-app update check failed:", error?.message || error);
+        console.warn("App update check failed:", error?.message || error);
       } finally {
         checking = false;
       }
@@ -2624,6 +2651,14 @@ export default function App() {
     if (updateDownloading) return;
     setUpdateDownloading(true);
     try {
+      if (updateInfo?.updateType === "apk") {
+        const apkUrl = updateInfo.apk_url || updateInfo.download_url;
+        if (!apkUrl) throw new Error("APK download link is not configured.");
+        await Linking.openURL(apkUrl);
+        setUpdatePromptVisible(false);
+        return;
+      }
+
       const result = await Updates.fetchUpdateAsync();
       if (result.isNew) {
         setUpdatePromptVisible(false);
@@ -2635,7 +2670,7 @@ export default function App() {
     } catch (error) {
       Alert.alert(
         appText("alertUpdate"),
-        appText("updateDownloadFailed"),
+        error?.message || appText("updateDownloadFailed"),
       );
     } finally {
       setUpdateDownloading(false);
