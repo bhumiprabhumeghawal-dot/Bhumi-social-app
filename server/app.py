@@ -67,6 +67,8 @@ def init_db():
         columns = {row["name"] for row in db.execute("PRAGMA table_info(content)").fetchall()}
         if "group_id" not in columns:
             db.execute("ALTER TABLE content ADD COLUMN group_id TEXT")
+        if "audio_url" not in columns:
+            db.execute("ALTER TABLE content ADD COLUMN audio_url TEXT")
 
         db.execute("""
             CREATE INDEX IF NOT EXISTS idx_content_group_id
@@ -286,6 +288,7 @@ def content_json(row, viewer=None, db=None):
         "caption": row["caption"],
         "mediaUrl": row["media_url"],
         "mediaType": row["media_type"],
+        "audioUrl": row["audio_url"] if "audio_url" in row.keys() else None,
         "groupId": row["group_id"],
         "createdAt": row["created_at"],
         "expiresAt": row["expires_at"],
@@ -495,11 +498,12 @@ def create_content(kind):
                 """
                 INSERT INTO content
                     (kind, username, caption, media_url, media_type,
-                     group_id, created_at, expires_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                     audio_url, group_id, created_at, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     kind, username, caption, media_url, media_type,
+                    (request.form.get("audio_url") or None),
                     (request.form.get("group_id") or request.headers.get("X-Post-Group-Id") or None),
                     created_at, expires_at,
                 ),
