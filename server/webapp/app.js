@@ -13,7 +13,7 @@ function openInstallHelp(){
  const ua=navigator.userAgent||'';
  const ios=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  const android=/android/i.test(ua);
- const inApp=/WhatsApp|FBAN|FBAV|Instagram|Line\/i.test(ua);
+ const inApp=/WhatsApp|FBAN|FBAV|Instagram|Line\//i.test(ua);
  const safari=/Safari/i.test(ua)&&!/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua);
  const steps=$('installSteps'),note=$('installNote');
  $('installHelpTitle').textContent=ios?'Install on iPhone':android?'Install on Android':'Install Bhumi Social AI';
