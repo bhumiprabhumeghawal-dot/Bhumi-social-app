@@ -5652,7 +5652,7 @@ export default function App() {
           >
             {profile?.username ? `@${profile.username}` : appText("profileTab")}
           </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 13, zIndex: 2, transform: [{ translateY: 20 }] }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 13, zIndex: 2, transform: [{ translateY: 40 }] }}>
             <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} hitSlop={8} style={{ width: 38, height: 44, alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="notifications-outline" size={26} color={lightAppearance ? "#171717" : "#F5F5F5"} />
               {unreadNotificationCount > 0 && (
@@ -8941,6 +8941,8 @@ export default function App() {
           )}
         </ScrollView>
       ) : activeTab === "Profile" ? (
+        <>
+        {renderAppHeader()}
         <ScrollView
           style={[styles.content, { backgroundColor: "#000000" }]}
           contentContainerStyle={{ paddingBottom: 28 }}
@@ -8964,16 +8966,6 @@ export default function App() {
                 </View>
               ) : (
                 <>
-                  <View style={{ height: 58, paddingHorizontal: 22, flexDirection: "row", alignItems: "center" }}>
-                    <TouchableOpacity onPress={() => handleTab("Create")} accessibilityLabel={appText("create")} style={{ width: 42, alignItems: "flex-start", justifyContent: "center" }}>
-                      <Ionicons name="add" size={32} color="#FFFFFF" />
-                    </TouchableOpacity>
-                    <View style={{ flex: 1 }} />
-                    <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center" }}>
-                      <Ionicons name="notifications-outline" size={27} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  </View>
-
                   <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 18 }}>
                     <TouchableOpacity onPress={chooseProfilePhoto} disabled={profileBusy} style={{ width: 112, alignItems: "flex-start" }}>
                       <View style={{ width: 96, height: 96, borderRadius: 48, padding: 2, borderWidth: 2, borderColor: "#34383E", alignItems: "center", justifyContent: "center" }}>
@@ -9059,6 +9051,7 @@ export default function App() {
             </View>
           )}
         </ScrollView>
+        </>
       ) : (
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
