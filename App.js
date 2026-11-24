@@ -12501,19 +12501,19 @@ export default function App() {
             </View>
           ) : viewedProfile ? (
             <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={{ paddingHorizontal: 16, paddingTop: 18 }}>
+              <View style={{ paddingHorizontal: 20, paddingTop: 18 }}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   {viewedProfile.avatarUrl ? (
                     <Image source={{ uri: viewedProfile.avatarUrl }}
-                      style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#1C1C1E" }} />
+                      style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "#1C1C1E" }} />
                   ) : (
-                    <View style={{ width: 86, height: 86, borderRadius: 43, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
+                    <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
                       <Text style={{ fontSize: 32, fontWeight: "800", color: "#FFFFFF" }}>
                         {String(viewedProfile.displayName || viewedProfile.username || "?").slice(0, 1).toUpperCase()}
                       </Text>
                     </View>
                   )}
-                  <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-evenly", marginLeft: 12 }}>
+                  <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between", marginLeft: 14 }}>
                     {[
                       ["postsCount", appText("postsLabel")],
                       ["followersCount", appText("followers")],
@@ -12526,8 +12526,8 @@ export default function App() {
                         activeOpacity={0.7}
                         style={{ alignItems: "center", paddingHorizontal: 3 }}
                       >
-                        <Text style={{ fontSize: 18, fontWeight: "800", color: "#FFFFFF" }}>{viewedProfile[field] || 0}</Text>
-                        <Text style={{ color: "#A8A8A8", fontSize: 12 }}>{label}</Text>
+                        <Text style={{ fontSize: 21, fontWeight: "700", color: "#FFFFFF" }}>{viewedProfile[field] || 0}</Text>
+                        <Text style={{ color: "#FFFFFF", fontSize: 13, marginTop: 3 }}>{label}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -12635,7 +12635,7 @@ export default function App() {
                         await openDirectChat(username);
                       }}
                       activeOpacity={0.8}
-                      style={{ flex: 1, height: 36, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "#1C1C1E" }}>
+                      style={{ flex: 1, height: 42, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "#292D32" }}>
                       <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 13 }}>{appText("profileMessage")}</Text>
                     </TouchableOpacity>
                   </View>
@@ -12682,7 +12682,7 @@ export default function App() {
                 ) : viewedProfilePosts.length ? (
                   <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
                     {viewedProfilePosts.map((post, index) => (
-                      <View key={String(post.id || post._id || index)} style={{ width: "33.3333%", aspectRatio: 1, padding: 1 }}>
+                      <View key={String(post.id || post._id || index)} style={{ width: "33.3333%", aspectRatio: 0.78, padding: 1 }}>
                         {(post.uri || post.mediaUrl) ? (
                           <Image source={{ uri: post.uri || post.mediaUrl }}
                             style={{ width: "100%", height: "100%", backgroundColor: "#1C1C1E" }} resizeMode="cover" />
