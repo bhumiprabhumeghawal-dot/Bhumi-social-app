@@ -11094,6 +11094,14 @@ export default function App() {
               <View
                 style={{ flex: 1, backgroundColor: "#000000", paddingTop: 8 }}
               >
+                <ScrollView
+                  style={{ flex: 1 }}
+                  nestedScrollEnabled
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="on-drag"
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 18 }}
+                >
                 {chatError ? (
                   <Text
                     style={{
@@ -11519,10 +11527,7 @@ export default function App() {
                     <Text style={{ color: "#A8A8A8", fontSize: 12 }}>{appText("updatingInbox")}</Text>
                   </View>
                 ) : null}
-                <ScrollView
-                  keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={{ paddingBottom: 10 }}
-                >
+                <View>
                   {secretSelectionMode ? (
                     <View style={{ paddingHorizontal: 18, paddingTop: 10, paddingBottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                       <TouchableOpacity onPress={() => { setSecretSelectionMode(false); setSecretSelectedUsers([]); setChatSearchQuery(""); setChatError(""); setSecretChatOpen(secretChatUsers.length > 0); }} style={{ paddingVertical: 8, paddingRight: 12 }}>
@@ -11740,6 +11745,7 @@ export default function App() {
                             : appText("emptyFiltered")}
                     </Text>
                   ) : null}
+                </View>
                 </ScrollView>
               </View>
             ) : (
