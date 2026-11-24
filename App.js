@@ -1158,6 +1158,7 @@ function PostCard({
   const [commentsOpen, setCommentsOpen] = React.useState(false);
   const [comments, setComments] = React.useState([]);
   const [commentDraft, setCommentDraft] = React.useState("");
+  const [replyingToComment, setReplyingToComment] = React.useState(null);
   const [interactionBusy, setInteractionBusy] = React.useState(false);
   const [reposted, setReposted] = React.useState(Boolean(post?.isReposted));
   const [repostCount, setRepostCount] = React.useState(Number(post?.repostsCount || 0));
@@ -1271,9 +1272,10 @@ function PostCard({
 
     setInteractionBusy(true);
     try {
-      const comment = await createPostComment(post.id, text);
+      const comment = await createPostComment(post.id, text, replyingToComment?.id || null);
       setComments((previous) => [...previous, comment]);
       setCommentDraft("");
+      setReplyingToComment(null);
     } catch (error) {
       Alert.alert(postText("commentFailed"), error.message || postText("couldNotPostComment"));
     } finally {
@@ -1687,7 +1689,7 @@ function PostCard({
                   comments.map((comment) => (
                     <View
                       key={String(comment.id)}
-                      style={{ paddingVertical: 8 }}
+                      style={{ paddingVertical: 8, marginLeft: comment.parentCommentId ? 18 : 0, borderLeftWidth: comment.parentCommentId ? 2 : 0, borderLeftColor: "#333333", paddingLeft: comment.parentCommentId ? 9 : 0 }}
                     >
                       <Text style={{ color: "#FFFFFF" }}>
                         <Text
@@ -1696,8 +1698,11 @@ function PostCard({
                         >
                           {comment.username || translateAppText(appLanguage, "youLabel")}{" "}
                         </Text>
-                        {comment.text}
+                        {comment.parentCommentId ? <Text style={{ color: "#8E8E93", fontSize: 10 }}>Reply</Text> : null}{comment.text}
                       </Text>
+                      <TouchableOpacity onPress={() => { setReplyingToComment(comment); setCommentDraft(""); }} style={{ alignSelf: "flex-start", marginTop: 4 }}>
+                        <Text style={{ color: "#8E8E93", fontSize: 11, fontWeight: "700" }}>Reply</Text>
+                      </TouchableOpacity>
 
                       {comment.isPending ? (
                         <Text
@@ -1739,6 +1744,7 @@ function PostCard({
                 )}
               </ScrollView>
 
+              {replyingToComment ? <TouchableOpacity onPress={() => setReplyingToComment(null)} style={{ alignSelf: "flex-start", marginTop: 5 }}><Text style={{ color: "#0095F6", fontSize: 11 }}>Replying to @{replyingToComment.username || "user"} · Cancel</Text></TouchableOpacity> : null}
               <View
                 style={{
                   flexDirection: "row",
@@ -1749,7 +1755,7 @@ function PostCard({
                 <TextInput
                   value={commentDraft}
                   onChangeText={setCommentDraft}
-                  placeholder={postText("writeComment")}
+                  placeholder={replyingToComment ? `Replying to @${replyingToComment.username || "user"}` : postText("writeComment")}
                   maxLength={2000}
                   editable={!interactionBusy}
                   style={{
@@ -1803,6 +1809,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
     Number(post?.commentsCount || post?.commentCount || 0),
   );
   const [draft, setDraft] = React.useState("");
+  const [replyingToDetailComment, setReplyingToDetailComment] = React.useState(null);
   const [commentsOpen, setCommentsOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const likeScale = useSharedValue(1);
@@ -1816,6 +1823,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
     setComments([]);
     setCommentCount(Number(post?.commentsCount || post?.commentCount || 0));
     setDraft("");
+    setReplyingToDetailComment(null);
     setCommentsOpen(false);
   }, [post?.id]);
 
@@ -1893,10 +1901,11 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
     }
     setBusy(true);
     try {
-      const comment = await createPostComment(post.id, value);
+      const comment = await createPostComment(post.id, value, replyingToDetailComment?.id || null);
       setComments((old) => [...old, comment]);
       setCommentCount((count) => count + 1);
       setDraft("");
+      setReplyingToDetailComment(null);
     } catch (error) {
       Alert.alert(postText("commentFailed"), postText("couldNotPostComment"));
     } finally {
@@ -2059,8 +2068,9 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
                         <Text style={{ fontWeight: "800" }}>
                           {item.username || translateAppText(appLanguage, "youLabel")}{" "}
                         </Text>
-                        {item.text}
+                        {item.parentCommentId ? <Text style={{ color: "#8E8E93", fontSize: 10 }}>Reply · </Text> : null}{item.text}
                       </Text>
+                      <TouchableOpacity onPress={() => { setReplyingToDetailComment(item); setDraft(""); }} style={{ alignSelf: "flex-start", marginTop: 4 }}><Text style={{ color: "#8E8E93", fontSize: 11, fontWeight: "700" }}>Reply</Text></TouchableOpacity>
 
                       {item.isPending ? (
                         <Text
@@ -2752,6 +2762,7 @@ export default function App() {
   const [selectedReel, setSelectedReel] = React.useState(null);
   const [reelComments, setReelComments] = React.useState([]);
   const [reelCommentDraft, setReelCommentDraft] = React.useState("");
+  const [replyingToReelComment, setReplyingToReelComment] = React.useState(null);
   const [reelCommentsBusy, setReelCommentsBusy] = React.useState(false);
   const [savedContent, setSavedContent] = React.useState([]);
   const [savedContentBusy, setSavedContentBusy] = React.useState(false);
@@ -4005,6 +4016,7 @@ export default function App() {
     setSelectedReel(reel);
     setReelComments([]);
     setReelCommentDraft("");
+    setReplyingToReelComment(null);
     setReelCommentsOpen(true);
     const id = Number(reel?.id);
     if (!Number.isSafeInteger(id) || id <= 0) return;
@@ -4026,7 +4038,7 @@ export default function App() {
       return;
     setReelCommentsBusy(true);
     try {
-      const result = await createReelComment(id, message);
+      const result = await createReelComment(id, message, replyingToReelComment?.id || null);
       const created = result?.comment;
       setReelComments((current) => [...current, created]);
       if (Number.isFinite(Number(result?.commentsCount))) {
@@ -4043,6 +4055,7 @@ export default function App() {
         );
       }
       setReelCommentDraft("");
+      setReplyingToReelComment(null);
     } catch (e) {
       Alert.alert(appText("commentFailed"), appText("couldNotPostComment"));
     } finally {
@@ -13272,6 +13285,7 @@ export default function App() {
                       {new Date(item.createdAt).toLocaleString()}
                     </Text>
                   ) : null}
+                  <TouchableOpacity onPress={() => { setReplyingToReelComment(item); setReelCommentDraft(""); }} style={{ alignSelf: "flex-start", marginTop: 4 }}><Text style={{ color: "#8E8E93", fontSize: 11, fontWeight: "700" }}>Reply</Text></TouchableOpacity>
                   {item.isPending ? (
                     <Text
                       style={{ color: "#B7791F", fontSize: 11, marginTop: 4 }}
@@ -13313,6 +13327,7 @@ export default function App() {
                 </Text>
               ) : null}
             </ScrollView>
+            {replyingToReelComment ? <TouchableOpacity onPress={() => setReplyingToReelComment(null)} style={{ paddingHorizontal: 14, paddingTop: 5 }}><Text style={{ color: "#1685D9", fontSize: 11 }}>Replying to @{replyingToReelComment.username || "user"} · Cancel</Text></TouchableOpacity> : null}
             <View
               style={{
                 flexDirection: "row",
@@ -13327,7 +13342,7 @@ export default function App() {
               <TextInput
                 value={reelCommentDraft}
                 onChangeText={setReelCommentDraft}
-                placeholder={appText("writeComment")}
+                placeholder={replyingToReelComment ? `Replying to @${replyingToReelComment.username || "user"}` : appText("writeComment")}
                 placeholderTextColor="#A8A8A8"
                 maxLength={2000}
                 editable={!reelCommentsBusy}
