@@ -23,3 +23,5 @@ Build APK for Home Feed three-dot menus with Not Interested and Report options (
 Build APK for Instagram-style post repost action (commits 56764bf, af8a76e, cd1529d, c2c7160).
 
 Build APK for Home scrolling brand controls and Instagram-style repost on Reels (commits e73c01f, 4288d58, 7c4dd15).
+
+Build APK for latest committed Bhumi Social AI updates including restored repost double-arrow on posts and reels, unified DM layout, and current master HEAD aa8ccdb22c2bd1371812c661949640cbd20169ff.
