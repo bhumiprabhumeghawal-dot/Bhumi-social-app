@@ -3268,17 +3268,23 @@ export default function App() {
     } catch (error) { setChatError(error?.message || "Could not save Secret Chat list."); }
   };
   const openSecretChatSelection = () => {
-    // Tapping Secret Chat again closes its panel without entering selection.
-    if (secretChatOpen && !secretSelectionMode) {
+    // Secret Chat is a toggle: tapping it again closes either its list or picker.
+    if (secretChatOpen || secretSelectionMode) {
       setSecretMenuOpen(false);
       setSecretChatOpen(false);
+      setSecretSelectionMode(false);
       setSecretSelectedUsers([]);
+      setChatInboxTab("All");
       setChatSearchQuery("");
       setChatError("");
       return;
     }
-    setSecretMenuOpen(false); setSecretChatOpen(false); setSecretSelectionMode(true);
-    setSecretSelectedUsers([...secretChatUsers]); setChatSearchQuery(""); setChatError("");
+    setSecretMenuOpen(false);
+    setSecretChatOpen(false);
+    setSecretSelectionMode(true);
+    setSecretSelectedUsers([...secretChatUsers]);
+    setChatSearchQuery("");
+    setChatError("");
   };
   const restoreSecretChatUser = async (username) => {
     const key = String(username || "").trim().toLowerCase();
