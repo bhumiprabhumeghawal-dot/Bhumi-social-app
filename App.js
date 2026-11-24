@@ -5643,7 +5643,7 @@ export default function App() {
         <>
           <View style={{ width: 42, height: 44, alignItems: "flex-start", justifyContent: "center", zIndex: 2 }}>
             <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("create")} hitSlop={8} style={{ padding: 3 }}>
-              <Ionicons name="add-square-outline" size={27} color={lightAppearance ? "#171717" : "#F5F5F5"} />
+              <Ionicons name="add-circle-outline" size={27} color={lightAppearance ? "#171717" : "#F5F5F5"} />
             </TouchableOpacity>
           </View>
           <View style={{ flex: 1, minWidth: 0, height: 44, justifyContent: "center", alignItems: "center", zIndex: 1 }}>
