@@ -2565,14 +2565,11 @@ export default function App() {
       }
     };
 
-    // Let the first screen and API requests settle before checking for an OTA update.
-    // This keeps update traffic from competing with the initial app launch.
-    const firstCheck = setTimeout(checkForAppUpdate, 10000);
-    const interval = setInterval(checkForAppUpdate, 6 * 60 * 60 * 1000);
+    // Temporarily pause automatic OTA checks while investigating the
+    // Android process exit shortly after launch. APK updates remain available.
+    // Re-enable OTA checks after the startup crash is confirmed fixed.
     return () => {
       active = false;
-      clearTimeout(firstCheck);
-      clearInterval(interval);
     };
   }, []);
 
