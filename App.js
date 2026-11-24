@@ -2984,6 +2984,7 @@ export default function App() {
   const [followRequestsBusy, setFollowRequestsBusy] = React.useState(false);
   const [followRequestAction, setFollowRequestAction] = React.useState({});
 
+  const [profileGridTab, setProfileGridTab] = React.useState("posts");
   const [profileEditing, setProfileEditing] = React.useState(false);
   const [profileDraft, setProfileDraft] = React.useState({
     displayName: "",
@@ -8919,1034 +8920,127 @@ export default function App() {
         </ScrollView>
       ) : activeTab === "Profile" ? (
         <ScrollView
-          style={styles.content}
-          contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+          style={[styles.content, { backgroundColor: "#000000" }]}
+          contentContainerStyle={{ paddingBottom: 28 }}
+          showsVerticalScrollIndicator={false}
         >
-          {!profile ? (
-            <Text style={{ color: "#A8A8A8", textAlign: "center", padding: 24 }}>
-              
-            </Text>
-          ) : (
-            <View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginBottom: 20,
-                  padding: 2,
-                  backgroundColor: "transparent",
-                  borderWidth: 1,
-                  borderColor: "transparent",
-                  borderRadius: 0,
-                  elevation: 0,
-                }}
-              >
-                <TouchableOpacity
-                  onPress={chooseProfilePhoto}
-                  disabled={profileBusy}
-                >
-                  <View
-                    style={{
-                      width: 86,
-                      height: 86,
-                      borderRadius: 43,
-                      borderWidth: 3,
-                      borderColor: "#0095F6",
-                      padding: 2,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {profile.avatarUrl ? (
-                      <Image
-                        source={{ uri: profile.avatarUrl }}
-                        onError={(e) =>
-                          console.log(
-                            "PROFILE_AVATAR_IMAGE_ERROR:",
-                            profile.avatarUrl,
-                            e.nativeEvent?.error,
-                          )
-                        }
-                        onLoad={() =>
-                          console.log(
-                            "PROFILE_AVATAR_IMAGE_LOADED:",
-                            profile.avatarUrl,
-                          )
-                        }
-                        style={{
-                          width: 80,
-                          height: 80,
-                          borderRadius: 40,
-                          backgroundColor: "#DDE7F5",
-                        }}
-                      />
-                    ) : (
-                      <View
-                        style={{
-                          width: 80,
-                          height: 80,
-                          borderRadius: 40,
-                          backgroundColor: "#262626",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: "#F5F5F5",
-                            fontSize: 32,
-                            fontWeight: "700",
-                          }}
-                        >
-                          {(profile.displayName || "Y").charAt(0).toUpperCase()}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text
-                    style={{
-                      color: "#F5F5F5",
-                      fontSize: 12,
-                      textAlign: "center",
-                      marginTop: 5,
-                    }}
-                  >
-                    {appText("changePhoto")}
-                  </Text>
-                </TouchableOpacity>
-
-                <View style={{ flex: 1, marginLeft: 16 }}>
-                  <Text
-                    style={{
-                      color: "#F5F5F5",
-                      fontSize: 21,
-                      fontWeight: "800",
-                    }}
-                  >
-                    {profile.displayName || "you"}
-                  </Text>
-                  <Text
-                    style={{ color: "#A8A8A8", marginTop: 5, fontSize: 13 }}
-                  >
-                    @{profile.username || "you"}
-                  </Text>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      marginTop: 15,
-                    }}
-                  >
-                    <View style={{ alignItems: "center" }}>
-                      <Text
-                        style={{
-                          color: "#F5F5F5",
-                          fontWeight: "900",
-                          fontSize: 18,
-                        }}
-                      >
-                        {profile.postsCount ?? 0}
-                      </Text>
-                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
-                        {appText("postsLabel")}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => showProfileConnections("followers")}
-                      style={{ alignItems: "center" }}
-                    >
-                      <Text
-                        style={{
-                          color: "#F5F5F5",
-                          fontWeight: "900",
-                          fontSize: 18,
-                        }}
-                      >
-                        {profile.followersCount ?? 0}
-                      </Text>
-                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
-                        {appText("followers")}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => showProfileConnections("following")}
-                      style={{ alignItems: "center" }}
-                    >
-                      <Text
-                        style={{
-                          color: "#F5F5F5",
-                          fontWeight: "900",
-                          fontSize: 18,
-                        }}
-                      >
-                        {profile.followingCount ?? 0}
-                      </Text>
-                      <Text style={{ color: "#A8A8A8", fontSize: 11 }}>
-                        {appText("following")}
-                      </Text>
-                    </TouchableOpacity>
+          {!profile ? null : (
+            <View style={{ backgroundColor: "#000000" }}>
+              {profileEditing ? (
+                <View style={{ padding: 20 }}>
+                  <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "800", marginBottom: 18 }}>Edit profile</Text>
+                  <Text style={{ color: "#F5F5F5", marginBottom: 6 }}>{appText("displayName")}</Text>
+                  <TextInput value={profileDraft.displayName} onChangeText={(v) => setProfileDraft((d) => ({ ...d, displayName: v }))} maxLength={60} placeholder={appText("displayName")} style={{ borderWidth: 1, borderColor: "#36393F", borderRadius: 10, padding: 12, color: "#FFFFFF", marginBottom: 14 }} />
+                  <Text style={{ color: "#A8A8A8", marginBottom: 6 }}>{appText("usernamePermanent")}</Text>
+                  <Text style={{ color: "#FFFFFF", paddingVertical: 10 }}>@{profile.username || "you"}</Text>
+                  <Text style={{ color: "#A8A8A8", marginBottom: 6 }}>{appText("bio")}</Text>
+                  <TextInput value={profileDraft.bio} onChangeText={(v) => setProfileDraft((d) => ({ ...d, bio: v }))} maxLength={300} multiline placeholder={appText("writeAbout")} style={{ borderWidth: 1, borderColor: "#36393F", borderRadius: 10, padding: 12, minHeight: 90, color: "#FFFFFF", marginBottom: 16, textAlignVertical: "top" }} />
+                  <View style={{ flexDirection: "row", gap: 10 }}>
+                    <TouchableOpacity onPress={saveProfile} disabled={profileBusy} style={{ flex: 1, backgroundColor: "#26292D", borderRadius: 9, padding: 13, alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{profileBusy ? appText("saving") : appText("save")}</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setProfileDraft({ displayName: profile.displayName || "you", bio: profile.bio || "" }); setProfileEditing(false); }} style={{ flex: 1, backgroundColor: "#26292D", borderRadius: 9, padding: 13, alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{appText("back")}</Text></TouchableOpacity>
                   </View>
                 </View>
-              </View>
+              ) : (
+                <>
+                  <View style={{ height: 58, paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <TouchableOpacity onPress={() => handleTab("Create")}><Ionicons name="add" size={38} color="#FFFFFF" /></TouchableOpacity>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 20, fontWeight: "800", maxWidth: 225 }}>{profile.username || "you"}</Text>
+                      <Ionicons name="chevron-down" size={21} color="#FFFFFF" />
+                      <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: "#FF3040" }} />
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
+                      <Ionicons name="at-circle-outline" size={30} color="#FFFFFF" />
+                      <TouchableOpacity onPress={() => setSettingsHubOpen(true)}><Ionicons name="menu" size={34} color="#FFFFFF" /></TouchableOpacity>
+                    </View>
+                  </View>
 
-              {!profileEditing ? (
-                <View
-                  style={{
-                    marginBottom: 18,
-                    padding: 12,
-                    borderBottomWidth: 1,
-                    borderColor: "#303030",
-                    borderRadius: 0,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "#F5F5F5",
-                      fontSize: 15,
-                      fontWeight: "800",
-                      marginBottom: 10,
-                    }}
-                  >
-                    {appText("yourStatus")}
-                  </Text>
-                  {(() => {
-                    const ownStoryGroup = groupedStories.find(
-                      (group) => group.own,
-                    );
-                    return (
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 14,
-                        }}
-                      >
-                        {ownStoryGroup ? (
-                          <Story
-                            item={{
-                              ...ownStoryGroup.items[0],
-                              name: appText("yourStory"),
-                              own: true,
-                            }}
-                            onPress={() => openStoryGroup(ownStoryGroup.items)}
-                          />
-                        ) : null}
-                        <TouchableOpacity
-                          onPress={createStory}
-                          accessibilityLabel={appText("addStatus")}
-                          style={{
-                            paddingVertical: 10,
-                            paddingHorizontal: 14,
-                            borderRadius: 20,
-                            backgroundColor: "#1C1C1E",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 5,
-                          }}
-                        >
-                          <Ionicons
-                            name="add-circle"
-                            size={18}
-                            color="#0095F6"
-                          />
-                          <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
-                            {appText("addStatus")}
-                          </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingTop: 17, paddingBottom: 25 }}>
+                    <TouchableOpacity onPress={chooseProfilePhoto} disabled={profileBusy} style={{ width: 150, alignItems: "flex-start" }}>
+                      <View style={{ width: 130, height: 130, borderRadius: 65, padding: 3, borderWidth: 2, borderColor: "#34383E", alignItems: "center", justifyContent: "center" }}>
+                        {profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: "#26292D" }} /> : <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: "#26292D", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 42, fontWeight: "700" }}>{(profile.displayName || "Y").charAt(0).toUpperCase()}</Text></View>}
+                      </View>
+                      <View style={{ position: "absolute", right: 0, bottom: 1, width: 34, height: 34, borderRadius: 17, backgroundColor: "#FFFFFF", borderWidth: 3, borderColor: "#000000", alignItems: "center", justifyContent: "center" }}><Ionicons name="add" size={22} color="#111111" /></View>
+                    </TouchableOpacity>
+                    <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                      {[
+                        { value: profile.postsCount ?? 0, label: appText("postsLabel") },
+                        { value: profile.followersCount ?? 0, label: appText("followers"), action: () => showProfileConnections("followers") },
+                        { value: profile.followingCount ?? 0, label: appText("following"), action: () => showProfileConnections("following") },
+                      ].map((item, index) => (
+                        <TouchableOpacity key={index} onPress={item.action} disabled={!item.action} style={{ alignItems: "center", minWidth: 54 }}>
+                          <Text style={{ color: "#FFFFFF", fontSize: 23, fontWeight: "700" }}>{item.value}</Text>
+                          <Text style={{ color: "#FFFFFF", fontSize: 14, marginTop: 3 }}>{item.label}</Text>
                         </TouchableOpacity>
-                      </View>
-                    );
-                  })()}
-                </View>
-              ) : null}
-
-              {!!profile.bio && (
-                <Text
-                  style={{
-                    color: "#F5F5F5",
-                    marginBottom: 20,
-                    lineHeight: 23,
-                    fontSize: 14,
-                  }}
-                >
-                  {profile.bio}
-                </Text>
-              )}
-
-              {profile.accountType === "business" && profile.businessProfile && (
-                <View style={{ backgroundColor: "#121212", borderWidth: 1, borderColor: "#303030", borderRadius: 14, padding: 15, marginBottom: 18 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 9 }}>
-                    <Ionicons name="business" size={20} color="#0095F6" />
-                    <Text style={{ color: "#0095F6", fontWeight: "900", fontSize: 16, marginLeft: 8 }}>
-                      {profile.businessProfile.businessName || "Business"}
-                    </Text>
-                    <View style={{ marginLeft: 8, borderWidth: 1, borderColor: "#303030", borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 }}>
-                      <Text style={{ color: "#0095F6", fontSize: 9, fontWeight: "800" }}>{appText("businessLabel")}</Text>
-                    </View>
-                  </View>
-                  {!!profile.businessProfile.category && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 6 }}>{profile.businessProfile.category}</Text>}
-                  {!!profile.businessProfile.description && <Text style={{ color: "#F5F5F5", fontSize: 13, lineHeight: 19, marginBottom: 8 }}>{profile.businessProfile.description}</Text>}
-                  {!!(profile.businessProfile.area || profile.businessProfile.city || profile.businessProfile.state) && (
-                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                      <Ionicons name="location" size={15} color="#0095F6" />
-                      <Text style={{ color: "#A8A8A8", fontSize: 12, marginLeft: 6 }}>
-                        {[profile.businessProfile.area, profile.businessProfile.city, profile.businessProfile.state, profile.businessProfile.pincode].filter(Boolean).join(", ")}
-                      </Text>
-                    </View>
-                  )}
-                  {!!profile.businessProfile.serviceAreas && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>{appText("serving")} {profile.businessProfile.serviceAreas}</Text>}
-                  {!!profile.businessProfile.serviceRadiusKm && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>{appText("serviceRadius")} {profile.businessProfile.serviceRadiusKm} km</Text>}
-                  {!!profile.businessProfile.address && <Text style={{ color: "#A8A8A8", fontSize: 12, marginBottom: 5 }}>{appText("addressLabel")} {profile.businessProfile.address}</Text>}
-                  {!!profile.businessProfile.openingHours && <Text style={{ color: "#A8A8A8", fontSize: 12 }}>{appText("hoursLabel")} {profile.businessProfile.openingHours}</Text>}
-                  {!!profile.businessProfile.phone && <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 6 }}>{appText("phoneLabel")} {profile.businessProfile.phone}</Text>}
-                  {!!profile.businessProfile.whatsapp && <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 3 }}>WhatsApp: {profile.businessProfile.whatsapp}</Text>}
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9 }}>
-                    {!!profile.businessProfile.phone && (
-                      <TouchableOpacity onPress={() => Linking.openURL("tel:" + profile.businessProfile.phone.replace(/[^0-9+]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="call" size={14} color="#0095F6" />
-                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>{appText("callAction")}</Text>
-                      </TouchableOpacity>
-                    )}
-                    {!!profile.businessProfile.whatsapp && (
-                      <TouchableOpacity onPress={() => Linking.openURL("https://wa.me/" + profile.businessProfile.whatsapp.replace(/[^0-9]/g, ""))} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="logo-whatsapp" size={14} color="#0095F6" />
-                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>{appText("whatsappLabel")}</Text>
-                      </TouchableOpacity>
-                    )}
-                    {!!profile.businessProfile.email && (
-                      <TouchableOpacity onPress={() => Linking.openURL("mailto:" + profile.businessProfile.email)} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="mail" size={14} color="#0095F6" />
-                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>{appText("emailField")}</Text>
-                      </TouchableOpacity>
-                    )}
-                    {!!profile.businessProfile.website && (
-                      <TouchableOpacity onPress={() => Linking.openURL(/^https?:\/\//i.test(profile.businessProfile.website) ? profile.businessProfile.website : "https://" + profile.businessProfile.website)} style={{ backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#303030", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="globe-outline" size={14} color="#0095F6" />
-                        <Text style={{ color: "#F5F5F5", fontSize: 11, marginLeft: 5 }}>{appText("websiteAction")}</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  {!!profile.businessCatalog?.length && (
-                    <View style={{ borderTopWidth: 1, borderTopColor: "#262626", marginTop: 11, paddingTop: 10 }}>
-                      <Text style={{ color: "#0095F6", fontWeight: "900", marginBottom: 6 }}>{appText("productsServices")}</Text>
-                      {profile.businessCatalog.slice(0, 5).map((item) => (
-                        <View key={item.id} style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#303030" }}>
-                          <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>{item.title} {item.price ? "· " + item.price : ""}</Text>
-                          {!!item.description && <Text numberOfLines={2} style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}>{item.description}</Text>}
-                        </View>
                       ))}
                     </View>
-                  )}
-                </View>
-              )}
-
-              {profileEditing ? (
-                <View>
-                  <Text style={{ color: "#F5F5F5", marginBottom: 5 }}>
-                    {appText("displayName")}
-                  </Text>
-                  <TextInput
-                    value={profileDraft.displayName}
-                    onChangeText={(v) =>
-                      setProfileDraft((d) => ({ ...d, displayName: v }))
-                    }
-                    maxLength={60}
-                    placeholder={appText("displayName")}
-                    style={{
-                      borderWidth: 1,
-                      borderColor: "#303030",
-                      borderRadius: 12,
-                      padding: 11,
-                      color: "#F5F5F5",
-                      marginBottom: 12,
-                    }}
-                  />
-                  <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>
-                    {appText("usernamePermanent")}
-                  </Text>
-                  <Text style={{ color: "#A8A8A8", paddingVertical: 10 }}>
-                    @{profile.username || "you"}
-                  </Text>
-                  <Text style={{ color: "#A8A8A8", marginBottom: 5 }}>{appText("bio")}</Text>
-                  <TextInput
-                    value={profileDraft.bio}
-                    onChangeText={(v) =>
-                      setProfileDraft((d) => ({ ...d, bio: v }))
-                    }
-                    maxLength={300}
-                    multiline
-                    placeholder={appText("writeAbout")}
-                    style={{
-                      borderWidth: 1,
-                      borderColor: "#303030",
-                      borderRadius: 8,
-                      padding: 11,
-                      minHeight: 80,
-                      color: "#F5F5F5",
-                      marginBottom: 12,
-                      textAlignVertical: "top",
-                    }}
-                  />
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <TouchableOpacity
-                      onPress={saveProfile}
-                      disabled={profileBusy}
-                      style={{
-                        backgroundColor: "#0095F6",
-                        borderWidth: 1,
-                        borderColor: "#0095F6",
-                        paddingVertical: 13,
-                        paddingHorizontal: 24,
-                        borderRadius: 13,
-                        marginRight: 10,
-                      }}
-                    >
-                      <Text style={{ color: "#FFF", fontWeight: "700" }}>
-                        {profileBusy ? appText("saving") : appText("save")}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => {
-                        setProfileDraft({
-                          displayName: profile.displayName || "you",
-                          bio: profile.bio || "",
-                        });
-                        setProfileEditing(false);
-                      }}
-                      style={{ padding: 12 }}
-                    >
-                      <Text style={{ color: "#A8A8A8" }}>{appText("back")}</Text>
-                    </TouchableOpacity>
                   </View>
-                </View>
-              ) : (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                  }}
-                >
-                  <TouchableOpacity
-                    onPress={() => setProfileEditing(true)}
-                    style={{
-                      borderWidth: 1,
-                      borderColor: "#0095F6",
-                      borderRadius: 14,
-                      backgroundColor: "#0095F6",
-                      paddingVertical: 13,
-                      paddingHorizontal: 24,
-                      marginRight: 8,
-                      marginBottom: 8,
-                    }}
-                  >
-                    <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>
-                      {appText("editProfileAction")}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => Share.share({ message: `Follow @${profile.username || authSession?.username || "me"} on Bhumi Social AI.` })}
-                    style={{
-                      borderWidth: 1,
-                      borderColor: "#303030",
-                      borderRadius: 14,
-                      backgroundColor: "#1C1C1E",
-                      paddingVertical: 13,
-                      paddingHorizontal: 18,
-                      marginRight: 8,
-                      marginBottom: 8,
-                    }}
-                  >
-                    <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>{appText("shareProfileAction")}</Text>
-                  </TouchableOpacity>
-                  {!!profile.avatarUrl && (
-                    <TouchableOpacity
-                      onPress={removeProfilePhoto}
-                      disabled={profileBusy}
-                      style={{
-                        borderWidth: 1,
-                        borderColor: "#9A4054",
-                        borderRadius: 14,
-                        backgroundColor: "#35191D",
-                        paddingVertical: 13,
-                        paddingHorizontal: 16,
-                        marginBottom: 8,
-                      }}
-                    >
-                      <Text style={{ color: "#BE3548", fontWeight: "700" }}>
-                        {appText("removePhotoLabel")}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
 
-              <View
-                style={{
-                  height: 1,
-                  backgroundColor: "#262626",
-                  marginTop: 18,
-                  marginBottom: 14,
-                }}
-              />
-              <View
-                style={{
-                  marginTop: 18,
-                  marginBottom: 16,
-                  padding: 15,
-                  borderWidth: 1,
-                  borderColor: "#303030",
-                  borderRadius: 17,
-                  backgroundColor: "#121212",
-                }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: 12,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "#F5F5F5",
-                      fontWeight: "800",
-                      fontSize: 17,
-                    }}
-                  >
-                    {appText("followRequestsTitle")} ({followRequests.length})
-                  </Text>
-                  <TouchableOpacity
-                    onPress={refreshFollowRequests}
-                    disabled={followRequestsBusy}
-                  >
-                    <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
-                      {followRequestsBusy ? "" : appText("refreshAction")}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                {followRequests.length === 0 ? (
-                  <Text style={{ color: "#A8A8A8", paddingVertical: 8 }}>
-                    {appText("noPendingFollowRequests")}
-                  </Text>
-                ) : (
-                  followRequests.map((request) => (
-                    <View
-                      key={String(request.id)}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        paddingVertical: 10,
-                        borderTopWidth: 1,
-                        borderTopColor: "#262626",
-                      }}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>
-                          {request.displayName || request.username}
-                        </Text>
-                        <Text style={{ color: "#A8A8A8", fontSize: 12 }}>
-                          @{request.username}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        disabled={!!followRequestAction[request.id]}
-                        onPress={() =>
-                          resolveFollowRequest(request.id, "accept")
-                        }
-                        style={{
-                          backgroundColor: "#0095F6",
-                          paddingHorizontal: 13,
-                          paddingVertical: 9,
-                          borderRadius: 10,
-                          marginRight: 7,
-                        }}
-                      >
-                        <Text style={{ color: "#FFF", fontWeight: "700" }}>
-                          {appText("accept")}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        disabled={!!followRequestAction[request.id]}
-                        onPress={() =>
-                          resolveFollowRequest(request.id, "reject")
-                        }
-                        style={{
-                          backgroundColor: "#1C1C1E",
-                          paddingHorizontal: 13,
-                          paddingVertical: 9,
-                          borderRadius: 10,
-                        }}
-                      >
-                        <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
-                          {appText("reject")}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))
-                )}
-              </View>
-              {/* SOCIALAPP_PROFILE_SETTINGS_V1 */}
-              <View
-                style={{
-                  marginTop: 28,
-                  marginBottom: 18,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Text
-                  style={{ color: "#F5F5F5", fontWeight: "800", fontSize: 19 }}
-                >
-                  {appText("profileSettings")}
-                </Text>
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel={appText("settings")}
-                  onPress={() => setSettingsHubOpen(true)}
-                  style={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 13,
-                    backgroundColor: "#1C1C1E",
-                    borderWidth: 1,
-                    borderColor: "#303030",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons name="settings-outline" size={23} color="#F5F5F5" />
-                </TouchableOpacity>
-              </View>
-              {privacySettings.accountType === "business" && (
-              <TouchableOpacity
-                onPress={() => { setBusinessDirectoryResults([]); setBusinessDirectoryOpen(true); }}
-                style={{ marginBottom: 13, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: "#303030", backgroundColor: "#121212", flexDirection: "row", alignItems: "center" }}
-              >
-                <Ionicons name="storefront" size={23} color="#0095F6" />
-                <View style={{ marginLeft: 11, flex: 1 }}>
-                  <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>{appText("areaBusinessDirectory")}</Text>
-                  <Text style={{ color: "#A8A8A8", fontSize: 11, marginTop: 3 }}>{appText("discoverLocalBusinesses")}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#0095F6" />
-              </TouchableOpacity>
-              )}
-              <View>
-                <View
-                  style={{
-                    borderWidth: 1,
-                    borderColor: "#303030",
-                    borderRadius: 16,
-                    paddingHorizontal: 15,
-                    paddingVertical: 15,
-                    marginBottom: 12,
-                    backgroundColor: "#121212",
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <View style={{ flex: 1, paddingRight: 12 }}>
-                      <Text
-                        style={{
-                          color: "#F5F5F5",
-                          fontWeight: "700",
-                          fontSize: 15,
-                        }}
-                      >
-                        {appText("notificationsTitle")}
-                      </Text>
-                      <Text
-                        style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
-                      >
-                        {notificationsEnabled
-                          ? "Preference enabled"
-                          : "Preference disabled"}
-                      </Text>
-                    </View>
-                    <Switch
-                      value={notificationsEnabled}
-                      onValueChange={changeNotificationPreference}
-                      disabled={notificationsBusy}
-                      trackColor={{ false: "#CBD5E1", true: "#93C5FD" }}
-                      thumbColor={notificationsEnabled ? "#DBDBDB" : "#F8FAFC"}
-                    />
+                  <View style={{ paddingHorizontal: 21, marginBottom: 18 }}>
+                    <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}>{profile.displayName || profile.username || " "}</Text>
+                    {!!profile.bio && <Text style={{ color: "#FFFFFF", fontSize: 14, marginTop: 3 }}>{profile.bio}</Text>}
                   </View>
-                </View>
-                <TouchableOpacity
-                  onPress={openNotificationSettings}
-                  disabled={notificationsBusy}
-                  style={{
-                    borderWidth: 1,
-                    borderColor: "#303030",
-                    borderRadius: 14,
-                    padding: 14,
-                    marginBottom: 11,
-                    backgroundColor: "#121212",
-                  }}
-                >
-                  <Text style={{ color: "#F5F5F5", fontWeight: "700" }}>
-                    {notificationDetailsOpen
-                      ? "Hide notification options"
-                      : "Manage notification options"}
-                  </Text>
-                  <Text
-                    style={{ color: "#A8A8A8", fontSize: 12, marginTop: 4 }}
-                  >
-                    {appText("notificationTypesDescription")}
-                  </Text>
-                </TouchableOpacity>
-                {notificationDetailsOpen && (
-                  <View
-                    style={{
-                      borderWidth: 1,
-                      borderColor: "#303030",
-                      borderRadius: 14,
-                      padding: 14,
-                      marginBottom: 12,
-                      backgroundColor: "#121212",
-                    }}
-                  >
+
+                  <TouchableOpacity onPress={() => setSettingsHubOpen(true)} activeOpacity={0.85} style={{ marginHorizontal: 20, backgroundColor: "#292D32", borderRadius: 13, paddingHorizontal: 24, paddingVertical: 17, marginBottom: 16 }}>
+                    <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}>Your dashboard</Text>
+                    <Text style={{ color: "#A8ADB5", fontSize: 14, marginTop: 4 }}>↗ {profile.viewsLast30Days ?? 0} views in the last 30 days.</Text>
+                  </TouchableOpacity>
+
+                  <View style={{ flexDirection: "row", gap: 10, paddingHorizontal: 20, marginBottom: 25 }}>
+                    <TouchableOpacity onPress={() => { setProfileDraft({ displayName: profile.displayName || "you", bio: profile.bio || "" }); setProfileEditing(true); }} style={{ flex: 1, backgroundColor: "#292D32", borderRadius: 11, paddingVertical: 12, alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}>Edit profile</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => Share.share({ message: "@" + (profile.username || "you") + " on Bhumi Social AI" })} style={{ flex: 1, backgroundColor: "#292D32", borderRadius: 11, paddingVertical: 12, alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}>Share profile</Text></TouchableOpacity>
+                  </View>
+
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 19, gap: 27, paddingBottom: 22 }}>
+                    <TouchableOpacity onPress={createStory} style={{ width: 130, alignItems: "center" }}>
+                      <View style={{ width: 126, height: 126, borderRadius: 63, borderWidth: 1.5, borderColor: "#D9D9D9", alignItems: "center", justifyContent: "center" }}><Ionicons name="add" size={48} color="#FFFFFF" /></View>
+                      <Text style={{ color: "#FFFFFF", fontSize: 14, marginTop: 7 }}>New</Text>
+                    </TouchableOpacity>
+                    {groupedStories.filter((group) => !group.own).map((group, index) => (
+                      <TouchableOpacity key={group.username || group.name || index} onPress={() => openStoryGroup(group.items)} style={{ width: 130, alignItems: "center" }}>
+                        <View style={{ width: 126, height: 126, borderRadius: 63, borderWidth: 4, borderColor: "#34383E", padding: 4 }}>
+                          {group.items?.[0]?.uri ? <Image source={{ uri: group.items[0].uri }} style={{ width: "100%", height: "100%", borderRadius: 60 }} /> : <View style={{ flex: 1, borderRadius: 60, backgroundColor: "#292D32", alignItems: "center", justifyContent: "center" }}><Ionicons name="images-outline" size={34} color="#FFFFFF" /></View>}
+                        </View>
+                        <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 14, marginTop: 7 }}>Highlights</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  <View style={{ height: 1, backgroundColor: "#24272B" }} />
+                  <View style={{ height: 62, flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
                     {[
-                      { key: "likes", label: "Likes" },
-                      { key: "comments", label: "Comments" },
-                      { key: "follows", label: "Follows" },
-                      { key: "messages", label: "Messages" },
-                      { key: "system_alerts", label: "System Alerts" },
-                    ].map((item) => (
-                      <View
-                        key={item.key}
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          paddingVertical: 8,
-                        }}
-                      >
-                        <Text style={{ color: "#F5F5F5", fontWeight: "600" }}>
-                          {item.label}
-                        </Text>
-                        <Switch
-                          value={!!notificationDetails[item.key]}
-                          onValueChange={(value) =>
-                            changeNotificationDetail(item.key, value)
-                          }
-                          disabled={notificationsBusy || !notificationsEnabled}
-                        />
-                      </View>
+                      { key: "posts", icon: "grid" },
+                      { key: "reels", icon: "play-circle-outline" },
+                      { key: "reposts", icon: "repeat" },
+                      { key: "tagged", icon: "person-circle-outline" },
+                    ].map((tab) => (
+                      <TouchableOpacity key={tab.key} onPress={() => setProfileGridTab(tab.key)} style={{ width: "25%", height: "100%", alignItems: "center", justifyContent: "center", borderBottomWidth: profileGridTab === tab.key ? 2 : 0, borderBottomColor: "#FFFFFF" }}>
+                        <Ionicons name={tab.icon} size={29} color={profileGridTab === tab.key ? "#FFFFFF" : "#9298A2"} />
+                      </TouchableOpacity>
                     ))}
                   </View>
-                )}
-                {[
-                  {
-                    title: "Account Security",
-                    subtitle: "Password and sign-in security",
-                  },
-                  { title: "Privacy", subtitle: "Control your privacy" },
-                  {
-                    title: "Account Settings",
-                    subtitle: "Manage your account",
-                  },
-                ].map((item) => (
-                  <TouchableOpacity
-                    key={item.title}
-                    onPress={() => {
-                      if (item.title === "Privacy") {
-                        openPrivacySettings();
-                      } else if (item.title === "Account Security") {
-                        setPasswordOpen(true);
-                      } else if (item.title === "Account Settings") {
-                        openAccountSettings();
-                      } else if (item.title === appText("alertNotifications")) {
-                        openNotificationSettings();
-                      } else {
-                        Alert.alert(
-                          item.title,
-                          "This setting will be added in a later step.",
-                        );
-                      }
-                    }}
-                    style={{
-                      paddingVertical: 15,
-                      paddingHorizontal: 15,
-                      borderWidth: 1,
-                      borderColor: "#303030",
-                      borderRadius: 15,
-                      marginBottom: 10,
-                      backgroundColor: "#121212",
-                      elevation: 1,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: "#F5F5F5",
-                        fontWeight: "700",
-                        fontSize: 15,
-                      }}
-                    >
-                      {item.title}
-                    </Text>
-                    <Text
-                      style={{ color: "#A8A8A8", fontSize: 11, marginTop: 4 }}
-                    >
-                      {item.subtitle}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
 
-              <TouchableOpacity
-                onPress={handleOpenSavedScreen}
-                activeOpacity={0.85}
-                style={{
-                  marginTop: 18,
-                  marginBottom: 5,
-                  paddingHorizontal: 15,
-                  paddingVertical: 14,
-                  borderRadius: 14,
-                  backgroundColor: "#1C1C1E",
-                  borderWidth: 1,
-                  borderColor: "#303030",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
-                  <Ionicons name="bookmark" size={21} color="#0095F6" />
-                  <View>
-                    <Text
-                      style={{
-                        color: "#F5F5F5",
-                        fontWeight: "800",
-                        fontSize: 15,
-                      }}
-                    >
-                      {appText("saved")}
-                    </Text>
-                    <Text
-                      style={{ color: "#A8A8A8", fontSize: 11, marginTop: 2 }}
-                    >
-                      {appText("savedContentDescription")}
-                    </Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#0095F6" />
-              </TouchableOpacity>
-              <View
-                style={{
-                  marginTop: 22,
-                  marginBottom: 12,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Text
-                  style={{ color: "#F5F5F5", fontSize: 19, fontWeight: "800" }}
-                >
-                  {appText("yourPosts")}
-                </Text>
-                <Ionicons name="grid-outline" size={21} color="#0095F6" />
-              </View>
-              {groupPostItems(
-                feedPosts.filter((p) => (p.user || "you") === "you"),
-              ).length ? (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    flexWrap: "wrap",
-                    justifyContent: "space-between",
-                    rowGap: 5,
-                  }}
-                >
-                  {groupPostItems(
-                    feedPosts.filter((p) => (p.user || "you") === "you"),
-                  ).map((p, i) => {
-                    const media = p.mediaItems?.[0] || p;
-                    const isVideo = media.mediaType === "video";
-                    const hasMultiple = (p.mediaItems?.length || 0) > 1;
-                    return (
-                      <TouchableOpacity
-                        key={p.groupId || p.id || `my-post-${i}`}
-                        activeOpacity={0.85}
-                        onPress={() => {
-                          setSelectedPostMediaIndex(0);
-                          setSelectedPost(p);
-                        }}
-                        style={{
-                          width: "32.5%",
-                          aspectRatio: 1,
-                          backgroundColor: "#1C1C1E",
-                          borderRadius: 11,
-                          overflow: "hidden",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          borderWidth: 1,
-                          borderColor: "#303030",
-                        }}
-                      >
-                        {media.uri &&
-                        !isVideo &&
-                        !profileImageErrors[
-                          p.groupId || p.id || `my-post-${i}`
-                        ] ? (
-                          <Image
-                            source={{ uri: media.uri }}
-                            style={{ width: "100%", height: "100%" }}
-                            resizeMode="cover"
-                            onError={() =>
-                              setProfileImageErrors((prev) => ({
-                                ...prev,
-                                [p.groupId || p.id || `my-post-${i}`]: true,
-                              }))
-                            }
-                          />
-                        ) : (
-                          <View
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              backgroundColor: isVideo
-                                ? "#252A3B"
-                                : p.color || "#D8E7DF",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            {isVideo ? (
-                              <Ionicons
-                                name="play-circle"
-                                size={34}
-                                color="#FFFFFF"
-                              />
-                            ) : (
-                              <Text style={{ fontSize: 38 }}>
-                                {p.emoji || "🌿"}
-                              </Text>
-                            )}
-                          </View>
-                        )}
-                        {isVideo && media.uri ? (
-                          <View
-                            style={{
-                              position: "absolute",
-                              right: 7,
-                              top: 7,
-                              width: 27,
-                              height: 27,
-                              borderRadius: 9,
-                              backgroundColor: "rgba(15, 23, 42, 0.68)",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Ionicons name="play" size={15} color="#FFFFFF" />
-                          </View>
-                        ) : null}
-                        {hasMultiple ? (
-                          <View
-                            style={{
-                              position: "absolute",
-                              right: 7,
-                              top: 7,
-                              width: 27,
-                              height: 27,
-                              borderRadius: 9,
-                              backgroundColor: "rgba(15, 23, 42, 0.68)",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Ionicons
-                              name="copy-outline"
-                              size={15}
-                              color="#FFFFFF"
-                            />
-                          </View>
-                        ) : null}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              ) : (
-                <View
-                  style={{
-                    alignItems: "center",
-                    paddingVertical: 28,
-                    paddingHorizontal: 18,
-                    backgroundColor: "#121212",
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: "#303030",
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 58,
-                      height: 58,
-                      borderRadius: 20,
-                      backgroundColor: "#1C1C1E",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: 12,
-                    }}
-                  >
-                    <Ionicons name="images-outline" size={29} color="#DBDBDB" />
-                  </View>
-                  <Text
-                    style={{
-                      color: "#F5F5F5",
-                      fontSize: 16,
-                      fontWeight: "800",
-                      marginBottom: 6,
-                    }}
-                  >
-                    {appText("firstPost")}
-                  </Text>
-                  <Text
-                    style={{
-                      color: "#A8A8A8",
-                      fontSize: 12,
-                      textAlign: "center",
-                      lineHeight: 18,
-                      marginBottom: 16,
-                    }}
-                  >
-                    {appText("profileMediaEmpty")}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => handleTab("Create")}
-                    activeOpacity={0.85}
-                    style={{
-                      backgroundColor: "#0095F6",
-                      paddingHorizontal: 22,
-                      paddingVertical: 11,
-                      borderRadius: 12,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: "#FFFFFF",
-                        fontWeight: "700",
-                        fontSize: 13,
-                      }}
-                    >
-                      {appText("createFirstPost")}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                  {(() => {
+                    const ownPosts = groupPostItems(feedPosts.filter((p) => (p.user || "you") === "you"));
+                    const visiblePosts = profileGridTab === "reels" ? ownPosts.filter((p) => (p.mediaItems?.[0] || p).mediaType === "video") : profileGridTab === "reposts" ? ownPosts.filter((p) => p.isRepost || p.isReposted || p.reposted) : profileGridTab === "tagged" ? [] : ownPosts;
+                    return visiblePosts.length ? (
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "flex-start" }}>
+                        {visiblePosts.map((p, i) => {
+                          const media = p.mediaItems?.[0] || p;
+                          const isVideo = media.mediaType === "video";
+                          const hasMultiple = (p.mediaItems?.length || 0) > 1;
+                          return (
+                            <TouchableOpacity key={p.groupId || p.id || "profile-post-" + i} activeOpacity={0.9} onPress={() => { setSelectedPostMediaIndex(0); setSelectedPost(p); }} style={{ width: "33.3333%", aspectRatio: 0.78, backgroundColor: "#17191C", overflow: "hidden", borderWidth: 0.5, borderColor: "#000000" }}>
+                              {media.uri && !isVideo && !profileImageErrors[p.groupId || p.id || "profile-post-" + i] ? <Image source={{ uri: media.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" onError={() => setProfileImageErrors((prev) => ({ ...prev, [p.groupId || p.id || "profile-post-" + i]: true }))} /> : <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: isVideo ? "#252A3B" : p.color || "#26292D" }}>{isVideo ? <Ionicons name="play" size={35} color="#FFFFFF" /> : <Text style={{ fontSize: 38 }}>{p.emoji || "🌿"}</Text>}</View>}
+                              {isVideo ? <View style={{ position: "absolute", right: 7, top: 7 }}><Ionicons name="play" size={17} color="#FFFFFF" /></View> : null}
+                              {hasMultiple ? <View style={{ position: "absolute", right: 7, top: 7 }}><Ionicons name="copy-outline" size={17} color="#FFFFFF" /></View> : null}
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    ) : <View style={{ alignItems: "center", padding: 30 }}><Ionicons name="images-outline" size={42} color="#A8A8A8" /><Text style={{ color: "#A8A8A8", marginTop: 10 }}>{profileGridTab === "posts" ? appText("profileMediaEmpty") : " "}</Text></View>;
+                  })()}
+                </>
               )}
             </View>
           )}
