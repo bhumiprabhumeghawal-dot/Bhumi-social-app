@@ -20,3 +20,5 @@ DM header icons lowered; call/video buttons reduced to bare icons: 45b923d4628cf
 Profile header cleanup: removed duplicate upper row and three-line menu; centered @username between plus and notification bell. App.js commit: 1e7da946ed69bf44dc470cf671305919a5567550
 
 Profile header duplicate-name removal build trigger: d3d78c7dee0d29e6efc007b99ec4c13c2eb3a91b
+
+APK build requested for current inbox syntax and crash diagnosis.
