@@ -5,3 +5,5 @@ Notification quick-reply category and send action: Android message notification 
 Main tab horizontal swipe capture fix: 803c93ac8aa71ec1cd872d5890372168d38e755d
 
 Profile screen exact Instagram-reference layout: f2489c7c1feac90028a7655e3b84dc9c161f2074
+
+Other-user profile layout sizing aligned with Instagram reference: c30ea4fd291bed76ba41bb4dc99b8844264b073c
