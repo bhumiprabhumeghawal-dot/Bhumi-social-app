@@ -5641,15 +5641,26 @@ export default function App() {
     <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative", backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderBottomColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
       {activeTab === "Profile" ? (
         <>
-          <Text style={[styles.brand, { flex: 1, fontSize: 20 }]} numberOfLines={1}>
+          <View style={{ width: 42, alignItems: "flex-start", justifyContent: "center", zIndex: 2 }}>
+            <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("create")} hitSlop={8} style={{ padding: 3 }}>
+              <Ionicons name="add-square-outline" size={27} color={lightAppearance ? "#171717" : "#F5F5F5"} />
+            </TouchableOpacity>
+          </View>
+          <Text
+            style={[styles.brand, { position: "absolute", left: 58, right: 112, textAlign: "center", fontSize: 20, zIndex: 1, color: lightAppearance ? "#171717" : "#F5F5F5" }]}
+            numberOfLines={1}
+          >
             {profile?.username ? `@${profile.username}` : appText("profileTab")}
           </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
-            <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("create")} style={{ padding: 3 }}>
-              <Ionicons name="add-square-outline" size={26} color="#F5F5F5" />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 13, zIndex: 2 }}>
+            <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} hitSlop={8} style={{ width: 38, height: 44, alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="notifications-outline" size={26} color={lightAppearance ? "#171717" : "#F5F5F5"} />
+              {unreadNotificationCount > 0 && (
+                <View style={{ position: "absolute", top: 5, right: 3, minWidth: 9, height: 9, borderRadius: 5, backgroundColor: "#FF3040", borderWidth: 1, borderColor: lightAppearance ? "#FFFFFF" : "#000000" }} />
+              )}
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setSettingsHubOpen(true)} accessibilityLabel={appText("settings")} hitSlop={8} style={{ width:44,height:44,borderRadius:22,alignItems:"center",justifyContent:"center",marginRight:-5 }}>
-              <Ionicons name="menu" size={29} color="#F5F5F5" />
+            <TouchableOpacity onPress={() => setSettingsHubOpen(true)} accessibilityLabel={appText("settings")} hitSlop={8} style={{ width: 38, height: 44, alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="menu" size={29} color={lightAppearance ? "#171717" : "#F5F5F5"} />
             </TouchableOpacity>
           </View>
         </>
@@ -13446,9 +13457,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#000000" },
   content: { flex: 1 },
   header: {
-    height: 58,
-    marginTop: 0,
-    paddingTop: 0,
+    height: 72,
+    marginTop: 8,
+    paddingTop: 8,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
