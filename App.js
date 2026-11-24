@@ -1825,7 +1825,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
       setLiked(Boolean(result.liked));
       setLikeCount(Number(result.likes) || 0);
     } catch (error) {
-      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
+      Alert.alert(postText("alertSaveFailed"), postText("alertTryAgain"));
     } finally {
       setBusy(false);
     }
@@ -1845,7 +1845,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
       setComments(loadedComments);
       setCommentCount(loadedComments.length);
     } catch (error) {
-      Alert.alert(appText("commentsTitle"), appText("alertLoadFailed"));
+      Alert.alert(postText("commentsTitle"), postText("alertLoadFailed"));
     }
   };
 
@@ -1870,7 +1870,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
       return;
     }
     if (!post?.id) {
-      Alert.alert(appText("commentsTitle"), appText("alertContentUnavailable"));
+      Alert.alert(postText("commentsTitle"), postText("alertContentUnavailable"));
       return;
     }
     setBusy(true);
@@ -1880,7 +1880,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
       setCommentCount((count) => count + 1);
       setDraft("");
     } catch (error) {
-      Alert.alert(appText("commentFailed"), appText("couldNotPostComment"));
+      Alert.alert(postText("commentFailed"), postText("couldNotPostComment"));
     } finally {
       setBusy(false);
     }
@@ -1914,7 +1914,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
       const message = `${post?.user || "Bhumi Social"}: ${post?.caption || "Check out this post on Bhumi Social AI"}${postLink ? `\n\nOpen post: ${postLink}` : ""}`;
       await Share.share({ message });
     } catch (error) {
-      Alert.alert(appText("profileShare"), appText("alertTryAgain"));
+      Alert.alert(postText("profileShare"), postText("alertTryAgain"));
     }
   };
 
