@@ -1082,7 +1082,7 @@ function PostCard({
   const postText = (key) => translateAppText(appLanguage, key);
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
-  const [postVideoMuted, setPostVideoMuted] = React.useState(true);
+  const [postVideoMuted, setPostVideoMuted] = React.useState(false);
   const currentPostMedia = post.mediaItems?.length > 1 ? post.mediaItems[mediaIndex] : post;
   const hasCurrentPostVideo = currentPostMedia?.mediaType === "video" && Boolean(currentPostMedia?.uri);
   const [reactionBurst, setReactionBurst] = React.useState(null);
