@@ -8064,7 +8064,7 @@ export default function App() {
         </View>
       </Modal>
 
-      {activeTab !== "Reels" && activeTab !== "Home" && activeTab !== "Search" && renderAppHeader()}
+      {activeTab !== "Reels" && activeTab !== "Home" && activeTab !== "Search" && activeTab !== "Profile" && renderAppHeader()}
 
       {activeTab !== "Reels" && !serverOnline && (
         <Text
@@ -8950,13 +8950,18 @@ export default function App() {
                 </View>
               ) : (
                 <>
-                  <View style={{ height: 58, paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                    <TouchableOpacity onPress={() => handleTab("Create")}><Ionicons name="add" size={38} color="#FFFFFF" /></TouchableOpacity>
-                    <View style={{ flex: 1 }} />
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
-                      <Ionicons name="at-circle-outline" size={30} color="#FFFFFF" />
-                      <TouchableOpacity onPress={() => setSettingsHubOpen(true)}><Ionicons name="menu" size={34} color="#FFFFFF" /></TouchableOpacity>
+                  <View style={{ height: 58, paddingHorizontal: 22, flexDirection: "row", alignItems: "center" }}>
+                    <TouchableOpacity onPress={() => handleTab("Create")} accessibilityLabel={appText("create")} style={{ width: 42, alignItems: "flex-start", justifyContent: "center" }}>
+                      <Ionicons name="add" size={32} color="#FFFFFF" />
+                    </TouchableOpacity>
+                    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>
+                        @{profile.username || authSession?.username || ""}
+                      </Text>
                     </View>
+                    <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center" }}>
+                      <Ionicons name="notifications-outline" size={27} color="#FFFFFF" />
+                    </TouchableOpacity>
                   </View>
 
                   <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 18 }}>
