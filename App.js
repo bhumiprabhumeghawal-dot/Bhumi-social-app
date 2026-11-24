@@ -12257,11 +12257,24 @@ export default function App() {
                   }}
                   accessibilityLabel={appText("tab" + tab.name)}
                 >
-                  <Ionicons
-                    name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
-                    size={25}
-                    color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
-                  />
+                  {tab.name === "Profile" && profile?.avatarUrl ? (
+                    <Image
+                      source={{ uri: profile.avatarUrl }}
+                      style={{
+                        width: 27,
+                        height: 27,
+                        borderRadius: 14,
+                        borderWidth: activeTab === "Profile" ? 1.5 : 0,
+                        borderColor: "#F5F5F5",
+                      }}
+                    />
+                  ) : (
+                    <Ionicons
+                      name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
+                      size={25}
+                      color={activeTab === tab.name ? "#F5F5F5" : "#A8A8A8"}
+                    />
+                  )}
                 </TouchableOpacity>
               ))}
             </View>
