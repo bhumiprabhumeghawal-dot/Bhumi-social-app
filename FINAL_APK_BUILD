@@ -22,3 +22,5 @@ Profile header cleanup: removed duplicate upper row and three-line menu; centere
 Profile header duplicate-name removal build trigger: d3d78c7dee0d29e6efc007b99ec4c13c2eb3a91b
 
 APK build requested for current inbox syntax and crash diagnosis.
+
+Horizontal swipe navigation for Home, Reels, Inbox, Search and Profile: 461dc6f73bb0ea9700f9ce600a0c71ac23d598b6
