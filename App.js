@@ -561,19 +561,16 @@ function PinchZoomImage({
         }}
       >
         <GestureDetector
-          gesture={
-            nativeScrollGesture
-              ? Gesture.Simultaneous(
-                  pinch,
-                  pan.enabled(zoomLevel > 1),
-                )
-                  .runOnJS(true)
-                  .simultaneousWithExternalGesture(nativeScrollGesture)
-              : Gesture.Simultaneous(
-                  pinch,
-                  pan.enabled(zoomLevel > 1),
-                ).runOnJS(true)
-          }
+          gesture={(() => {
+            // Keep JS callbacks on the leaf gestures, not the composed gesture.
+            pinch.runOnJS(true);
+            pan.runOnJS(true);
+            if (nativeScrollGesture) {
+              pinch.simultaneousWithExternalGesture(nativeScrollGesture);
+              pan.simultaneousWithExternalGesture(nativeScrollGesture);
+            }
+            return Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1));
+          })()}
         >
           <Animated.Image
             source={{ uri }}
@@ -814,16 +811,17 @@ function ReelVideoZoomable({
       savedY.value = translateY.value;
     });
 
-  const videoGestures = zoomEnabled
-    ? Gesture.Simultaneous(
-        pinch,
-        pan.enabled(zoomLevel > 1),
-      ).runOnJS(true)
+  // Configure JS callbacks on the individual gestures. Composed gestures
+  // do not expose runOnJS() in every RNGH version.
+  pinch.runOnJS(true);
+  pan.runOnJS(true);
+  if (nativeScrollGesture) {
+    pinch.simultaneousWithExternalGesture(nativeScrollGesture);
+    pan.simultaneousWithExternalGesture(nativeScrollGesture);
+  }
+  const gesture = zoomEnabled
+    ? Gesture.Simultaneous(pinch, pan.enabled(zoomLevel > 1))
     : null;
-  const gesture =
-    videoGestures && nativeScrollGesture
-      ? videoGestures.simultaneousWithExternalGesture(nativeScrollGesture)
-      : videoGestures;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
