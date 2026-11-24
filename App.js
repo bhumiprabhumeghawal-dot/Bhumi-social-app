@@ -1509,13 +1509,16 @@ function PostCard({
             <Ionicons name="chatbubble-outline" size={24} color="#0095F6" />
           </TouchableOpacity>
           {!isOwnPost && !post?.isStarterPost ? (
-            <TouchableOpacity onPress={handleRepost} disabled={repostBusy} accessibilityLabel="Repost">
+            <TouchableOpacity
+              onPress={handleRepost}
+              disabled={repostBusy}
+              accessibilityRole="button"
+              accessibilityLabel={reposted ? "Undo repost" : "Repost"}
+              style={{ alignItems: "center", justifyContent: "center", minWidth: 30 }}
+            >
               <Ionicons name="repeat" size={27} color={reposted ? "#16A765" : uiTextColor} />
             </TouchableOpacity>
           ) : null}
-          <TouchableOpacity onPress={sendFlowerGift} disabled={flowerGiftBusy}>
-            <Ionicons name="flower-outline" size={24} color={flowerGiftBusy ? "#777777" : "#E9A7C8"} />
-          </TouchableOpacity>
           <TouchableOpacity onPress={sharePost}>
             <Ionicons name="paper-plane-outline" size={25} color={uiTextColor} />
           </TouchableOpacity>
