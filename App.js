@@ -3997,7 +3997,8 @@ export default function App() {
         );
         setReelSavedState((current) => ({ ...current, [id]: false }));
       }
-    } catch (e) {      Alert.alert(appText("alertSaved"), appText("alertTryAgain"));
+    } catch (e) {
+      Alert.alert(appText("alertSaved"), appText("alertTryAgain"));
     }
   };
 
@@ -7996,7 +7997,8 @@ export default function App() {
               maxToRenderPerBatch={2}
               windowSize={5}
               removeClippedSubviews={false}
-              getItemLayout={(_, index) => ({                length: reelViewportHeight,
+              getItemLayout={(_, index) => ({
+                length: reelViewportHeight,
                 offset: reelViewportHeight * index,
                 index,
               })}
@@ -11995,7 +11997,8 @@ export default function App() {
                     flexDirection: "row",
                     paddingHorizontal: 18,
                     marginBottom: 4,
-                    borderBottomWidth: 1,                    borderBottomColor: "#303030",
+                    borderBottomWidth: 1,
+                    borderBottomColor: "#303030",
                   }}
                 >
                   {["All", "Primary", "General", "Requests"].map((tab) => {
