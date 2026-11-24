@@ -8952,11 +8952,7 @@ export default function App() {
                 <>
                   <View style={{ height: 58, paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                     <TouchableOpacity onPress={() => handleTab("Create")}><Ionicons name="add" size={38} color="#FFFFFF" /></TouchableOpacity>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 20, fontWeight: "800", maxWidth: 225 }}>{profile.username || "you"}</Text>
-                      <Ionicons name="chevron-down" size={21} color="#FFFFFF" />
-                      <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: "#FF3040" }} />
-                    </View>
+                    <View style={{ flex: 1 }} />
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
                       <Ionicons name="at-circle-outline" size={30} color="#FFFFFF" />
                       <TouchableOpacity onPress={() => setSettingsHubOpen(true)}><Ionicons name="menu" size={34} color="#FFFFFF" /></TouchableOpacity>
