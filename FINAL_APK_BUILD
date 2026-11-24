@@ -44,3 +44,5 @@ Build APK for ReelVideoZoomable undefined-function startup crash fix (commit bbd
 Build APK for adjusted bottom navigation and lower story/reel/post overlay icons (commit 11c2885ec82a36dbd3d820f39376716c9b9e5586).
 
 Build APK for horizontal swipe navigation that updates the selected bottom tab (commit ada00d4).
+
+Build APK after fixing malformed JSX line breaks in horizontal tab swipe wrapper (commit 151e70a).
