@@ -4178,6 +4178,7 @@ def _send_direct_message_push(username, sender, message_text="", attachment_type
                 "sound": "default" if sound_enabled else None,
                 "priority": "high",
                 "channelId": "messages" if sound_enabled else "messages-silent",
+                "categoryIdentifier": "bhumi_message_reply",
                 "data": {"type": "direct_message", "username": sender, "soundEnabled": sound_enabled},
             }
             request_obj = urllib.request.Request(
