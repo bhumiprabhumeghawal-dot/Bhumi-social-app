@@ -50,3 +50,5 @@ Native gesture crash fix 287748e8b6be72e4b05176faf006cecb31535f0c
 
 Build APK with automatic OTA startup checks paused to investigate 10-second Android exit (commit 5919e17).
 Build APK with OTA checks re-enabled after a 30-second startup delay (commit 36379d2).
+
+Build APK with automatic OTA launch disabled at startup; in-app OTA checks remain enabled after 30 seconds (commit 1bf11c1).
