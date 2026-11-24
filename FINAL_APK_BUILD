@@ -15,3 +15,4 @@ Build APK after SettingsDashboard feed-list syntax fix (commit 6ea0dd8).
 Build APK for latest PostCard appText startup crash fix (commit 0438b1f539433e5b8dcc09be1a1837ac16117f72).
 Build APK for Android Intl.RelativeTimeFormat startup crash fix (commit 883d6c219380877d88de26f079268573333f606c).
 Build APK for Home header plus and heart icons 20px lower (commit 960ab91c7e0abb7ced1a96c9c26bac043e3ef50e).
+Build APK for floating heart reaction animation after successful likes (commit 964a08fed12a02ae47b85a88588ac31330632089).
