@@ -2264,6 +2264,58 @@ def toggle_post_like(content_id):
     return jsonify({"ok": True, "liked": liked, "likes": count})
 
 
+@app.post("/api/posts/<int:content_id>/gifts")
+def send_post_gift(content_id):
+    sender = _chat_current_user()
+    if not sender:
+        return jsonify({"error": "Please log in first."}), 401
+    data = request.get_json(silent=True) or {}
+    gift_type = str(data.get("giftType") or "flower").strip().lower()
+    if gift_type != "flower":
+        return jsonify({"error": "Unsupported gift type."}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        post = db.execute(
+            "SELECT id, username FROM content WHERE id=? AND kind IN ('posts', 'reels', 'stories')",
+            (content_id,),
+        ).fetchone()
+        if post is None or not can_view_content(db, post["username"], sender):
+            return jsonify({"error": "Content not found."}), 404
+        recipient = str(post["username"] or "").strip()
+        if recipient.lower() == sender.lower():
+            return jsonify({"error": "You cannot send a gift to yourself."}), 400
+        gift_id = uuid.uuid4().hex
+        db.execute("""
+            INSERT INTO post_gifts (id, content_id, sender_username, recipient_username, gift_type, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (gift_id, content_id, sender, recipient, gift_type, now))
+        _people_notification(db, recipient, sender, "gift_flower", content_id, now)
+        total = db.execute(
+            "SELECT COUNT(*) AS total FROM post_gifts WHERE content_id=? AND gift_type=?",
+            (content_id, gift_type),
+        ).fetchone()["total"]
+    return jsonify({"ok": True, "gift": {"id": gift_id, "contentId": content_id, "giftType": gift_type, "createdAt": now}, "giftCount": total}), 201
+
+
+@app.get("/api/gifts/history")
+def get_gift_history():
+    username = _chat_current_user()
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT id, content_id, sender_username, recipient_username, gift_type, created_at
+            FROM post_gifts
+            WHERE LOWER(sender_username)=LOWER(?) OR LOWER(recipient_username)=LOWER(?)
+            ORDER BY created_at DESC LIMIT 100
+        """, (username, username)).fetchall()
+    return jsonify({"gifts": [{
+        "id": row["id"], "contentId": row["content_id"],
+        "sender": row["sender_username"], "recipient": row["recipient_username"],
+        "giftType": row["gift_type"], "createdAt": row["created_at"],
+        "direction": "sent" if str(row["sender_username"]).lower() == username.lower() else "received"
+    } for row in rows]})
+
 @app.get("/api/posts/<int:content_id>")
 def get_post_by_id(content_id):
     viewer = getattr(g, "auth_username", None)
@@ -5029,6 +5081,7 @@ def _people_notification(db, recipient, actor, kind, reference_id, now):
         return
     category = {
         "like": "likes",
+        "gift_flower": "likes",
         "comment": "comments",
         "message": "messages",
         "follow": "follows",
@@ -5156,6 +5209,24 @@ def init_people_connect_tables():
         db.execute("""
             CREATE INDEX IF NOT EXISTS idx_people_notifications_recipient
             ON people_notifications(recipient, created_at)
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS post_gifts (
+                id TEXT PRIMARY KEY,
+                content_id INTEGER NOT NULL,
+                sender_username TEXT NOT NULL,
+                recipient_username TEXT NOT NULL,
+                gift_type TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_post_gifts_recipient
+            ON post_gifts(recipient_username, created_at DESC)
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_post_gifts_sender
+            ON post_gifts(sender_username, created_at DESC)
         """)
 
 
