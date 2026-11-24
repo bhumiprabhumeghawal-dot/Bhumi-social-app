@@ -42,7 +42,8 @@ import {Alert as NativeAlert,
   KeyboardAvoidingView,
   BackHandler,
   Platform,
-  AppState } from "react-native";
+  AppState,
+  PanResponder } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
 import {
   applyZoomEffect,
@@ -2442,13 +2443,15 @@ export default function App() {
   const [activeTab, setActiveTab] = React.useState("Home");
   const tabSwipeDistance = React.useRef(0);
   const mainTabs = React.useMemo(() => ["Home", "Reels", "Chat", "Search", "Profile"], []);
-  const tabSwipeGesture = usePanGesture({
-    runOnJS: true,
-    activeOffsetX: [-24, 24],
-    failOffsetY: [-18, 18],
-    onUpdate: (event) => { tabSwipeDistance.current = event.translationX || 0; },
-    onDeactivate: () => {
-      const distance = tabSwipeDistance.current;
+  const tabSwipeResponder = React.useMemo(() => PanResponder.create({
+    onMoveShouldSetPanResponder: (_event, gestureState) =>
+      Math.abs(gestureState.dx) > 24 &&
+      Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.2,
+    onPanResponderMove: (_event, gestureState) => {
+      tabSwipeDistance.current = gestureState.dx || 0;
+    },
+    onPanResponderRelease: (_event, gestureState) => {
+      const distance = gestureState.dx || tabSwipeDistance.current;
       tabSwipeDistance.current = 0;
       if (Math.abs(distance) < 75) return;
       setActiveTab((current) => {
@@ -2457,7 +2460,8 @@ export default function App() {
         return mainTabs[Math.max(0, Math.min(mainTabs.length - 1, index + (distance < 0 ? 1 : -1)))];
       });
     },
-  });
+    onPanResponderTerminate: () => { tabSwipeDistance.current = 0; },
+  }), [mainTabs]);
   const [appLanguage, setAppLanguage] = React.useState("en");
   const appText = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   // BHUMI_CRASH_DISPLAY
@@ -8033,8 +8037,7 @@ export default function App() {
         <Text style={{ padding: 5, color: "#0095F6" }}>{appText("uploadMediaProgress")}</Text>
       )}
 
-      <GestureDetector gesture={tabSwipeGesture}>
-        <View style={{ flex: 1 }}>
+      <View {...tabSwipeResponder.panHandlers} style={{ flex: 1 }}>
       {activeTab === "Reels" ? (
         <View
           style={{ flex: 1, backgroundColor: "#000000" }}
@@ -9920,8 +9923,7 @@ export default function App() {
         </View>
       )}
 
-        </View>
-      </GestureDetector>
+      </View>
 
       <View style={[styles.bottomNav, { backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderTopColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
         {[
