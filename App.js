@@ -1110,6 +1110,11 @@ function PostCard({
   );
 
   React.useEffect(() => {
+    setReposted(Boolean(post?.isReposted));
+    setRepostCount(Number(post?.repostsCount || 0));
+  }, [post?.id, post?.isReposted, post?.repostsCount]);
+
+  React.useEffect(() => {
     setLiked(Boolean(post?.isLiked));
     setLikeCount(
       Number(String(post?.likesCount ?? post?.likes ?? "0").replace(/,/g, "")) || 0,
@@ -1121,6 +1126,10 @@ function PostCard({
   const [commentDraft, setCommentDraft] = React.useState("");
   const [interactionBusy, setInteractionBusy] = React.useState(false);
   const [flowerGiftBusy, setFlowerGiftBusy] = React.useState(false);
+  const [reposted, setReposted] = React.useState(Boolean(post?.isReposted));
+  const [repostCount, setRepostCount] = React.useState(Number(post?.repostsCount || 0));
+  const [repostBusy, setRepostBusy] = React.useState(false);
+  const isOwnPost = Boolean(authSession?.username && String(post?.user || "").toLowerCase() === String(authSession.username).toLowerCase());
   const [postFooterHeight, setPostFooterHeight] = React.useState(150);
   const mediaHeight =
     pageHeight > 0 ? Math.max(0, pageHeight - 58 - postFooterHeight) : 420;
@@ -1162,6 +1171,20 @@ function PostCard({
       Alert.alert(postText("alertSaveFailed"), postText("alertTryAgain"));
     } finally {
       setInteractionBusy(false);
+    }
+  };
+
+  const handleRepost = async () => {
+    if (repostBusy || isOwnPost || !post?.id || post?.isStarterPost || String(post?.id || "").startsWith("bhumi-starter-")) return;
+    setRepostBusy(true);
+    try {
+      const result = await togglePostRepost(post.id, authSession);
+      setReposted(Boolean(result.reposted));
+      setRepostCount(Number(result.reposts) || 0);
+    } catch (error) {
+      Alert.alert(postText("alertSaveFailed"), error.message || postText("alertTryAgain"));
+    } finally {
+      setRepostBusy(false);
     }
   };
 
@@ -1484,6 +1507,11 @@ function PostCard({
           <TouchableOpacity onPress={openComments}>
             <Ionicons name="chatbubble-outline" size={24} color="#0095F6" />
           </TouchableOpacity>
+          {!isOwnPost && !post?.isStarterPost ? (
+            <TouchableOpacity onPress={handleRepost} disabled={repostBusy} accessibilityLabel="Repost">
+              <Ionicons name="repeat" size={27} color={reposted ? "#16A765" : uiTextColor} />
+            </TouchableOpacity>
+          ) : null}
           <TouchableOpacity onPress={sendFlowerGift} disabled={flowerGiftBusy}>
             <Ionicons name="flower-outline" size={24} color={flowerGiftBusy ? "#777777" : "#E9A7C8"} />
           </TouchableOpacity>
@@ -1500,6 +1528,7 @@ function PostCard({
           </TouchableOpacity>
         </View>
 
+        {repostCount > 0 ? <Text style={{ color: uiTextColor, fontSize: 12, marginBottom: 3 }}>{repostCount.toLocaleString()} Reposts</Text> : null}
         <Text style={[styles.likes, { color: uiTextColor }]}>
           {likeCount.toLocaleString()} {translateAppText(appLanguage, "likesLabel")}
         </Text>
