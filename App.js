@@ -3133,6 +3133,22 @@ export default function App() {
   const [chatUnreadOnly, setChatUnreadOnly] = React.useState(false);
   const [chatInboxTab, setChatInboxTab] = React.useState("All");
   const [chatFolderSaving, setChatFolderSaving] = React.useState("");
+  const [secretMenuOpen, setSecretMenuOpen] = React.useState(false);
+  const [secretChatOpen, setSecretChatOpen] = React.useState(false);
+  const [secretSelectionMode, setSecretSelectionMode] = React.useState(false);
+  const [secretSelectedUsers, setSecretSelectedUsers] = React.useState([]);
+  const [secretChatUsers, setSecretChatUsers] = React.useState([]);
+  const secretChatStorageKey = "bhumi_secret_chats_" + String(authSession?.username || "").toLowerCase();
+  React.useEffect(() => {
+    let active = true;
+    if (!authSession?.username) { setSecretChatUsers([]); return undefined; }
+    SecureStore.getItemAsync(secretChatStorageKey).then((raw) => {
+      if (!active) return;
+      const parsed = raw ? JSON.parse(raw) : [];
+      setSecretChatUsers(Array.isArray(parsed) ? parsed.slice(0, 10) : []);
+    }).catch(() => { if (active) setSecretChatUsers([]); });
+    return () => { active = false; };
+  }, [secretChatStorageKey]);
 
   const [chatFriendFilter, setChatFriendFilter] = React.useState("All");
   const [newChatComposerOpen, setNewChatComposerOpen] = React.useState(false);
@@ -3209,6 +3225,34 @@ export default function App() {
     };
   }, [newChatUsername, messagesOpen, selectedChatUser, newChatComposerOpen]);
 
+  const toggleSecretChatUser = (username) => {
+    const key = String(username || "").trim();
+    if (!key) return;
+    setSecretSelectedUsers((current) => {
+      const exists = current.some((item) => item.toLowerCase() === key.toLowerCase());
+      if (exists) return current.filter((item) => item.toLowerCase() !== key.toLowerCase());
+      if (current.length >= 10) { setChatError("You can select up to 10 people."); return current; }
+      setChatError("");
+      return [...current, key];
+    });
+  };
+  const saveSecretChatUsers = async () => {
+    const next = [...new Set(secretSelectedUsers.map((item) => String(item).trim()).filter(Boolean))].slice(0, 10);
+    try {
+      await SecureStore.setItemAsync(secretChatStorageKey, JSON.stringify(next));
+      setSecretChatUsers(next);
+      setSecretSelectionMode(false);
+      setSecretChatOpen(true);
+      setSecretMenuOpen(false);
+      setSecretSelectedUsers([]);
+      setChatSearchQuery("");
+      setChatError("");
+    } catch (error) { setChatError(error?.message || "Could not save Secret Chat list."); }
+  };
+  const openSecretChatSelection = () => {
+    setSecretMenuOpen(false); setSecretChatOpen(false); setSecretSelectionMode(true);
+    setSecretSelectedUsers([...secretChatUsers]); setChatSearchQuery(""); setChatError("");
+  };
   const closeMessages = () => {
     if (selectedChatUser)
       updateChatTyping(selectedChatUser, false).catch(() => {});
@@ -6658,11 +6702,15 @@ export default function App() {
       const requestStatus = String(conversation.requestStatus || "").toLowerCase();
       const isRequest = Boolean(conversation.isRequest) || ["pending", "requested"].includes(requestStatus) || folder === "requests";
       const friendKey = String(username).toLowerCase();
-      if (chatFriendFilter === "Favourite" && !chatFriendPrefs["messages.favorite." + friendKey]) return false;
+      const isSecret = secretChatUsers.some((item) => item.toLowerCase() === friendKey);
+      if (secretSelectionMode) {
+        if (friendKey === String(authSession?.username || "").toLowerCase()) return false;
+      } else if (secretChatOpen ? !isSecret : isSecret) return false;
+      if (!secretSelectionMode && chatFriendFilter === "Favourite" && !chatFriendPrefs["messages.favorite." + friendKey]) return false;
       if (chatFriendFilter === "Close" && !chatFriendPrefs["messages.closeFriend." + friendKey]) return false;
-      if (chatInboxTab === "Requests" && !isRequest) return false;
-      if ((chatInboxTab === "Primary" || chatInboxTab === "General") && folder !== chatInboxTab.toLowerCase()) return false;
-      if (chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
+      if (!secretSelectionMode && chatInboxTab === "Requests" && !isRequest) return false;
+      if (!secretSelectionMode && (chatInboxTab === "Primary" || chatInboxTab === "General") && folder !== chatInboxTab.toLowerCase()) return false;
+      if (!secretSelectionMode && chatUnreadOnly && Number(conversation.unreadCount || 0) <= 0) return false;
       return !term ||
         String(username).toLowerCase().includes(term) ||
         String(conversation.displayName || "").toLowerCase().includes(term) ||
@@ -11001,7 +11049,7 @@ export default function App() {
                     <Ionicons name="create-outline" size={25} color="#F5F5F5" />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={closeMessages}
+                    onPress={() => setSecretMenuOpen((open) => !open)}
                     style={{ paddingHorizontal: 8 }}
                   >
                     <Ionicons
@@ -11014,6 +11062,13 @@ export default function App() {
               )}
             </View>
 
+            {secretMenuOpen && !selectedChatUser ? (
+              <View style={{ position: "absolute", top: 54, right: 14, zIndex: 50, elevation: 12, backgroundColor: "#262626", borderRadius: 12, paddingVertical: 5, minWidth: 160, borderWidth: 1, borderColor: "#3A3A3A" }}>
+                <TouchableOpacity onPress={openSecretChatSelection} style={{ paddingHorizontal: 16, paddingVertical: 13 }}>
+                  <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "700" }}>Secret Chat</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
             {!selectedChatUser ? (
               <View
                 style={{ flex: 1, backgroundColor: "#000000", paddingTop: 8 }}
@@ -11447,6 +11502,21 @@ export default function App() {
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={{ paddingBottom: 10 }}
                 >
+                  {secretSelectionMode ? (
+                    <View style={{ paddingHorizontal: 18, paddingTop: 10, paddingBottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                      <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>Send to</Text>
+                      <TouchableOpacity onPress={saveSecretChatUsers} disabled={secretSelectedUsers.length === 0} style={{ backgroundColor: secretSelectedUsers.length ? "#3797F0" : "#343434", borderRadius: 20, paddingHorizontal: 18, paddingVertical: 8 }}>
+                        <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Next ({secretSelectedUsers.length}/10)</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : secretChatOpen ? (
+                    <View style={{ paddingHorizontal: 18, paddingVertical: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                      <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>Secret Chat</Text>
+                      <TouchableOpacity onPress={openSecretChatSelection} style={{ backgroundColor: "#262626", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8 }}>
+                        <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>Add people</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
                   {getVisibleMessageConversations()
                     .map((conversation, index) => {
                       const username =
@@ -11469,7 +11539,7 @@ export default function App() {
                           }}
                         >
                         <TouchableOpacity
-                          onPress={() => openDirectChat(username)}
+                          onPress={() => secretSelectionMode ? toggleSecretChatUser(username) : openDirectChat(username)}
                           activeOpacity={0.78}
                           style={{ flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 13 }}
                         >
@@ -11550,8 +11620,16 @@ export default function App() {
                             </Text>
                           </View>
                         </TouchableOpacity>
+                          {secretSelectionMode ? (
+                            <TouchableOpacity onPress={() => toggleSecretChatUser(username)} style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: secretSelectedUsers.some((item) => item.toLowerCase() === String(username).toLowerCase()) ? "#3797F0" : "#777777", backgroundColor: secretSelectedUsers.some((item) => item.toLowerCase() === String(username).toLowerCase()) ? "#3797F0" : "transparent", alignItems: "center", justifyContent: "center" }}>
+                              {secretSelectedUsers.some((item) => item.toLowerCase() === String(username).toLowerCase()) ? <Ionicons name="checkmark" size={18} color="#FFFFFF" /> : null}
+                            </TouchableOpacity>
+                          ) : secretChatOpen ? (
+                            <TouchableOpacity onPress={() => { setSecretChatOpen(false); setChatSearchQuery(""); }} style={{ padding: 8 }}>
+                              <Ionicons name="lock-closed" size={17} color="#A8A8A8" />
+                            </TouchableOpacity>
+                          ) : (
                           <View style={{ alignItems: "flex-end", minWidth: 38 }}>
-
                             <Text style={{ color: "#A8A8A8", fontSize: 13 }}>
                               {conversation.lastMessageAt
                                 ? (() => {
@@ -11611,6 +11689,7 @@ export default function App() {
                                 : <Ionicons name="folder-outline" size={17} color="#A8A8A8" />}
                             </TouchableOpacity>
                           </View>
+                          )}
                         </View>
                       );
                     })}
@@ -11624,7 +11703,11 @@ export default function App() {
                         padding: 28,
                       }}
                     >
-                      {messageConversations.length === 0
+                      {secretSelectionMode
+                        ? "No people found in your Inbox."
+                        : secretChatOpen
+                          ? "No Secret Chats yet. Tap Add people to select up to 10 people."
+                        : messageConversations.length === 0
                         ? appText("emptyConversations")
                         : chatUnreadOnly
                           ? appText("emptyUnread")
