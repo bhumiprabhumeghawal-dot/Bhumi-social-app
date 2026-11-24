@@ -33,3 +33,6 @@ Build APK for latest committed Bhumi Social AI updates including restored repost
 Build APK after RNGH 3 hook API migration and RN 0.88 compatible dependency (commit 3cb2144, e7e3449, 32e460a).
 
 Build APK for post video mute/unmute control with audio enabled by default (commit b9a5ddfb9df2c0435421b4458507ac957cf7f016).
+
+
+Build APK for optional licensed soundtrack support in posts and reels (commits a7cabf7, 86671ad, 2677d3f, beba791).
