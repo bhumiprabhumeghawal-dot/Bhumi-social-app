@@ -5441,11 +5441,11 @@ export default function App() {
         </>
       ) : activeTab === "Home" ? (
         <>
-          <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("createPhotoPost")} style={{ width: 42, alignItems: "flex-start", justifyContent: "center" }}>
+          <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("createPhotoPost")} style={{ width: 42, alignItems: "flex-start", justifyContent: "center", transform: [{ translateY: 20 }] }}>
             <Ionicons name="add" size={38} color={lightAppearance ? "#111111" : "#F5F5F5"} />
           </TouchableOpacity>
           <Text style={[styles.brand, { flex: 1, textAlign: "center", fontSize: 27, fontWeight: "700", letterSpacing: -1, color: lightAppearance ? "#111111" : "#F5F5F5" }]} numberOfLines={1}>Bhumi Social AI</Text>
-          <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center", position: "relative" }}>
+          <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center", position: "relative", transform: [{ translateY: 20 }] }}>
             <Ionicons name="heart-outline" size={32} color={lightAppearance ? "#111111" : "#F5F5F5"} />
             {unreadNotificationCount > 0 ? <View style={{ position: "absolute", right: -1, top: 2, width: 10, height: 10, borderRadius: 5, backgroundColor: "#E1306C" }} /> : null}
           </TouchableOpacity>
