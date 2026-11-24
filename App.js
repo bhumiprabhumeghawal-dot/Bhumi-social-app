@@ -9078,8 +9078,8 @@ export default function App() {
             onPress={() => handleTab(tab.name)}
             accessibilityLabel={appText("tab" + tab.name)}
           >
-            {tab.name === "Profile" && profile?.avatarUrl ? (
-              <Image source={{ uri: profile.avatarUrl }} style={{ width: 27, height: 27, borderRadius: 14 }} />
+            {tab.name === "Profile" && (profile?.avatarUrl || authSession?.avatarUrl) ? (
+              <Image source={{ uri: profile?.avatarUrl || authSession?.avatarUrl }} style={{ width: 27, height: 27, borderRadius: 14 }} resizeMode="cover" />
             ) : (
               <Ionicons
                 name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
@@ -10775,10 +10775,10 @@ export default function App() {
                 flexDirection: "row",
                 alignItems: "center",
                 paddingHorizontal: 16,
-                paddingTop: selectedChatUser ? 30 : 4,
+                paddingTop: selectedChatUser ? 30 : 34,
                 paddingBottom: 6,
                 backgroundColor: "#000000",
-                minHeight: selectedChatUser ? 78 : 58,
+                minHeight: selectedChatUser ? 78 : 88,
               }}
             >
               {selectedChatUser ? (
@@ -12257,9 +12257,9 @@ export default function App() {
                   }}
                   accessibilityLabel={appText("tab" + tab.name)}
                 >
-                  {tab.name === "Profile" && profile?.avatarUrl ? (
+                  {tab.name === "Profile" && (profile?.avatarUrl || authSession?.avatarUrl) ? (
                     <Image
-                      source={{ uri: profile.avatarUrl }}
+                      source={{ uri: profile?.avatarUrl || authSession?.avatarUrl }}
                       style={{
                         width: 27,
                         height: 27,
