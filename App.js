@@ -97,7 +97,6 @@ import {
   saveSettingsPreferences,
   togglePostLike,
   togglePostRepost,
-  sendPostFlowerGift,
   loadPostById,
   loadPostComments,
   createPostComment,
@@ -1126,7 +1125,6 @@ function PostCard({
   const [comments, setComments] = React.useState([]);
   const [commentDraft, setCommentDraft] = React.useState("");
   const [interactionBusy, setInteractionBusy] = React.useState(false);
-  const [flowerGiftBusy, setFlowerGiftBusy] = React.useState(false);
   const [reposted, setReposted] = React.useState(Boolean(post?.isReposted));
   const [repostCount, setRepostCount] = React.useState(Number(post?.repostsCount || 0));
   const [repostBusy, setRepostBusy] = React.useState(false);
@@ -1186,23 +1184,6 @@ function PostCard({
       Alert.alert(postText("alertSaveFailed"), error.message || postText("alertTryAgain"));
     } finally {
       setRepostBusy(false);
-    }
-  };
-
-  const sendFlowerGift = async () => {
-    if (flowerGiftBusy) return;
-    if (!post?.id || post?.isStarterPost || post?.isStarterReel || String(post?.id || "").startsWith("bhumi-starter-")) {
-      showReactionBurst("🌸");
-      return;
-    }
-    setFlowerGiftBusy(true);
-    try {
-      await sendPostFlowerGift(post.id);
-      showReactionBurst("🌸");
-    } catch (error) {
-      Alert.alert(postText("alertSaveFailed"), error.message || postText("alertTryAgain"));
-    } finally {
-      setFlowerGiftBusy(false);
     }
   };
 
