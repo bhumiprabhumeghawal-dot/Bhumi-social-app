@@ -601,10 +601,20 @@ function PinchZoomImage({
   );
 }
 function ReelVideo(props) {
-  // Keep video playback on the stable non-zoom path.
-  // The zoomable video gesture hook path was causing a release render crash
-  // (TypeError: undefined is not a function in ReelVideoZoomable).
-  // Image zoom remains available through ZoomableImage.
+  // Do not allocate native video/audio players for off-screen feed items.
+  // On Android, creating a player for every mounted FlatList row can exhaust
+  // decoder/native resources while the Home feed and Reels load.
+  if (!props.active) {
+    return (
+      <View
+        style={{
+          width: "100%",
+          height: props.height || 420,
+          backgroundColor: "#000000",
+        }}
+      />
+    );
+  }
   return <ReelVideoPlain {...props} />;
 }
 
