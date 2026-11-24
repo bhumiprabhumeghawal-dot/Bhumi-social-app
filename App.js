@@ -1613,7 +1613,6 @@ function PostCard({
         onRequestClose={() => setCommentsOpen(false)}
       >
         <KeyboardAvoidingView
-          {...tabSwipeResponder.panHandlers}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
