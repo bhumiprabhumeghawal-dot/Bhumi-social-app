@@ -8033,7 +8033,9 @@ export default function App() {
         <Text style={{ padding: 5, color: "#0095F6" }}>{appText("uploadMediaProgress")}</Text>
       )}
 
-      <GestureDetector gesture={tabSwipeGesture}>\n        <View style={{ flex: 1 }}>\n      {activeTab === "Reels" ? (
+      <GestureDetector gesture={tabSwipeGesture}>
+        <View style={{ flex: 1 }}>
+      {activeTab === "Reels" ? (
         <View
           style={{ flex: 1, backgroundColor: "#000000" }}
           onLayout={(event) => {
@@ -9918,7 +9920,10 @@ export default function App() {
         </View>
       )}
 
-        </View>\n      </GestureDetector>\n\n      <View style={[styles.bottomNav, { backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderTopColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
+        </View>
+      </GestureDetector>
+
+      <View style={[styles.bottomNav, { backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderTopColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
         {[
           { name: "Home", icon: "home-outline", activeIcon: "home" },
           { name: "Reels", icon: "play-outline", activeIcon: "play" },
