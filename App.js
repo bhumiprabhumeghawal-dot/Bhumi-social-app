@@ -11168,7 +11168,7 @@ export default function App() {
                 ) : null}
 
                 {/* INSTAGRAM_STYLE_INBOX_STORIES_V1 */}
-                <View style={{ paddingTop: 10, paddingBottom: 8 }}>
+                <View style={{ paddingTop: 28, paddingBottom: 8 }}>
                   <ScrollView
                   nestedScrollEnabled
                     horizontal
@@ -11187,7 +11187,7 @@ export default function App() {
                             }}
                             accessibilityRole="button"
                             accessibilityLabel={appText("yourNote")}
-                            style={{ position: "absolute", top: -9, left: -8, maxWidth: 88, minHeight: 27, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 13, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: ownNote?.text ? "#3797F0" : "#444444", zIndex: 5, elevation: 6, alignItems: "center", justifyContent: "center" }}
+                            style={{ position: "absolute", top: -25, left: -8, maxWidth: 88, minHeight: 27, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 13, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: ownNote?.text ? "#3797F0" : "#444444", zIndex: 10, elevation: 10, alignItems: "center", justifyContent: "center" }}
                           >
                             <Text numberOfLines={2} style={{ color: "#F5F5F5", fontSize: 9, textAlign: "center", fontWeight: "600" }}>
                               {ownNote?.text || ("＋ " + appText("yourNote"))}
