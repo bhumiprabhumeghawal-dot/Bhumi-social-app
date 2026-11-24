@@ -540,7 +540,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
 
   return (
     <>
-      {showButtons ? <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
+      {showButtons ? <View style={{ flexDirection: "row", alignItems: "center", gap: 9, transform: [{ translateY: 6 }], marginRight: 4 }}>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={label("voice")}
