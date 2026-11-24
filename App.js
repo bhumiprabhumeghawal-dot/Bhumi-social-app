@@ -8957,8 +8957,8 @@ export default function App() {
 
                   <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingTop: 17, paddingBottom: 25 }}>
                     <TouchableOpacity onPress={chooseProfilePhoto} disabled={profileBusy} style={{ width: 150, alignItems: "flex-start" }}>
-                      <View style={{ width: 130, height: 130, borderRadius: 65, padding: 3, borderWidth: 2, borderColor: "#34383E", alignItems: "center", justifyContent: "center" }}>
-                        {profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: "#26292D" }} /> : <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: "#26292D", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 42, fontWeight: "700" }}>{(profile.displayName || "Y").charAt(0).toUpperCase()}</Text></View>}
+                      <View style={{ width: 120, height: 120, borderRadius: 60, padding: 2, borderWidth: 2, borderColor: "#34383E", alignItems: "center", justifyContent: "center" }}>
+                        {profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "#26292D" }} /> : <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "#26292D", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 42, fontWeight: "700" }}>{(profile.displayName || "Y").charAt(0).toUpperCase()}</Text></View>}
                       </View>
                       <View style={{ position: "absolute", right: 0, bottom: 1, width: 34, height: 34, borderRadius: 17, backgroundColor: "#FFFFFF", borderWidth: 3, borderColor: "#000000", alignItems: "center", justifyContent: "center" }}><Ionicons name="add" size={22} color="#111111" /></View>
                     </TouchableOpacity>
