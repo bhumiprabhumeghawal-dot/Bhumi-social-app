@@ -10775,10 +10775,10 @@ export default function App() {
                 flexDirection: "row",
                 alignItems: "center",
                 paddingHorizontal: 16,
-                paddingTop: selectedChatUser ? 10 : 4,
+                paddingTop: selectedChatUser ? 30 : 4,
                 paddingBottom: 6,
                 backgroundColor: "#000000",
-                minHeight: 58,
+                minHeight: selectedChatUser ? 78 : 58,
               }}
             >
               {selectedChatUser ? (
@@ -11644,11 +11644,11 @@ export default function App() {
                             setChatUnsendTarget(message);
                           }}
                           style={{
-                            maxWidth: "78%",
+                            maxWidth: "70%",
                             backgroundColor: mine ? chatThemeColors.mine : chatThemeColors.other,
-                            borderRadius: 20,
-                            paddingHorizontal: 12,
-                            paddingVertical: 9,
+                            borderRadius: 18,
+                            paddingHorizontal: 10,
+                            paddingVertical: 7,
                             borderWidth: 0,
                             borderColor: "transparent",
                             elevation: 0,
@@ -11841,8 +11841,8 @@ export default function App() {
                             <Text
                               style={{
                                 color: mine ? chatThemeColors.accent : "#F5F5F5",
-                                fontSize: 15,
-                                lineHeight: 21,
+                                fontSize: 14,
+                                lineHeight: 19,
                               }}
                             >
                               {message.text}
@@ -12168,7 +12168,7 @@ export default function App() {
                       alignItems: "center",
                       paddingHorizontal: 12,
                       paddingVertical: 8,
-                      marginBottom: Platform.OS === "android" ? 4 : 0,
+                      marginBottom: Platform.OS === "android" ? 30 : 30,
                       borderTopWidth: StyleSheet.hairlineWidth,
                       borderTopColor: "#303030",
                       backgroundColor: "#000000",
