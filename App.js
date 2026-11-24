@@ -1082,6 +1082,9 @@ function PostCard({
   const postText = (key) => translateAppText(appLanguage, key);
   const [mediaWidth, setMediaWidth] = React.useState(0);
   const [mediaIndex, setMediaIndex] = React.useState(0);
+  const [postVideoMuted, setPostVideoMuted] = React.useState(true);
+  const currentPostMedia = post.mediaItems?.length > 1 ? post.mediaItems[mediaIndex] : post;
+  const hasCurrentPostVideo = currentPostMedia?.mediaType === "video" && Boolean(currentPostMedia?.uri);
   const [reactionBurst, setReactionBurst] = React.useState(null);
   const showReactionBurst = (emoji = "❤️") => setReactionBurst({ id: Date.now() + Math.random(), emoji });
 
@@ -1358,6 +1361,7 @@ function PostCard({
                     uri={media.uri}
                     height={mediaHeight}
                     active={active && mediaIndex === index && autoPlay}
+                    muted={postVideoMuted}
                     contentFit="cover"
                     zoomEnabled={false}
                   />
@@ -1403,6 +1407,7 @@ function PostCard({
                 uri={post.uri}
                 height={mediaHeight}
                 active={active}
+                muted={postVideoMuted}
                 contentFit="cover"
                 zoomEnabled={false}
               />
@@ -1427,6 +1432,35 @@ function PostCard({
             )}
           </PostMediaTapSurface>
         )}
+        {hasCurrentPostVideo ? (
+          <TouchableOpacity
+            onPress={() => setPostVideoMuted((value) => !value)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={postVideoMuted ? "Unmute post video" : "Mute post video"}
+            accessibilityHint="Toggle the sound of this post video"
+            style={{
+              position: "absolute",
+              top: 14,
+              right: 14,
+              zIndex: 25,
+              width: 42,
+              height: 42,
+              borderRadius: 21,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(0,0,0,0.62)",
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.25)",
+            }}
+          >
+            <Ionicons
+              name={postVideoMuted ? "volume-mute" : "volume-high"}
+              size={22}
+              color="#FFFFFF"
+            />
+          </TouchableOpacity>
+        ) : null}
         <FloatingReactionBurst reaction={reactionBurst} />
         {post.mediaItems?.length > 1 && (
           <Text
