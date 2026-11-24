@@ -38,3 +38,5 @@ Build APK for post video mute/unmute control with audio enabled by default (comm
 Build APK for optional licensed soundtrack support in posts and reels (commits a7cabf7, 86671ad, 2677d3f, beba791).
 
 Build APK after Reels startup crash isolation fix (commit 17cfc344e7fedad7c46760e7488ab0a50e201e9e).
+
+Build APK for ReelVideoZoomable undefined-function startup crash fix (commit bbd020b0141390badee38847431253cf63b5935c).
