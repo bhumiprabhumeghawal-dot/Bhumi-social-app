@@ -1083,7 +1083,7 @@ function PostCard({
       const message = `${post?.user || "Bhumi Social"}: ${post?.caption || "Check out this post on Bhumi Social AI"}${postLink ? `\\n\\nOpen post: ${postLink}` : ""}`;
       await Share.share({ message });
     } catch (error) {
-      Alert.alert(appText("profileShare"), appText("alertTryAgain"));
+      Alert.alert(postText("profileShare"), postText("alertTryAgain"));
     }
   };
 
@@ -1109,7 +1109,7 @@ function PostCard({
       setLiked(Boolean(result.liked));
       setLikeCount(Number(result.likes) || 0);
     } catch (error) {
-      Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
+      Alert.alert(postText("alertSaveFailed"), postText("alertTryAgain"));
     } finally {
       setInteractionBusy(false);
     }
@@ -1131,7 +1131,7 @@ function PostCard({
       const result = await loadPostComments(post.id);
       setComments(result);
     } catch (error) {
-      Alert.alert(appText("commentsTitle"), appText("alertLoadFailed"));
+      Alert.alert(postText("commentsTitle"), postText("alertLoadFailed"));
     }
   };
 
@@ -1243,7 +1243,7 @@ function PostCard({
           )}
         </View>
         {String(post.user || "").replace(/^@/, "").toLowerCase() === String(authSession?.username || "").toLowerCase() && !post.isStarterPost && !post.isStarterReel ? (
-          <TouchableOpacity onPress={() => onDelete(post, "posts")} accessibilityLabel={appText("alertDelete")} style={{ padding: 9 }}>
+          <TouchableOpacity onPress={() => onDelete(post, "posts")} accessibilityLabel={postText("alertDelete")} style={{ padding: 9 }}>
             <Ionicons name="trash-outline" size={20} color="#0095F6" />
           </TouchableOpacity>
         ) : (
