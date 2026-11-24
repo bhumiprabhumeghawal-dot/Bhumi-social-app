@@ -303,19 +303,38 @@ async function loadContentOnce(type) {
     throw new Error(`Could not load ${type}`);
   }
 
-  const data = await response.json();
-  let items = data.items || [];
+  let data = {};
+  try {
+    data = await response.json();
+  } catch (error) {
+    throw new Error(`Invalid server response while loading ${type}.`);
+  }
+  // Treat malformed/partial API payloads as an empty list instead of allowing
+  // a bad row or non-string media URL to crash the feed renderer on Android.
+  const items = Array.isArray(data?.items) ? data.items : [];
 
-  const normalizedItems = items.map(item => ({
-    ...item,
-    avatarUrl: item.avatarUrl
-      ? (item.avatarUrl.startsWith("http") ? item.avatarUrl : API_BASE_URL + item.avatarUrl)
-      : null,
-    uri: item.mediaUrl
-      ? (item.mediaUrl.startsWith("http") ? item.mediaUrl : `${API_BASE_URL}${item.mediaUrl}`)
-      : null,
-    likes: item.likes ?? '0',
-  }));
+  const normalizedItems = items
+    .filter((item) => item && typeof item === "object" && !Array.isArray(item))
+    .map((item) => {
+      const avatar = typeof item.avatarUrl === "string" ? item.avatarUrl : "";
+      const media = typeof item.mediaUrl === "string" ? item.mediaUrl : "";
+      return {
+        ...item,
+        id: item.id == null ? null : item.id,
+        user: typeof item.user === "string" ? item.user : "you",
+        caption: typeof item.caption === "string" ? item.caption : "",
+        type: typeof item.type === "string" ? item.type : type,
+        mediaType: typeof item.mediaType === "string" ? item.mediaType : "image",
+        avatarUrl: avatar
+          ? (avatar.startsWith("http") ? avatar : `${API_BASE_URL}${avatar.startsWith("/") ? "" : "/"}${avatar}`)
+          : null,
+        uri: media
+          ? (media.startsWith("http") ? media : `${API_BASE_URL}${media.startsWith("/") ? "" : "/"}${media}`)
+          : null,
+        likes: item.likes ?? "0",
+        mediaItems: Array.isArray(item.mediaItems) ? item.mediaItems : undefined,
+      };
+    });
   void saveCachedContent(type, normalizedItems);
   return normalizedItems;
 }
