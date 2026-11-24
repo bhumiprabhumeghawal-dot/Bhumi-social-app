@@ -2574,7 +2574,7 @@ export default function App() {
     let checking = false;
 
     const checkForAppUpdate = async () => {
-      if (checking || !Updates.isEnabled) return;
+      if (!active || checking || !Updates.isEnabled || AppState.currentState !== "active") return;
       checking = true;
       try {
         const result = await Updates.checkForUpdateAsync();
@@ -2589,14 +2589,17 @@ export default function App() {
       }
     };
 
-    // Keep OTA updates enabled, but wait until the app has been stable
-    // for 30 seconds before the first check to avoid competing with startup.
-    const firstCheck = setTimeout(checkForAppUpdate, 30000);
-    const interval = setInterval(checkForAppUpdate, 6 * 60 * 60 * 1000);
+    // Check shortly after launch, then retry periodically and whenever the app returns to foreground.
+    const firstCheck = setTimeout(checkForAppUpdate, 5000);
+    const interval = setInterval(checkForAppUpdate, 5 * 60 * 1000);
+    const appStateSubscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") checkForAppUpdate();
+    });
     return () => {
       active = false;
       clearTimeout(firstCheck);
       clearInterval(interval);
+      appStateSubscription.remove();
     };
   }, []);
 
