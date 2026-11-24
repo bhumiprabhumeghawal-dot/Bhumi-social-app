@@ -8954,11 +8954,7 @@ export default function App() {
                     <TouchableOpacity onPress={() => handleTab("Create")} accessibilityLabel={appText("create")} style={{ width: 42, alignItems: "flex-start", justifyContent: "center" }}>
                       <Ionicons name="add" size={32} color="#FFFFFF" />
                     </TouchableOpacity>
-                    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-                      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "800" }}>
-                        {profile.displayName || profile.username || authSession?.username || ""}
-                      </Text>
-                    </View>
+                    <View style={{ flex: 1 }} />
                     <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center" }}>
                       <Ionicons name="notifications-outline" size={27} color="#FFFFFF" />
                     </TouchableOpacity>
