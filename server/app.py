@@ -93,6 +93,20 @@ def init_db():
         """)
 
         db.execute("""
+            CREATE TABLE IF NOT EXISTS post_reposts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content_id INTEGER NOT NULL,
+                username TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(content_id, username)
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_post_reposts_content
+            ON post_reposts(content_id)
+        """)
+
+        db.execute("""
             CREATE TABLE IF NOT EXISTS post_comments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 content_id INTEGER NOT NULL,
@@ -210,6 +224,9 @@ def content_json(row, viewer=None, db=None):
                 (row["id"],)
             ).fetchone()
             extra["likesCount"] = int(likes["total"] or 0)
+            reposts = db.execute("SELECT COUNT(*) AS total FROM post_reposts WHERE content_id=?", (row["id"],)).fetchone()
+            extra["repostsCount"] = int(reposts["total"] or 0)
+            extra["isReposted"] = bool(db.execute("SELECT 1 FROM post_reposts WHERE content_id=? AND LOWER(username)=LOWER(?)", (row["id"], viewer or "")).fetchone()) if viewer else False
             extra["isLiked"] = bool(db.execute(
                 "SELECT 1 FROM post_likes WHERE content_id=? AND LOWER(username)=LOWER(?)",
                 (row["id"], viewer or "")
@@ -2262,6 +2279,37 @@ def toggle_post_like(content_id):
         ).fetchone()["total"]
 
     return jsonify({"ok": True, "liked": liked, "likes": count})
+
+
+@app.post("/api/posts/<int:content_id>/repost")
+def toggle_post_repost(content_id):
+    username = g.auth_username
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        post = db.execute(
+            "SELECT id, username FROM content WHERE id=? AND kind='posts'",
+            (content_id,),
+        ).fetchone()
+        if post is None or not can_view_content(db, post["username"], username):
+            return jsonify({"error": "Post not found"}), 404
+        if post["username"].casefold() == username.casefold():
+            return jsonify({"error": "You cannot repost your own post."}), 400
+        existing = db.execute(
+            "SELECT id FROM post_reposts WHERE content_id=? AND LOWER(username)=LOWER(?)",
+            (content_id, username),
+        ).fetchone()
+        if existing:
+            db.execute("DELETE FROM post_reposts WHERE content_id=? AND LOWER(username)=LOWER(?)", (content_id, username))
+            reposted = False
+        else:
+            db.execute(
+                "INSERT INTO post_reposts (content_id, username, created_at) VALUES (?, ?, ?)",
+                (content_id, username, now),
+            )
+            reposted = True
+            _people_notification(db, post["username"], username, "repost", content_id, now)
+        count = db.execute("SELECT COUNT(*) AS total FROM post_reposts WHERE content_id=?", (content_id,)).fetchone()["total"]
+    return jsonify({"ok": True, "reposted": reposted, "reposts": int(count or 0)})
 
 
 @app.post("/api/posts/<int:content_id>/gifts")
