@@ -813,8 +813,8 @@ function ReelVideoZoomable({
 
   // Configure JS callbacks on the individual gestures. Composed gestures
   // do not expose runOnJS() in every RNGH version.
-  pinch.runOnJS(true);
-  pan.runOnJS(true);
+  pinch.runOnJS?.(true);
+  pan.runOnJS?.(true);
   if (nativeScrollGesture) {
     pinch.simultaneousWithExternalGesture(nativeScrollGesture);
     pan.simultaneousWithExternalGesture(nativeScrollGesture);
