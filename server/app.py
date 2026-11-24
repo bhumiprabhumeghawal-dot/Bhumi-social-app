@@ -312,12 +312,13 @@ def options_handler(unused):
 @app.get("/api/app-version")
 def app_version():
     apk_url = "https://github.com/bhumiprabhumeghawal-dot/Bhumi-social-app/releases/latest/download/SocialApp.apk"
+    latest_version = os.environ.get("SOCIALAPP_LATEST_VERSION", "1.0.8").strip() or "1.0.8"
     return jsonify({
-        "version": "1.0.5",
+        "version": latest_version,
         "download_url": request.host_url.rstrip("/") + "/download",
         "apk_url": apk_url,
         "force_update": os.environ.get("SOCIALAPP_FORCE_UPDATE", "false").lower() == "true",
-        "message": "A new version of Bhumi Social AI is available. Download and install the latest update."
+        "message": f"Bhumi Social AI version {latest_version} is available. Download and install the latest update."
     })
 
 
