@@ -21,3 +21,5 @@ Build APK for combined inbox story-note profile and flower gift sending (commits
 Build APK for Home Feed three-dot menus with Not Interested and Report options (commit 69a412c).
 
 Build APK for Instagram-style post repost action (commits 56764bf, af8a76e, cd1529d, c2c7160).
+
+Build APK for Home scrolling brand controls and Instagram-style repost on Reels (commits e73c01f, 4288d58, 7c4dd15).
