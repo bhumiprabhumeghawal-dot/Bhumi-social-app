@@ -2829,6 +2829,17 @@ export default function App() {
           await ensureCallKeepSetup().catch((setupError) => {
             console.warn("Incoming call UI setup failed:", setupError?.message || setupError);
           });
+          await Notifications.setNotificationCategoryAsync("bhumi_message_reply", [
+            {
+              identifier: "reply",
+              buttonTitle: "Reply",
+              textInput: {
+                placeholder: "Message type karein...",
+                submitButtonTitle: "Send",
+              },
+              options: { opensAppToForeground: false },
+            },
+          ]);
           await Notifications.setNotificationChannelAsync("incoming-calls", {
             name: "Incoming calls",
             importance: Notifications.AndroidImportance.MAX,
@@ -4272,6 +4283,15 @@ export default function App() {
       if (!active) return;
 
       try {
+        if (response?.actionIdentifier === "reply") {
+          const replyText = String(response?.userText || "").trim();
+          if (type === "direct_message" || type === "message") {
+            if (!actor || !replyText) return;
+            await sendDirectMessage(actor, replyText);
+            return;
+          }
+        }
+
         if (type === "direct_message" || type === "message") {
           if (!actor) return;
           setMessagesOpen(true);
