@@ -1090,6 +1090,7 @@ function PostCard({
   onCreateAction = () => {},
   onOpenProfile = () => {},
   onDelete = () => {},
+  onNotInterested = () => {},
   pageHeight = 0,
   active = true,
   autoPlay = true,
@@ -1308,15 +1309,25 @@ function PostCard({
             </Text>
           )}
         </View>
-        {String(post.user || "").replace(/^@/, "").toLowerCase() === String(authSession?.username || "").toLowerCase() && !post.isStarterPost && !post.isStarterReel ? (
-          <TouchableOpacity onPress={() => onDelete(post, "posts")} accessibilityLabel={postText("alertDelete")} style={{ padding: 9 }}>
-            <Ionicons name="trash-outline" size={20} color="#0095F6" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity>
-            <Text style={styles.more}>•••</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          onPress={() => {
+            const isOwner = String(post.user || "").replace(/^@/, "").toLowerCase() === String(authSession?.username || "").toLowerCase();
+            const actions = [];
+            if (isOwner && !post.isStarterPost && !post.isStarterReel) {
+              actions.push({ text: "Delete", style: "destructive", onPress: () => onDelete(post, "posts") });
+            } else {
+              actions.push({ text: "Not Interested", onPress: () => onNotInterested(post) });
+              actions.push({ text: "Report", onPress: () => NativeAlert.alert("Report", "To report this content, contact bhumiprabhumeghawal@gmail.com and include this post ID: " + String(post.id || "unknown")) });
+            }
+            actions.push({ text: "Cancel", style: "cancel" });
+            NativeAlert.alert("Post options", "", actions);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="More options"
+          style={{ padding: 9 }}
+        >
+          <Ionicons name="ellipsis-vertical" size={22} color={uiTextColor} />
+        </TouchableOpacity>
       </View>
 
       <View
@@ -8077,11 +8088,25 @@ export default function App() {
                           justifyContent: "flex-end",
                         }}
                       >
-                        {username.toLowerCase() === String(authSession?.username || "").toLowerCase() && hasServerId ? (
-                          <TouchableOpacity onPress={() => requestDeleteContent("reels", r)} accessibilityLabel={appText("alertDelete")} style={{ width: 42, height: 42, borderRadius: 22, backgroundColor: "rgba(0,0,0,0.48)", alignItems: "center", justifyContent: "center", marginRight: 8 }}>
-                            <Ionicons name="trash-outline" size={20} color="#0095F6" />
-                          </TouchableOpacity>
-                        ) : null}
+                        <TouchableOpacity
+                          onPress={() => {
+                            const isOwner = username.toLowerCase() === String(authSession?.username || "").toLowerCase();
+                            const actions = [];
+                            if (isOwner && hasServerId) {
+                              actions.push({ text: "Delete", style: "destructive", onPress: () => requestDeleteContent("reels", r) });
+                            } else {
+                              actions.push({ text: "Not Interested", onPress: () => setReels((items) => items.filter((item) => String(item.id) !== String(r.id))) });
+                              actions.push({ text: "Report", onPress: () => NativeAlert.alert("Report", "To report this reel, contact bhumiprabhumeghawal@gmail.com and include this reel ID: " + String(r.id || "unknown")) });
+                            }
+                            actions.push({ text: "Cancel", style: "cancel" });
+                            NativeAlert.alert("Reel options", "", actions);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel="More reel options"
+                          style={{ width: 42, height: 42, borderRadius: 22, backgroundColor: "rgba(0,0,0,0.48)", alignItems: "center", justifyContent: "center", marginRight: 8 }}
+                        >
+                          <Ionicons name="ellipsis-vertical" size={21} color="#FFFFFF" />
+                        </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => setMutedReels((value) => !value)}
                           style={{
@@ -8456,6 +8481,7 @@ export default function App() {
                     else setActiveTab("Profile");
                   }}
                   onDelete={(item, kind) => requestDeleteContent(kind, item)}
+                  onNotInterested={(item) => setFeedPosts((items) => items.filter((entry) => String(entry.id) !== String(item.id)))}
                   pageHeight={feedViewportHeight}
                   active={activeTab === "Home" && index === activeFeedIndex}
                   autoPlay={appSettingsPreferences["feed.autoPlay"] !== false}
