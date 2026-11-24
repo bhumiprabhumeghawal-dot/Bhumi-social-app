@@ -608,6 +608,7 @@ function ReelVideo(props) {
 
 const ReelVideoPlain = React.memo(function ReelVideoPlain({
   uri,
+  audioUrl,
   height = 420,
   active = true,
   muted = false,
@@ -617,6 +618,34 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
   onPlayToEnd,
   onTimeUpdate,
 }) {
+
+  const soundtrackPlayer = useAudioPlayer(audioUrl || null);
+  React.useEffect(() => {
+    try {
+      soundtrackPlayer.loop = true;
+      if (active && audioUrl && !muted) soundtrackPlayer.play();
+      else soundtrackPlayer.pause();
+    } catch (error) {
+      console.log("PLAIN_SOUNDTRACK_ERROR:", error?.message);
+    }
+    return () => {
+      try { soundtrackPlayer.pause(); } catch (error) {}
+    };
+  }, [active, audioUrl, muted, soundtrackPlayer]);
+
+  const soundtrackPlayer = useAudioPlayer(audioUrl || null);
+  React.useEffect(() => {
+    try {
+      soundtrackPlayer.loop = true;
+      if (active && audioUrl && !muted) soundtrackPlayer.play();
+      else soundtrackPlayer.pause();
+    } catch (error) {
+      console.log("ZOOMABLE_SOUNDTRACK_ERROR:", error?.message);
+    }
+    return () => {
+      try { soundtrackPlayer.pause(); } catch (error) {}
+    };
+  }, [active, audioUrl, muted, soundtrackPlayer]);
   const player = useVideoPlayer({ uri, useCaching: true }, (p) => {
     p.loop = loop;
     p.muted = muted;
@@ -711,6 +740,7 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
 
 function ReelVideoZoomable({
   uri,
+  audioUrl,
   zoomControls = false,
   height = 420,
   active = true,
@@ -1359,6 +1389,7 @@ function PostCard({
                   <ReelVideo
                     appLanguage={appLanguage}
                     uri={media.uri}
+                    audioUrl={media.audioUrl || post.audioUrl}
                     height={mediaHeight}
                     active={active && mediaIndex === index && autoPlay}
                     muted={postVideoMuted}
@@ -1405,6 +1436,7 @@ function PostCard({
               <ReelVideo
                     appLanguage={appLanguage}
                 uri={post.uri}
+                audioUrl={post.audioUrl}
                 height={mediaHeight}
                 active={active}
                 muted={postVideoMuted}
