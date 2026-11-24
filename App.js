@@ -1174,7 +1174,7 @@ function PostCard({
   };
 
   const handleRepost = async () => {
-    if (repostBusy || isOwnPost || !post?.id || post?.isStarterPost || String(post?.id || "").startsWith("bhumi-starter-")) return;
+    if (repostBusy || !post?.id || post?.isStarterPost || String(post?.id || "").startsWith("bhumi-starter-")) return;
     setRepostBusy(true);
     try {
       const result = await togglePostRepost(post.id, authSession);
@@ -1489,7 +1489,7 @@ function PostCard({
           <TouchableOpacity onPress={openComments}>
             <Ionicons name="chatbubble-outline" size={24} color="#0095F6" />
           </TouchableOpacity>
-          {!isOwnPost && !post?.isStarterPost ? (
+          {!post?.isStarterPost ? (
             <TouchableOpacity
               onPress={handleRepost}
               disabled={repostBusy}
@@ -8263,7 +8263,7 @@ export default function App() {
                               {Number(r.commentsCount || 0)}
                             </Text>
                           </TouchableOpacity>
-                          {username.toLowerCase() !== String(authSession?.username || "").toLowerCase() ? (
+                          {true ? (
                             <TouchableOpacity disabled={!hasServerId || !!reelBusyState["repost-" + id]} onPress={() => handleReelRepost(r)} style={{ alignItems: "center" }} accessibilityLabel="Repost">
                               <Ionicons name="repeat" size={29} color={r.isReposted ? "#16A765" : "#FFFFFF"} />
                               <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>{Number(r.repostsCount || 0)}</Text>
