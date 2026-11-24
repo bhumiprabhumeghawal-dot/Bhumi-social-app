@@ -5638,21 +5638,23 @@ export default function App() {
   };
 
   const renderAppHeader = () => (
-    <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative", backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderBottomColor: lightAppearance ? "#E5E5E5" : "#262626" }, activeTab === "Profile" ? { height: 72, marginTop: 8, paddingTop: 8 } : null]}>
+    <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative", backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderBottomColor: lightAppearance ? "#E5E5E5" : "#262626" }, activeTab === "Profile" ? { height: 104, paddingTop: 34, paddingBottom: 6, paddingHorizontal: 14 } : null]}>
       {activeTab === "Profile" ? (
         <>
-          <View style={{ width: 42, alignItems: "flex-start", justifyContent: "center", zIndex: 2, transform: [{ translateY: 40 }] }}>
+          <View style={{ width: 42, height: 44, alignItems: "flex-start", justifyContent: "center", zIndex: 2 }}>
             <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("create")} hitSlop={8} style={{ padding: 3 }}>
               <Ionicons name="add-square-outline" size={27} color={lightAppearance ? "#171717" : "#F5F5F5"} />
             </TouchableOpacity>
           </View>
-          <Text
-            style={[styles.brand, { position: "absolute", left: 58, right: 112, textAlign: "center", fontSize: 20, zIndex: 1, color: lightAppearance ? "#171717" : "#F5F5F5" }]}
-            numberOfLines={1}
-          >
-            {profile?.username ? `@${profile.username}` : appText("profileTab")}
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 13, zIndex: 2, transform: [{ translateY: 40 }] }}>
+          <View style={{ flex: 1, minWidth: 0, height: 44, justifyContent: "center", alignItems: "center", zIndex: 1 }}>
+            <Text
+              style={{ color: lightAppearance ? "#171717" : "#F5F5F5", fontSize: 20, fontWeight: "800", textAlign: "center", width: "100%" }}
+              numberOfLines={1}
+            >
+              {profile?.displayName || (profile?.username ? `@${profile.username}` : appText("profileTab"))}
+            </Text>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 13, height: 44, zIndex: 2 }}>
             <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} hitSlop={8} style={{ width: 38, height: 44, alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="notifications-outline" size={26} color={lightAppearance ? "#171717" : "#F5F5F5"} />
               {unreadNotificationCount > 0 && (
