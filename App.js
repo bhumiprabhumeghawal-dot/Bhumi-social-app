@@ -2590,19 +2590,16 @@ export default function App() {
     let active = true;
     let checking = false;
 
-    const checkForAppUpdate = async () => {
-      if (!active || checking || AppState.currentState !== "active") return;
-      checking = true;
+    const checkForApkUpdate = async () => {
       try {
-        // APK version checks must run even when Expo OTA is disabled in an installed build.
         const response = await fetch("https://bhumi-social-app-1.onrender.com/api/app-version", {
-          headers: { Accept: "application/json" },
+          headers: { Accept: "application/json", "Cache-Control": "no-cache" },
         });
         if (!response.ok) throw new Error(`Version check failed (${response.status})`);
         const latest = await response.json();
         const installedVersion = appConfig.expo?.version || "1.0.0";
 
-        if (active && isVersionNewer(latest?.version, installedVersion)) {
+        if (active && latest?.version && isVersionNewer(latest.version, installedVersion)) {
           setUpdateInfo({
             updateType: "apk",
             version: latest.version,
@@ -2612,29 +2609,44 @@ export default function App() {
             message: latest.message || `Bhumi Social AI version ${latest.version} is ready. Download and install the update.`,
           });
           setUpdatePromptVisible(true);
-          return;
-        }
-
-        // OTA updates are checked separately and never block the APK-version check.
-        if (Updates.isEnabled) {
-          const result = await Updates.checkForUpdateAsync();
-          if (active && result.isAvailable) {
-            setUpdateInfo({
-              updateType: "ota",
-              message: "A new Bhumi Social AI update is ready. Update safely inside the app.",
-            });
-            setUpdatePromptVisible(true);
-          }
+          return true;
         }
       } catch (error) {
-        console.warn("App update check failed:", error?.message || error);
+        console.warn("APK version check failed:", error?.message || error);
+      }
+      return false;
+    };
+
+    const checkForOtaUpdate = async () => {
+      try {
+        if (!Updates.isEnabled) return;
+        const result = await Updates.checkForUpdateAsync();
+        if (active && result.isAvailable) {
+          setUpdateInfo((current) => current?.updateType === "apk" ? current : {
+            updateType: "ota",
+            message: "A new Bhumi Social AI update is ready. Update safely inside the app.",
+          });
+          setUpdatePromptVisible(true);
+        }
+      } catch (error) {
+        console.warn("OTA update check failed:", error?.message || error);
+      }
+    };
+
+    const checkForAppUpdate = async () => {
+      if (!active || checking || AppState.currentState !== "active") return;
+      checking = true;
+      try {
+        // Keep APK and OTA checks independent: a sleeping Render server must not
+        // prevent Expo Updates from checking the production channel.
+        const apkAvailable = await checkForApkUpdate();
+        if (!apkAvailable) await checkForOtaUpdate();
       } finally {
         checking = false;
       }
     };
 
-    // Check shortly after launch, then retry periodically and whenever the app returns to foreground.
-    const firstCheck = setTimeout(checkForAppUpdate, 5000);
+    const firstCheck = setTimeout(checkForAppUpdate, 2500);
     const interval = setInterval(checkForAppUpdate, 5 * 60 * 1000);
     const appStateSubscription = AppState.addEventListener("change", (state) => {
       if (state === "active") checkForAppUpdate();
