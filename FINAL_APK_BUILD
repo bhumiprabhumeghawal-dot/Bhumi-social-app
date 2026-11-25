@@ -30,3 +30,5 @@ Crash fix + silent stale-report cleanup APK build: 880d970a092ff614063d442cfed16
 Rebuild APK to verify horizontal swipe navigation from current master source; tabSwipeResponder is declared in App and attached to the main content wrapper.
 
 DM null username crash guard APK build: 6d4296950ace5250e13740ad5670bad2c2b23e8b
+
+DM composer visibility fix: 5e68e7f88514dfc36abd4246e6900faeffc7d8bb
