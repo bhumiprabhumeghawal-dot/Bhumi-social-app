@@ -13577,6 +13577,7 @@ export default function App() {
                   contentContainerStyle={{
                     paddingHorizontal: 14,
                     paddingVertical: 16,
+                    paddingBottom: 120,
                     flexGrow: 1,
                     justifyContent: "flex-end",
                   }}
@@ -14140,9 +14141,13 @@ export default function App() {
                   {selectedChatUser ? (
                   <View
                     style={{
-                      position: "relative",
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
                       flexShrink: 0,
                       zIndex: 30,
+                      elevation: 20,
                       flexDirection: "row",
                       alignItems: "center",
                       paddingHorizontal: 12,
