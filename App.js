@@ -3517,6 +3517,7 @@ export default function App() {
       setChatError("Enter a username to start a chat.");
       return;
     }
+    setMessagesOpen(true);
     setSelectedChatUser(target);
     setNewChatUsername(target);
     setDirectMessages([]);
@@ -12525,83 +12526,7 @@ export default function App() {
                       ))}
                     </View>
                   ) : null}
-                  {selectedChatUser ? (
-                  <View
-                    style={{
-                      position: "relative",
-                      flexShrink: 0,
-                      zIndex: 30,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      paddingBottom: Platform.OS === "android" ? 12 : 8,
-                      marginBottom: 0,
-                      borderTopWidth: StyleSheet.hairlineWidth,
-                      borderTopColor: "#303030",
-                      backgroundColor: "#000000",
-                      gap: 8,
-                      elevation: 7,
-                    }}
-                  >
-                    <TouchableOpacity
-                      onPress={() => chooseChatMedia(true)}
-                      accessibilityLabel={appText("createPhotoPost")}
-                      style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#6D3CCF" }}
-                    >
-                      <Ionicons name="camera" size={25} color="#FFFFFF" />
-                    </TouchableOpacity>
-                    <View style={{ flex: 1, minHeight: 46, borderRadius: 24, backgroundColor: "#120D1C", borderWidth: 1, borderColor: "#6D3CCF", flexDirection: "row", alignItems: "center", paddingLeft: 15, paddingRight: 7, gap: 8 }}>
-                      <TextInput
-                        value={chatDraft}
-                        onChangeText={handleChatDraftChange}
-                        placeholder={appText("newMessage")}
-                        placeholderTextColor="#8E8E93"
-                        multiline
-                        maxLength={5000}
-                        style={{
-                          flex: 1,
-                          minHeight: 42,
-                          maxHeight: 100,
-                          paddingVertical: 9,
-                          color: "#F5F5F5",
-                          fontSize: 15,
-                          textAlignVertical: "center",
-                        }}
-                      />
-                      <TouchableOpacity
-                        onPress={isChatRecording ? stopChatVoiceRecording : startChatVoiceRecording}
-                        disabled={chatBusy}
-                        accessibilityLabel={isChatRecording ? "Stop voice recording" : "Start voice recording"}
-                        style={{ width: 28, height: 40, alignItems: "center", justifyContent: "center" }}
-                      >
-                        <Ionicons name={isChatRecording ? "stop-circle" : "mic-outline"} size={24} color={isChatRecording ? "#C62828" : "#F5F5F5"} />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => chooseChatMedia(false)}
-                        accessibilityLabel={appText("createPostGallery")}
-                        style={{ width: 28, height: 40, alignItems: "center", justifyContent: "center" }}
-                      >
-                        <Ionicons name="image-outline" size={24} color="#F5F5F5" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => setChatEmojiOpen((v) => !v)}
-                        accessibilityLabel={appText("chatPersonalization")}
-                        style={{ width: 28, height: 40, alignItems: "center", justifyContent: "center" }}
-                      >
-                        <Ionicons name="happy-outline" size={24} color="#F5F5F5" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={chatDraft.trim() || chatMediaDraft ? sendChatDraft : chooseChatDocument}
-                        disabled={chatBusy || isChatRecording || (!!(chatDraft.trim() || chatMediaDraft) && !chatDraft.trim() && !chatMediaDraft)}
-                        accessibilityLabel={chatDraft.trim() || chatMediaDraft ? appText("postComment") : appText("createPostGallery")}
-                        style={{ width: 30, height: 40, alignItems: "center", justifyContent: "center" }}
-                      >
-                        <Ionicons name={chatDraft.trim() || chatMediaDraft ? "send" : "add-circle-outline"} size={25} color="#F5F5F5" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  ) : null}
+
                 </View>
               </View>
               </View>
@@ -14138,10 +14063,9 @@ export default function App() {
                       ))}
                     </View>
                   ) : null}
-                  {selectedChatUser ? (
                   <View
                     style={{
-                      position: "absolute",
+                      flexShrink: 0,
                       left: 0,
                       right: 0,
                       bottom: 0,
@@ -14217,7 +14141,7 @@ export default function App() {
                       </TouchableOpacity>
                     </View>
                   </View>
-                  ) : null}
+
                 </View>
               </View>
               </View>
