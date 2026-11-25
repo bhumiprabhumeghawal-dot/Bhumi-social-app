@@ -662,17 +662,17 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               {busy ? <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 22 }} /> : null}
               {incoming ? (
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18, marginTop: 48, width: "100%" }}>
-                  <TouchableOpacity onPress={declineCall} activeOpacity={0.85} style={{ width: 76, height: 76, borderRadius: 38, backgroundColor: "#E3445B", alignItems: "center", justifyContent: "center" }}>
-                    <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "transparent", alignItems: "center", justifyContent: "center" }}>
-                      <Ionicons name="call" size={22} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
+                  <TouchableOpacity onPress={declineCall} activeOpacity={0.85} style={{ width: 84, height: 104, alignItems: "center", justifyContent: "flex-start" }}>
+                    <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#E3445B", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="call" size={25} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
                     </View>
-                    <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600", marginTop: 10 }}>{label("decline")}</Text>
+                    <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600", marginTop: 9 }}>{label("decline")}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={answerCall} disabled={busy} activeOpacity={0.85} style={{ width: 76, height: 76, borderRadius: 38, backgroundColor: "#159A65", alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }}>
-                    <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "transparent", alignItems: "center", justifyContent: "center" }}>
-                      <Ionicons name="call" size={22} color="#FFFFFF" />
+                  <TouchableOpacity onPress={answerCall} disabled={busy} activeOpacity={0.85} style={{ width: 84, height: 104, alignItems: "center", justifyContent: "flex-start", opacity: busy ? 0.6 : 1 }}>
+                    <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#159A65", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="call" size={25} color="#FFFFFF" />
                     </View>
-                    <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600", marginTop: 10 }}>{label("answer")}</Text>
+                    <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600", marginTop: 9 }}>{label("answer")}</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -687,11 +687,11 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                       <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "800" }}>{busy ? label("reconnecting") : label("reconnect")}</Text>
                     </TouchableOpacity>
                   ) : null}
-                  <TouchableOpacity onPress={endCall} activeOpacity={0.85} style={{ marginTop: connectionFailed ? 18 : 48, width: 156, minHeight: 88, borderRadius: 22, backgroundColor: "#28131D", borderWidth: 1, borderColor: "#9A4054", alignItems: "center", justifyContent: "center", paddingVertical: 12 }}>
-                    <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "transparent", alignItems: "center", justifyContent: "center" }}>
-                      <Ionicons name="call" size={22} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
+                  <TouchableOpacity onPress={endCall} activeOpacity={0.85} style={{ marginTop: connectionFailed ? 18 : 48, width: 84, height: 104, alignItems: "center", justifyContent: "flex-start" }}>
+                    <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#E3445B", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="call" size={25} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
                     </View>
-                    <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 7 }}>{label("cancel")}</Text>
+                    <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600", marginTop: 9 }}>{label("cancel")}</Text>
                   </TouchableOpacity>
                 </>
               )}
