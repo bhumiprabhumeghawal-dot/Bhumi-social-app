@@ -2,6 +2,11 @@ name: Publish Android OTA Update
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'PUBLISH_OTA'
 
 permissions:
   contents: read
