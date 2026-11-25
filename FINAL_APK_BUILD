@@ -28,3 +28,5 @@ Horizontal swipe navigation for Home, Reels, Inbox, Search and Profile: 461dc6f7
 Crash fix + silent stale-report cleanup APK build: 880d970a092ff614063d442cfed1601864c0630e
 
 Rebuild APK to verify horizontal swipe navigation from current master source; tabSwipeResponder is declared in App and attached to the main content wrapper.
+
+DM null username crash guard APK build: 6d4296950ace5250e13740ad5670bad2c2b23e8b
