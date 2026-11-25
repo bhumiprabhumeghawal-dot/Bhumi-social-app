@@ -6,6 +6,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import {
   loadMessageConversations, loadDirectMessages, sendDirectMessage, searchUsers, uploadChatAttachment,
@@ -40,8 +41,10 @@ export default function DirectMessagesScreen({
   const [attachment, setAttachment] = React.useState(null);
   const [error, setError] = React.useState("");
   const [profileInfoOpen, setProfileInfoOpen] = React.useState(false);
+  const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false);
   const [inboxTab, setInboxTab] = React.useState("Primary");
   const listRef = React.useRef(null);
+  const searchInputRef = React.useRef(null);
   const peerRef = React.useRef("");
   const requestRef = React.useRef(0);
 
@@ -94,6 +97,7 @@ export default function DirectMessagesScreen({
       setPeople([]);
       setInboxTab("Primary");
       setProfileInfoOpen(false);
+      setEmojiPickerOpen(false);
       setError("");
       return;
     }
@@ -144,6 +148,53 @@ export default function DirectMessagesScreen({
     }
   };
 
+
+  const uploadPickedAsset = async (asset) => {
+    if (!asset) return;
+    setSending(true);
+    setError("");
+    try {
+      const uploaded = await uploadChatAttachment(asset);
+      setAttachment(uploaded);
+    } catch (e) {
+      setError(e?.message || "Photo upload nahi hua.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const pickPhoto = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setError("Gallery permission allow karein.");
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"], allowsEditing: false, quality: 0.9,
+      });
+      if (!result.canceled && result.assets?.[0]) await uploadPickedAsset(result.assets[0]);
+    } catch (e) {
+      setError(e?.message || "Gallery open nahi hui.");
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        setError("Camera permission allow karein.");
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"], allowsEditing: false, quality: 0.9,
+      });
+      if (!result.canceled && result.assets?.[0]) await uploadPickedAsset(result.assets[0]);
+    } catch (e) {
+      setError(e?.message || "Camera open nahi hua.");
+    }
+  };
+
   const pickAttachment = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -169,6 +220,7 @@ export default function DirectMessagesScreen({
     setMessages([]);
     setDraft("");
     setAttachment(null);
+    setEmojiPickerOpen(false);
     setError("");
     Keyboard.dismiss();
     refreshInbox();
@@ -241,7 +293,11 @@ export default function DirectMessagesScreen({
                     <Ionicons name="chevron-down" size={16} color={C.text} />
                   </View>
                 </View>
-                <TouchableOpacity onPress={() => { setQuery(""); setPeople([]); }} style={{ width: 46, height: 48, alignItems: "center", justifyContent: "center" }} accessibilityLabel="New message">
+                <TouchableOpacity onPress={() => {
+                  setQuery("");
+                  setPeople([]);
+                  requestAnimationFrame(() => searchInputRef.current?.focus?.());
+                }} style={{ width: 46, height: 48, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="New message">
                   <Ionicons name="create-outline" size={27} color={C.text} />
                 </TouchableOpacity>
               </>
@@ -282,6 +338,7 @@ export default function DirectMessagesScreen({
               <View style={{ marginHorizontal: 14, marginTop: query.trim() ? 13 : 0, marginBottom: 10, height: 42, borderRadius: 11, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
                 <Ionicons name="search" size={19} color={C.muted} />
                 <TextInput
+                  ref={searchInputRef}
                   value={query}
                   onChangeText={setQuery}
                   placeholder="Search"
@@ -382,6 +439,15 @@ export default function DirectMessagesScreen({
               />
 
               <View style={{ flexShrink: 0, borderTopWidth: 0.5, borderTopColor: C.line, paddingHorizontal: 10, paddingTop: 8, paddingBottom: Platform.OS === "android" ? 9 : 7, backgroundColor: C.bg }}>
+                {emojiPickerOpen ? (
+                  <View style={{ flexDirection: "row", justifyContent: "space-around", paddingVertical: 9, marginBottom: 7, borderRadius: 14, backgroundColor: C.panel }}>
+                    {["😀","😂","🥰","😍","😭","🔥","❤️","👍"].map((emoji) => (
+                      <TouchableOpacity key={emoji} onPress={() => setDraft((value) => value + emoji)} accessibilityRole="button" accessibilityLabel={"Add " + emoji}>
+                        <Text style={{ fontSize: 24 }}>{emoji}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : null}
                 {attachment ? (
                   <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: C.panel, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7, marginBottom: 7 }}>
                     <Ionicons name="document-attach-outline" size={18} color={C.blue} />
@@ -390,7 +456,7 @@ export default function DirectMessagesScreen({
                   </View>
                 ) : null}
                 <View style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: 7 }}>
-                  <TouchableOpacity onPress={pickAttachment} disabled={sending} style={{ width: 38, height: 46, borderRadius: 23, backgroundColor: C.blue, alignItems: "center", justifyContent: "center" }} accessibilityLabel="Attach photo or file">
+                  <TouchableOpacity onPress={takePhoto} disabled={sending} style={{ width: 38, height: 46, borderRadius: 23, backgroundColor: C.blue, alignItems: "center", justifyContent: "center", opacity: sending ? 0.5 : 1 }} accessibilityRole="button" accessibilityLabel="Take photo">
                     <Ionicons name="camera" size={22} color="#FFFFFF" />
                   </TouchableOpacity>
                   <TextInput
@@ -404,8 +470,8 @@ export default function DirectMessagesScreen({
                     style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 24, paddingHorizontal: 17, paddingTop: 11, paddingBottom: 10, fontSize: 15 }}
                   />
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 3 }}>
-                    <TouchableOpacity onPress={pickAttachment} disabled={sending} accessibilityLabel="Add photo"><Ionicons name="image-outline" size={23} color={C.text} /></TouchableOpacity>
-                    <TouchableOpacity onPress={pickAttachment} disabled={sending} accessibilityLabel="Add sticker or file"><Ionicons name="happy-outline" size={23} color={C.text} /></TouchableOpacity>
+                    <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery"><Ionicons name="image-outline" size={23} color={C.text} /></TouchableOpacity>
+                    <TouchableOpacity onPress={() => setEmojiPickerOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Open emoji picker"><Ionicons name="happy-outline" size={23} color={emojiPickerOpen ? C.blue : C.text} /></TouchableOpacity>
                   </View>
                   <TouchableOpacity
                     onPress={send}
