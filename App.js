@@ -12401,10 +12401,16 @@ export default function App() {
                   ) : null}
                   <View
                     style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: 30,
                       flexDirection: "row",
                       alignItems: "center",
                       paddingHorizontal: 12,
                       paddingVertical: 8,
+                      paddingBottom: Platform.OS === "android" ? 12 : 8,
                       marginBottom: 0,
                       borderTopWidth: StyleSheet.hairlineWidth,
                       borderTopColor: "#303030",
