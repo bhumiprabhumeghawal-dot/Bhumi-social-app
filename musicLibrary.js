@@ -134,3 +134,19 @@ export async function searchLicensedMusic(query, providers = []) {
   }));
   return results.flat();
 }
+
+
+// iTunes public Search API: returns legal 30-second preview clips and artwork.
+export async function searchOnlineMusic(query, country = "IN") {
+  const clean = safeText(query, 120);
+  if (!clean) return [];
+  const url = `https://itunes.apple.com/search?term=${encodeURIComponent(clean)}&entity=song&limit=25&country=${encodeURIComponent(country)}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Online song search is unavailable right now.");
+  const data = await response.json();
+  return (Array.isArray(data.results) ? data.results : []).filter((item) => item.previewUrl).map((item) => ({
+    id: `itunes-${item.trackId}`, title: safeText(item.trackName), artist: safeText(item.artistName),
+    album: safeText(item.collectionName), artworkUrl: item.artworkUrl100 || null,
+    previewUrl: item.previewUrl, source: "itunes-preview", favorite: false,
+  }));
+}
