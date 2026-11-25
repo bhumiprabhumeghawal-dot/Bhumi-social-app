@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Modal, View, Text, TextInput, ScrollView, TouchableOpacity, Switch,
-  ActivityIndicator, Linking, Platform, StyleSheet, Image, Share
+  ActivityIndicator, Linking, Platform, StyleSheet, Image, Share, useWindowDimensions
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { translateAppText, translateAppTextValue } from "./localization";
@@ -368,6 +368,11 @@ const SECTIONS = [
 ];
 
 export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen, onPreferencesChange, appLanguage = "en", onLanguageChange }) {
+  const { width: settingsWidth, height: settingsHeight, fontScale: settingsFontScale } = useWindowDimensions();
+  const settingsCompact = settingsWidth < 360;
+  const settingsShort = settingsHeight < 680;
+  const settingsInset = settingsWidth < 340 ? 12 : settingsCompact ? 14 : Math.min(20, settingsWidth * 0.045);
+  const settingsTextScale = Math.max(0.9, Math.min(1.22, settingsFontScale || 1));
   const t = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   const [active, setActive] = React.useState(null);
   const [languageVisible, setLanguageVisible] = React.useState(false);
@@ -1182,17 +1187,17 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   return (
     <>
       <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-        <View style={{ flex:1,backgroundColor:BG,paddingTop: Platform.OS === "android" ? 28 : 48 }}>
-          <View style={{ flexDirection:"row",alignItems:"center",paddingHorizontal:18,paddingBottom:16,borderBottomWidth:1,borderBottomColor:BORDER }}>
+        <View style={{ flex:1,backgroundColor:BG,paddingTop: Platform.OS === "android" ? (settingsShort ? 12 : 24) : (settingsShort ? 16 : 40) }}>
+          <View style={{ flexDirection:"row",alignItems:"center",paddingHorizontal:settingsInset,paddingBottom:settingsShort ? 10 : 16,borderBottomWidth:1,borderBottomColor:BORDER }}>
             <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel={t("closeSettingsLabel")} style={{ width:40,height:40,alignItems:"flex-start",justifyContent:"center" }}>
               <Ionicons name="arrow-back" size={25} color={TEXT}/>
             </TouchableOpacity>
             <View style={{ flex:1 }}>
-              <Text style={{ color:TEXT,fontSize:22,fontWeight:"900",letterSpacing:-0.5 }}>{t("settings")}</Text>
+              <Text style={{ color:TEXT,fontSize:Math.round(22 * settingsTextScale),fontWeight:"900",letterSpacing:-0.5 }}>{t("settings")}</Text>
               <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{t("accountsDescription")}</Text>
             </View>
           </View>
-          <View style={{ flex:1,paddingHorizontal:17,paddingTop:15,paddingBottom: Platform.OS === "android" ? 20 : 12 }}>
+          <View style={{ flex:1,paddingHorizontal:settingsInset,paddingTop:settingsShort ? 9 : 15,paddingBottom: Platform.OS === "android" ? 20 : 12 }}>
             <View style={{ flexDirection:"row",alignItems:"center",backgroundColor:PANEL,borderRadius:12,paddingHorizontal:12,height:44,marginBottom:14 }}>
               <Ionicons name="search" size={19} color={MUTED}/>
               <TextInput
@@ -1225,12 +1230,12 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
             {loading ? <ActivityIndicator color={GOLD} style={{ marginVertical:18 }}/> : null}
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 48 : 12 }}>
               {visibleSections.length ? visibleSections.map((section) => (
-                <TouchableOpacity key={section.key} onPress={() => setActive(section.key)} activeOpacity={0.82} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderBottomWidth:1,borderBottomColor:BORDER,borderRadius:0,paddingHorizontal:2,paddingVertical:12,marginBottom:0 }}>
+                <TouchableOpacity key={section.key} onPress={() => setActive(section.key)} activeOpacity={0.82} style={{ flexDirection:"row",alignItems:"center",backgroundColor:BG,borderBottomWidth:1,borderBottomColor:BORDER,borderRadius:0,paddingHorizontal:2,paddingVertical:settingsShort ? 9 : 12,marginBottom:0 }}>
                   <View style={{ width:42,height:42,borderRadius:21,backgroundColor:"#1C1C1E",alignItems:"center",justifyContent:"center",marginRight:12 }}>
                     <Ionicons name={section.icon} size={22} color={GOLD}/>
                   </View>
                   <View style={{ flex:1 }}>
-                    <Text style={{ color:TEXT,fontSize:14,fontWeight:"800" }}>{t("section_" + section.key) || section.title}</Text>
+                    <Text style={{ color:TEXT,fontSize:Math.round(14 * settingsTextScale),fontWeight:"800" }}>{t("section_" + section.key) || section.title}</Text>
                     <Text style={{ color:MUTED,fontSize:11,marginTop:3 }}>{getSectionSubtitle(appLanguage, section.key, section.subtitle)}</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={19} color={MUTED}/>
