@@ -10958,7 +10958,7 @@ export default function App() {
           style={{ flex: 1 }}
         >
           <SafeAreaView style={{ flex: 1, backgroundColor: "#000000", paddingBottom: Platform.OS === "android" ? 6 : 0 }}>
-            <ScrollView style={{ flex: 1 }} scrollEnabled={!selectedChatUser} nestedScrollEnabled keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: 18 }}>
+            <ScrollView style={{ flex: 1 }} scrollEnabled={!selectedChatUser} nestedScrollEnabled keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: selectedChatUser ? 0 : 18 }}>
             <View
               style={{
                 flexDirection: "row",
@@ -12405,7 +12405,7 @@ export default function App() {
                       alignItems: "center",
                       paddingHorizontal: 12,
                       paddingVertical: 8,
-                      marginBottom: Platform.OS === "android" ? 30 : 30,
+                      marginBottom: 0,
                       borderTopWidth: StyleSheet.hairlineWidth,
                       borderTopColor: "#303030",
                       backgroundColor: "#000000",
