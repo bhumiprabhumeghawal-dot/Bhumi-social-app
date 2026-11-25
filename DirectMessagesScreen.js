@@ -278,7 +278,7 @@ export default function DirectMessagesScreen({
                   </View>
                   <Ionicons name="chevron-forward" size={15} color={C.muted} />
                 </TouchableOpacity>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 15, paddingLeft: 7 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 15, paddingLeft: 7, transform: [{ translateY: 30 }] }}>
                   <VoiceVideoCallControls username={peer} currentUsername={authSession?.username || ""} enableIncoming={false} enableOutgoing={true} showButtons={true} />
                   <TouchableOpacity onPress={() => setProfileInfoOpen(true)} accessibilityRole="button" accessibilityLabel="Conversation information">
                     <Ionicons name="information-circle-outline" size={24} color={C.text} />
@@ -456,7 +456,7 @@ export default function DirectMessagesScreen({
                   </View>
                 ) : null}
                 <View style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: 7 }}>
-                  <TouchableOpacity onPress={takePhoto} disabled={sending} style={{ width: 38, height: 46, borderRadius: 23, backgroundColor: C.blue, alignItems: "center", justifyContent: "center", opacity: sending ? 0.5 : 1 }} accessibilityRole="button" accessibilityLabel="Take photo">
+                  <TouchableOpacity onPress={takePhoto} disabled={sending} style={{ width: 38, height: 46, borderRadius: 23, backgroundColor: C.blue, alignItems: "center", justifyContent: "center", opacity: sending ? 0.5 : 1, transform: [{ translateY: -30 }] }} accessibilityRole="button" accessibilityLabel="Take photo">
                     <Ionicons name="camera" size={22} color="#FFFFFF" />
                   </TouchableOpacity>
                   <TextInput
@@ -470,13 +470,13 @@ export default function DirectMessagesScreen({
                     style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 24, paddingHorizontal: 17, paddingTop: 11, paddingBottom: 10, fontSize: 15 }}
                   />
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 3 }}>
-                    <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery"><Ionicons name="image-outline" size={23} color={C.text} /></TouchableOpacity>
-                    <TouchableOpacity onPress={() => setEmojiPickerOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Open emoji picker"><Ionicons name="happy-outline" size={23} color={emojiPickerOpen ? C.blue : C.text} /></TouchableOpacity>
+                    <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ transform: [{ translateY: -30 }] }}><Ionicons name="image-outline" size={23} color={C.text} /></TouchableOpacity>
+                    <TouchableOpacity onPress={() => setEmojiPickerOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Open emoji picker" style={{ transform: [{ translateY: -30 }] }}><Ionicons name="happy-outline" size={23} color={emojiPickerOpen ? C.blue : C.text} /></TouchableOpacity>
                   </View>
                   <TouchableOpacity
                     onPress={send}
                     disabled={(!draft.trim() && !attachment) || sending}
-                    style={{ width: 43, height: 46, alignItems: "center", justifyContent: "center" }}
+                    style={{ width: 43, height: 46, alignItems: "center", justifyContent: "center", transform: [{ translateY: -30 }] }}
                     accessibilityRole="button"
                     accessibilityLabel="Send message"
                   >
