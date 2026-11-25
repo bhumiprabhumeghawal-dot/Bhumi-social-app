@@ -5,6 +5,7 @@ import appConfig from "./app.json";
 import SettingsDashboard from "./SettingsDashboard";
 import { translateAppText, translateAppTextValue } from "./localization";
 import ChatPersonalization from "./ChatPersonalization";
+import DirectMessagesScreen from "./DirectMessagesScreen";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import { ensureCallKeepSetup } from "./incomingCallBackgroundTask";
 import { registerCallPushToken } from "./api";
@@ -11051,7 +11052,9 @@ export default function App() {
         }}
       />
 
-      {!selectedChatUser ? (
+      <DirectMessagesScreen visible={messagesOpen} onClose={closeMessages} authSession={authSession} initialUsername={selectedChatUser} onSelectedChatUserChange={setSelectedChatUser} />
+
+      {false && !selectedChatUser ? (
       /* SOCIALAPP_DIRECT_MESSAGES_MODAL_V1 */
       <Modal
         visible={messagesOpen && !selectedChatUser}
@@ -12587,7 +12590,7 @@ export default function App() {
 
       ) : null}
 
-      {selectedChatUser ? (
+      {false && selectedChatUser ? (
       /* SOCIALAPP_DIRECT_MESSAGE_SCREEN_V2 */
       <Modal
         visible={messagesOpen && !!selectedChatUser}
