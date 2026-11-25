@@ -3409,6 +3409,7 @@ export default function App() {
     }
   };
   const closeMessages = () => {
+    setActiveTab("Home");
     if (selectedChatUser)
       updateChatTyping(selectedChatUser, false).catch(() => {});
     setChatPeerTyping(false);
@@ -3473,6 +3474,7 @@ export default function App() {
   };
 
   const openMessages = async () => {
+    setActiveTab("Chat");
     setMessagesOpen(true);
     setSelectedChatUser("");
     setChatSearchQuery("");
@@ -3502,7 +3504,6 @@ export default function App() {
 
   mainTabSwipeActionRef.current = (name) => {
     if (name === "Chat") {
-      // Inbox is a modal overlay; keep the underlying tab on real content.
       openMessages();
       return;
     }
@@ -6000,6 +6001,7 @@ export default function App() {
 
   const handleTab = (name) => {
     if (name === "Chat") {
+      setActiveTab("Chat");
       openMessages();
       return;
     }
