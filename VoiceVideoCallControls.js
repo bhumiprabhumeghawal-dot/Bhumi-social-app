@@ -198,6 +198,10 @@ function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" 
   );
 }
 export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true, appLanguage = "en" }) {
+  const { width: callWidth, height: callHeight } = useWindowDimensions();
+  const callCompact = callWidth < 360;
+  const callShort = callHeight < 680;
+  const callInset = callWidth < 340 ? 14 : callCompact ? 18 : 22;
   const label = (key) => callText(appLanguage, key);
   const [call, setCall] = useState(null);
   const [incoming, setIncoming] = useState(false);
