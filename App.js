@@ -3433,7 +3433,7 @@ export default function App() {
 
   mainTabSwipeActionRef.current = (name) => {
     if (name === "Chat") {
-      setActiveTab("Chat");
+      // Inbox is a modal overlay; keep the underlying tab on real content.
       openMessages();
       return;
     }
@@ -5922,7 +5922,6 @@ export default function App() {
 
   const handleTab = (name) => {
     if (name === "Chat") {
-      setActiveTab("Chat");
       openMessages();
       return;
     }
@@ -12560,7 +12559,6 @@ export default function App() {
                   onPress={() => {
                     if (tab.name === "Chat") {
                       if (!messagesOpen) {
-                        setActiveTab("Chat");
                         openMessages();
                       }
                       return;
