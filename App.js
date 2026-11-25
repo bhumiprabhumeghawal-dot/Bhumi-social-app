@@ -11051,7 +11051,7 @@ export default function App() {
       />
 
       {!selectedChatUser ? (
-      {/* SOCIALAPP_DIRECT_MESSAGES_MODAL_V1 */}
+      /* SOCIALAPP_DIRECT_MESSAGES_MODAL_V1 */
       <Modal
         visible={messagesOpen && !selectedChatUser}
         animationType="slide"
@@ -12664,7 +12664,7 @@ export default function App() {
       ) : null}
 
       {selectedChatUser ? (
-      {/* SOCIALAPP_DIRECT_MESSAGE_SCREEN_V2 */}
+      /* SOCIALAPP_DIRECT_MESSAGE_SCREEN_V2 */
       <Modal
         visible={messagesOpen && !!selectedChatUser}
         animationType="slide"
