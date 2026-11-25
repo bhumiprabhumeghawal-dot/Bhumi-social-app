@@ -40,6 +40,7 @@ export default function DirectMessagesScreen({
   const [attachment, setAttachment] = React.useState(null);
   const [error, setError] = React.useState("");
   const [profileInfoOpen, setProfileInfoOpen] = React.useState(false);
+  const [inboxTab, setInboxTab] = React.useState("All");
   const listRef = React.useRef(null);
   const peerRef = React.useRef("");
   const requestRef = React.useRef(0);
@@ -204,19 +205,19 @@ export default function DirectMessagesScreen({
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
-          <View style={{ height: 58, paddingHorizontal: 15, flexDirection: "row", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
+          <View style={{ height: 62, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
             <TouchableOpacity
               onPress={() => peer ? closeChat() : closeScreen()}
               accessibilityRole="button"
               accessibilityLabel={peer ? "Back to messages" : "Close messages"}
-              style={{ width: 38, height: 48, justifyContent: "center" }}
+              style={{ width: 34, height: 48, justifyContent: "center" }}
             >
-              <Ionicons name={peer ? "arrow-back" : "close"} size={26} color={C.text} />
+              <Ionicons name={peer ? "arrow-back" : "close"} size={25} color={C.text} />
             </TouchableOpacity>
             {peer ? (
               <>
-                <TouchableOpacity onPress={() => {}} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 9 }}>
-                  {avatar(peerDetails, 36)}
+                <TouchableOpacity onPress={() => setProfileInfoOpen(true)} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10 }}>
+                  {avatar(peerDetails, 38)}
                   <View style={{ flex: 1 }}>
                     <Text numberOfLines={1} style={{ color: C.text, fontSize: 15, fontWeight: "800" }}>{peerDetails?.displayName || peer}</Text>
                     <Text numberOfLines={1} style={{ color: C.muted, fontSize: 11 }}>@{peer}</Text>
@@ -232,12 +233,15 @@ export default function DirectMessagesScreen({
               </>
             ) : (
               <>
-                <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
-                  <Text numberOfLines={1} style={{ color: C.text, fontSize: 21, fontWeight: "900", letterSpacing: -0.5 }}>{authSession?.username || "Messages"}</Text>
-                  <Ionicons name="chevron-down" size={17} color={C.text} style={{ marginLeft: 5 }} />
+                <View style={{ flex: 1 }}>
+                  <Text numberOfLines={1} style={{ color: C.text, fontSize: 22, fontWeight: "900", letterSpacing: -0.6 }}>Chat Inbox</Text>
+                  <Text style={{ color: C.muted, fontSize: 11, marginTop: 1 }}>@{authSession?.username || "your account"}</Text>
                 </View>
                 <TouchableOpacity onPress={() => { setQuery(""); setPeople([]); }} style={{ width: 42, height: 48, alignItems: "center", justifyContent: "center" }} accessibilityLabel="New message">
-                  <Ionicons name="create-outline" size={26} color={C.text} />
+                  <Ionicons name="create-outline" size={27} color={C.text} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={refreshInbox} style={{ width: 34, height: 48, alignItems: "center", justifyContent: "center" }} accessibilityLabel="Refresh inbox">
+                  <Ionicons name="ellipsis-horizontal" size={24} color={C.text} />
                 </TouchableOpacity>
               </>
             )}
@@ -266,9 +270,11 @@ export default function DirectMessagesScreen({
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
-                  <View style={{ paddingHorizontal: 15, paddingTop: 3, paddingBottom: 9, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                    <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Messages</Text>
-                    <Text style={{ color: C.muted, fontSize: 13, fontWeight: "700" }}>Requests</Text>
+                  <View style={{ paddingHorizontal: 16, paddingTop: 5, paddingBottom: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <Text style={{ color: C.text, fontSize: 17, fontWeight: "800" }}>Messages</Text>
+                    <TouchableOpacity onPress={() => setInboxTab("Requests")} accessibilityRole="button">
+                      <Text style={{ color: C.blue, fontSize: 13, fontWeight: "700" }}>Requests</Text>
+                    </TouchableOpacity>
                   </View>
                 </>
               ) : null}
@@ -285,6 +291,19 @@ export default function DirectMessagesScreen({
                 />
                 {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
               </View>
+              {!query.trim() ? (
+                <View style={{ paddingHorizontal: 15, paddingBottom: 9, flexDirection: "row", alignItems: "center", gap: 23, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
+                  {["All", "Primary", "General"].map((tab) => (
+                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} style={{ paddingVertical: 10, borderBottomWidth: inboxTab === tab ? 2 : 0, borderBottomColor: C.blue }}>
+                      <Text style={{ color: inboxTab === tab ? C.text : C.muted, fontSize: 14, fontWeight: inboxTab === tab ? "800" : "600" }}>{tab}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  <View style={{ flex: 1 }} />
+                  <TouchableOpacity onPress={() => setInboxTab("Requests")} style={{ paddingVertical: 10 }}>
+                    <Text style={{ color: inboxTab === "Requests" ? C.blue : C.muted, fontSize: 13, fontWeight: "700" }}>Requests</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
               {query.trim().length >= 2 ? (
                 <FlatList
                   data={people}
@@ -305,7 +324,9 @@ export default function DirectMessagesScreen({
                 />
               ) : (
                 <FlatList
-                  data={conversations}
+                  data={inboxTab === "Requests"
+                    ? conversations.filter((x) => x.isRequest || x.is_request || x.requestStatus === "pending" || x.request_status === "pending")
+                    : conversations.filter((x) => inboxTab === "All" || !String(x.folder || x.category || "").trim() || String(x.folder || x.category).toLowerCase() === inboxTab.toLowerCase())}
                   keyExtractor={(x, i) => String(getUsername(x) || i)}
                   refreshing={busy}
                   onRefresh={refreshInbox}
@@ -321,7 +342,7 @@ export default function DirectMessagesScreen({
                       {Number(item.unreadCount || item.unread_count) > 0 ? <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: C.blue }} /> : null}
                     </TouchableOpacity>
                   )}
-                  ListEmptyComponent={<View style={{ flex: 1, padding: 34, alignItems: "center", justifyContent: "center" }}>{busy ? <ActivityIndicator color={C.blue} /> : <><Ionicons name="chatbubbles-outline" size={42} color="#555" /><Text style={{ color: C.muted, textAlign: "center", marginTop: 12 }}>Abhi koi chat nahi hai. Upar search karke naya message shuru karein.</Text></>}</View>}
+                  ListEmptyComponent={<View style={{ flex: 1, padding: 34, alignItems: "center", justifyContent: "center" }}>{busy ? <ActivityIndicator color={C.blue} /> : <><Ionicons name={inboxTab === "Requests" ? "mail-open-outline" : "chatbubbles-outline"} size={42} color="#555" /><Text style={{ color: C.muted, textAlign: "center", marginTop: 12 }}>{inboxTab === "Requests" ? "No message requests yet." : inboxTab === "All" ? "Abhi koi chat nahi hai. Upar search karke naya message shuru karein." : "Is tab mein abhi koi chat nahi hai."}</Text></>}</View>}
                 />
               )}
             </View>
