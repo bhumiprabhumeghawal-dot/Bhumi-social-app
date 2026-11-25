@@ -2501,6 +2501,8 @@ export default function App() {
   const appSideInset = appNarrow ? 10 : appCompact ? 12 : Math.min(18, Math.max(14, appWindowWidth * 0.04));
   const appHeaderHeight = appShort ? 52 : appCompact ? 54 : 58;
   const appNavHeight = (Platform.OS === "android" ? 56 : 52) + (appShort ? 0 : 6);
+  const profileHighlightSize = Math.max(68, Math.min(96, appWindowWidth * 0.245));
+  const profileHighlightItemWidth = profileHighlightSize + 34;
   const [activeTab, setActiveTab] = React.useState("Home");
   const tabSwipeDistance = React.useRef(0);
   const mainTabSwipeActionRef = React.useRef(null);
@@ -9322,9 +9324,9 @@ export default function App() {
                     {groupedStories.filter((group) => !group.own).map((group, index) => (
                       <TouchableOpacity key={group.username || group.name || index} onPress={() => openStoryGroup(group.items)} style={{ width: 130, alignItems: "center" }}>
                         <View style={{ width: 96, height: 96, borderRadius: 48, borderWidth: 3, borderColor: "#34383E", padding: 3 }}>
-                          {group.items?.[0]?.uri ? <Image source={{ uri: group.items[0].uri }} style={{ width: "100%", height: "100%", borderRadius: 45 }} /> : <View style={{ flex: 1, borderRadius: 45, backgroundColor: "#292D32", alignItems: "center", justifyContent: "center" }}><Ionicons name="images-outline" size={27} color="#FFFFFF" /></View>}
+                          {group.items?.[0]?.uri ? <Image source={{ uri: group.items[0].uri }} style={{ width: "100%", height: "100%", borderRadius: profileHighlightSize / 2 }} /> : <View style={{ flex: 1, borderRadius: profileHighlightSize / 2, backgroundColor: "#292D32", alignItems: "center", justifyContent: "center" }}><Ionicons name="images-outline" size={27} color="#FFFFFF" /></View>}
                         </View>
-                        <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 14, marginTop: 7 }}>Highlights</Text>
+                        <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: Math.max(12, 14 * appTextScale), marginTop: 7 }}>Highlights</Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
