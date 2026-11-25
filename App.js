@@ -12473,6 +12473,7 @@ export default function App() {
                       ))}
                     </View>
                   ) : null}
+                  {selectedChatUser ? (
                   <View
                     style={{
                       position: "relative",
@@ -12548,6 +12549,7 @@ export default function App() {
                       </TouchableOpacity>
                     </View>
                   </View>
+                  ) : null}
                 </View>
               </View>
               </View>
