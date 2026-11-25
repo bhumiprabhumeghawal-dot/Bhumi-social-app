@@ -14141,13 +14141,11 @@ export default function App() {
                   {selectedChatUser ? (
                   <View
                     style={{
-                      position: "absolute",
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
+                      width: "100%",
+                      alignSelf: "stretch",
                       flexShrink: 0,
                       zIndex: 30,
-                      elevation: 20,
+                      elevation: 7,
                       flexDirection: "row",
                       alignItems: "center",
                       paddingHorizontal: 12,
