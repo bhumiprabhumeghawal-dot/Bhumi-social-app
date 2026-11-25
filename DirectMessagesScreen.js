@@ -222,9 +222,9 @@ export default function DirectMessagesScreen({
                   <Ionicons name="chevron-forward" size={15} color={C.muted} />
                 </TouchableOpacity>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 18, paddingLeft: 8 }}>
-                  <TouchableOpacity accessibilityLabel="Audio call"><Ionicons name="call-outline" size={23} color={C.text} /></TouchableOpacity>
-                  <TouchableOpacity accessibilityLabel="Video call"><Ionicons name="videocam-outline" size={25} color={C.text} /></TouchableOpacity>
-                  <TouchableOpacity accessibilityLabel="Conversation information"><Ionicons name="information-circle-outline" size={24} color={C.text} /></TouchableOpacity>
+                  <View accessibilityLabel="Audio call"><Ionicons name="call-outline" size={23} color={C.text} /></View>
+                  <View accessibilityLabel="Video call"><Ionicons name="videocam-outline" size={25} color={C.text} /></View>
+                  <View accessibilityLabel="Conversation information"><Ionicons name="information-circle-outline" size={24} color={C.text} /></View>
                 </View>
               </>
             ) : (
@@ -265,9 +265,7 @@ export default function DirectMessagesScreen({
                   </ScrollView>
                   <View style={{ paddingHorizontal: 15, paddingTop: 3, paddingBottom: 9, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                     <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Messages</Text>
-                    <TouchableOpacity onPress={() => setQuery(" ")} accessibilityLabel="Message requests">
-                      <Text style={{ color: C.muted, fontSize: 13, fontWeight: "700" }}>Requests</Text>
-                    </TouchableOpacity>
+                    <Text style={{ color: C.muted, fontSize: 13, fontWeight: "700" }}>Requests</Text>
                   </View>
                 </>
               ) : null}
