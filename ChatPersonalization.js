@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Modal, View, Text, TextInput, ScrollView, TouchableOpacity,
-  Switch, ActivityIndicator, Platform
+  Switch, ActivityIndicator, Platform, useWindowDimensions
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { loadSettingsPreferences, saveSettingsPreferences } from "./api";
@@ -70,6 +70,11 @@ const THEMES = [
 const keyFor = (kind, username) => `messages.${kind}.${String(username || "").trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "")}`;
 
 export default function ChatPersonalization({ visible, username, onClose, onSaved, appLanguage = "en" }) {
+  const { width: chatStudioWidth, height: chatStudioHeight, fontScale: chatStudioFontScale } = useWindowDimensions();
+  const compact = chatStudioWidth < 360;
+  const short = chatStudioHeight < 680;
+  const inset = chatStudioWidth < 340 ? 12 : compact ? 14 : Math.min(20, chatStudioWidth * 0.045);
+  const textScale = Math.max(0.9, Math.min(1.2, chatStudioFontScale || 1));
   const t = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   const [name, setName] = React.useState("");
   const [theme, setTheme] = React.useState("royal");
@@ -131,18 +136,18 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
   const selected = THEMES.find((item) => item.key === theme) || THEMES[0];
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: "#000000", paddingTop: 18, paddingBottom: Platform.OS === "android" ? 28 : 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 18, paddingTop: 4, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: "#262626", backgroundColor: "#000000" }}>
+      <View style={{ flex: 1, backgroundColor: "#000000", paddingTop: short ? 8 : 18, paddingBottom: Platform.OS === "android" ? (short ? 12 : 28) : 12 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: inset, paddingTop: 4, paddingBottom: short ? 9 : 15, borderBottomWidth: 1, borderBottomColor: "#262626", backgroundColor: "#000000" }}>
           <View style={{ flex: 1 }}>
             <Text style={{ color: GOLD, fontSize: 10, fontWeight: "900", letterSpacing: 2 }}>BHUMI CHAT STUDIO</Text>
-            <Text style={{ color: "#FFFFFF", fontSize: 21, fontWeight: "900", letterSpacing: -0.4, marginTop: 4 }}>{t("chatPersonalization")}</Text>
+            <Text style={{ color: "#FFFFFF", fontSize: Math.round(21 * textScale), fontWeight: "900", letterSpacing: -0.4, marginTop: 4 }}>{t("chatPersonalization")}</Text>
             <Text style={{ color: "#A8A8A8", fontSize: 12, marginTop: 3 }}>@{username}</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
             <Ionicons name="close" size={22} color={GOLD} />
           </TouchableOpacity>
         </View>
-        <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 36 }} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={{ padding: inset, paddingBottom: short ? 20 : 36 }} keyboardShouldPersistTaps="handled">
           <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "800", marginBottom: 9 }}>{t("displayName")}</Text>
           <TextInput value={name} onChangeText={setName} placeholder={username} placeholderTextColor="#8F829F" maxLength={40}
             style={{ color: "#FFFFFF", backgroundColor: "#121212", borderWidth: 1, borderColor: "#262626", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15 }} />
@@ -152,7 +157,7 @@ export default function ChatPersonalization({ visible, username, onClose, onSave
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
             {THEMES.map((item) => (
               <TouchableOpacity key={item.key} onPress={() => setTheme(item.key)} activeOpacity={0.85}
-                style={{ width: "48%", minHeight: 90, borderRadius: 13, padding: 12, backgroundColor: item.bg, borderWidth: theme === item.key ? 2 : 1, borderColor: theme === item.key ? GOLD : "#303030" }}>
+                style={{ width: compact ? "100%" : "48%", minHeight: compact ? 76 : 90, borderRadius: 13, padding: 12, backgroundColor: item.bg, borderWidth: theme === item.key ? 2 : 1, borderColor: theme === item.key ? GOLD : "#303030" }}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                   <Ionicons name={item.icon} size={20} color={item.accent} />
                   {theme === item.key ? <Ionicons name="checkmark-circle" size={18} color={GOLD} /> : null}
