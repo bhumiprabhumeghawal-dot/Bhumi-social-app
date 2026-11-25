@@ -39,6 +39,7 @@ import Animated, {
 import {Alert as NativeAlert,
   Share,
   Dimensions,
+  useWindowDimensions,
   ActivityIndicator,
   KeyboardAvoidingView,
   BackHandler,
@@ -2476,6 +2477,17 @@ const VIDEO_FILTER_PREVIEW_STYLES = [
 ];
 
 export default function App() {
+  const { width: appWindowWidth, height: appWindowHeight, fontScale: appFontScale } = useWindowDimensions();
+  // Shared responsive measurements for the main app shell. React Native reports
+  // logical dp values, so this adapts to phone size, rotation and split-screen.
+  const appCompact = appWindowWidth < 360;
+  const appNarrow = appWindowWidth < 340;
+  const appShort = appWindowHeight < 680;
+  const appScale = Math.max(0.88, Math.min(1.12, appWindowWidth / 390));
+  const appTextScale = Math.max(0.9, Math.min(1.25, appFontScale || 1));
+  const appSideInset = appNarrow ? 10 : appCompact ? 12 : Math.min(18, Math.max(14, appWindowWidth * 0.04));
+  const appHeaderHeight = appShort ? 52 : appCompact ? 54 : 58;
+  const appNavHeight = (Platform.OS === "android" ? 56 : 52) + (appShort ? 0 : 6);
   const [activeTab, setActiveTab] = React.useState("Home");
   const tabSwipeDistance = React.useRef(0);
   const mainTabSwipeActionRef = React.useRef(null);
@@ -5893,7 +5905,7 @@ export default function App() {
   };
 
   const renderAppHeader = () => (
-    <View style={[styles.header, { justifyContent: "space-between", gap: 8, position: "relative", backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderBottomColor: lightAppearance ? "#E5E5E5" : "#262626" }, activeTab === "Profile" ? { height: 104, paddingTop: 34, paddingBottom: 6, paddingHorizontal: 14 } : null]}>
+    <View style={[styles.header, { height: appHeaderHeight, paddingHorizontal: appSideInset, justifyContent: "space-between", gap: appCompact ? 5 : 8, position: "relative", backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderBottomColor: lightAppearance ? "#E5E5E5" : "#262626" }, activeTab === "Profile" ? { height: appShort ? 88 : 96, paddingTop: appShort ? 22 : 28, paddingBottom: 6, paddingHorizontal: appSideInset } : null]}>
       {activeTab === "Profile" ? (
         <>
           <View style={{ width: 42, height: 44, alignItems: "flex-start", justifyContent: "center", zIndex: 2 }}>
@@ -5929,7 +5941,7 @@ export default function App() {
         <>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flex: 1 }}>
             <Image source={require("./assets/bhumi-social-ai-logo.jpg")} style={{ width: 32, height: 32 }} resizeMode="contain" accessibilityLabel="Bhumi Social AI logo" />
-            <Text style={styles.brand} numberOfLines={1}>Bhumi Social AI</Text>
+            <Text style={[styles.brand, { fontSize: Math.round(18 * Math.min(1.08, appTextScale)) }]} numberOfLines={1}>Bhumi Social AI</Text>
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 19 }}>
             <TouchableOpacity onPress={() => setHeaderCreateMenuOpen((value) => !value)} accessibilityLabel={appText("createPhotoPost")} style={{ padding: 3 }}>
@@ -8800,7 +8812,7 @@ export default function App() {
                   nestedScrollEnabled
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.stories}
+                    contentContainerStyle={[styles.stories, { paddingHorizontal: appSideInset, paddingVertical: appShort ? 8 : 12, gap: appCompact ? 8 : 12 }]}
                   >
                     {(() => {
                       const ownGroup = groupedStories.find(
@@ -9354,7 +9366,7 @@ export default function App() {
 
       </View>
 
-      <View style={[styles.bottomNav, { backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderTopColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
+      <View style={[styles.bottomNav, { height: appNavHeight, paddingBottom: Platform.OS === "android" ? (appShort ? 8 : 12) : 6, backgroundColor: lightAppearance ? "#FFFFFF" : "#000000", borderTopColor: lightAppearance ? "#E5E5E5" : "#262626" }]}>
         {[
           { name: "Home", icon: "home-outline", activeIcon: "home" },
           { name: "Reels", icon: "play-outline", activeIcon: "play" },
@@ -9364,16 +9376,16 @@ export default function App() {
         ].map((tab) => (
           <TouchableOpacity
             key={tab.name}
-            style={[styles.navItem, activeTab === tab.name ? [styles.activeNavItem, { backgroundColor: lightAppearance ? "#E9E9EB" : "#26292D" }] : null]}
+            style={[styles.navItem, { height: appShort ? 40 : 44, transform: [{ translateY: 0 }] }, activeTab === tab.name ? [styles.activeNavItem, { backgroundColor: lightAppearance ? "#E9E9EB" : "#26292D" }] : null]}
             onPress={() => handleTab(tab.name)}
             accessibilityLabel={appText("tab" + tab.name)}
           >
             {tab.name === "Profile" && (profile?.avatarUrl || authSession?.avatarUrl) ? (
-              <Image source={{ uri: profile?.avatarUrl || authSession?.avatarUrl }} style={{ width: 27, height: 27, borderRadius: 14 }} resizeMode="cover" />
+              <Image source={{ uri: profile?.avatarUrl || authSession?.avatarUrl }} style={{ width: appCompact ? 24 : 27, height: appCompact ? 24 : 27, borderRadius: 14 }} resizeMode="cover" />
             ) : (
               <Ionicons
                 name={(activeTab === tab.name || (tab.name === "Chat" && messagesOpen)) ? tab.activeIcon : tab.icon}
-                size={tab.name === "Create" ? 29 : 27}
+                size={Math.round((appCompact ? 24 : 27) * Math.min(1.08, appTextScale))}
                 color={activeTab === tab.name ? (lightAppearance ? "#111111" : "#F5F5F5") : (lightAppearance ? "#777777" : "#A8A8A8")}
               />
             )}
