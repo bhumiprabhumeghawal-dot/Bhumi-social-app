@@ -204,6 +204,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     if (player) {
       try { player.pause(); } catch (_) {}
       try { player.remove(); } catch (_) {}
+      try { player.release(); } catch (_) {}
     }
   };
 
