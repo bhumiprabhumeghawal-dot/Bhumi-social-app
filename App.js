@@ -11023,22 +11023,23 @@ export default function App() {
           style={{ flex: 1 }}
         >
           <SafeAreaView style={{ flex: 1, backgroundColor: "#000000", paddingBottom: Platform.OS === "android" ? 6 : 0 }}>
-            <ScrollView style={{ flex: 1 }} scrollEnabled={!selectedChatUser} nestedScrollEnabled keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, height: selectedChatUser ? "100%" : undefined, paddingBottom: selectedChatUser ? 0 : 18 }}>
+            <ScrollView style={{ flex: 1 }} scrollEnabled={!selectedChatUser && !newChatComposerOpen} nestedScrollEnabled keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, height: selectedChatUser || newChatComposerOpen ? "100%" : undefined, paddingBottom: selectedChatUser ? 0 : 18 }}>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
                 paddingHorizontal: 16,
-                marginTop: selectedChatUser ? 0 : 30,
-                paddingTop: selectedChatUser ? 30 : 34,
+                marginTop: selectedChatUser || newChatComposerOpen ? 0 : 30,
+                paddingTop: selectedChatUser || newChatComposerOpen ? 30 : 34,
                 paddingBottom: 6,
                 backgroundColor: "#000000",
-                minHeight: selectedChatUser ? 78 : 88,
+                minHeight: selectedChatUser || newChatComposerOpen ? 78 : 88,
               }}
             >
-              {selectedChatUser ? (
+              {selectedChatUser || newChatComposerOpen ? (
                 <TouchableOpacity
                   onPress={() => {
+                    if (newChatComposerOpen) { setNewChatComposerOpen(false); setNewChatUsername(""); setChatPeopleResults([]); }
                     setSelectedChatUser("");
                     setChatError("");
                   }}
@@ -11186,7 +11187,7 @@ export default function App() {
                         letterSpacing: -0.7,
                       }}
                     >
-                      {authSession?.username || "Messages"}
+                      {newChatComposerOpen ? appText("newMessage") : (authSession?.username || "Messages")}
                     </Text>
                     <Ionicons
                       name="chevron-down"
@@ -11230,7 +11231,7 @@ export default function App() {
               )}
             </View>
 
-            {secretMenuOpen && !selectedChatUser ? (
+            {secretMenuOpen && !selectedChatUser && !newChatComposerOpen ? (
               <View style={{ position: "absolute", top: 54, right: 14, zIndex: 50, elevation: 12, backgroundColor: "#262626", borderRadius: 12, paddingVertical: 5, minWidth: 160, borderWidth: 1, borderColor: "#3A3A3A" }}>
                 <TouchableOpacity onPress={openSecretChatSelection} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 13, paddingVertical: 11 }}>
                   <Ionicons name="lock-closed-outline" size={18} color="#FFFFFF" />
@@ -11238,7 +11239,7 @@ export default function App() {
                 </TouchableOpacity>
               </View>
             ) : null}
-            {!selectedChatUser ? (
+            {!selectedChatUser && !newChatComposerOpen ? (
               <View
                 style={{ flex: 1, backgroundColor: "#000000", paddingTop: 8 }}
               >
@@ -11515,154 +11516,6 @@ export default function App() {
                   })}
                 </View>
 
-                {newChatComposerOpen ? (
-                  <View
-                    style={{
-                      marginHorizontal: 16,
-                      marginBottom: 12,
-                      padding: 16,
-                      borderRadius: 16,
-                      backgroundColor: "#000000",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: "#F5F5F5",
-                        fontSize: 14,
-                        fontWeight: "800",
-                        marginBottom: 10,
-                      }}
-                    >
-                      {appText("newMessage")}
-                    </Text>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        backgroundColor: "#1C1C1E",
-                        borderRadius: 22,
-                        paddingHorizontal: 13,
-                      }}
-                    >
-                      <Ionicons
-                        name="search-outline"
-                        size={19}
-                        color="#737373"
-                      />
-                      <TextInput
-                        value={newChatUsername}
-                        onChangeText={setNewChatUsername}
-                        placeholder={appText("searchPeople")}
-                        placeholderTextColor="#737373"
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        autoFocus
-                        style={{
-                          flex: 1,
-                          paddingHorizontal: 10,
-                          paddingVertical: 12,
-                          color: "#F5F5F5",
-                        }}
-                      />
-                      {newChatUsername ? (
-                        <TouchableOpacity
-                          onPress={() => setNewChatUsername("")}
-                        >
-                          <Ionicons
-                            name="close-circle"
-                            size={19}
-                            color="#737373"
-                          />
-                        </TouchableOpacity>
-                      ) : null}
-                    </View>
-                    {chatPeopleBusy ? (
-                      <Text style={{ color: "#A8A8A8", padding: 10 }}>
-                        {appText("searchingPeople")}
-                      </Text>
-                    ) : null}
-                    {chatPeopleError ? (
-                      <Text style={{ color: "#B42318", padding: 10 }}>
-                        {translateAppTextValue(appLanguage, chatPeopleError)}
-                      </Text>
-                    ) : null}
-                    {chatPeopleResults.map((person, index) => (
-                      <TouchableOpacity
-                        key={String(person.username || index)}
-                        onPress={() => {
-                          setNewChatComposerOpen(false);
-                          setNewChatUsername("");
-                          setChatPeopleResults([]);
-                          openDirectChat(person.username);
-                        }}
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          paddingVertical: 12,
-                          gap: 13,
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: 42,
-                            height: 42,
-                            borderRadius: 22,
-                            backgroundColor: "#1C1C1E",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            overflow: "hidden",
-                          }}
-                        >
-                          {person.avatarUrl ? (
-                            <Image
-                              source={{
-                                uri: String(person.avatarUrl).startsWith("http")
-                                  ? person.avatarUrl
-                                  : `https://bhumi-social-app-1.onrender.com${person.avatarUrl}`,
-                              }}
-                              style={{
-                                width: 42,
-                                height: 42,
-                                borderRadius: 22,
-                              }}
-                            />
-                          ) : (
-                            <Text
-                              style={{ color: "#F5F5F5", fontWeight: "800" }}
-                            >
-                              {String(person.username || "?")
-                                .slice(0, 1)
-                                .toUpperCase()}
-                            </Text>
-                          )}
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>
-                            {person.displayName || person.username}
-                          </Text>
-                          <Text style={{ color: "#A8A8A8", fontSize: 13 }}>
-                            @{person.username}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                    {newChatUsername.trim().length >= 2 &&
-                    !chatPeopleBusy &&
-                    !chatPeopleError &&
-                    chatPeopleResults.length === 0 ? (
-                      <Text
-                        style={{
-                          color: "#A8A8A8",
-                          textAlign: "center",
-                          padding: 12,
-                        }}
-                      >
-                        {appText("noPeopleFound")}
-                      </Text>
-                    ) : null}
-                  </View>
-                ) : null}
-
                 {chatBusy ? (
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", paddingHorizontal: 20, paddingVertical: 12, gap: 9 }}>
                     <ActivityIndicator color="#3797F0" size="small" />
@@ -11889,6 +11742,155 @@ export default function App() {
                     </Text>
                   ) : null}
                 </View>
+              </View>
+            ) : newChatComposerOpen ? (
+              <View style={{ flex: 1, backgroundColor: "#000000", paddingTop: 8 }}>
+                  <View
+                    style={{
+                      marginHorizontal: 16,
+                      marginBottom: 12,
+                      padding: 16,
+                      borderRadius: 16,
+                      backgroundColor: "#000000",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#F5F5F5",
+                        fontSize: 14,
+                        fontWeight: "800",
+                        marginBottom: 10,
+                      }}
+                    >
+                      {appText("newMessage")}
+                    </Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: "#1C1C1E",
+                        borderRadius: 22,
+                        paddingHorizontal: 13,
+                      }}
+                    >
+                      <Ionicons
+                        name="search-outline"
+                        size={19}
+                        color="#737373"
+                      />
+                      <TextInput
+                        value={newChatUsername}
+                        onChangeText={setNewChatUsername}
+                        placeholder={appText("searchPeople")}
+                        placeholderTextColor="#737373"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        autoFocus
+                        style={{
+                          flex: 1,
+                          paddingHorizontal: 10,
+                          paddingVertical: 12,
+                          color: "#F5F5F5",
+                        }}
+                      />
+                      {newChatUsername ? (
+                        <TouchableOpacity
+                          onPress={() => setNewChatUsername("")}
+                        >
+                          <Ionicons
+                            name="close-circle"
+                            size={19}
+                            color="#737373"
+                          />
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                    {chatPeopleBusy ? (
+                      <Text style={{ color: "#A8A8A8", padding: 10 }}>
+                        {appText("searchingPeople")}
+                      </Text>
+                    ) : null}
+                    {chatPeopleError ? (
+                      <Text style={{ color: "#B42318", padding: 10 }}>
+                        {translateAppTextValue(appLanguage, chatPeopleError)}
+                      </Text>
+                    ) : null}
+                    {chatPeopleResults.map((person, index) => (
+                      <TouchableOpacity
+                        key={String(person.username || index)}
+                        onPress={() => {
+                          setNewChatComposerOpen(false);
+                          setNewChatUsername("");
+                          setChatPeopleResults([]);
+                          openDirectChat(person.username);
+                        }}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          paddingVertical: 12,
+                          gap: 13,
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 22,
+                            backgroundColor: "#1C1C1E",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {person.avatarUrl ? (
+                            <Image
+                              source={{
+                                uri: String(person.avatarUrl).startsWith("http")
+                                  ? person.avatarUrl
+                                  : `https://bhumi-social-app-1.onrender.com${person.avatarUrl}`,
+                              }}
+                              style={{
+                                width: 42,
+                                height: 42,
+                                borderRadius: 22,
+                              }}
+                            />
+                          ) : (
+                            <Text
+                              style={{ color: "#F5F5F5", fontWeight: "800" }}
+                            >
+                              {String(person.username || "?")
+                                .slice(0, 1)
+                                .toUpperCase()}
+                            </Text>
+                          )}
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: "#F5F5F5", fontWeight: "800" }}>
+                            {person.displayName || person.username}
+                          </Text>
+                          <Text style={{ color: "#A8A8A8", fontSize: 13 }}>
+                            @{person.username}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                    {newChatUsername.trim().length >= 2 &&
+                    !chatPeopleBusy &&
+                    !chatPeopleError &&
+                    chatPeopleResults.length === 0 ? (
+                      <Text
+                        style={{
+                          color: "#A8A8A8",
+                          textAlign: "center",
+                          padding: 12,
+                        }}
+                      >
+                        {appText("noPeopleFound")}
+                      </Text>
+                    ) : null}
+                  </View>
+
               </View>
             ) : (
               <View style={{ flex: 1, minHeight: 0 }}>
@@ -12545,7 +12547,7 @@ export default function App() {
               </View>
             ) : null}
             </ScrollView>
-            <View style={[styles.bottomNav, selectedChatUser && { display: "none" }]}>
+            <View style={[styles.bottomNav, (selectedChatUser || newChatComposerOpen) && { display: "none" }]}>
               {[
                 { name: "Home", icon: "home-outline", activeIcon: "home" },
                 { name: "Reels", icon: "play-outline", activeIcon: "play" },
