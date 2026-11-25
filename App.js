@@ -11895,6 +11895,7 @@ export default function App() {
                             : appText("emptyFiltered")}
                     </Text>
                   ) : null}
+                </View>
                 </ScrollView>
               </View>
             ) : (
