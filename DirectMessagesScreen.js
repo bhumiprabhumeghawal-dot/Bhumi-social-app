@@ -335,7 +335,7 @@ export default function DirectMessagesScreen({
                     ref={searchInputRef}
                     value={query}
                     onChangeText={setQuery}
-                    placeholder="Search or ask Meta AI"
+                    placeholder="Search or ask Bhumi AI"
                     placeholderTextColor={C.muted}
                     autoCapitalize="none"
                     returnKeyType="search"
