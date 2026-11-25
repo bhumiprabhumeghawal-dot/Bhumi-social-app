@@ -40,7 +40,7 @@ export default function DirectMessagesScreen({
   const [attachment, setAttachment] = React.useState(null);
   const [error, setError] = React.useState("");
   const [profileInfoOpen, setProfileInfoOpen] = React.useState(false);
-  const [inboxTab, setInboxTab] = React.useState("All");
+  const [inboxTab, setInboxTab] = React.useState("Primary");
   const listRef = React.useRef(null);
   const peerRef = React.useRef("");
   const requestRef = React.useRef(0);
@@ -92,7 +92,7 @@ export default function DirectMessagesScreen({
       setAttachment(null);
       setQuery("");
       setPeople([]);
-      setInboxTab("All");
+      setInboxTab("Primary");
       setProfileInfoOpen(false);
       setError("");
       return;
@@ -236,13 +236,13 @@ export default function DirectMessagesScreen({
             ) : (
               <>
                 <View style={{ flex: 1 }}>
-                  <Text numberOfLines={1} style={{ color: C.text, fontSize: 21, fontWeight: "800", letterSpacing: -0.4 }}>{authSession?.username || "Messages"}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                    <Text numberOfLines={1} style={{ color: C.text, fontSize: 21, fontWeight: "800", letterSpacing: -0.4 }}>{authSession?.username || "Messages"}</Text>
+                    <Ionicons name="chevron-down" size={16} color={C.text} />
+                  </View>
                 </View>
-                <TouchableOpacity onPress={() => { setQuery(""); setPeople([]); }} style={{ width: 42, height: 48, alignItems: "center", justifyContent: "center" }} accessibilityLabel="New message">
+                <TouchableOpacity onPress={() => { setQuery(""); setPeople([]); }} style={{ width: 46, height: 48, alignItems: "center", justifyContent: "center" }} accessibilityLabel="New message">
                   <Ionicons name="create-outline" size={27} color={C.text} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={refreshInbox} style={{ width: 34, height: 48, alignItems: "center", justifyContent: "center" }} accessibilityLabel="Refresh inbox">
-                  <Ionicons name="videocam-outline" size={25} color={C.text} />
                 </TouchableOpacity>
               </>
             )}
