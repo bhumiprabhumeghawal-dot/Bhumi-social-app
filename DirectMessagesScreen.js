@@ -357,9 +357,6 @@ export default function DirectMessagesScreen({
                     </TouchableOpacity>
                   ))}
                   <View style={{ flex: 1 }} />
-                  <TouchableOpacity onPress={() => setInboxTab("Requests")} style={{ paddingVertical: 10 }}>
-                    <Text style={{ color: inboxTab === "Requests" ? C.blue : C.muted, fontSize: 13, fontWeight: "700" }}>Requests</Text>
-                  </TouchableOpacity>
                 </View>
               ) : null}
               {query.trim().length >= 2 ? (
@@ -391,13 +388,16 @@ export default function DirectMessagesScreen({
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
                   renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => openChat(getUsername(item))} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 15, paddingVertical: 10, gap: 12 }}>
+                    <TouchableOpacity onPress={() => openChat(getUsername(item))} activeOpacity={0.75} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 15, paddingVertical: 8, gap: 12, minHeight: 72 }}>
                       {avatar(item, 56)}
-                      <View style={{ flex: 1, minHeight: 54, justifyContent: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
-                        <Text numberOfLines={1} style={{ color: C.text, fontWeight: "700", fontSize: 14 }}>{item.displayName || getUsername(item)}</Text>
-                        <Text numberOfLines={1} style={{ color: C.muted, marginTop: 4, fontSize: 12 }}>{item.lastMessage || item.last_message || "Tap to chat"}  ·  {item.lastMessageAt || item.updatedAt || ""}</Text>
+                      <View style={{ flex: 1, minHeight: 56, justifyContent: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                          <Text numberOfLines={1} style={{ flex: 1, color: C.text, fontWeight: Number(item.unreadCount || item.unread_count) > 0 ? "800" : "600", fontSize: 14 }}>{item.displayName || getUsername(item)}</Text>
+                          <Text numberOfLines={1} style={{ color: C.muted, fontSize: 10 }}>{item.lastMessageAt || item.updatedAt || ""}</Text>
+                        </View>
+                        <Text numberOfLines={1} style={{ color: C.muted, marginTop: 5, fontSize: 12, fontWeight: Number(item.unreadCount || item.unread_count) > 0 ? "700" : "400" }}>{item.lastMessage || item.last_message || "Tap to chat"}</Text>
                       </View>
-                      {Number(item.unreadCount || item.unread_count) > 0 ? <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: C.blue }} /> : null}
+                      {Number(item.unreadCount || item.unread_count) > 0 ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.blue, marginLeft: 1 }} /> : null}
                     </TouchableOpacity>
                   )}
                   ListEmptyComponent={<View style={{ flex: 1, padding: 34, alignItems: "center", justifyContent: "center" }}>{busy ? <ActivityIndicator color={C.blue} /> : <><Ionicons name={inboxTab === "Requests" ? "mail-open-outline" : "chatbubbles-outline"} size={42} color="#555" /><Text style={{ color: C.muted, textAlign: "center", marginTop: 12 }}>{inboxTab === "Requests" ? "No message requests yet." : inboxTab === "Primary" ? "Abhi koi chat nahi hai. Search karke naya message shuru karein." : "Is tab mein abhi koi chat nahi hai."}</Text></>}</View>}
