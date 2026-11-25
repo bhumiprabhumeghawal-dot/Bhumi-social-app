@@ -13561,7 +13561,6 @@ export default function App() {
                         {appText("noPeopleFound")}
                       </Text>
                     ) : null}
-                </ScrollView>
               </View>
             ) : (
               <View style={{ flex: 1, minHeight: 0 }}>
