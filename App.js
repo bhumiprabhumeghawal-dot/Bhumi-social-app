@@ -12401,10 +12401,8 @@ export default function App() {
                   ) : null}
                   <View
                     style={{
-                      position: "absolute",
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
+                      position: "relative",
+                      flexShrink: 0,
                       zIndex: 30,
                       flexDirection: "row",
                       alignItems: "center",
