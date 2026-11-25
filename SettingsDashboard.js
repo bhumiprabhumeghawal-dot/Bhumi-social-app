@@ -373,6 +373,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
   const settingsShort = settingsHeight < 680;
   const settingsInset = settingsWidth < 340 ? 12 : settingsCompact ? 14 : Math.min(20, settingsWidth * 0.045);
   const settingsTextScale = Math.max(0.9, Math.min(1.22, settingsFontScale || 1));
+  const profileQrSize = Math.max(140, Math.min(250, settingsWidth - 92, settingsHeight - 260));
   const t = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   const [active, setActive] = React.useState(null);
   const [languageVisible, setLanguageVisible] = React.useState(false);
@@ -1469,7 +1470,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
           <View style={{ width:"100%", maxWidth:340, backgroundColor:"#FFFFFF", borderRadius:22, padding:22, alignItems:"center" }}>
             <Text style={{ color:"#111111", fontSize:19, fontWeight:"900" }}>{t("profile")}</Text>
             <Text style={{ color:"#666666", fontSize:12, marginTop:5, marginBottom:18 }}>{t("shareProfileAction")}</Text>
-            <Image source={{ uri:"https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=" + encodeURIComponent("bhumisocial://profile/" + (username || "")) }} style={{ width:250, height:250 }} resizeMode="contain" accessibilityLabel="Profile QR code" />
+            <Image source={{ uri:"https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=" + encodeURIComponent("bhumisocial://profile/" + (username || "")) }} style={{ width:profileQrSize, height:profileQrSize }} resizeMode="contain" accessibilityLabel="Profile QR code" />
             <Text style={{ color:"#222222", fontWeight:"800", marginTop:12 }}>@{username || "your-profile"}</Text>
             <TouchableOpacity onPress={() => Share.share({ message:"Find me on Bhumi Social AI: bhumisocial://profile/" + (username || "") + "\nGet Bhumi Social AI: https://bhumi-social-app-1.onrender.com/download" })} style={{ backgroundColor:"#0095F6", borderRadius:13, paddingVertical:13, paddingHorizontal:22, marginTop:18, width:"100%", alignItems:"center" }}>
               <Text style={{ color:"#FFFFFF", fontWeight:"900" }}>{t("shareProfileAction")}</Text>
