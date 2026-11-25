@@ -319,7 +319,10 @@ export default function DirectMessagesScreen({
             <View style={{ flex: 1, minHeight: 0 }}>
               {!query.trim() ? (
                 <>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 8 : 13, paddingBottom: shortScreen ? 8 : 12, gap: storyRowGap }}>
+                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 7 : 11, paddingBottom: 2 }}>
+                    <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Notes</Text>
+                  </View>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 6 : 9, paddingBottom: shortScreen ? 8 : 12, gap: storyRowGap }}>
                     <View style={{ width: storyAvatarSize + 4, alignItems: "center" }}>
                       <View style={{ width: storyAvatarSize, height: storyAvatarSize, borderRadius: storyAvatarSize / 2, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
                         {avatar({ username: authSession?.username || "You" }, 56)}
