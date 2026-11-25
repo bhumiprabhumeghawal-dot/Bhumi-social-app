@@ -6048,8 +6048,20 @@ export default function App() {
       if (chatEmojiOpen) { setChatEmojiOpen(false); return true; }
       if (chatPersonalizationOpen) { setChatPersonalizationOpen(false); return true; }
       if (newChatComposerOpen) { setNewChatComposerOpen(false); return true; }
-      if (selectedChatUser) { setSelectedChatUser(null); return true; }
-      if (messagesOpen) { setMessagesOpen(false); return true; }
+      if (selectedChatUser) {
+        updateChatTyping(selectedChatUser, false).catch(() => {});
+        setChatPeerTyping(false);
+        setChatReplyTo(null);
+        setSelectedChatUser("");
+        setChatError("");
+        setChatEmojiOpen(false);
+        return true;
+      }
+      if (messagesOpen) {
+        closeMessages();
+        setActiveTab("Home");
+        return true;
+      }
       if (profileEditing) { setProfileEditing(false); return true; }
       if (businessDirectoryOpen) { setBusinessDirectoryOpen(false); return true; }
       if (businessProfileOpen) { setBusinessProfileOpen(false); return true; }
@@ -10991,7 +11003,20 @@ export default function App() {
       <Modal
         visible={messagesOpen}
         animationType="slide"
-        onRequestClose={closeMessages}
+        onRequestClose={() => {
+          // Android Modal back must return from the open conversation to Inbox.
+          if (selectedChatUser) {
+            updateChatTyping(selectedChatUser, false).catch(() => {});
+            setChatPeerTyping(false);
+            setChatReplyTo(null);
+            setSelectedChatUser("");
+            setChatError("");
+            setChatEmojiOpen(false);
+            return;
+          }
+          closeMessages();
+          setActiveTab("Home");
+        }}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
