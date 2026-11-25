@@ -9311,9 +9311,9 @@ export default function App() {
                     {!!profile.bio && <Text style={{ color: "#FFFFFF", fontSize: 14, marginTop: 3 }}>{profile.bio}</Text>}
                   </View>
 
-                  <View style={{ flexDirection: "row", gap: 10, paddingHorizontal: 20, marginBottom: 25 }}>
-                    <TouchableOpacity onPress={() => { setProfileDraft({ displayName: profile.displayName || "you", bio: profile.bio || "" }); setProfileEditing(true); }} style={{ flex: 1, backgroundColor: "#292D32", borderRadius: 11, paddingVertical: 12, alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}>Edit profile</Text></TouchableOpacity>
-                    <TouchableOpacity onPress={() => Share.share({ message: "@" + (profile.username || "you") + " on Bhumi Social AI" })} style={{ flex: 1, backgroundColor: "#292D32", borderRadius: 11, paddingVertical: 12, alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}>Share profile</Text></TouchableOpacity>
+                  <View style={{ flexDirection: "row", gap: appCompact ? 7 : 10, paddingHorizontal: appSideInset, marginBottom: 25 }}>
+                    <TouchableOpacity onPress={() => { setProfileDraft({ displayName: profile.displayName || "you", bio: profile.bio || "" }); setProfileEditing(true); }} style={{ flex: 1, minWidth: 0, backgroundColor: "#292D32", borderRadius: 11, paddingVertical: 12, paddingHorizontal: 5, alignItems: "center" }}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82} style={{ color: "#FFFFFF", fontSize: 16 * appTextScale, fontWeight: "700" }}>Edit profile</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => Share.share({ message: "@" + (profile.username || "you") + " on Bhumi Social AI" })} style={{ flex: 1, minWidth: 0, backgroundColor: "#292D32", borderRadius: 11, paddingVertical: 12, paddingHorizontal: 5, alignItems: "center" }}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82} style={{ color: "#FFFFFF", fontSize: 16 * appTextScale, fontWeight: "700" }}>Share profile</Text></TouchableOpacity>
                   </View>
 
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 19, gap: 18, paddingBottom: 18 }}>
