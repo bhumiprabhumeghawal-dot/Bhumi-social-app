@@ -476,7 +476,7 @@ export default function DirectMessagesScreen({
                   { tab: "Search", icon: "search-outline" },
                   { tab: "Profile", icon: "person-circle-outline" },
                 ].map((item) => (
-                  <TouchableOpacity key={item.tab} onPress={() => onNavigateTab?.(item.tab)} accessibilityRole="button" accessibilityLabel={item.tab} style={{ width: 52, height: 48, alignItems: "center", justifyContent: "center" }}>
+                  <TouchableOpacity key={item.tab} onPress={() => onNavigateTab?.(item.tab)} accessibilityRole="button" accessibilityLabel={item.tab} style={{ width: 52, height: 48, alignItems: "center", justifyContent: "center", transform: [{ translateY: -4 }] }}>
                     <Ionicons name={item.icon} size={27} color={C.text} />
                   </TouchableOpacity>
                 ))}
