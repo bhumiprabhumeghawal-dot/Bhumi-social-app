@@ -3215,6 +3215,7 @@ export default function App() {
   const [noteComposerOpen, setNoteComposerOpen] = React.useState(false);
   const [noteViewer, setNoteViewer] = React.useState(null);
   const [noteDraft, setNoteDraft] = React.useState("");
+  const [noteSong, setNoteSong] = React.useState(null);
   const [noteBusy, setNoteBusy] = React.useState(false);
   const [noteError, setNoteError] = React.useState("");
 
@@ -3374,8 +3375,9 @@ export default function App() {
     setNoteBusy(true);
     setNoteError("");
     try {
-      await saveUserNote(text);
+      await saveUserNote(text, noteSong);
       setNoteDraft("");
+      setNoteSong(null);
       setNoteComposerOpen(false);
       await refreshUserNotes();
     } catch (error) {
@@ -5511,7 +5513,10 @@ export default function App() {
       musicPlayer.replace({ uri: selectedAudio.uri });
       musicPlayer.play();
       setMusicPlayingId(selectedAudio.id);
-      if (noteComposerOpen) setNoteDraft((current) => `🎵 ${track.title}`.slice(0, 60));
+      if (noteComposerOpen) {
+        setNoteSong({ url: track.previewUrl, title: track.title, artist: track.artist });
+        setNoteDraft((current) => (current && !current.startsWith("🎵 ") ? current : `🎵 ${track.title}`).slice(0, 60));
+      }
       setMusicSearchOpen(false);
     } catch (error) {
       Alert.alert(appText("alertLoadFailed"), error?.message || appText("alertTryAgain"));
@@ -11387,6 +11392,7 @@ export default function App() {
                           <TouchableOpacity
                             onPress={() => {
                               setNoteDraft(ownNote?.text || "");
+                              setNoteSong(ownNote?.audioUrl ? { url: ownNote.audioUrl, title: ownNote.audioTitle || "Song", artist: ownNote.audioArtist || "" } : null);
                               setNoteError("");
                               setNoteComposerOpen(true);
                             }}
@@ -12680,6 +12686,13 @@ export default function App() {
                 <Ionicons name="musical-notes" size={18} color="#7CC4FF" />
                 <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700" }}>Search online songs</Text>
               </TouchableOpacity>
+              {noteSong ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, padding: 10, marginBottom: 8, borderRadius: 10, backgroundColor: "#171717" }}>
+                  <Ionicons name="musical-notes" size={19} color="#38BDF8" />
+                  <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 12 }}>{noteSong.title}</Text><Text numberOfLines={1} style={{ color: "#A1A1AA", fontSize: 10 }}>{noteSong.artist} · 30-sec preview</Text></View>
+                  <TouchableOpacity onPress={() => setNoteSong(null)}><Ionicons name="close-circle" size={21} color="#A1A1AA" /></TouchableOpacity>
+                </View>
+              ) : null}
               <TextInput
                 value={noteDraft}
                 onChangeText={setNoteDraft}
@@ -12788,6 +12801,12 @@ export default function App() {
             <Text style={{ fontSize: 15, color: "#FFFFFF", lineHeight: 22 }}>
               {noteViewer?.text || ""}
             </Text>
+            {noteViewer?.audioUrl ? (
+              <TouchableOpacity onPress={() => { try { musicPlayer.replace({ uri: noteViewer.audioUrl }); musicPlayer.play(); } catch (error) { Alert.alert(appText("alertLoadFailed"), error?.message || appText("alertTryAgain")); } }} style={{ flexDirection: "row", alignItems: "center", gap: 9, marginTop: 14, padding: 11, borderRadius: 12, backgroundColor: "#171717" }}>
+                <Ionicons name="play-circle" size={27} color="#38BDF8" />
+                <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ color: "#FFFFFF", fontWeight: "700" }}>{noteViewer.audioTitle || "Song preview"}</Text><Text numberOfLines={1} style={{ color: "#A1A1AA", fontSize: 11 }}>{noteViewer.audioArtist || "Online song"} · 30-sec preview</Text></View>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity
               onPress={() => setNoteViewer(null)}
               style={{
