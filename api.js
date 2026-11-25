@@ -1077,11 +1077,16 @@ export async function loadUserNotes() {
   return data;
 }
 
-export async function saveUserNote(text) {
+export async function saveUserNote(text, audio = null) {
   const response = await fetch(`${API_BASE_URL}/api/notes`, {
     method: 'POST',
     headers: await authHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({
+      text,
+      audioUrl: audio?.url || null,
+      audioTitle: audio?.title || null,
+      audioArtist: audio?.artist || null,
+    }),
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not save note.');
