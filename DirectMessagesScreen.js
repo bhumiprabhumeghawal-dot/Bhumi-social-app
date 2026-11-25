@@ -376,6 +376,30 @@ export default function DirectMessagesScreen({
                 <FlatList
                   data={people}
                   keyExtractor={(x, i) => String(x.username || i)}
+                  ListHeaderComponent={() => {
+                    const needle = query.trim().toLowerCase();
+                    const matches = conversations.filter((item) => {
+                      const searchable = [getUsername(item), item.displayName, item.lastMessage, item.last_message]
+                        .filter(Boolean).join(" ").toLowerCase();
+                      return searchable.includes(needle);
+                    });
+                    return matches.length ? (
+                      <View>
+                        <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>Chats</Text>
+                        {matches.map((item, index) => (
+                          <TouchableOpacity key={String(getUsername(item) || index)} onPress={() => openChat(getUsername(item))} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 15, paddingVertical: 10, gap: 12 }}>
+                            {avatar(item)}
+                            <View style={{ flex: 1 }}>
+                              <Text numberOfLines={1} style={{ color: C.text, fontWeight: "700" }}>{item.displayName || getUsername(item)}</Text>
+                              <Text numberOfLines={1} style={{ color: C.muted, marginTop: 3 }}>{item.lastMessage || item.last_message || "Tap to chat"}</Text>
+                            </View>
+                            <Ionicons name="chatbubble-outline" size={21} color={C.blue} />
+                          </TouchableOpacity>
+                        ))}
+                        <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700", paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>People</Text>
+                      </View>
+                    ) : null;
+                  }}
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={{ paddingBottom: 24 }}
                   renderItem={({ item }) => (
