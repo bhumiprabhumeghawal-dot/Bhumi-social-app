@@ -326,23 +326,25 @@ export default function DirectMessagesScreen({
 
           {!peer ? (
             <View style={{ flex: 1, minHeight: 0 }}>
-              <View style={{ marginLeft: horizontalInset, marginRight: 82, marginTop: query.trim() ? 13 : 0, marginBottom: 10, height: 48, borderRadius: 28, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
-                <Ionicons name="search" size={19} color={C.muted} />
-                <TextInput
-                  ref={searchInputRef}
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder="Search or ask Meta AI"
-                  placeholderTextColor={C.muted}
-                  autoCapitalize="none"
-                  returnKeyType="search"
-                  style={{ flex: 1, color: C.text, paddingHorizontal: 10, height: 46 }}
-                />
-                {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
+              <View style={{ flexDirection: "row", alignItems: "center", marginHorizontal: horizontalInset, marginTop: query.trim() ? 13 : 0, marginBottom: 10, gap: 12 }}>
+                <View style={{ flex: 1, minWidth: 0, height: 48, borderRadius: 28, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
+                  <Ionicons name="search" size={19} color={C.muted} />
+                  <TextInput
+                    ref={searchInputRef}
+                    value={query}
+                    onChangeText={setQuery}
+                    placeholder="Search or ask Meta AI"
+                    placeholderTextColor={C.muted}
+                    autoCapitalize="none"
+                    returnKeyType="search"
+                    style={{ flex: 1, color: C.text, paddingHorizontal: 10, height: 46 }}
+                  />
+                  {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
+                </View>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Filter messages" style={{ height: 48, justifyContent: "center", paddingRight: 2 }}>
+                  <Text style={{ color: C.blue, fontSize: 14, fontWeight: "700" }}>Filter</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Filter messages" style={{ position: "absolute", right: horizontalInset + 2, top: 0, height: 48, justifyContent: "center", paddingHorizontal: 8 }}>
-                <Text style={{ color: C.blue, fontSize: 14, fontWeight: "700" }}>Filter</Text>
-              </TouchableOpacity>
               {!query.trim() ? (
                 <>
 
@@ -537,15 +539,17 @@ export default function DirectMessagesScreen({
                   <TouchableOpacity onPress={pickAttachment} disabled={sending} style={{ width: 34, height: 44, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="Add attachment">
                     <Ionicons name="add-circle-outline" size={27} color={C.text} />
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={send}
-                    disabled={(!draft.trim() && !attachment) || sending}
-                    style={{ width: compactScreen ? 36 : 43, height: 44, alignItems: "center", justifyContent: "center" }}
-                    accessibilityRole="button"
-                    accessibilityLabel="Send message"
-                  >
-                    {sending ? <ActivityIndicator color={C.blue} /> : <Ionicons name="arrow-up-circle" size={30} color={draft.trim() || attachment ? C.blue : "#555"} />}
-                  </TouchableOpacity>
+                  {(draft.trim() || attachment) ? (
+                    <TouchableOpacity
+                      onPress={send}
+                      disabled={(!draft.trim() && !attachment) || sending}
+                      style={{ width: compactScreen ? 36 : 43, height: 44, alignItems: "center", justifyContent: "center" }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Send message"
+                    >
+                      {sending ? <ActivityIndicator color={C.blue} /> : <Ionicons name="arrow-up-circle" size={30} color={draft.trim() || attachment ? C.blue : "#555"} />}
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
               </View>
             </View>
