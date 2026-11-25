@@ -37,6 +37,7 @@ jobs:
           'api.js',
           'SettingsDashboard.js',
           'CreatorBusinessHub.js',
+          'DirectMessagesScreen.js',
           'ChatPersonalization.js',
           'VoiceVideoCallControls.js',
           'photoEditor.js',
