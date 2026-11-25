@@ -362,8 +362,8 @@ export default function DirectMessagesScreen({
               </View>
               {!query.trim() ? (
                 <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 9, flexDirection: "row", alignItems: "center", gap: compactScreen ? 17 : 23, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
-                  {["All", "Primary", "General"].map((tab) => (
-                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field, minHeight: 38, justifyContent: "center" }}>
+                  {["All", "Primary", "General", "Requests"].map((tab) => (
+                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ paddingHorizontal: 12, paddingVertical: 9, borderRadius: 12, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field, minHeight: 38, justifyContent: "center" }}>
                       <Text style={{ color: inboxTab === tab ? "#111111" : C.text, fontSize: 13 * textScale, fontWeight: "700" }}>{tab}</Text>
                     </TouchableOpacity>
                   ))}
@@ -434,7 +434,7 @@ export default function DirectMessagesScreen({
                   const attachmentName = item.attachmentName || item.attachment_name || "Open attachment";
                   const attachmentType = item.attachmentType || item.attachment_type;
                   return (
-                    <View style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "82%", minWidth: body || attachmentUrl ? 0 : 90, backgroundColor: mine ? C.mine : C.other, borderTopLeftRadius: 19, borderTopRightRadius: 19, borderBottomLeftRadius: mine ? 19 : 5, borderBottomRightRadius: mine ? 5 : 19, paddingHorizontal: 14, paddingVertical: 9, marginVertical: 3 }}>
+                    <View style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "88%", minWidth: body || attachmentUrl ? 0 : 90, backgroundColor: mine ? C.mine : C.other, borderTopLeftRadius: 19, borderTopRightRadius: 19, borderBottomLeftRadius: mine ? 19 : 5, borderBottomRightRadius: mine ? 5 : 19, paddingHorizontal: 14, paddingVertical: 9, marginVertical: 3 }}>
                       {attachmentUrl ? (
                         <TouchableOpacity onPress={() => Linking.openURL(avatarUri(attachmentUrl))} style={{ marginBottom: body ? 7 : 0, flexDirection: "row", alignItems: "center", gap: 7 }}>
                           <Ionicons name={String(attachmentType).toLowerCase() === "image" ? "image-outline" : "document-outline"} size={22} color={C.text} />
