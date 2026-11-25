@@ -2861,8 +2861,9 @@ export default function App() {
   React.useEffect(() => {
     if (!musicSearchOpen) return undefined;
     const requestId = ++musicSearchRequestRef.current;
+    setOnlineMusicResults([]);
+    setMusicSearchLoading(true);
     const timer = setTimeout(async () => {
-      setMusicSearchLoading(true);
       try {
         const results = await searchOnlineMusic(musicSearchQuery, "IN");
         if (requestId === musicSearchRequestRef.current) setOnlineMusicResults(results);
