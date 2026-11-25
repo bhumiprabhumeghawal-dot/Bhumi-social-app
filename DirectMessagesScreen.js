@@ -12,9 +12,9 @@ import {
 
 const API_ORIGIN = "https://bhumi-social-app-1.onrender.com";
 const C = {
-  bg: "#000000", panel: "#111111", field: "#1C1C1E", line: "#252525",
-  text: "#FFFFFF", muted: "#929292", blue: "#3797F0", mine: "#164D7A",
-  other: "#252525", danger: "#FF7777",
+  bg: "#000000", panel: "#0B0B0B", field: "#262626", line: "#242424",
+  text: "#FFFFFF", muted: "#A8A8A8", blue: "#3797F0", mine: "#3797F0",
+  other: "#262626", danger: "#FF7777",
 };
 const avatarUri = (value) => {
   if (!value) return null;
@@ -202,7 +202,7 @@ export default function DirectMessagesScreen({
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
-          <View style={{ height: 58, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: C.line }}>
+          <View style={{ height: 62, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
             <TouchableOpacity
               onPress={() => peer ? closeChat() : closeScreen()}
               accessibilityRole="button"
@@ -223,9 +223,9 @@ export default function DirectMessagesScreen({
               </View>
             ) : (
               <>
-                <Text style={{ flex: 1, color: C.text, fontSize: 21, fontWeight: "900" }}>Messages</Text>
+                <Text style={{ flex: 1, color: C.text, fontSize: 23, fontWeight: "900", letterSpacing: -0.5 }}>Chats</Text>
                 <TouchableOpacity onPress={() => { setQuery(""); setPeople([]); }} style={{ width: 44, height: 48, alignItems: "center", justifyContent: "center" }} accessibilityLabel="New message">
-                  <Ionicons name="create-outline" size={27} color={C.text} />
+                  <Ionicons name="create-outline" size={26} color={C.text} />
                 </TouchableOpacity>
               </>
             )}
@@ -233,12 +233,12 @@ export default function DirectMessagesScreen({
 
           {!peer ? (
             <View style={{ flex: 1, minHeight: 0 }}>
-              <View style={{ marginHorizontal: 14, marginTop: 14, marginBottom: 8, height: 46, borderRadius: 13, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
+              <View style={{ marginHorizontal: 14, marginTop: 13, marginBottom: 12, height: 44, borderRadius: 12, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
                 <Ionicons name="search" size={19} color={C.muted} />
                 <TextInput
                   value={query}
                   onChangeText={setQuery}
-                  placeholder="Search people or chats"
+                  placeholder="Search"
                   placeholderTextColor={C.muted}
                   autoCapitalize="none"
                   returnKeyType="search"
@@ -273,10 +273,10 @@ export default function DirectMessagesScreen({
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
                   renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => openChat(getUsername(item))} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 15, paddingVertical: 11, gap: 12 }}>
+                    <TouchableOpacity onPress={() => openChat(getUsername(item))} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 15, paddingVertical: 12, gap: 12 }}>
                       {avatar(item, 54)}
                       <View style={{ flex: 1, minHeight: 54, justifyContent: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
-                        <Text numberOfLines={1} style={{ color: C.text, fontWeight: "800", fontSize: 15 }}>{item.displayName || getUsername(item)}</Text>
+                        <Text numberOfLines={1} style={{ color: C.text, fontWeight: "700", fontSize: 15 }}>{item.displayName || getUsername(item)}</Text>
                         <Text numberOfLines={1} style={{ color: C.muted, marginTop: 4 }}>{item.lastMessage || item.last_message || "Start a conversation"}</Text>
                       </View>
                       {Number(item.unreadCount || item.unread_count) > 0 ? <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: C.blue }} /> : null}
@@ -303,7 +303,7 @@ export default function DirectMessagesScreen({
                   const attachmentName = item.attachmentName || item.attachment_name || "Open attachment";
                   const attachmentType = item.attachmentType || item.attachment_type;
                   return (
-                    <View style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "84%", minWidth: body || attachmentUrl ? 0 : 90, backgroundColor: mine ? C.mine : C.other, borderRadius: 19, paddingHorizontal: 14, paddingVertical: 10, marginVertical: 4 }}>
+                    <View style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "82%", minWidth: body || attachmentUrl ? 0 : 90, backgroundColor: mine ? C.mine : C.other, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomLeftRadius: mine ? 20 : 6, borderBottomRightRadius: mine ? 6 : 20, paddingHorizontal: 15, paddingVertical: 10, marginVertical: 3 }}>
                       {attachmentUrl ? (
                         <TouchableOpacity onPress={() => Linking.openURL(avatarUri(attachmentUrl))} style={{ marginBottom: body ? 7 : 0, flexDirection: "row", alignItems: "center", gap: 7 }}>
                           <Ionicons name={String(attachmentType).toLowerCase() === "image" ? "image-outline" : "document-outline"} size={22} color={C.text} />
@@ -320,7 +320,7 @@ export default function DirectMessagesScreen({
                 ListEmptyComponent={<View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 25 }}>{busy ? <ActivityIndicator color={C.blue} /> : <><Ionicons name="chatbubble-ellipses-outline" size={38} color="#555" /><Text style={{ color: C.muted, marginTop: 10 }}>Yeh chat shuru karein.</Text></>}</View>}
               />
 
-              <View style={{ flexShrink: 0, borderTopWidth: 1, borderTopColor: C.line, paddingHorizontal: 9, paddingTop: 8, paddingBottom: Platform.OS === "android" ? 8 : 6, backgroundColor: C.bg }}>
+              <View style={{ flexShrink: 0, borderTopWidth: 0.5, borderTopColor: C.line, paddingHorizontal: 10, paddingTop: 9, paddingBottom: Platform.OS === "android" ? 9 : 7, backgroundColor: C.bg }}>
                 {attachment ? (
                   <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: C.panel, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7, marginBottom: 7 }}>
                     <Ionicons name="document-attach-outline" size={18} color={C.blue} />
@@ -328,9 +328,9 @@ export default function DirectMessagesScreen({
                     <TouchableOpacity onPress={() => setAttachment(null)}><Ionicons name="close-circle" size={20} color={C.muted} /></TouchableOpacity>
                   </View>
                 ) : null}
-                <View style={{ minHeight: 48, flexDirection: "row", alignItems: "flex-end", gap: 7 }}>
+                <View style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: 7 }}>
                   <TouchableOpacity onPress={pickAttachment} disabled={sending} style={{ width: 39, height: 46, alignItems: "center", justifyContent: "center" }} accessibilityLabel="Attach file">
-                    <Ionicons name="add-circle-outline" size={29} color={C.blue} />
+                    <Ionicons name="add-circle" size={29} color={C.blue} />
                   </TouchableOpacity>
                   <TextInput
                     value={draft}
@@ -340,7 +340,7 @@ export default function DirectMessagesScreen({
                     multiline
                     blurOnSubmit={false}
                     textAlignVertical="center"
-                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 23, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 10, fontSize: 15 }}
+                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 24, paddingHorizontal: 17, paddingTop: 11, paddingBottom: 10, fontSize: 15 }}
                   />
                   <TouchableOpacity
                     onPress={send}
@@ -349,7 +349,7 @@ export default function DirectMessagesScreen({
                     accessibilityRole="button"
                     accessibilityLabel="Send message"
                   >
-                    {sending ? <ActivityIndicator color={C.blue} /> : <Ionicons name="send" size={23} color={draft.trim() || attachment ? C.blue : "#555"} />}
+                    {sending ? <ActivityIndicator color={C.blue} /> : <Ionicons name="arrow-up-circle" size={30} color={draft.trim() || attachment ? C.blue : "#555"} />}
                   </TouchableOpacity>
                 </View>
               </View>
