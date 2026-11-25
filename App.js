@@ -252,7 +252,7 @@ function Story({ item, onPress, lightAppearance = false }) {
               style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }}
             />
           ) : item.own ? (
-            <Text style={{ fontSize: 43 }}>😊</Text>
+            <Text style={{ fontSize: avatarSize * 0.55 }}>😊</Text>
           ) : (
             <Text style={[styles.avatarLetter, { fontSize: Math.max(18, avatarSize * 0.26) }]}>
               {(item.name || "U").charAt(0).toUpperCase()}
