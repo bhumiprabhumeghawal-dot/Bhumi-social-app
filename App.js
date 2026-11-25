@@ -2663,10 +2663,20 @@ export default function App() {
         return;
       }
 
+      if (!Updates.isEnabled) {
+        throw new Error("In-app update is not available in this app build. Please install the latest APK.");
+      }
+
       const result = await Updates.fetchUpdateAsync();
       if (result.isNew) {
         setUpdatePromptVisible(false);
-        await Updates.reloadAsync();
+        // Avoid reloadAsync here: some Android launches have no relaunchable
+        // update yet, which rejects with "Cannot relaunch without a launched update".
+        // The downloaded update is applied by expo-updates on the next cold launch.
+        Alert.alert(
+          appText("alertUpdate"),
+          "Update downloaded successfully. Please close Bhumi Social completely and open it again to apply the update.",
+        );
       } else {
         setUpdatePromptVisible(false);
         Alert.alert(appText("alertUpdate"), appText("alertSaved"));
