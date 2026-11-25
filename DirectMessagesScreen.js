@@ -533,39 +533,42 @@ export default function DirectMessagesScreen({
                     <TouchableOpacity onPress={() => setAttachment(null)}><Ionicons name="close-circle" size={20} color={C.muted} /></TouchableOpacity>
                   </View>
                 ) : null}
-                <View style={{ minHeight: 54, flexDirection: "row", alignItems: "center", gap: compactScreen ? 4 : 7, backgroundColor: C.field, borderRadius: 30, paddingHorizontal: 6 }}>
-                  <TouchableOpacity onPress={takePhoto} disabled={sending} style={{ width: compactScreen ? 34 : 38, height: 44, borderRadius: 22, backgroundColor: "#5B6EFF", alignItems: "center", justifyContent: "center", opacity: sending ? 0.5 : 1 }} accessibilityRole="button" accessibilityLabel="Take photo">
-                    <Ionicons name="camera" size={22} color="#FFFFFF" />
+                <View style={{ minHeight: 58, flexDirection: "row", alignItems: "center", gap: compactScreen ? 6 : 9 }}>
+                  <TouchableOpacity onPress={takePhoto} disabled={sending} style={{ width: compactScreen ? 40 : 44, height: compactScreen ? 40 : 44, borderRadius: 24, backgroundColor: "#5B6EFF", alignItems: "center", justifyContent: "center", opacity: sending ? 0.5 : 1 }} accessibilityRole="button" accessibilityLabel="Take photo">
+                    <Ionicons name="camera" size={23} color="#FFFFFF" />
                   </TouchableOpacity>
-                  <TextInput
-                    value={draft}
-                    onChangeText={setDraft}
-                    placeholder="Message..."
-                    placeholderTextColor={C.muted}
-                    multiline
-                    blurOnSubmit={false}
-                    textAlignVertical="center"
-                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: "transparent", borderRadius: 24, paddingHorizontal: compactScreen ? 8 : 10, paddingTop: 11, paddingBottom: 10, fontSize: (compactScreen ? 14 : 15) * textScale }}
-                  />
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 2 }}>
-                    <TouchableOpacity onPress={() => {}} accessibilityRole="button" accessibilityLabel="Record voice message" style={{ padding: 2 }}><Ionicons name="mic-outline" size={composerIconSize} color={C.text} /></TouchableOpacity>
-                    <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ padding: 2 }}><Ionicons name="image-outline" size={composerIconSize} color={C.text} /></TouchableOpacity>
-                    <TouchableOpacity onPress={() => setEmojiPickerOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Open emoji picker" style={{ padding: 2 }}><Ionicons name="happy-outline" size={compactScreen ? 21 : 23} color={emojiPickerOpen ? C.blue : C.text} /></TouchableOpacity>
-                  </View>
-                  <TouchableOpacity onPress={pickAttachment} disabled={sending} style={{ width: 34, height: 44, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="Add attachment">
-                    <Ionicons name="add-circle-outline" size={27} color={C.text} />
-                  </TouchableOpacity>
-                  {(draft.trim() || attachment) ? (
-                    <TouchableOpacity
-                      onPress={send}
-                      disabled={(!draft.trim() && !attachment) || sending}
-                      style={{ width: compactScreen ? 36 : 43, height: 44, alignItems: "center", justifyContent: "center" }}
-                      accessibilityRole="button"
-                      accessibilityLabel="Send message"
-                    >
-                      {sending ? <ActivityIndicator color={C.blue} /> : <Ionicons name="arrow-up-circle" size={30} color={draft.trim() || attachment ? C.blue : "#555"} />}
+                  <View style={{ flex: 1, minWidth: 0, minHeight: 48, flexDirection: "row", alignItems: "center", backgroundColor: C.field, borderRadius: 26, paddingLeft: compactScreen ? 10 : 13, paddingRight: 7 }}>
+                    <TextInput
+                      value={draft}
+                      onChangeText={setDraft}
+                      placeholder="Message..."
+                      placeholderTextColor={C.muted}
+                      multiline
+                      blurOnSubmit={false}
+                      textAlignVertical="center"
+                      style={{ flex: 1, minWidth: 0, minHeight: 44, maxHeight: 108, color: C.text, backgroundColor: "transparent", paddingVertical: 9, paddingRight: 5, fontSize: (compactScreen ? 14 : 15) * textScale }}
+                    />
+                    <TouchableOpacity onPress={() => setEmojiPickerOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Open emoji picker" style={{ paddingHorizontal: 4, paddingVertical: 8 }}>
+                      <Ionicons name="happy-outline" size={compactScreen ? 21 : 23} color={emojiPickerOpen ? C.blue : C.text} />
                     </TouchableOpacity>
-                  ) : null}
+                    {(draft.trim() || attachment) ? (
+                      <TouchableOpacity onPress={send} disabled={(!draft.trim() && !attachment) || sending} style={{ paddingHorizontal: 3, paddingVertical: 7 }} accessibilityRole="button" accessibilityLabel="Send message">
+                        {sending ? <ActivityIndicator color={C.blue} /> : <Ionicons name="arrow-up-circle" size={29} color={C.blue} />}
+                      </TouchableOpacity>
+                    ) : (
+                      <>
+                        <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ paddingHorizontal: 4, paddingVertical: 8 }}>
+                          <Ionicons name="image-outline" size={composerIconSize} color={C.text} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={pickAttachment} disabled={sending} accessibilityRole="button" accessibilityLabel="Add attachment" style={{ paddingHorizontal: 4, paddingVertical: 8 }}>
+                          <Ionicons name="add-circle-outline" size={25} color={C.text} />
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
+                  <TouchableOpacity onPress={() => {}} accessibilityRole="button" accessibilityLabel="Record voice message" style={{ width: 30, height: 42, alignItems: "center", justifyContent: "center" }}>
+                    <Ionicons name="mic-outline" size={composerIconSize + 1} color={C.text} />
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
