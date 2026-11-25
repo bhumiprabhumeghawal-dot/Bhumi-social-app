@@ -2,7 +2,7 @@ import React from "react";
 import {
   ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal, ScrollView,
   Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View, Linking,
-  Keyboard,
+  Keyboard, useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
@@ -30,6 +30,10 @@ const getSender = (item) => String(item?.sender || item?.senderUsername || item?
 export default function DirectMessagesScreen({
   visible, onClose, authSession, initialUsername = "", onSelectedChatUserChange,
 }) {
+  const { width: windowWidth } = useWindowDimensions();
+  const compactScreen = windowWidth < 360;
+  const horizontalInset = compactScreen ? 12 : 16;
+  const rowAvatarSize = compactScreen ? 50 : 56;
   const [conversations, setConversations] = React.useState([]);
   const [peer, setPeer] = React.useState("");
   const [messages, setMessages] = React.useState([]);
@@ -259,7 +263,7 @@ export default function DirectMessagesScreen({
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
-          <View style={{ height: 62, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
+          <View style={{ minHeight: 58, paddingHorizontal: horizontalInset, flexDirection: "row", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
             <TouchableOpacity
               onPress={() => peer ? closeChat() : closeScreen()}
               accessibilityRole="button"
@@ -270,7 +274,7 @@ export default function DirectMessagesScreen({
             </TouchableOpacity>
             {peer ? (
               <>
-                <TouchableOpacity onPress={() => setProfileInfoOpen(true)} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10, transform: [{ translateY: 30 }] }}>
+                <TouchableOpacity onPress={() => setProfileInfoOpen(true)} style={{ flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: compactScreen ? 7 : 10 }}>
                   {avatar(peerDetails, 38)}
                   <View style={{ flex: 1 }}>
                     <Text numberOfLines={1} style={{ color: C.text, fontSize: 15, fontWeight: "800" }}>{peerDetails?.displayName || peer}</Text>
@@ -278,7 +282,7 @@ export default function DirectMessagesScreen({
                   </View>
                   <Ionicons name="chevron-forward" size={15} color={C.muted} />
                 </TouchableOpacity>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 15, paddingLeft: 7, transform: [{ translateY: 30 }] }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: compactScreen ? 9 : 15, paddingLeft: 5 }}>
                   <VoiceVideoCallControls username={peer} currentUsername={authSession?.username || ""} enableIncoming={false} enableOutgoing={true} showButtons={true} />
                   <TouchableOpacity onPress={() => setProfileInfoOpen(true)} accessibilityRole="button" accessibilityLabel="Conversation information">
                     <Ionicons name="information-circle-outline" size={24} color={C.text} />
@@ -308,7 +312,7 @@ export default function DirectMessagesScreen({
             <View style={{ flex: 1, minHeight: 0 }}>
               {!query.trim() ? (
                 <>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 13, paddingBottom: 12, gap: 17 }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: 13, paddingBottom: 12, gap: compactScreen ? 12 : 17 }}>
                     <View style={{ width: 66, alignItems: "center" }}>
                       <View style={{ width: 62, height: 62, borderRadius: 31, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
                         {avatar({ username: authSession?.username || "You" }, 56)}
@@ -321,7 +325,7 @@ export default function DirectMessagesScreen({
                     {conversations.slice(0, 12).map((item, index) => (
                       <TouchableOpacity key={String(getUsername(item) || index)} onPress={() => openChat(getUsername(item))} style={{ width: 66, alignItems: "center" }}>
                         <View style={{ width: 62, height: 62, borderRadius: 31, borderWidth: 1.5, borderColor: C.muted, alignItems: "center", justifyContent: "center" }}>
-                          {avatar(item, 56)}
+                          {avatar(item, rowAvatarSize)}
                         </View>
                         <Text numberOfLines={1} style={{ color: C.muted, fontSize: 11, marginTop: 6 }}>{getUsername(item)}</Text>
                       </TouchableOpacity>
@@ -335,7 +339,7 @@ export default function DirectMessagesScreen({
                   </View>
                 </>
               ) : null}
-              <View style={{ marginHorizontal: 14, marginTop: query.trim() ? 13 : 0, marginBottom: 10, height: 42, borderRadius: 11, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
+              <View style={{ marginHorizontal: horizontalInset, marginTop: query.trim() ? 13 : 0, marginBottom: 10, height: 42, borderRadius: 11, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
                 <Ionicons name="search" size={19} color={C.muted} />
                 <TextInput
                   ref={searchInputRef}
@@ -350,7 +354,7 @@ export default function DirectMessagesScreen({
                 {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
               </View>
               {!query.trim() ? (
-                <View style={{ paddingHorizontal: 15, paddingBottom: 9, flexDirection: "row", alignItems: "center", gap: 23, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
+                <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 9, flexDirection: "row", alignItems: "center", gap: compactScreen ? 17 : 23, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
                   {["Primary", "General"].map((tab) => (
                     <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} style={{ paddingVertical: 10, borderBottomWidth: inboxTab === tab ? 2 : 0, borderBottomColor: C.blue }}>
                       <Text style={{ color: inboxTab === tab ? C.text : C.muted, fontSize: 14, fontWeight: inboxTab === tab ? "800" : "600" }}>{tab}</Text>
@@ -388,8 +392,8 @@ export default function DirectMessagesScreen({
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
                   renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => openChat(getUsername(item))} activeOpacity={0.75} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 15, paddingVertical: 8, gap: 12, minHeight: 72 }}>
-                      {avatar(item, 56)}
+                    <TouchableOpacity onPress={() => openChat(getUsername(item))} activeOpacity={0.75} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: horizontalInset, paddingVertical: 8, gap: compactScreen ? 9 : 12, minHeight: compactScreen ? 66 : 72 }}>
+                      {avatar(item, rowAvatarSize)}
                       <View style={{ flex: 1, minHeight: 56, justifyContent: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
                         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                           <Text numberOfLines={1} style={{ flex: 1, color: C.text, fontWeight: Number(item.unreadCount || item.unread_count) > 0 ? "800" : "600", fontSize: 14 }}>{item.displayName || getUsername(item)}</Text>
@@ -438,7 +442,7 @@ export default function DirectMessagesScreen({
                 ListEmptyComponent={<View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 25 }}>{busy ? <ActivityIndicator color={C.blue} /> : <><Ionicons name="chatbubble-ellipses-outline" size={38} color="#555" /><Text style={{ color: C.muted, marginTop: 10 }}>Yeh chat shuru karein.</Text></>}</View>}
               />
 
-              <View style={{ flexShrink: 0, borderTopWidth: 0.5, borderTopColor: C.line, paddingHorizontal: 10, paddingTop: 8, paddingBottom: Platform.OS === "android" ? 9 : 7, backgroundColor: C.bg }}>
+              <View style={{ flexShrink: 0, borderTopWidth: 0.5, borderTopColor: C.line, paddingHorizontal: compactScreen ? 7 : 10, paddingTop: 8, paddingBottom: Platform.OS === "android" ? 9 : 7, backgroundColor: C.bg }}>
                 {emojiPickerOpen ? (
                   <View style={{ flexDirection: "row", justifyContent: "space-around", paddingVertical: 9, marginBottom: 7, borderRadius: 14, backgroundColor: C.panel }}>
                     {["😀","😂","🥰","😍","😭","🔥","❤️","👍"].map((emoji) => (
@@ -455,8 +459,8 @@ export default function DirectMessagesScreen({
                     <TouchableOpacity onPress={() => setAttachment(null)}><Ionicons name="close-circle" size={20} color={C.muted} /></TouchableOpacity>
                   </View>
                 ) : null}
-                <View style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: 7 }}>
-                  <TouchableOpacity onPress={takePhoto} disabled={sending} style={{ width: 38, height: 46, borderRadius: 23, backgroundColor: C.blue, alignItems: "center", justifyContent: "center", opacity: sending ? 0.5 : 1, transform: [{ translateY: -30 }] }} accessibilityRole="button" accessibilityLabel="Take photo">
+                <View style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: compactScreen ? 4 : 7 }}>
+                  <TouchableOpacity onPress={takePhoto} disabled={sending} style={{ width: compactScreen ? 34 : 38, height: 44, borderRadius: 22, backgroundColor: C.blue, alignItems: "center", justifyContent: "center", opacity: sending ? 0.5 : 1 }} accessibilityRole="button" accessibilityLabel="Take photo">
                     <Ionicons name="camera" size={22} color="#FFFFFF" />
                   </TouchableOpacity>
                   <TextInput
@@ -467,16 +471,16 @@ export default function DirectMessagesScreen({
                     multiline
                     blurOnSubmit={false}
                     textAlignVertical="center"
-                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 24, paddingHorizontal: 17, paddingTop: 11, paddingBottom: 10, fontSize: 15, transform: [{ translateY: -30 }] }}
+                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 24, paddingHorizontal: compactScreen ? 12 : 17, paddingTop: 11, paddingBottom: 10, fontSize: compactScreen ? 14 : 15 }}
                   />
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 3 }}>
-                    <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ transform: [{ translateY: -30 }] }}><Ionicons name="image-outline" size={23} color={C.text} /></TouchableOpacity>
-                    <TouchableOpacity onPress={() => setEmojiPickerOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Open emoji picker" style={{ transform: [{ translateY: -30 }] }}><Ionicons name="happy-outline" size={23} color={emojiPickerOpen ? C.blue : C.text} /></TouchableOpacity>
+                    <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ padding: 2 }}><Ionicons name="image-outline" size={compactScreen ? 21 : 23} color={C.text} /></TouchableOpacity>
+                    <TouchableOpacity onPress={() => setEmojiPickerOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Open emoji picker" style={{ padding: 2 }}><Ionicons name="happy-outline" size={compactScreen ? 21 : 23} color={emojiPickerOpen ? C.blue : C.text} /></TouchableOpacity>
                   </View>
                   <TouchableOpacity
                     onPress={send}
                     disabled={(!draft.trim() && !attachment) || sending}
-                    style={{ width: 43, height: 46, alignItems: "center", justifyContent: "center", transform: [{ translateY: -30 }] }}
+                    style={{ width: compactScreen ? 36 : 43, height: 44, alignItems: "center", justifyContent: "center" }}
                     accessibilityRole="button"
                     accessibilityLabel="Send message"
                   >
