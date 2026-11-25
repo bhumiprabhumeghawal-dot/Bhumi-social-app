@@ -8770,10 +8770,11 @@ export default function App() {
               decelerationRate="normal"
               nestedScrollEnabled
               showsVerticalScrollIndicator={false}
-              initialNumToRender={2}
-              maxToRenderPerBatch={2}
-              windowSize={3}
-              removeClippedSubviews
+              initialNumToRender={3}
+              maxToRenderPerBatch={3}
+              windowSize={5}
+              // Avoid Android clipping during the first Home feed layout pass.
+              removeClippedSubviews={false}
               getItemLayout={
                 feedViewportHeight > 0
                   ? (_, index) => ({
