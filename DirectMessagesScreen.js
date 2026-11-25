@@ -1,11 +1,12 @@
 import React from "react";
 import {
   ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal,
-  Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View,
+  Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View, Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
 import {
-  loadMessageConversations, loadDirectMessages, sendDirectMessage, searchUsers,
+  loadMessageConversations, loadDirectMessages, sendDirectMessage, searchUsers, uploadChatAttachment,
 } from "./api";
 
 const API_ORIGIN = "https://bhumi-social-app-1.onrender.com";
@@ -22,6 +23,7 @@ export default function DirectMessagesScreen({
   const [people, setPeople] = React.useState([]);
   const [busy, setBusy] = React.useState(false);
   const [sending, setSending] = React.useState(false);
+  const [attachment, setAttachment] = React.useState(null);
   const [error, setError] = React.useState("");
   const listRef = React.useRef(null);
 
@@ -36,7 +38,7 @@ export default function DirectMessagesScreen({
     const target = String(username || "").trim();
     if (!target) return;
     setPeer(target); onSelectedChatUserChange?.(target);
-    setMessages([]); setDraft(""); setError(""); setBusy(true);
+    setMessages([]); setDraft(""); setAttachment(null); setError(""); setBusy(true);
     try { setMessages(await loadDirectMessages(target)); }
     catch (e) { setError(e?.message || "Messages load nahi hue."); }
     finally { setBusy(false); }
@@ -63,16 +65,27 @@ export default function DirectMessagesScreen({
     if (!text || !peer || sending) return;
     setSending(true); setError("");
     try {
-      const sent = await sendDirectMessage(peer, text);
+      const sent = await sendDirectMessage(peer, text, attachment);
       setMessages((old) => [...old, sent]);
-      setDraft("");
+      setDraft(""); setAttachment(null);
       setTimeout(() => listRef.current?.scrollToEnd?.({ animated: true }), 80);
     } catch (e) { setError(e?.message || "Message send nahi hua."); }
     finally { setSending(false); }
   };
 
+  const pickAttachment = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true, multiple: false });
+      if (result.canceled || !result.assets?.[0]) return;
+      setSending(true); setError("");
+      const uploaded = await uploadChatAttachment(result.assets[0]);
+      setAttachment(uploaded);
+    } catch (e) { setError(e?.message || "Attachment upload nahi hua."); }
+    finally { setSending(false); }
+  };
+
   const closeChat = () => {
-    setPeer(""); onSelectedChatUserChange?.(""); setMessages([]); setDraft(""); setError("");
+    setPeer(""); onSelectedChatUserChange?.(""); setMessages([]); setDraft(""); setAttachment(null); setError("");
     refreshInbox();
   };
 
@@ -104,12 +117,12 @@ export default function DirectMessagesScreen({
           </View> : <>
             <FlatList ref={listRef} style={{ flex: 1 }} contentContainerStyle={{ padding: 14, flexGrow: 1, justifyContent: "flex-end" }} data={messages} keyExtractor={(m,i) => String(m.id || i)} onContentSizeChange={() => listRef.current?.scrollToEnd?.({ animated: false })} renderItem={({item}) => {
               const mine = String(item.sender || item.senderUsername || "").toLowerCase() === String(authSession?.username || "").toLowerCase();
-              return <View style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "82%", backgroundColor: mine ? "#164D7A" : "#242424", borderRadius: 18, paddingHorizontal: 13, paddingVertical: 9, marginVertical: 4 }}><Text style={{ color: "#FFF", fontSize: 15 }}>{item.text || item.message || ""}</Text><Text style={{ color: "#B8C5D0", fontSize: 9, textAlign: "right", marginTop: 4 }}>{item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) : ""}</Text></View>;
+              return <View style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "82%", backgroundColor: mine ? "#164D7A" : "#242424", borderRadius: 18, paddingHorizontal: 13, paddingVertical: 9, marginVertical: 4 }}>{item.attachmentUrl ? <TouchableOpacity onPress={() => Linking.openURL(avatarUri(item.attachmentUrl))} style={{ marginBottom: item.text || item.message ? 7 : 0 }}><Ionicons name={String(item.attachmentType).toLowerCase() === "image" ? "image-outline" : "document-outline"} size={23} color="#FFF" /><Text style={{ color: "#FFF", textDecorationLine: "underline" }}>{item.attachmentName || "Open attachment"}</Text></TouchableOpacity> : null}<Text style={{ color: "#FFF", fontSize: 15 }}>{item.text || item.message || ""}</Text><Text style={{ color: "#B8C5D0", fontSize: 9, textAlign: "right", marginTop: 4 }}>{item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) : ""}</Text></View>;
             }} ListEmptyComponent={<View style={{ padding: 30, alignItems: "center" }}>{busy ? <ActivityIndicator color="#3797F0" /> : <Text style={{ color: "#999" }}>Yeh chat shuru karein.</Text>}</View>} />
             <View style={{ minHeight: 58, flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 7, borderTopWidth: 1, borderTopColor: "#222", gap: 8 }}>
-              <TouchableOpacity style={{ width: 38, height: 42, alignItems: "center", justifyContent: "center" }}><Ionicons name="add-circle-outline" size={27} color="#3797F0" /></TouchableOpacity>
-              <TextInput value={draft} onChangeText={setDraft} placeholder="Message..." placeholderTextColor="#888" multiline style={{ flex: 1, maxHeight: 110, minHeight: 42, color: "#FFF", backgroundColor: "#1C1C1E", borderRadius: 22, paddingHorizontal: 15, paddingVertical: 10 }} />
-              <TouchableOpacity onPress={send} disabled={!draft.trim() || sending} style={{ width: 42, height: 42, alignItems: "center", justifyContent: "center" }}>{sending ? <ActivityIndicator color="#3797F0" /> : <Ionicons name="send" size={23} color={draft.trim() ? "#3797F0" : "#666"} />}</TouchableOpacity>
+              <TouchableOpacity onPress={pickAttachment} disabled={sending} style={{ width: 38, height: 42, alignItems: "center", justifyContent: "center" }}><Ionicons name="add-circle-outline" size={27} color="#3797F0" /></TouchableOpacity>
+              {attachment ? <Text numberOfLines={1} style={{ color: "#9CCBFF", maxWidth: 90 }}>{attachment.attachmentName || "File attached"}</Text> : null}<TextInput value={draft} onChangeText={setDraft} placeholder="Message..." placeholderTextColor="#888" multiline style={{ flex: 1, maxHeight: 110, minHeight: 42, color: "#FFF", backgroundColor: "#1C1C1E", borderRadius: 22, paddingHorizontal: 15, paddingVertical: 10 }} />
+              <TouchableOpacity onPress={send} disabled={(!draft.trim() && !attachment) || sending} style={{ width: 42, height: 42, alignItems: "center", justifyContent: "center" }}>{sending ? <ActivityIndicator color="#3797F0" /> : <Ionicons name="send" size={23} color={draft.trim() || attachment ? "#3797F0" : "#666"} />}</TouchableOpacity>
             </View>
           </>}
           {!!error && <Text style={{ color: "#FF7777", paddingHorizontal: 14, paddingVertical: 7 }}>{error}</Text>}
