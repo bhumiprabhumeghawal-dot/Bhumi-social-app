@@ -62,7 +62,7 @@ export default function DirectMessagesScreen({
 
   const send = async () => {
     const text = draft.trim();
-    if (!text || !peer || sending) return;
+    if ((!text && !attachment) || !peer || sending) return;
     setSending(true); setError("");
     try {
       const sent = await sendDirectMessage(peer, text, attachment);
