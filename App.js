@@ -14066,12 +14066,7 @@ export default function App() {
                   <View
                     style={{
                       flexShrink: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      zIndex: 30,
-                      elevation: 30,
-                      flexShrink: 0,
+                      width: "100%",
                       flexDirection: "row",
                       alignItems: "center",
                       paddingHorizontal: 12,
