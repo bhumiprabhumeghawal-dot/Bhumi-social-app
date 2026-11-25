@@ -11023,7 +11023,7 @@ export default function App() {
           style={{ flex: 1 }}
         >
           <SafeAreaView style={{ flex: 1, backgroundColor: "#000000", paddingBottom: Platform.OS === "android" ? 6 : 0 }}>
-            <ScrollView style={{ flex: 1 }} scrollEnabled={!selectedChatUser} nestedScrollEnabled keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, height: selectedChatUser ? "100%" : undefined, paddingBottom: selectedChatUser ? 0 : 18 }}>
+            <View style={{ flex: 1 }}>
             <View
               style={{
                 flexDirection: "row",
@@ -11242,7 +11242,14 @@ export default function App() {
               <View
                 style={{ flex: 1, backgroundColor: "#000000", paddingTop: 8 }}
               >
-                <View>
+                <ScrollView
+                  style={{ flex: 1 }}
+                  nestedScrollEnabled
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="on-drag"
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 18 }}
+                >
                 {chatError ? (
                   <Text
                     style={{
@@ -11888,7 +11895,7 @@ export default function App() {
                             : appText("emptyFiltered")}
                     </Text>
                   ) : null}
-                </View>
+                </ScrollView>
               </View>
             ) : (
               <View style={{ flex: 1, minHeight: 0 }}>
@@ -12544,7 +12551,7 @@ export default function App() {
               </View>
               </View>
             ) : null}
-            </ScrollView>
+            </View>
             <View style={[styles.bottomNav, selectedChatUser && { display: "none" }]}>
               {[
                 { name: "Home", icon: "home-outline", activeIcon: "home" },
