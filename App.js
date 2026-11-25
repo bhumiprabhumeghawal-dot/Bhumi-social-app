@@ -2830,6 +2830,7 @@ export default function App() {
   const [musicSearchQuery, setMusicSearchQuery] = React.useState("");
   const [musicSearchLoading, setMusicSearchLoading] = React.useState(false);
   const [onlineMusicResults, setOnlineMusicResults] = React.useState([]);
+  const musicSearchRequestRef = React.useRef(0);
   const [musicVolume, setMusicVolume] = React.useState(0.8);
   const [originalAudioVolume, setOriginalAudioVolume] = React.useState(1);
   const [musicStart, setMusicStart] = React.useState(0);
@@ -2854,6 +2855,31 @@ export default function App() {
       .finally(() => { if (active) setMusicLibraryLoaded(true); });
     return () => { active = false; };
   }, []);
+
+  // Load a mixed online song list as soon as the picker opens, then refresh
+  // automatically while the user types. Ignore stale responses from older queries.
+  React.useEffect(() => {
+    if (!musicSearchOpen) return undefined;
+    const requestId = ++musicSearchRequestRef.current;
+    const timer = setTimeout(async () => {
+      setMusicSearchLoading(true);
+      try {
+        const results = await searchOnlineMusic(musicSearchQuery, "IN");
+        if (requestId === musicSearchRequestRef.current) setOnlineMusicResults(results);
+      } catch (error) {
+        if (requestId === musicSearchRequestRef.current) {
+          setOnlineMusicResults([]);
+          console.warn("Online song search failed:", error?.message || error);
+        }
+      } finally {
+        if (requestId === musicSearchRequestRef.current) setMusicSearchLoading(false);
+      }
+    }, musicSearchQuery.trim() ? 350 : 0);
+    return () => {
+      clearTimeout(timer);
+      if (musicSearchRequestRef.current === requestId) musicSearchRequestRef.current += 1;
+    };
+  }, [musicSearchOpen, musicSearchQuery]);
 
   // SOCIALAPP_AUTH_SCREEN_V1
   // SOCIALAPP_FIRST_WELCOME_V1
@@ -5483,18 +5509,26 @@ export default function App() {
     }
   };
 
-  const openMusicOptions = () => { setOnlineMusicResults([]); setMusicSearchOpen(true); };
+  const openMusicOptions = () => {
+    setMusicSearchQuery("");
+    setOnlineMusicResults([]);
+    setMusicSearchOpen(true);
+  };
 
   const searchMusicOnGoogle = async () => {
-    const query = musicSearchQuery.trim();
-    if (!query || musicSearchLoading) return;
+    if (musicSearchLoading) return;
+    const requestId = ++musicSearchRequestRef.current;
     setMusicSearchLoading(true);
     try {
-      setOnlineMusicResults(await searchOnlineMusic(query, "IN"));
+      const results = await searchOnlineMusic(musicSearchQuery, "IN");
+      if (requestId === musicSearchRequestRef.current) setOnlineMusicResults(results);
     } catch (error) {
-      Alert.alert(appText("alertLoadFailed"), error?.message || appText("alertTryAgain"));
+      if (requestId === musicSearchRequestRef.current) {
+        setOnlineMusicResults([]);
+        Alert.alert(appText("alertLoadFailed"), error?.message || appText("alertTryAgain"));
+      }
     } finally {
-      setMusicSearchLoading(false);
+      if (requestId === musicSearchRequestRef.current) setMusicSearchLoading(false);
     }
   };
 
@@ -8238,6 +8272,7 @@ export default function App() {
               onSubmitEditing={searchMusicOnGoogle}
               style={{ color: "#FFFFFF", backgroundColor: "#242424", borderWidth: 1, borderColor: "#414141", borderRadius: 12, paddingHorizontal: 13, paddingVertical: 12 }}
             />
+            <Text style={{ color: "#8F8F8F", fontSize: 10, marginTop: -3 }}>Mixed songs appear automatically. Type any word to update the full matching list.</Text>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <TouchableOpacity onPress={searchMusicOnGoogle} disabled={musicSearchLoading} style={{ flex: 1, backgroundColor: "#1877F2", borderRadius: 11, paddingVertical: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 7, opacity: musicSearchLoading ? 0.65 : 1 }}>
                 {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="search" size={17} color="#FFFFFF" />}
@@ -8260,7 +8295,9 @@ export default function App() {
               <Text style={{ color: "#888888", fontSize: 11, alignSelf: "center", marginLeft: "auto" }}>{musicLibrary.length} saved</Text>
             </View>
             <ScrollView style={{ maxHeight: 210 }} keyboardShouldPersistTaps="handled">
-              {onlineMusicResults.length > 0 ? (
+              {musicSearchLoading && onlineMusicResults.length === 0 ? (
+                <View style={{ padding: 24, alignItems: "center" }}><ActivityIndicator color="#FFFFFF" /><Text style={{ color: "#999999", marginTop: 8 }}>Loading online songs...</Text></View>
+              ) : onlineMusicResults.length > 0 ? (
                 onlineMusicResults.map((track) => (
                   <View key={track.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "#292929", gap: 9 }}>
                     {track.artworkUrl ? <Image source={{ uri: track.artworkUrl }} style={{ width: 42, height: 42, borderRadius: 7 }} /> : <Ionicons name="musical-notes" size={25} color="#7CC4FF" />}
