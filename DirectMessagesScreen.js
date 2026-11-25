@@ -298,17 +298,26 @@ export default function DirectMessagesScreen({
               </>
             ) : (
               <>
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                    <Text numberOfLines={1} style={{ color: C.text, fontSize: 21, fontWeight: "800", letterSpacing: -0.4 }}>{authSession?.username || "Messages"}</Text>
-                    <Ionicons name="chevron-down" size={16} color={C.text} />
-                  </View>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Inbox tools" style={{ width: 34, height: 46, alignItems: "center", justifyContent: "center" }}>
+                  <Ionicons name="briefcase-outline" size={25} color={C.text} />
+                </TouchableOpacity>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Activity" style={{ width: 34, height: 46, alignItems: "center", justifyContent: "center" }}>
+                  <Ionicons name="trending-up-outline" size={25} color={C.text} />
+                </TouchableOpacity>
+                <View style={{ flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 }}>
+                  <Text numberOfLines={1} style={{ color: C.text, fontSize: 20, fontWeight: "800", letterSpacing: -0.4 }}>{authSession?.username || "Messages"}</Text>
+                  <Ionicons name="ellipsis-horizontal" size={17} color={C.text} />
+                  <Ionicons name="chevron-down" size={16} color={C.text} />
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#FF3040" }} />
                 </View>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="More inbox options" style={{ width: 32, height: 46, alignItems: "center", justifyContent: "center" }}>
+                  <Ionicons name="ellipsis-horizontal" size={24} color={C.text} />
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => {
                   setQuery("");
                   setPeople([]);
                   requestAnimationFrame(() => searchInputRef.current?.focus?.());
-                }} style={{ width: 46, height: 48, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="New message">
+                }} style={{ width: 38, height: 46, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="New message">
                   <Ionicons name="create-outline" size={27} color={C.text} />
                 </TouchableOpacity>
               </>
@@ -331,6 +340,9 @@ export default function DirectMessagesScreen({
                 />
                 {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
               </View>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Filter messages" style={{ position: "absolute", right: horizontalInset + 2, top: 7, height: 34, justifyContent: "center", paddingHorizontal: 8 }}>
+                <Text style={{ color: C.blue, fontSize: 14, fontWeight: "700" }}>Filter</Text>
+              </TouchableOpacity>
               {!query.trim() ? (
                 <>
 
