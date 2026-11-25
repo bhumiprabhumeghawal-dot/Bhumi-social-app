@@ -13563,7 +13563,7 @@ export default function App() {
                     ) : null}
               </View>
             ) : (
-              <View style={{ flex: 1, minHeight: 0 }}>
+              <View style={{ flex: 1, minHeight: 0, position: "relative" }}>
                 <ScrollView
                   ref={directMessagesScrollRef}
                   style={{ flex: 1, backgroundColor: chatThemeColors.bg }}
@@ -13577,7 +13577,7 @@ export default function App() {
                   contentContainerStyle={{
                     paddingHorizontal: 14,
                     paddingVertical: 16,
-                    paddingBottom: 190,
+                    paddingBottom: 120,
                     flexGrow: 1,
                     justifyContent: "flex-end",
                   }}
@@ -14141,10 +14141,14 @@ export default function App() {
                   {selectedChatUser ? (
                   <View
                     style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
                       width: "100%",
                       alignSelf: "stretch",
                       flexShrink: 0,
-                      zIndex: 20,
+                      zIndex: 1000,
                       flexDirection: "row",
                       alignItems: "center",
                       paddingHorizontal: 12,
