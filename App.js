@@ -220,37 +220,41 @@ function isVersionNewer(latest, current) {
 }
 
 function Story({ item, onPress, lightAppearance = false }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const compact = screenWidth < 360;
+  const avatarSize = compact ? 68 : Math.min(84, Math.max(72, screenWidth * 0.205));
+  const ringSize = avatarSize + 16;
   return (
     <TouchableOpacity
-      style={styles.story}
+      style={[styles.story, { width: ringSize + 4 }]}
       activeOpacity={0.8}
       onPress={onPress}
     >
       <View style={[
         styles.storyRing,
-        { borderWidth: item.hasStatus ? 2 : 0, padding: item.hasStatus ? 0 : 2 },
+        { width: ringSize, height: ringSize, borderRadius: ringSize / 2, borderWidth: item.hasStatus ? 2 : 0, padding: item.hasStatus ? 0 : 2 },
         item.own && styles.ownRing,
       ]}>
         <View style={[
           styles.storyInnerRing,
-          { borderWidth: item.hasStatus ? 2 : 0 },
+          { width: ringSize - 8, height: ringSize - 8, borderRadius: (ringSize - 8) / 2, borderWidth: item.hasStatus ? 2 : 0 },
           item.own && styles.ownStoryInnerRing,
         ]}>
         <View
           style={[
             styles.storyAvatar,
-            { backgroundColor: item.color || "#DDE7F5" },
+            { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2, backgroundColor: item.color || "#DDE7F5" },
           ]}
         >
           {item.uri ? (
             <Image
               source={{ uri: item.uri }}
-              style={{ width: 80, height: 80, borderRadius: 40 }}
+              style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }}
             />
           ) : item.own ? (
             <Text style={{ fontSize: 43 }}>😊</Text>
           ) : (
-            <Text style={styles.avatarLetter}>
+            <Text style={[styles.avatarLetter, { fontSize: Math.max(18, avatarSize * 0.26) }]}>
               {(item.name || "U").charAt(0).toUpperCase()}
             </Text>
           )}
