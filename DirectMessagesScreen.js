@@ -326,7 +326,7 @@ export default function DirectMessagesScreen({
 
           {!peer ? (
             <View style={{ flex: 1, minHeight: 0 }}>
-              <View style={{ marginHorizontal: horizontalInset, marginTop: query.trim() ? 13 : 0, marginBottom: 10, height: 48, borderRadius: 28, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
+              <View style={{ marginLeft: horizontalInset, marginRight: 82, marginTop: query.trim() ? 13 : 0, marginBottom: 10, height: 48, borderRadius: 28, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
                 <Ionicons name="search" size={19} color={C.muted} />
                 <TextInput
                   ref={searchInputRef}
@@ -340,7 +340,7 @@ export default function DirectMessagesScreen({
                 />
                 {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
               </View>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Filter messages" style={{ position: "absolute", right: horizontalInset + 2, top: 7, height: 34, justifyContent: "center", paddingHorizontal: 8 }}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Filter messages" style={{ position: "absolute", right: horizontalInset + 2, top: 0, height: 48, justifyContent: "center", paddingHorizontal: 8 }}>
                 <Text style={{ color: C.blue, fontSize: 14, fontWeight: "700" }}>Filter</Text>
               </TouchableOpacity>
               {!query.trim() ? (
