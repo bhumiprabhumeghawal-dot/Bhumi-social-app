@@ -635,6 +635,11 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               options={{
                 adaptiveStream: true,
                 dynacast: true,
+                audioCaptureDefaults: {
+                  autoGainControl: true,
+                  echoCancellation: true,
+                  noiseSuppression: true,
+                },
                 videoCaptureDefaults: {
                   resolution: VideoPresets.h720.resolution,
                 },
@@ -642,7 +647,6 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                   videoEncoding: VideoPresets.h720.encoding,
                   videoSimulcastLayers: [VideoPresets.h360, VideoPresets.h180],
                   simulcast: true,
-                  audioBitrate: 32000,
                 },
               }}
               style={{ flex: 1, marginTop: 18 }}
