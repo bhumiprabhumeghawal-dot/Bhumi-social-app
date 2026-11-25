@@ -412,7 +412,7 @@ export default function DirectMessagesScreen({
                       <Ionicons name="chatbubble-outline" size={21} color={C.blue} />
                     </TouchableOpacity>
                   )}
-                  ListEmptyComponent={<View style={{ padding: 30, alignItems: "center" }}>{busy ? <ActivityIndicator color={C.blue} /> : <Text style={{ color: C.muted }}>Koi user nahi mila.</Text>}</View>}
+                  ListEmptyComponent={<View style={{ padding: 30, alignItems: "center" }}>{busy ? <ActivityIndicator color={C.blue} /> : <Text style={{ color: C.muted }}>{conversations.some((item) => [getUsername(item), item.displayName, item.lastMessage, item.last_message].filter(Boolean).join(" ").toLowerCase().includes(query.trim().toLowerCase())) ? "Aur koi user nahi mila." : "Koi chat ya user nahi mila."}</Text>}</View>}
                 />
               ) : (
                 <FlatList
