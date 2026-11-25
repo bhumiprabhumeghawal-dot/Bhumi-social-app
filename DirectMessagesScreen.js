@@ -317,8 +317,6 @@ export default function DirectMessagesScreen({
 
           {!peer ? (
             <View style={{ flex: 1, minHeight: 0 }}>
-              {!query.trim() ? (
-                <>
               <View style={{ marginHorizontal: horizontalInset, marginTop: query.trim() ? 13 : 0, marginBottom: 10, height: 48, borderRadius: 28, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
                 <Ionicons name="search" size={19} color={C.muted} />
                 <TextInput
@@ -333,6 +331,9 @@ export default function DirectMessagesScreen({
                 />
                 {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
               </View>
+              {!query.trim() ? (
+                <>
+
                   <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 7 : 11, paddingBottom: 2 }}>
                     <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Notes</Text>
                   </View>
