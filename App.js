@@ -54,7 +54,7 @@ import {
   VOICE_EFFECTS,
 } from "./videoEditor";
 import { editPhotoAsset, POST_PHOTO_FILTERS, getPostPhotoFilter, applyPostPhotoFilter } from "./photoEditor";
-import { buildGoogleMusicSearchUrl, loadMusicLibrary, importAudioToMusicLibrary, updateMusicTrack, removeMusicTrack, searchLocalMusic, searchOnlineMusic } from "./musicLibrary";
+import { loadMusicLibrary, importAudioToMusicLibrary, updateMusicTrack, removeMusicTrack, searchLocalMusic, searchOnlineMusic } from "./musicLibrary";
 import {
   loadContent,
   getCachedContent,
@@ -5516,7 +5516,7 @@ export default function App() {
     setMusicSearchOpen(true);
   };
 
-  const searchMusicOnGoogle = async () => {
+  const refreshOnlineMusicResults = async () => {
     if (musicSearchLoading) return;
     const requestId = ++musicSearchRequestRef.current;
     setMusicSearchLoading(true);
@@ -8270,12 +8270,12 @@ export default function App() {
               placeholder={appText("search")}
               placeholderTextColor="#888888"
               returnKeyType="search"
-              onSubmitEditing={searchMusicOnGoogle}
+              onSubmitEditing={refreshOnlineMusicResults}
               style={{ color: "#FFFFFF", backgroundColor: "#242424", borderWidth: 1, borderColor: "#414141", borderRadius: 12, paddingHorizontal: 13, paddingVertical: 12 }}
             />
             <Text style={{ color: "#8F8F8F", fontSize: 10, marginTop: -3 }}>Mixed songs appear automatically. Type any word to update the full matching list.</Text>
             <View style={{ flexDirection: "row", gap: 8 }}>
-              <TouchableOpacity onPress={searchMusicOnGoogle} disabled={musicSearchLoading} style={{ flex: 1, backgroundColor: "#1877F2", borderRadius: 11, paddingVertical: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 7, opacity: musicSearchLoading ? 0.65 : 1 }}>
+              <TouchableOpacity onPress={refreshOnlineMusicResults} disabled={musicSearchLoading} style={{ flex: 1, backgroundColor: "#1877F2", borderRadius: 11, paddingVertical: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 7, opacity: musicSearchLoading ? 0.65 : 1 }}>
                 {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="search" size={17} color="#FFFFFF" />}
                 <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>{musicSearchLoading ? "Searching..." : "Search songs"}</Text>
               </TouchableOpacity>
