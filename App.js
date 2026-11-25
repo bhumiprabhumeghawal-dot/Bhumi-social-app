@@ -54,7 +54,7 @@ import {
   VOICE_EFFECTS,
 } from "./videoEditor";
 import { editPhotoAsset, POST_PHOTO_FILTERS, getPostPhotoFilter, applyPostPhotoFilter } from "./photoEditor";
-import { buildGoogleMusicSearchUrl, loadMusicLibrary, importAudioToMusicLibrary, updateMusicTrack, removeMusicTrack, searchLocalMusic } from "./musicLibrary";
+import { buildGoogleMusicSearchUrl, loadMusicLibrary, importAudioToMusicLibrary, updateMusicTrack, removeMusicTrack, searchLocalMusic, searchOnlineMusic } from "./musicLibrary";
 import {
   loadContent,
   getCachedContent,
@@ -2828,7 +2828,7 @@ export default function App() {
   const [musicAsset, setMusicAsset] = React.useState(null);
   const [musicSearchOpen, setMusicSearchOpen] = React.useState(false);
   const [musicSearchQuery, setMusicSearchQuery] = React.useState("");
-  const [musicSearchLoading, setMusicSearchLoading] = React.useState(false);
+  const [musicSearchLoading, setMusicSearchLoading] = React.useState(false);\n  const [onlineMusicResults, setOnlineMusicResults] = React.useState([]);
   const [musicVolume, setMusicVolume] = React.useState(0.8);
   const [originalAudioVolume, setOriginalAudioVolume] = React.useState(1);
   const [musicStart, setMusicStart] = React.useState(0);
@@ -5480,19 +5480,40 @@ export default function App() {
     }
   };
 
-  const openMusicOptions = () => setMusicSearchOpen(true);
+  const openMusicOptions = () => { setOnlineMusicResults([]); setMusicSearchOpen(true); };
 
   const searchMusicOnGoogle = async () => {
     const query = musicSearchQuery.trim();
-    if (!query || musicSearchLoading) {
-      if (!query) Alert.alert(appText("musicStudioTitle"), appText("alertDetailsRequired"));
-      return;
-    }
+    if (!query || musicSearchLoading) return;
     setMusicSearchLoading(true);
     try {
-      await Linking.openURL(buildGoogleMusicSearchUrl(query));
+      setOnlineMusicResults(await searchOnlineMusic(query, "IN"));
     } catch (error) {
-      Alert.alert(appText("alertLoadFailed"), appText("alertTryAgain"));
+      Alert.alert(appText("alertLoadFailed"), error?.message || appText("alertTryAgain"));
+    } finally {
+      setMusicSearchLoading(false);
+    }
+  };
+
+  const chooseOnlineMusicTrack = async (track) => {
+    if (!track?.previewUrl || musicSearchLoading) return;
+    setMusicSearchLoading(true);
+    try {
+      const fileUri = FileSystem.cacheDirectory + `bhumi-song-${track.id.replace(/[^a-z0-9-]/gi, "")}.m4a`;
+      const downloaded = await FileSystem.downloadAsync(track.previewUrl, fileUri);
+      const selectedAudio = await importAudioToMusicLibrary(
+        { uri: downloaded.uri, name: `${track.title}.m4a`, mimeType: "audio/mp4" },
+        { title: track.title, artist: track.artist, album: track.album, tags: ["online-preview"] }
+      );
+      setMusicLibrary((current) => [selectedAudio, ...current.filter((item) => item.id !== selectedAudio.id)]);
+      setMusicAsset(selectedAudio);
+      musicPlayer.replace({ uri: selectedAudio.uri });
+      musicPlayer.play();
+      setMusicPlayingId(selectedAudio.id);
+      if (noteComposerOpen) setNoteDraft((current) => `🎵 ${track.title}`.slice(0, 60));
+      setMusicSearchOpen(false);
+    } catch (error) {
+      Alert.alert(appText("alertLoadFailed"), error?.message || appText("alertTryAgain"));
     } finally {
       setMusicSearchLoading(false);
     }
@@ -8185,7 +8206,7 @@ export default function App() {
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <View>
                 <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800" }}>{appText("musicStudioTitle")}</Text>
-                <Text style={{ color: "#999999", fontSize: 11, marginTop: 3 }}>{appText("musicStudioSubtitle")}</Text>
+                <Text style={{ color: "#999999", fontSize: 11, marginTop: 3 }}>Online songs · 30-second previews</Text>
               </View>
               <TouchableOpacity onPress={() => setMusicSearchOpen(false)} style={{ padding: 5 }}>
                 <Ionicons name="close-circle" size={26} color="#AAAAAA" />
@@ -8202,8 +8223,8 @@ export default function App() {
             />
             <View style={{ flexDirection: "row", gap: 8 }}>
               <TouchableOpacity onPress={searchMusicOnGoogle} disabled={musicSearchLoading} style={{ flex: 1, backgroundColor: "#1877F2", borderRadius: 11, paddingVertical: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 7, opacity: musicSearchLoading ? 0.65 : 1 }}>
-                {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="logo-google" size={17} color="#FFFFFF" />}
-                <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>{musicSearchLoading ? "Loading..." : "Google Search"}</Text>
+                {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="search" size={17} color="#FFFFFF" />}
+                <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: 12 }}>{musicSearchLoading ? "Searching..." : "Search songs"}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={chooseMusicFile} disabled={musicSearchLoading} style={{ flex: 1, borderWidth: 1, borderColor: "#555555", borderRadius: 11, paddingVertical: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 7, opacity: musicSearchLoading ? 0.65 : 1 }}>
                 {musicSearchLoading ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />}
@@ -8222,7 +8243,20 @@ export default function App() {
               <Text style={{ color: "#888888", fontSize: 11, alignSelf: "center", marginLeft: "auto" }}>{musicLibrary.length} saved</Text>
             </View>
             <ScrollView style={{ maxHeight: 210 }} keyboardShouldPersistTaps="handled">
-              {!musicLibraryLoaded ? (
+              {onlineMusicResults.length > 0 ? (
+                onlineMusicResults.map((track) => (
+                  <View key={track.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "#292929", gap: 9 }}>
+                    {track.artworkUrl ? <Image source={{ uri: track.artworkUrl }} style={{ width: 42, height: 42, borderRadius: 7 }} /> : <Ionicons name="musical-notes" size={25} color="#7CC4FF" />}
+                    <View style={{ flex: 1 }}>
+                      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>{track.title}</Text>
+                      <Text numberOfLines={1} style={{ color: "#999999", fontSize: 10 }}>{track.artist} · Preview</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => chooseOnlineMusicTrack(track)} disabled={musicSearchLoading} style={{ padding: 7 }}>
+                      <Ionicons name="add-circle" size={24} color="#38BDF8" />
+                    </TouchableOpacity>
+                  </View>
+                ))
+              ) : !musicLibraryLoaded ? (
                 <View style={{ padding: 24, alignItems: "center" }}><ActivityIndicator color="#FFFFFF" /><Text style={{ color: "#999999", marginTop: 8 }}>{appText("loadingLibraryLabel")}</Text></View>
               ) : searchLocalMusic(musicSearchQuery, musicLibrary.filter((track) => musicLibraryFilter === "favorites" ? track.favorite : true)).length ? (
                 searchLocalMusic(musicSearchQuery, musicLibrary.filter((track) => musicLibraryFilter === "favorites" ? track.favorite : true)).map((track) => (
@@ -12641,6 +12675,10 @@ export default function App() {
                   </Text>
                 </View>
               </View>
+              <TouchableOpacity onPress={openMusicOptions} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 9, borderRadius: 10, backgroundColor: "#151515", borderWidth: 1, borderColor: "#303030" }}>
+                <Ionicons name="musical-notes" size={18} color="#7CC4FF" />
+                <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700" }}>Search online songs</Text>
+              </TouchableOpacity>
               <TextInput
                 value={noteDraft}
                 onChangeText={setNoteDraft}
