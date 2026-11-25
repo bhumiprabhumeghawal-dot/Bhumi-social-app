@@ -11079,7 +11079,7 @@ export default function App() {
         }}
       />
 
-      <DirectMessagesScreen visible={messagesOpen} onClose={closeMessages} authSession={authSession} initialUsername={selectedChatUser} onSelectedChatUserChange={setSelectedChatUser} onOpenProfile={openUserProfile} />
+      <DirectMessagesScreen visible={messagesOpen} onClose={closeMessages} authSession={authSession} initialUsername={selectedChatUser} onSelectedChatUserChange={setSelectedChatUser} onOpenProfile={openUserProfile} onNavigateTab={(tab) => { closeMessages(); handleTab(tab); }} />
 
       
 
