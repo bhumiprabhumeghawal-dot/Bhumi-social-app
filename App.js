@@ -1133,6 +1133,8 @@ function PostCard({
   autoPlay = true,
   lightAppearance = false,
 }) {
+  const { height: postScreenHeight } = useWindowDimensions();
+  const commentsMaxHeight = Math.min(360, Math.max(180, postScreenHeight * 0.46));
   const uiTextColor = lightAppearance ? "#111111" : "#FFFFFF";
   const uiSurfaceColor = lightAppearance ? "#FFFFFF" : "#000000";
   const postText = (key) => translateAppText(appLanguage, key);
@@ -1687,7 +1689,7 @@ function PostCard({
                 </TouchableOpacity>
               </View>
 
-              <ScrollView style={{ flexGrow: 0, maxHeight: 360 }}>
+              <ScrollView style={{ flexGrow: 0, maxHeight: commentsMaxHeight }}>
                 {comments.length === 0 ? (
                   <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
                     {postText("noComments")}
@@ -1806,6 +1808,8 @@ function PostCard({
 }
 
 function PostDetailActions({ post, authSession, appLanguage = "en" }) {
+  const { height: detailScreenHeight } = useWindowDimensions();
+  const detailCommentsMaxHeight = Math.min(360, Math.max(180, detailScreenHeight * 0.46));
   const postText = (key) => translateAppText(appLanguage, key);
   const [liked, setLiked] = React.useState(false);
   const [likeCount, setLikeCount] = React.useState(
@@ -2057,7 +2061,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
                   <Ionicons name="close" size={19} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
-              <ScrollView style={{ maxHeight: 360 }}>
+              <ScrollView style={{ maxHeight: detailCommentsMaxHeight }}>
                 {comments.length === 0 ? (
                   <Text style={{ color: "#A8A8A8", paddingVertical: 14 }}>
                     {postText("noCommentsFirst")}
@@ -2380,6 +2384,9 @@ function CustomAlertHost({ appLanguage = "en" }) {
 }
 
 function ChatVideoAttachment({ uri, token, mine }) {
+  const { width: attachmentScreenWidth } = useWindowDimensions();
+  const attachmentWidth = Math.min(230, Math.max(150, attachmentScreenWidth * 0.68));
+  const attachmentHeight = attachmentWidth * 0.826;
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
   const player = useVideoPlayer({ uri, headers, useCaching: true }, (p) => {
     p.loop = false;
@@ -2387,8 +2394,8 @@ function ChatVideoAttachment({ uri, token, mine }) {
 
   return (
     <View style={{
-      width: 230,
-      height: 190,
+      width: attachmentWidth,
+      height: attachmentHeight,
       borderRadius: 14,
       overflow: "hidden",
       backgroundColor: "#000000",
@@ -2405,6 +2412,8 @@ function ChatVideoAttachment({ uri, token, mine }) {
 }
 
 function ChatAudioAttachment({ uri, token, mine, name, appLanguage = "en" }) {
+  const { width: audioScreenWidth } = useWindowDimensions();
+  const audioAttachmentWidth = Math.min(230, Math.max(150, audioScreenWidth * 0.68));
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
   const player = useAudioPlayer({ uri, headers });
   const audioStatus = useAudioPlayerStatus(player);
@@ -2421,7 +2430,7 @@ function ChatAudioAttachment({ uri, token, mine, name, appLanguage = "en" }) {
         }
       }}
       style={{
-        width: 230,
+        width: audioAttachmentWidth,
         minHeight: 62,
         padding: 13,
         borderRadius: 14,
@@ -5964,7 +5973,7 @@ export default function App() {
         <Modal visible={headerCreateMenuOpen} transparent animationType="fade" statusBarTranslucent={false} onRequestClose={() => setHeaderCreateMenuOpen(false)}>
           <View style={{ flex: 1 }}>
             <TouchableOpacity activeOpacity={1} onPress={() => setHeaderCreateMenuOpen(false)} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
-            <View style={{ position: "absolute", top: 72, right: 12, zIndex: 1000, elevation: 20, minWidth: 215, backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 14, paddingVertical: 6, paddingHorizontal: 8 }}>
+            <View style={{ position: "absolute", top: 72, right: 12, zIndex: 1000, elevation: 20, minWidth: Math.min(215, appWindowWidth - 28), backgroundColor: "#1C1C1E", borderWidth: 1, borderColor: "#262626", borderRadius: 14, paddingVertical: 6, paddingHorizontal: 8 }}>
               {[
                 ["live-camera", "Go Live", "radio-outline"],
                 ["reel-camera", "Record Reel", "videocam-outline"],
@@ -8327,7 +8336,7 @@ export default function App() {
               ))}
               <Text style={{ color: "#888888", fontSize: 11, alignSelf: "center", marginLeft: "auto" }}>{musicLibrary.length} saved</Text>
             </View>
-            <ScrollView style={{ maxHeight: 210 }} keyboardShouldPersistTaps="handled">
+            <ScrollView style={{ maxHeight: Math.min(210, Math.max(130, appWindowHeight * 0.3)) }} keyboardShouldPersistTaps="handled">
               {musicSearchLoading && onlineMusicResults.length === 0 ? (
                 <View style={{ padding: 24, alignItems: "center" }}><ActivityIndicator color="#FFFFFF" /><Text style={{ color: "#999999", marginTop: 8 }}>Loading online songs...</Text></View>
               ) : onlineMusicResults.length > 0 ? (
