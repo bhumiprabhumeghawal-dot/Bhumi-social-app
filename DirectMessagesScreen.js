@@ -28,7 +28,7 @@ const getMessageText = (item) => String(item?.text || item?.message || "");
 const getSender = (item) => String(item?.sender || item?.senderUsername || item?.fromUsername || item?.username || "").toLowerCase();
 
 export default function DirectMessagesScreen({
-  visible, onClose, authSession, initialUsername = "", onSelectedChatUserChange, onOpenProfile,
+  visible, onClose, authSession, initialUsername = "", onSelectedChatUserChange, onOpenProfile, onNavigateTab,
 }) {
   const { width: windowWidth, height: windowHeight, fontScale } = useWindowDimensions();
   // Logical dp dimensions adapt to rotation, split-screen and different phones.
@@ -319,6 +319,20 @@ export default function DirectMessagesScreen({
             <View style={{ flex: 1, minHeight: 0 }}>
               {!query.trim() ? (
                 <>
+              <View style={{ marginHorizontal: horizontalInset, marginTop: query.trim() ? 13 : 0, marginBottom: 10, height: 48, borderRadius: 28, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
+                <Ionicons name="search" size={19} color={C.muted} />
+                <TextInput
+                  ref={searchInputRef}
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder="Search or ask Meta AI"
+                  placeholderTextColor={C.muted}
+                  autoCapitalize="none"
+                  returnKeyType="search"
+                  style={{ flex: 1, color: C.text, paddingHorizontal: 10, height: 46 }}
+                />
+                {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
+              </View>
                   <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 7 : 11, paddingBottom: 2 }}>
                     <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Notes</Text>
                   </View>
@@ -341,28 +355,9 @@ export default function DirectMessagesScreen({
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
-                  <View style={{ paddingHorizontal: 16, paddingTop: 5, paddingBottom: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                    <Text style={{ color: C.text, fontSize: 17, fontWeight: "800" }}>Messages</Text>
-                    <TouchableOpacity onPress={() => setInboxTab("Requests")} accessibilityRole="button">
-                      <Text style={{ color: C.blue, fontSize: 13, fontWeight: "700" }}>Requests</Text>
-                    </TouchableOpacity>
-                  </View>
                 </>
               ) : null}
-              <View style={{ marginHorizontal: horizontalInset, marginTop: query.trim() ? 13 : 0, marginBottom: 10, height: 42, borderRadius: 11, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
-                <Ionicons name="search" size={19} color={C.muted} />
-                <TextInput
-                  ref={searchInputRef}
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder="Search"
-                  placeholderTextColor={C.muted}
-                  autoCapitalize="none"
-                  returnKeyType="search"
-                  style={{ flex: 1, color: C.text, paddingHorizontal: 10, height: 46 }}
-                />
-                {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
-              </View>
+
               {!query.trim() ? (
                 <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 9, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 5, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
                   {["All", "Primary", "General", "Requests"].map((tab) => (
@@ -442,6 +437,19 @@ export default function DirectMessagesScreen({
                   ListEmptyComponent={<View style={{ flex: 1, padding: 34, alignItems: "center", justifyContent: "center" }}>{busy ? <ActivityIndicator color={C.blue} /> : <><Ionicons name={inboxTab === "Requests" ? "mail-open-outline" : "chatbubbles-outline"} size={42} color="#555" /><Text style={{ color: C.muted, textAlign: "center", marginTop: 12 }}>{inboxTab === "Requests" ? "No message requests yet." : inboxTab === "Primary" ? "Abhi koi chat nahi hai. Search karke naya message shuru karein." : "Is tab mein abhi koi chat nahi hai."}</Text></>}</View>}
                 />
               )}
+              <View style={{ height: 64, paddingBottom: 4, borderTopWidth: 0.5, borderTopColor: C.line, flexDirection: "row", alignItems: "center", justifyContent: "space-around", backgroundColor: C.bg }}>
+                {[
+                  { tab: "Home", icon: "home-outline" },
+                  { tab: "Reels", icon: "play-circle-outline" },
+                  { tab: "Chat", icon: "paper-plane" },
+                  { tab: "Search", icon: "search-outline" },
+                  { tab: "Profile", icon: "person-circle-outline" },
+                ].map((item) => (
+                  <TouchableOpacity key={item.tab} onPress={() => onNavigateTab?.(item.tab)} accessibilityRole="button" accessibilityLabel={item.tab} style={{ width: 52, height: 48, alignItems: "center", justifyContent: "center" }}>
+                    <Ionicons name={item.icon} size={27} color={C.text} />
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           ) : (
             <View style={{ flex: 1, minHeight: 0 }}>
