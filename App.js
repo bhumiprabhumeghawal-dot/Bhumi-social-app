@@ -3133,7 +3133,7 @@ export default function App() {
     return scoreB - scoreA;
   });
   const chatThemeColors = ({
-    royal: { bg: "#000000", mine: "#3797F0", other: "#262626", accent: "#FFFFFF" },
+    royal: { bg: "#080511", mine: "#6D3CCF", other: "transparent", accent: "#D8B35A" },
     midnight: { bg: "#080B12", mine: "#253044", other: "#151B27", accent: "#8FA8D8" },
     ocean: { bg: "#071521", mine: "#12415A", other: "#102A3A", accent: "#61C5E8" },
     rose: { bg: "#1B0B16", mine: "#63304A", other: "#321A29", accent: "#F0A0C0" },
@@ -12007,11 +12007,11 @@ export default function App() {
                             setChatUnsendTarget(message);
                           }}
                           style={{
-                            maxWidth: "70%",
-                            backgroundColor: mine ? chatThemeColors.mine : chatThemeColors.other,
-                            borderRadius: 18,
-                            paddingHorizontal: 10,
-                            paddingVertical: 7,
+                            maxWidth: "78%",
+                            backgroundColor: "transparent",
+                            borderRadius: 0,
+                            paddingHorizontal: 4,
+                            paddingVertical: 4,
                             borderWidth: 0,
                             borderColor: "transparent",
                             elevation: 0,
@@ -12547,11 +12547,11 @@ export default function App() {
                     <TouchableOpacity
                       onPress={() => chooseChatMedia(true)}
                       accessibilityLabel={appText("createPhotoPost")}
-                      style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#0095F6" }}
+                      style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#6D3CCF" }}
                     >
                       <Ionicons name="camera" size={25} color="#FFFFFF" />
                     </TouchableOpacity>
-                    <View style={{ flex: 1, minHeight: 46, borderRadius: 24, backgroundColor: "#262626", flexDirection: "row", alignItems: "center", paddingLeft: 15, paddingRight: 7, gap: 8 }}>
+                    <View style={{ flex: 1, minHeight: 46, borderRadius: 24, backgroundColor: "#120D1C", borderWidth: 1, borderColor: "#6D3CCF", flexDirection: "row", alignItems: "center", paddingLeft: 15, paddingRight: 7, gap: 8 }}>
                       <TextInput
                         value={chatDraft}
                         onChangeText={handleChatDraftChange}
@@ -13619,11 +13619,11 @@ export default function App() {
                             setChatUnsendTarget(message);
                           }}
                           style={{
-                            maxWidth: "70%",
-                            backgroundColor: mine ? chatThemeColors.mine : chatThemeColors.other,
-                            borderRadius: 18,
-                            paddingHorizontal: 10,
-                            paddingVertical: 7,
+                            maxWidth: "78%",
+                            backgroundColor: "transparent",
+                            borderRadius: 0,
+                            paddingHorizontal: 4,
+                            paddingVertical: 4,
                             borderWidth: 0,
                             borderColor: "transparent",
                             elevation: 0,
@@ -14159,11 +14159,11 @@ export default function App() {
                     <TouchableOpacity
                       onPress={() => chooseChatMedia(true)}
                       accessibilityLabel={appText("createPhotoPost")}
-                      style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#0095F6" }}
+                      style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#6D3CCF" }}
                     >
                       <Ionicons name="camera" size={25} color="#FFFFFF" />
                     </TouchableOpacity>
-                    <View style={{ flex: 1, minHeight: 46, borderRadius: 24, backgroundColor: "#262626", flexDirection: "row", alignItems: "center", paddingLeft: 15, paddingRight: 7, gap: 8 }}>
+                    <View style={{ flex: 1, minHeight: 46, borderRadius: 24, backgroundColor: "#120D1C", borderWidth: 1, borderColor: "#6D3CCF", flexDirection: "row", alignItems: "center", paddingLeft: 15, paddingRight: 7, gap: 8 }}>
                       <TextInput
                         value={chatDraft}
                         onChangeText={handleChatDraftChange}
