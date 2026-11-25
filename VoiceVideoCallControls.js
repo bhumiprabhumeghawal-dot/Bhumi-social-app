@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
   Platform,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import RNCallKeep from "react-native-callkeep";
@@ -94,10 +95,14 @@ if (!liveKitGlobalsRegistered) {
 }
 
 function CallAvatarStage({ name, status, connected = false }) {
+  const { width, height } = useWindowDimensions();
+  const compact = width < 360;
+  const avatarSize = Math.max(104, Math.min(compact ? 126 : 154, Math.min(width * 0.42, height * 0.22)));
+  const innerSize = avatarSize * 0.86;
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#07090D", paddingHorizontal: 28 }}>
       <View style={{ width: 154, height: 154, borderRadius: 77, borderWidth: 1, borderColor: "rgba(0,149,246,0.42)", backgroundColor: "rgba(0,149,246,0.08)", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-        <View style={{ width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "#202630", alignItems: "center", justifyContent: "center" }}>
+        <View style={{ width: innerSize, height: innerSize, borderRadius: innerSize / 2, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "#202630", alignItems: "center", justifyContent: "center" }}>
           <Ionicons name="person" size={62} color="#FFFFFF" />
         </View>
       </View>
@@ -611,10 +616,10 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       ) : null}
 
       <Modal visible={showCallModal} animationType="fade" statusBarTranslucent onRequestClose={endCall}>
-        <View style={{ flex: 1, backgroundColor: "#07090D", paddingTop: 54, paddingBottom: 30 }}>
-          <View pointerEvents="none" style={{ position: "absolute", top: -115, alignSelf: "center", width: 350, height: 350, borderRadius: 175, backgroundColor: "#10243A", opacity: 0.42 }} />
-          <View pointerEvents="none" style={{ position: "absolute", bottom: 110, alignSelf: "center", width: 300, height: 300, borderRadius: 150, backgroundColor: "#17121F", opacity: 0.34 }} />
-          <View style={{ paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <View style={{ flex: 1, backgroundColor: "#07090D", paddingTop: callShort ? 20 : 42, paddingBottom: callShort ? 12 : 24 }}>
+          <View pointerEvents="none" style={{ position: "absolute", top: -115, alignSelf: "center", width: Math.min(350, callWidth * 0.9), height: Math.min(350, callWidth * 0.9), borderRadius: Math.min(350, callWidth * 0.9) / 2, backgroundColor: "#10243A", opacity: 0.42 }} />
+          <View pointerEvents="none" style={{ position: "absolute", bottom: 110, alignSelf: "center", width: Math.min(300, callWidth * 0.78), height: Math.min(300, callWidth * 0.78), borderRadius: Math.min(300, callWidth * 0.78) / 2, backgroundColor: "#17121F", opacity: 0.34 }} />
+          <View style={{ paddingHorizontal: callInset, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#0095F6" }} />
               <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700", letterSpacing: 0.2 }}>{call?.type === "video" ? label("video") : label("voice")}</Text>
@@ -706,7 +711,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               />
               {busy ? <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 22 }} /> : null}
               {incoming ? (
-                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18, marginTop: 48, width: "100%" }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: callCompact ? 8 : 18, marginTop: callShort ? 18 : 36, width: "100%" }}>
                   <TouchableOpacity onPress={declineCall} activeOpacity={0.85} style={{ width: 84, height: 104, alignItems: "center", justifyContent: "flex-start" }}>
                     <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#FF3040", alignItems: "center", justifyContent: "center" }}>
                       <Ionicons name="call" size={25} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
@@ -732,7 +737,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                       <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "800" }}>{busy ? label("reconnecting") : label("reconnect")}</Text>
                     </TouchableOpacity>
                   ) : null}
-                  <TouchableOpacity onPress={endCall} activeOpacity={0.85} style={{ marginTop: connectionFailed ? 18 : 48, width: 84, height: 104, alignItems: "center", justifyContent: "flex-start" }}>
+                  <TouchableOpacity onPress={endCall} activeOpacity={0.85} style={{ marginTop: connectionFailed ? 12 : (callShort ? 16 : 36), width: 84, height: 104, alignItems: "center", justifyContent: "flex-start" }}>
                     <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#FF3040", alignItems: "center", justifyContent: "center" }}>
                       <Ionicons name="call" size={25} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
                     </View>
@@ -744,7 +749,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           )}
 
           {connection?.token ? (
-            <View style={{ marginTop: 16, marginHorizontal: 22, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12, borderRadius: 28, backgroundColor: "#171717", borderWidth: 1, borderColor: "#363636", flexDirection: "row", justifyContent: "space-around", alignItems: "center" }}>
+            <View style={{ marginTop: 10, marginHorizontal: callInset, paddingHorizontal: callCompact ? 10 : 18, paddingTop: 14, paddingBottom: 12, borderRadius: 28, backgroundColor: "#171717", borderWidth: 1, borderColor: "#363636", flexDirection: "row", justifyContent: "space-around", alignItems: "center" }}>
               <TouchableOpacity onPress={() => setMicEnabled((value) => !value)} accessibilityLabel={micEnabled ? label("mute") : label("unmute")} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
                 <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: micEnabled ? "#333333" : "#B83D50", borderWidth: 1, borderColor: "#555555", alignItems: "center", justifyContent: "center" }}>
                   <Ionicons name={micEnabled ? "mic" : "mic-off"} size={22} color="#FFFFFF" />
