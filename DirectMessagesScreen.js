@@ -361,13 +361,12 @@ export default function DirectMessagesScreen({
                 {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
               </View>
               {!query.trim() ? (
-                <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 9, flexDirection: "row", alignItems: "center", gap: compactScreen ? 17 : 23, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
+                <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 9, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 5, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
                   {["All", "Primary", "General", "Requests"].map((tab) => (
-                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ paddingHorizontal: 12, paddingVertical: 9, borderRadius: 12, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field, minHeight: 38, justifyContent: "center" }}>
-                      <Text style={{ color: inboxTab === tab ? "#111111" : C.text, fontSize: 13 * textScale, fontWeight: "700" }}>{tab}</Text>
+                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minWidth: 0, paddingHorizontal: 4, paddingVertical: 9, borderRadius: 12, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field, minHeight: 38, alignItems: "center", justifyContent: "center" }}>
+                      <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: inboxTab === tab ? "#111111" : C.text, fontSize: 12 * textScale, fontWeight: "700" }}>{tab}</Text>
                     </TouchableOpacity>
                   ))}
-                  <View style={{ flex: 1 }} />
                 </View>
               ) : null}
               {query.trim().length >= 2 ? (
