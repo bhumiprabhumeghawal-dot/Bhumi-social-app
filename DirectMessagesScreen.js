@@ -30,10 +30,17 @@ const getSender = (item) => String(item?.sender || item?.senderUsername || item?
 export default function DirectMessagesScreen({
   visible, onClose, authSession, initialUsername = "", onSelectedChatUserChange,
 }) {
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight, fontScale } = useWindowDimensions();
+  // Logical dp dimensions adapt to rotation, split-screen and different phones.
   const compactScreen = windowWidth < 360;
-  const horizontalInset = compactScreen ? 12 : 16;
-  const rowAvatarSize = compactScreen ? 50 : 56;
+  const shortScreen = windowHeight < 680;
+  const narrowScreen = windowWidth < 340;
+  const horizontalInset = narrowScreen ? 10 : compactScreen ? 12 : 16;
+  const rowAvatarSize = narrowScreen ? 46 : compactScreen ? 50 : 56;
+  const storyAvatarSize = narrowScreen ? 54 : compactScreen ? 58 : 62;
+  const storyRowGap = narrowScreen ? 9 : compactScreen ? 12 : 17;
+  const composerIconSize = narrowScreen ? 20 : compactScreen ? 21 : 23;
+  const textScale = Math.min(Math.max(fontScale || 1, 0.9), 1.25);
   const [conversations, setConversations] = React.useState([]);
   const [peer, setPeer] = React.useState("");
   const [messages, setMessages] = React.useState([]);
@@ -263,7 +270,7 @@ export default function DirectMessagesScreen({
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
-          <View style={{ minHeight: 58, paddingHorizontal: horizontalInset, flexDirection: "row", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
+          <View style={{ minHeight: shortScreen ? 54 : 58, paddingHorizontal: horizontalInset, flexDirection: "row", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
             <TouchableOpacity
               onPress={() => peer ? closeChat() : closeScreen()}
               accessibilityRole="button"
@@ -312,9 +319,9 @@ export default function DirectMessagesScreen({
             <View style={{ flex: 1, minHeight: 0 }}>
               {!query.trim() ? (
                 <>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: 13, paddingBottom: 12, gap: compactScreen ? 12 : 17 }}>
-                    <View style={{ width: 66, alignItems: "center" }}>
-                      <View style={{ width: 62, height: 62, borderRadius: 31, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 8 : 13, paddingBottom: shortScreen ? 8 : 12, gap: storyRowGap }}>
+                    <View style={{ width: storyAvatarSize + 4, alignItems: "center" }}>
+                      <View style={{ width: storyAvatarSize, height: storyAvatarSize, borderRadius: storyAvatarSize / 2, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
                         {avatar({ username: authSession?.username || "You" }, 56)}
                         <View style={{ position: "absolute", right: -1, bottom: -1, width: 22, height: 22, borderRadius: 11, backgroundColor: C.field, borderWidth: 2, borderColor: C.bg, alignItems: "center", justifyContent: "center" }}>
                           <Ionicons name="add" size={15} color={C.text} />
@@ -357,7 +364,7 @@ export default function DirectMessagesScreen({
                 <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 9, flexDirection: "row", alignItems: "center", gap: compactScreen ? 17 : 23, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
                   {["Primary", "General"].map((tab) => (
                     <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} style={{ paddingVertical: 10, borderBottomWidth: inboxTab === tab ? 2 : 0, borderBottomColor: C.blue }}>
-                      <Text style={{ color: inboxTab === tab ? C.text : C.muted, fontSize: 14, fontWeight: inboxTab === tab ? "800" : "600" }}>{tab}</Text>
+                      <Text style={{ color: inboxTab === tab ? C.text : C.muted, fontSize: 14 * textScale, fontWeight: inboxTab === tab ? "800" : "600" }}>{tab}</Text>
                     </TouchableOpacity>
                   ))}
                   <View style={{ flex: 1 }} />
@@ -432,7 +439,7 @@ export default function DirectMessagesScreen({
                           <Text numberOfLines={2} style={{ color: C.text, textDecorationLine: "underline", flexShrink: 1 }}>{attachmentName}</Text>
                         </TouchableOpacity>
                       ) : null}
-                      {!!body && <Text style={{ color: C.text, fontSize: 15, lineHeight: 21 }}>{body}</Text>}
+                      {!!body && <Text style={{ color: C.text, fontSize: 15 * textScale, lineHeight: 21 * textScale }}>{body}</Text>}
                       <Text style={{ color: "#C1CED8", fontSize: 9, textAlign: "right", marginTop: 4 }}>
                         {item.createdAt || item.created_at ? new Date(item.createdAt || item.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
                       </Text>
@@ -471,10 +478,10 @@ export default function DirectMessagesScreen({
                     multiline
                     blurOnSubmit={false}
                     textAlignVertical="center"
-                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 24, paddingHorizontal: compactScreen ? 12 : 17, paddingTop: 11, paddingBottom: 10, fontSize: compactScreen ? 14 : 15 }}
+                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 24, paddingHorizontal: compactScreen ? 12 : 17, paddingTop: 11, paddingBottom: 10, fontSize: (compactScreen ? 14 : 15) * textScale }}
                   />
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 3 }}>
-                    <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ padding: 2 }}><Ionicons name="image-outline" size={compactScreen ? 21 : 23} color={C.text} /></TouchableOpacity>
+                    <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ padding: 2 }}><Ionicons name="image-outline" size={composerIconSize} color={C.text} /></TouchableOpacity>
                     <TouchableOpacity onPress={() => setEmojiPickerOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Open emoji picker" style={{ padding: 2 }}><Ionicons name="happy-outline" size={compactScreen ? 21 : 23} color={emojiPickerOpen ? C.blue : C.text} /></TouchableOpacity>
                   </View>
                   <TouchableOpacity
