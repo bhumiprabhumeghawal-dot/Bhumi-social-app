@@ -6,29 +6,6 @@ const AUDIO_DIRECTORY = `${FileSystem.documentDirectory}bhumi-music-library/`;
 
 const safeText = (value, max = 180) => String(value || "").trim().slice(0, max);
 
-export const MUSIC_CATALOG_PROVIDERS = Object.freeze([
-  {
-    id: "google-web",
-    label: "Google Search",
-    kind: "web-search",
-    enabled: true,
-    note: "Opens Google results; audio must be selected from a permitted source.",
-  },
-  {
-    id: "licensed-catalog",
-    label: "Licensed music catalog",
-    kind: "streaming-catalog",
-    enabled: false,
-    note: "Provider credentials and commercial usage rights can be configured later.",
-  },
-]);
-
-export function buildGoogleMusicSearchUrl(query) {
-  const clean = safeText(query, 160);
-  if (!clean) throw new Error("Enter a song or artist name first.");
-  return `https://www.google.com/search?q=${encodeURIComponent(clean + " official song audio")}`;
-}
-
 export function searchLocalMusic(query, tracks = []) {
   const q = safeText(query, 120).toLocaleLowerCase();
   if (!q) return tracks;
