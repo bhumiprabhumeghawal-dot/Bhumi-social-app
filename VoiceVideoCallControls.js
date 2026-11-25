@@ -93,6 +93,23 @@ if (!liveKitGlobalsRegistered) {
   }
 }
 
+function CallAvatarStage({ name, status, connected = false }) {
+  return (
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#07090D", paddingHorizontal: 28 }}>
+      <View style={{ width: 154, height: 154, borderRadius: 77, borderWidth: 1, borderColor: "rgba(0,149,246,0.42)", backgroundColor: "rgba(0,149,246,0.08)", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+        <View style={{ width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "#202630", alignItems: "center", justifyContent: "center" }}>
+          <Ionicons name="person" size={62} color="#FFFFFF" />
+        </View>
+      </View>
+      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 29, fontWeight: "700", marginTop: 18, letterSpacing: 0.2, textAlign: "center" }}>{name || "Bhumi Social"}</Text>
+      <View style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 18, backgroundColor: "#171B22", borderWidth: 1, borderColor: "#303946", flexDirection: "row", alignItems: "center", gap: 8 }}>
+        {connected ? <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#45D483" }} /> : <ActivityIndicator color="#0095F6" size="small" />}
+        <Text style={{ color: "#D1D7E0", fontSize: 12, fontWeight: "600" }}>{status}</Text>
+      </View>
+    </View>
+  );
+}
+
 function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" }) {
   const labels = { connected: callText(appLanguage, "connected"), connecting: callText(appLanguage, "connecting") };
   // The React Native LiveKit hook returns local and remote camera references.
@@ -122,16 +139,11 @@ function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" 
 
   if (callType !== "video") {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#000000" }}>
-        <View style={{ width: 126, height: 126, borderRadius: 63, backgroundColor: "#262626", borderWidth: 1, borderColor: "#3A3A3A", alignItems: "center", justifyContent: "center" }}>
-          <Ionicons name="person" size={58} color="#FFFFFF" />
-        </View>
-        <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "800", marginTop: 20 }}>{remoteName}</Text>
-        <View style={{ marginTop: 10, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: "#1F1F1F", flexDirection: "row", alignItems: "center", gap: 7 }}>
-          {isConnected ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#45D483" }} /> : <ActivityIndicator color="#0095F6" size="small" />}
-          <Text style={{ color: "#D1D1D1", fontSize: 12 }}>{isConnected ? labels.connected : labels.connecting}</Text>
-        </View>
-      </View>
+      <CallAvatarStage
+        name={remoteName}
+        status={isConnected ? labels.connected : labels.connecting}
+        connected={isConnected}
+      />
     );
   }
 
@@ -605,7 +617,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           <View style={{ paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#0095F6" }} />
-              <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700", letterSpacing: 0.2 }}>{incoming ? label("incoming") : call?.type === "video" ? label("video") : label("voice")}</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700", letterSpacing: 0.2 }}>{call?.type === "video" ? label("video") : label("voice")}</Text>
             </View>
             <TouchableOpacity onPress={endCall} accessibilityLabel={translateAppText(appLanguage, "close")} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#171B22", borderWidth: 1, borderColor: "#303946", alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="chevron-down" size={22} color="#FFFFFF" />
@@ -687,16 +699,11 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
             </LiveKitRoom>
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 28 }}>
-              <View style={{ width: 154, height: 154, borderRadius: 77, borderWidth: 1, borderColor: "rgba(0,149,246,0.42)", backgroundColor: "rgba(0,149,246,0.08)", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-                <View style={{ width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "#202630", alignItems: "center", justifyContent: "center" }}>
-                  <Ionicons name="person" size={62} color="#FFFFFF" />
-                </View>
-              </View>
-              <Text style={{ color: "#FFFFFF", fontSize: 29, fontWeight: "700", marginTop: 18, letterSpacing: 0.2 }}>{incoming ? call?.caller : username}</Text>
-              <Text style={{ color: "#B9C0CB", fontSize: 14, marginTop: 10, letterSpacing: 0.25 }}>{callMessage || (incoming ? label("incoming") : label("connecting"))}</Text>
-              <View style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 7, borderRadius: 18, backgroundColor: "#1B1B1B" }}>
-                <Text style={{ color: "#D1D1D1", fontSize: 11, textAlign: "center" }}>{call?.type === "video" ? label("videoCaps") : label("voiceCaps")}</Text>
-              </View>
+              <CallAvatarStage
+                name={incoming ? call?.caller : (call?.callee || username)}
+                status={callMessage || (incoming ? label("incoming") : label("connecting"))}
+                connected={false}
+              />
               {busy ? <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 22 }} /> : null}
               {incoming ? (
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18, marginTop: 48, width: "100%" }}>
