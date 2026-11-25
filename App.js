@@ -11748,6 +11748,7 @@ export default function App() {
                     </Text>
                   ) : null}
                 </View>
+                </ScrollView>
               </View>
             ) : newChatComposerOpen ? (
               <View style={{ flex: 1, backgroundColor: "#000000", paddingTop: 8 }}>
