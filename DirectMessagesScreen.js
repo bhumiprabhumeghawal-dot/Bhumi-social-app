@@ -515,8 +515,8 @@ export default function DirectMessagesScreen({
                     <TouchableOpacity onPress={() => setAttachment(null)}><Ionicons name="close-circle" size={20} color={C.muted} /></TouchableOpacity>
                   </View>
                 ) : null}
-                <View style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: compactScreen ? 4 : 7 }}>
-                  <TouchableOpacity onPress={takePhoto} disabled={sending} style={{ width: compactScreen ? 34 : 38, height: 44, borderRadius: 22, backgroundColor: C.blue, alignItems: "center", justifyContent: "center", opacity: sending ? 0.5 : 1 }} accessibilityRole="button" accessibilityLabel="Take photo">
+                <View style={{ minHeight: 54, flexDirection: "row", alignItems: "center", gap: compactScreen ? 4 : 7, backgroundColor: C.field, borderRadius: 30, paddingHorizontal: 6 }}>
+                  <TouchableOpacity onPress={takePhoto} disabled={sending} style={{ width: compactScreen ? 34 : 38, height: 44, borderRadius: 22, backgroundColor: "#5B6EFF", alignItems: "center", justifyContent: "center", opacity: sending ? 0.5 : 1 }} accessibilityRole="button" accessibilityLabel="Take photo">
                     <Ionicons name="camera" size={22} color="#FFFFFF" />
                   </TouchableOpacity>
                   <TextInput
@@ -527,9 +527,10 @@ export default function DirectMessagesScreen({
                     multiline
                     blurOnSubmit={false}
                     textAlignVertical="center"
-                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 24, paddingHorizontal: compactScreen ? 12 : 17, paddingTop: 11, paddingBottom: 10, fontSize: (compactScreen ? 14 : 15) * textScale }}
+                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: "transparent", borderRadius: 24, paddingHorizontal: compactScreen ? 8 : 10, paddingTop: 11, paddingBottom: 10, fontSize: (compactScreen ? 14 : 15) * textScale }}
                   />
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 3 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 2 }}>
+                    <TouchableOpacity onPress={() => {}} accessibilityRole="button" accessibilityLabel="Record voice message" style={{ padding: 2 }}><Ionicons name="mic-outline" size={composerIconSize} color={C.text} /></TouchableOpacity>
                     <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ padding: 2 }}><Ionicons name="image-outline" size={composerIconSize} color={C.text} /></TouchableOpacity>
                     <TouchableOpacity onPress={() => setEmojiPickerOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Open emoji picker" style={{ padding: 2 }}><Ionicons name="happy-outline" size={compactScreen ? 21 : 23} color={emojiPickerOpen ? C.blue : C.text} /></TouchableOpacity>
                   </View>
