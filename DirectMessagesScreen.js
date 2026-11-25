@@ -377,7 +377,9 @@ export default function DirectMessagesScreen({
                 <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 9, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 5, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
                   {["All", "Primary", "General", "Requests"].map((tab) => (
                     <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minWidth: 0, paddingHorizontal: 4, paddingVertical: 9, borderRadius: 12, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field, minHeight: 38, alignItems: "center", justifyContent: "center" }}>
-                      <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: inboxTab === tab ? "#111111" : C.text, fontSize: 12 * textScale, fontWeight: "700" }}>{tab}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: inboxTab === tab ? "#111111" : C.text, fontSize: 12 * textScale, fontWeight: "700" }}>
+                        {tab}{([ "All", "Primary" ].includes(tab) ? " " + (tab === "All" ? conversations.length : conversations.filter((x) => ["", "primary"].includes(String(x.folder || x.category || x.inboxType || x.inbox_type || "primary").toLowerCase())).length) : "")}{tab === "Requests" ? "  ›" : ""}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
