@@ -1,7 +1,7 @@
 import React from "react";
 import {
   ActivityIndicator, Modal, ScrollView, Text, TextInput,
-  TouchableOpacity, View, Linking, Share
+  TouchableOpacity, View, Linking, Share, useWindowDimensions
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { translateAppText } from "./localization";
@@ -24,6 +24,11 @@ const inputStyle = {
 };
 
 export default function CreatorBusinessHub({ visible, username, onClose, appLanguage = "en" }) {
+  const { width: hubWidth, height: hubHeight, fontScale: hubFontScale } = useWindowDimensions();
+  const compact = hubWidth < 360;
+  const short = hubHeight < 680;
+  const inset = hubWidth < 340 ? 12 : compact ? 14 : Math.min(20, hubWidth * 0.045);
+  const textScale = Math.max(0.9, Math.min(1.2, hubFontScale || 1));
   const t = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   const [accountType, setAccountType] = React.useState("personal");
   const [tab, setTab] = React.useState("overview");
@@ -168,18 +173,18 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: BG, paddingTop: 18 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 17, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: BORDER }}>
+      <View style={{ flex: 1, backgroundColor: BG, paddingTop: short ? 8 : 18 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: inset, paddingBottom: short ? 9 : 14, borderBottomWidth: 1, borderBottomColor: BORDER }}>
           <TouchableOpacity onPress={onClose} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: PANEL, alignItems: "center", justifyContent: "center", marginRight: 12 }}>
             <Ionicons name="close" size={22} color={GOLD} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={{ color: GOLD, fontSize: 10, fontWeight: "900", letterSpacing: 1.5 }}>BHUMI SOCIAL AI</Text>
-            <Text style={{ color: TEXT, fontSize: 19, fontWeight: "900", marginTop: 3 }}>{t("creatorBusinessHub")}</Text>
+            <Text style={{ color: TEXT, fontSize: Math.round(19 * textScale), fontWeight: "900", marginTop: 3 }}>{t("creatorBusinessHub")}</Text>
           </View>
           <TouchableOpacity onPress={refresh}><Ionicons name="refresh" size={21} color={GOLD}/></TouchableOpacity>
         </View>
-        <ScrollView contentContainerStyle={{ padding: 17, paddingBottom: 50 }} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={{ padding: inset, paddingBottom: short ? 28 : 50 }} keyboardShouldPersistTaps="handled">
           {feedback ? (
             <View style={{ backgroundColor: "#121212", borderColor: BORDER, borderWidth: 1, borderRadius: 11, padding: 12, marginBottom: 12, flexDirection: "row", alignItems: "center" }}>
               <Text style={{ color: TEXT, fontSize: 12, flex: 1 }}>{feedback}</Text>
@@ -196,7 +201,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
                 ["personal", t("personalAccount")], ["creator", t("creatorAccountType")],
                 ["business", t("businessAccountType")]
               ].map(([value, label]) => (
-                <TouchableOpacity key={value} disabled={saving} onPress={() => changeAccountType(value)} style={{ backgroundColor: accountType === value ? GOLD : PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, marginRight: 7, marginBottom: 7 }}>
+                <TouchableOpacity key={value} disabled={saving} onPress={() => changeAccountType(value)} style={{ backgroundColor: accountType === value ? GOLD : PANEL, borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, marginRight: compact ? 4 : 7, marginBottom: 7, flexGrow: compact ? 1 : 0 }}>
                   <Text style={{ color: accountType === value ? "#FFFFFF" : TEXT, fontSize: 10, fontWeight: "900" }}>{label}</Text>
                 </TouchableOpacity>
               ))}
