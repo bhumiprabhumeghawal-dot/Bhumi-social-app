@@ -3375,6 +3375,10 @@ export default function App() {
       updateChatTyping(selectedChatUser, false).catch(() => {});
     setChatPeerTyping(false);
     setChatReplyTo(null);
+    // Reset the conversation route so reopening Messages always starts at Inbox.
+    setSelectedChatUser("");
+    setChatDraft("");
+    setChatMediaDraft(null);
     setMessagesOpen(false);
     setNewChatComposerOpen(false);
     setNewChatUsername("");
