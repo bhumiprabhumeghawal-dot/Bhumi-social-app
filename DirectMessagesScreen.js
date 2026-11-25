@@ -362,9 +362,9 @@ export default function DirectMessagesScreen({
               </View>
               {!query.trim() ? (
                 <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 9, flexDirection: "row", alignItems: "center", gap: compactScreen ? 17 : 23, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
-                  {["Primary", "General"].map((tab) => (
-                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} style={{ paddingVertical: 10, borderBottomWidth: inboxTab === tab ? 2 : 0, borderBottomColor: C.blue }}>
-                      <Text style={{ color: inboxTab === tab ? C.text : C.muted, fontSize: 14 * textScale, fontWeight: inboxTab === tab ? "800" : "600" }}>{tab}</Text>
+                  {["All", "Primary", "General"].map((tab) => (
+                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field, minHeight: 38, justifyContent: "center" }}>
+                      <Text style={{ color: inboxTab === tab ? "#111111" : C.text, fontSize: 13 * textScale, fontWeight: "700" }}>{tab}</Text>
                     </TouchableOpacity>
                   ))}
                   <View style={{ flex: 1 }} />
@@ -390,9 +390,11 @@ export default function DirectMessagesScreen({
                 />
               ) : (
                 <FlatList
-                  data={inboxTab === "Requests"
-                    ? conversations.filter((x) => x.isRequest || x.is_request || x.requestStatus === "pending" || x.request_status === "pending" || x.requestStatus === "requested" || x.request_status === "requested")
-                    : conversations.filter((x) => inboxTab === "Primary" ? ["", "primary"].includes(String(x.folder || x.category || x.inboxType || x.inbox_type || "primary").toLowerCase()) : String(x.folder || x.category || x.inboxType || x.inbox_type || "").toLowerCase() === inboxTab.toLowerCase())}
+                  data={inboxTab === "All"
+                    ? conversations.filter((x) => !(x.isRequest || x.is_request || x.requestStatus === "pending" || x.request_status === "pending" || x.requestStatus === "requested" || x.request_status === "requested"))
+                    : inboxTab === "Requests"
+                      ? conversations.filter((x) => x.isRequest || x.is_request || x.requestStatus === "pending" || x.request_status === "pending" || x.requestStatus === "requested" || x.request_status === "requested")
+                      : conversations.filter((x) => inboxTab === "Primary" ? ["", "primary"].includes(String(x.folder || x.category || x.inboxType || x.inbox_type || "primary").toLowerCase()) : String(x.folder || x.category || x.inboxType || x.inbox_type || "").toLowerCase() === inboxTab.toLowerCase())}
                   keyExtractor={(x, i) => String(getUsername(x) || i)}
                   refreshing={busy}
                   onRefresh={refreshInbox}
@@ -484,6 +486,9 @@ export default function DirectMessagesScreen({
                     <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ padding: 2 }}><Ionicons name="image-outline" size={composerIconSize} color={C.text} /></TouchableOpacity>
                     <TouchableOpacity onPress={() => setEmojiPickerOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Open emoji picker" style={{ padding: 2 }}><Ionicons name="happy-outline" size={compactScreen ? 21 : 23} color={emojiPickerOpen ? C.blue : C.text} /></TouchableOpacity>
                   </View>
+                  <TouchableOpacity onPress={pickAttachment} disabled={sending} style={{ width: 34, height: 44, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="Add attachment">
+                    <Ionicons name="add-circle-outline" size={27} color={C.text} />
+                  </TouchableOpacity>
                   <TouchableOpacity
                     onPress={send}
                     disabled={(!draft.trim() && !attachment) || sending}
