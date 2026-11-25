@@ -47,3 +47,4 @@ Instagram-style call screen polish APK build trigger: f1ee58febc74655b44f8e6042a
 
 Symmetric Instagram-style incoming and outgoing call UI with shared active-call display and WebRTC noise suppression enabled: 88bab91a09f3d0e154dcc8fc5231efcef3fd51dc
 DM Android Back navigation fix: f7b08473f80c7486c83e2d330f68cdb613bed17b
+DM blank Chat tab regression fix: 939806a1f1b15f29c459a24bc20a10e3662bbf13
