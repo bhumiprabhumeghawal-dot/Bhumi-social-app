@@ -28,7 +28,7 @@ const getMessageText = (item) => String(item?.text || item?.message || "");
 const getSender = (item) => String(item?.sender || item?.senderUsername || item?.fromUsername || item?.username || "").toLowerCase();
 
 export default function DirectMessagesScreen({
-  visible, onClose, authSession, initialUsername = "", onSelectedChatUserChange,
+  visible, onClose, authSession, initialUsername = "", onSelectedChatUserChange, onOpenProfile,
 }) {
   const { width: windowWidth, height: windowHeight, fontScale } = useWindowDimensions();
   // Logical dp dimensions adapt to rotation, split-screen and different phones.
@@ -536,7 +536,7 @@ export default function DirectMessagesScreen({
                 <Text style={{ color: C.muted, fontSize: 13, marginTop: 4 }}>@{peer}</Text>
                 <View style={{ width: "100%", height: 1, backgroundColor: C.line, marginVertical: 20 }} />
                 <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-around" }}>
-                  <View style={{ alignItems: "center", gap: 7 }}><Ionicons name="person-circle-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Profile</Text></View>
+                  <TouchableOpacity onPress={() => { setProfileInfoOpen(false); onOpenProfile?.(peer); }} accessibilityRole="button" accessibilityLabel={"Open profile for " + peer} style={{ alignItems: "center", gap: 7 }}><Ionicons name="person-circle-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Profile</Text></TouchableOpacity>
                   <View style={{ alignItems: "center", gap: 7 }}><Ionicons name="notifications-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Mute</Text></View>
                   <View style={{ alignItems: "center", gap: 7 }}><Ionicons name="ban-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Block</Text></View>
                 </View>
