@@ -54,6 +54,7 @@ export default function DirectMessagesScreen({
   const [profileInfoOpen, setProfileInfoOpen] = React.useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false);
   const [inboxTab, setInboxTab] = React.useState("Primary");
+  const [filterOpen, setFilterOpen] = React.useState(false);
   const listRef = React.useRef(null);
   const searchInputRef = React.useRef(null);
   const peerRef = React.useRef("");
@@ -107,6 +108,7 @@ export default function DirectMessagesScreen({
       setQuery("");
       setPeople([]);
       setInboxTab("Primary");
+      setFilterOpen(false);
       setProfileInfoOpen(false);
       setEmojiPickerOpen(false);
       setError("");
@@ -341,10 +343,22 @@ export default function DirectMessagesScreen({
                   />
                   {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
                 </View>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Filter messages" style={{ height: 48, justifyContent: "center", paddingRight: 2 }}>
+                <TouchableOpacity onPress={() => setFilterOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Filter messages" style={{ height: 48, justifyContent: "center", paddingRight: 2 }}>
                   <Text style={{ color: C.blue, fontSize: 14, fontWeight: "700" }}>Filter</Text>
                 </TouchableOpacity>
               </View>
+              {filterOpen && !query.trim() ? (
+                <View style={{ marginHorizontal: horizontalInset, marginBottom: 9, padding: 10, borderRadius: 14, backgroundColor: C.panel, borderWidth: 1, borderColor: C.line }}>
+                  <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", marginBottom: 8 }}>Show messages</Text>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+                    {["All", "Primary", "General", "Requests"].map((tab) => (
+                      <TouchableOpacity key={tab} onPress={() => { setInboxTab(tab); setFilterOpen(false); }} accessibilityRole="button" style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field }}>
+                        <Text style={{ color: inboxTab === tab ? "#111111" : C.text, fontSize: 12, fontWeight: "700" }}>{tab}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
               {!query.trim() ? (
                 <>
 
