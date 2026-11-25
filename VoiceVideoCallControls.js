@@ -11,7 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import RNCallKeep from "react-native-callkeep";
 import { ensureCallKeepSetup } from "./incomingCallBackgroundTask";
 import { useCameraPermissions } from "expo-camera";
-import { requestRecordingPermissionsAsync } from "expo-audio";
+import { createAudioPlayer, requestRecordingPermissionsAsync } from "expo-audio";
 import {
   AudioSession,
   LiveKitRoom,
@@ -196,6 +196,36 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const tokenAttemptedRef = useRef(false);
   const connectionRef = useRef(null);
   const audioSessionActiveRef = useRef(false);
+  const ringbackPlayerRef = useRef(null);
+
+  const stopRingbackTone = () => {
+    const player = ringbackPlayerRef.current;
+    ringbackPlayerRef.current = null;
+    if (player) {
+      try { player.pause(); } catch (_) {}
+      try { player.remove(); } catch (_) {}
+    }
+  };
+
+  // Caller hears a ringback tone until the recipient answers. Incoming calls
+  // use Android CallKeep / iOS CallKit native ringtone, avoiding double ringing.
+  useEffect(() => {
+    stopRingbackTone();
+    if (!call || incoming || connection || roomConnected) return undefined;
+    let player;
+    try {
+      player = createAudioPlayer({ uri: "https://sfxmint.com/dl/phone-ring-10.mp3" });
+      player.loop = true;
+      player.volume = 0.7;
+      ringbackPlayerRef.current = player;
+      player.play();
+    } catch (error) {
+      console.warn("Call ringback tone could not start:", error?.message || error);
+    }
+    return () => {
+      if (ringbackPlayerRef.current === player) stopRingbackTone();
+    };
+  }, [call?.id, incoming, connection, roomConnected]);
   const disconnectHandlingRef = useRef(false);
   const mountedRef = useRef(true);
   const callKeepUuidRef = useRef(null);
