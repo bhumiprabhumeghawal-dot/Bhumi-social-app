@@ -2828,7 +2828,8 @@ export default function App() {
   const [musicAsset, setMusicAsset] = React.useState(null);
   const [musicSearchOpen, setMusicSearchOpen] = React.useState(false);
   const [musicSearchQuery, setMusicSearchQuery] = React.useState("");
-  const [musicSearchLoading, setMusicSearchLoading] = React.useState(false);\n  const [onlineMusicResults, setOnlineMusicResults] = React.useState([]);
+  const [musicSearchLoading, setMusicSearchLoading] = React.useState(false);
+  const [onlineMusicResults, setOnlineMusicResults] = React.useState([]);
   const [musicVolume, setMusicVolume] = React.useState(0.8);
   const [originalAudioVolume, setOriginalAudioVolume] = React.useState(1);
   const [musicStart, setMusicStart] = React.useState(0);
