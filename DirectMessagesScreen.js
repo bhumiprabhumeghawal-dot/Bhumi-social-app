@@ -6,6 +6,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
+import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import {
   loadMessageConversations, loadDirectMessages, sendDirectMessage, searchUsers, uploadChatAttachment,
 } from "./api";
@@ -38,6 +39,7 @@ export default function DirectMessagesScreen({
   const [sending, setSending] = React.useState(false);
   const [attachment, setAttachment] = React.useState(null);
   const [error, setError] = React.useState("");
+  const [profileInfoOpen, setProfileInfoOpen] = React.useState(false);
   const listRef = React.useRef(null);
   const peerRef = React.useRef("");
   const requestRef = React.useRef(0);
@@ -221,10 +223,11 @@ export default function DirectMessagesScreen({
                   </View>
                   <Ionicons name="chevron-forward" size={15} color={C.muted} />
                 </TouchableOpacity>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 18, paddingLeft: 8 }}>
-                  <View accessibilityLabel="Audio call"><Ionicons name="call-outline" size={23} color={C.text} /></View>
-                  <View accessibilityLabel="Video call"><Ionicons name="videocam-outline" size={25} color={C.text} /></View>
-                  <View accessibilityLabel="Conversation information"><Ionicons name="information-circle-outline" size={24} color={C.text} /></View>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 15, paddingLeft: 7 }}>
+                  <VoiceVideoCallControls username={peer} currentUsername={authSession?.username || ""} enableIncoming={false} enableOutgoing={true} showButtons={true} />
+                  <TouchableOpacity onPress={() => setProfileInfoOpen(true)} accessibilityRole="button" accessibilityLabel="Conversation information">
+                    <Ionicons name="information-circle-outline" size={24} color={C.text} />
+                  </TouchableOpacity>
                 </View>
               </>
             ) : (
@@ -395,6 +398,24 @@ export default function DirectMessagesScreen({
               </View>
             </View>
           )}
+          <Modal visible={profileInfoOpen && !!peer} transparent animationType="fade" onRequestClose={() => setProfileInfoOpen(false)}>
+            <TouchableOpacity activeOpacity={1} onPress={() => setProfileInfoOpen(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.68)", justifyContent: "flex-end" }}>
+              <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ backgroundColor: "#171717", borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 22, paddingTop: 24, paddingBottom: 34, alignItems: "center", borderTopWidth: 1, borderColor: C.line }}>
+                {avatar(peerDetails, 82)}
+                <Text style={{ color: C.text, fontSize: 18, fontWeight: "800", marginTop: 12 }}>{peerDetails?.displayName || peer}</Text>
+                <Text style={{ color: C.muted, fontSize: 13, marginTop: 4 }}>@{peer}</Text>
+                <View style={{ width: "100%", height: 1, backgroundColor: C.line, marginVertical: 20 }} />
+                <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-around" }}>
+                  <View style={{ alignItems: "center", gap: 7 }}><Ionicons name="person-circle-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Profile</Text></View>
+                  <View style={{ alignItems: "center", gap: 7 }}><Ionicons name="notifications-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Mute</Text></View>
+                  <View style={{ alignItems: "center", gap: 7 }}><Ionicons name="ban-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Block</Text></View>
+                </View>
+                <TouchableOpacity onPress={() => setProfileInfoOpen(false)} style={{ marginTop: 24, paddingVertical: 12, width: "100%", borderRadius: 12, backgroundColor: C.field, alignItems: "center" }}>
+                  <Text style={{ color: C.text, fontWeight: "700" }}>Close</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </Modal>
           {!!error && (
             <View style={{ paddingHorizontal: 14, paddingVertical: 8, backgroundColor: "#251313", borderTopWidth: 1, borderTopColor: "#492222" }}>
               <Text style={{ color: C.danger, fontSize: 12 }}>{error}</Text>
