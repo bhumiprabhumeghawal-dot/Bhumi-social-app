@@ -14141,6 +14141,12 @@ export default function App() {
                   {selectedChatUser ? (
                   <View
                     style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: 30,
+                      elevation: 30,
                       flexShrink: 0,
                       flexDirection: "row",
                       alignItems: "center",
@@ -14152,7 +14158,6 @@ export default function App() {
                       borderTopColor: "#303030",
                       backgroundColor: "#000000",
                       gap: 8,
-                      elevation: 7,
                     }}
                   >
                     <TouchableOpacity
