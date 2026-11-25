@@ -270,7 +270,7 @@ export default function DirectMessagesScreen({
             </TouchableOpacity>
             {peer ? (
               <>
-                <TouchableOpacity onPress={() => setProfileInfoOpen(true)} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <TouchableOpacity onPress={() => setProfileInfoOpen(true)} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10, transform: [{ translateY: 30 }] }}>
                   {avatar(peerDetails, 38)}
                   <View style={{ flex: 1 }}>
                     <Text numberOfLines={1} style={{ color: C.text, fontSize: 15, fontWeight: "800" }}>{peerDetails?.displayName || peer}</Text>
