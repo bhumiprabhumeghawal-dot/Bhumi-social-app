@@ -116,6 +116,9 @@ function CallAvatarStage({ name, status, connected = false }) {
 }
 
 function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" }) {
+  const { width: videoStageWidth, height: videoStageHeight } = useWindowDimensions();
+  const previewWidth = Math.max(76, Math.min(112, videoStageWidth * 0.28));
+  const previewHeight = Math.min(previewWidth * 1.41, Math.max(110, videoStageHeight * 0.34));
   const labels = { connected: callText(appLanguage, "connected"), connecting: callText(appLanguage, "connecting") };
   // The React Native LiveKit hook returns local and remote camera references.
   // Keep its documented one-argument form so the local self-preview is included.
@@ -176,7 +179,7 @@ function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" 
           <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{remoteName || callText(appLanguage, "video")}</Text>
         </View>
       </View>
-      <View style={{ position: "absolute", right: 14, top: 58, width: 112, height: 158, overflow: "hidden", borderRadius: 18, borderWidth: 1.5, borderColor: "#FFFFFF", backgroundColor: "#262626", elevation: 8 }}>
+      <View style={{ position: "absolute", right: Math.max(8, videoStageWidth * 0.035), top: Math.max(46, videoStageHeight * 0.09), width: previewWidth, height: previewHeight, overflow: "hidden", borderRadius: 18, borderWidth: 1.5, borderColor: "#FFFFFF", backgroundColor: "#262626", elevation: 8 }}>
         {localCameraTrackRef ? (
           <VideoTrack
             trackRef={localCameraTrackRef}
