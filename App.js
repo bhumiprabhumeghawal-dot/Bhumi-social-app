@@ -6511,9 +6511,9 @@ export default function App() {
           >
             <View
               style={{
-                width: 190,
-                height: 190,
-                borderRadius: 95,
+                width: Math.min(190, Math.max(140, appWindowWidth * 0.49)),
+                height: Math.min(190, Math.max(140, appWindowWidth * 0.49)),
+                borderRadius: Math.min(190, Math.max(140, appWindowWidth * 0.49)) / 2,
                 backgroundColor: "#121212",
                 alignItems: "center",
                 justifyContent: "center",
@@ -6524,9 +6524,9 @@ export default function App() {
             >
               <View
                 style={{
-                  width: 142,
-                  height: 142,
-                  borderRadius: 71,
+                  width: Math.min(142, Math.max(104, appWindowWidth * 0.365)),
+                  height: Math.min(142, Math.max(104, appWindowWidth * 0.365)),
+                  borderRadius: Math.min(142, Math.max(104, appWindowWidth * 0.365)) / 2,
                   backgroundColor: "#1C1C1E",
                   alignItems: "center",
                   justifyContent: "center",
@@ -11369,7 +11369,7 @@ export default function App() {
                     <Image source={{ uri: viewedProfile.avatarUrl }}
                       style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: "#1C1C1E" }} />
                   ) : (
-                    <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
+                    <View style={{ width: Math.min(112, Math.max(80, appWindowWidth * 0.29)), height: Math.min(112, Math.max(80, appWindowWidth * 0.29)), borderRadius: Math.min(112, Math.max(80, appWindowWidth * 0.29)) / 2, backgroundColor: "#1C1C1E", alignItems: "center", justifyContent: "center" }}>
                       <Text style={{ fontSize: 28, fontWeight: "800", color: "#FFFFFF" }}>
                         {String(viewedProfile.displayName || viewedProfile.username || "?").slice(0, 1).toUpperCase()}
                       </Text>
