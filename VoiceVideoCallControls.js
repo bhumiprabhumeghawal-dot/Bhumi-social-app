@@ -103,10 +103,10 @@ function CallAvatarStage({ name, status, connected = false }) {
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#07090D", paddingHorizontal: 28 }}>
       <View style={{ width: 154, height: 154, borderRadius: 77, borderWidth: 1, borderColor: "rgba(0,149,246,0.42)", backgroundColor: "rgba(0,149,246,0.08)", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
         <View style={{ width: innerSize, height: innerSize, borderRadius: innerSize / 2, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "#202630", alignItems: "center", justifyContent: "center" }}>
-          <Ionicons name="person" size={62} color="#FFFFFF" />
+          <Ionicons name="person" size={avatarSize * 0.4} color="#FFFFFF" />
         </View>
       </View>
-      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 29, fontWeight: "700", marginTop: 18, letterSpacing: 0.2, textAlign: "center" }}>{name || "Bhumi Social"}</Text>
+      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: Math.min(29, width * 0.075), fontWeight: "700", marginTop: 12, letterSpacing: 0.2, textAlign: "center" }}>{name || "Bhumi Social"}</Text>
       <View style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 18, backgroundColor: "#171B22", borderWidth: 1, borderColor: "#303946", flexDirection: "row", alignItems: "center", gap: 8 }}>
         {connected ? <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#45D483" }} /> : <ActivityIndicator color="#0095F6" size="small" />}
         <Text style={{ color: "#D1D7E0", fontSize: 12, fontWeight: "600" }}>{status}</Text>
