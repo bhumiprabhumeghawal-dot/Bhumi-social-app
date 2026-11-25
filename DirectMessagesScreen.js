@@ -292,7 +292,7 @@ export default function DirectMessagesScreen({
                 <View style={{ flexDirection: "row", alignItems: "center", gap: compactScreen ? 9 : 15, paddingLeft: 5 }}>
                   <VoiceVideoCallControls username={peer} currentUsername={authSession?.username || ""} enableIncoming={false} enableOutgoing={true} showButtons={true} />
                   <TouchableOpacity onPress={() => setProfileInfoOpen(true)} accessibilityRole="button" accessibilityLabel="Conversation information">
-                    <Ionicons name="information-circle-outline" size={24} color={C.text} />
+                    <Ionicons name="pricetag-outline" size={24} color={C.text} />
                   </TouchableOpacity>
                 </View>
               </>
