@@ -100,8 +100,8 @@ function CallAvatarStage({ name, status, connected = false }) {
   const avatarSize = Math.max(104, Math.min(compact ? 126 : 154, Math.min(width * 0.42, height * 0.22)));
   const innerSize = avatarSize * 0.86;
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#07090D", paddingHorizontal: 28 }}>
-      <View style={{ width: 154, height: 154, borderRadius: 77, borderWidth: 1, borderColor: "rgba(0,149,246,0.42)", backgroundColor: "rgba(0,149,246,0.08)", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#07090D", paddingHorizontal: 18 }}>
+      <View style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2, borderWidth: 1, borderColor: "rgba(0,149,246,0.42)", backgroundColor: "rgba(0,149,246,0.08)", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
         <View style={{ width: innerSize, height: innerSize, borderRadius: innerSize / 2, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "#202630", alignItems: "center", justifyContent: "center" }}>
           <Ionicons name="person" size={avatarSize * 0.4} color="#FFFFFF" />
         </View>
