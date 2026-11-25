@@ -3286,8 +3286,8 @@ export default function App() {
     const key = String(username || "").trim();
     if (!key) return;
     setSecretSelectedUsers((current) => {
-      const exists = current.some((item) => item.toLowerCase() === key.toLowerCase());
-      if (exists) return current.filter((item) => item.toLowerCase() !== key.toLowerCase());
+      const exists = current.some((item) => String(item || "").toLowerCase() === key.toLowerCase());
+      if (exists) return current.filter((item) => String(item || "").toLowerCase() !== key.toLowerCase());
       if (current.length >= 10) { setChatError("You can select up to 10 people."); return current; }
       setChatError("");
       return [...current, key];
@@ -3684,7 +3684,7 @@ export default function App() {
       const username = String(
         item.user || item.name || `story${index + 1}`,
       ).trim();
-      const normalizedUsername = username.toLowerCase();
+      const normalizedUsername = String(username || "").toLowerCase();
       const own =
         !!item.own ||
         normalizedUsername === "you" ||
@@ -3986,7 +3986,7 @@ export default function App() {
   const handleReelRepost = async (reel) => {
     const id = Number(reel?.id);
     const username = String(reel?.user || reel?.username || "").replace(/^@/, "");
-    if (!Number.isSafeInteger(id) || id <= 0 || username.toLowerCase() === String(authSession?.username || "").toLowerCase() || reelBusyState["repost-" + id]) return;
+    if (!Number.isSafeInteger(id) || id <= 0 || String(username || "").toLowerCase() === String(authSession?.username || "").toLowerCase() || reelBusyState["repost-" + id]) return;
     setReelBusyState((prev) => ({ ...prev, ["repost-" + id]: true }));
     try {
       const result = await togglePostRepost(id, authSession);
@@ -4649,7 +4649,7 @@ export default function App() {
     const username = String(viewedProfile?.username || "").replace(/^@/, "").trim();
     if (
       !username ||
-      username.toLowerCase() === String(authSession?.username || "").toLowerCase() ||
+      String(username || "").toLowerCase() === String(authSession?.username || "").toLowerCase() ||
       viewedProfileFollowBusy
     ) return;
 
@@ -4694,7 +4694,7 @@ export default function App() {
   const handleBlockViewedProfile = async () => {
     const username = String(viewedProfile?.username || "").replace(/^@/, "").trim();
     if (!username || viewedProfileBlockBusy ||
-        username.toLowerCase() === String(authSession?.username || "").toLowerCase()) return;
+        String(username || "").toLowerCase() === String(authSession?.username || "").toLowerCase()) return;
 
     setViewedProfileBlockBusy(true);
     try {
@@ -4703,10 +4703,10 @@ export default function App() {
       setViewedProfileOpen(false);
       setViewedProfile(null);
       setSearchResults((current) => current.filter(
-        (item) => String(item.username || "").toLowerCase() !== username.toLowerCase()
+        (item) => String(item.username || "").toLowerCase() !== String(username || "").toLowerCase()
       ));
       setFollowRequests((current) => current.filter(
-        (item) => String(item.username || item.requester || "").toLowerCase() !== username.toLowerCase()
+        (item) => String(item.username || item.requester || "").toLowerCase() !== String(username || "").toLowerCase()
       ));
     } catch (error) {
       Alert.alert(appText("alertSaveFailed"), appText("alertTryAgain"));
@@ -4727,7 +4727,7 @@ export default function App() {
         setRestrictedAccounts((current) =>
           current.filter(
             (item) =>
-              String(item.username).toLowerCase() !== username.toLowerCase(),
+              String(item.username).toLowerCase() !== String(username || "").toLowerCase(),
           ),
         );
       } else {
@@ -6780,12 +6780,12 @@ export default function App() {
     if (!username || chatFolderSaving) return;
     const currentFolder = String(conversation.folder || (conversation.isRequest ? "requests" : "primary")).toLowerCase();
     const nextFolder = currentFolder === "requests" ? "primary" : currentFolder === "general" ? "primary" : "general";
-    setChatFolderSaving(username.toLowerCase());
+    setChatFolderSaving(String(username || "").toLowerCase());
     setChatError("");
     try {
       await updateMessageConversationFolder(username, nextFolder);
       setMessageConversations((current) => current.map((item) =>
-        String(item.username || "").toLowerCase() === username.toLowerCase()
+        String(item.username || "").toLowerCase() === String(username || "").toLowerCase()
           ? { ...item, folder: nextFolder, isRequest: nextFolder === "requests" }
           : item
       ));
@@ -6804,7 +6804,7 @@ export default function App() {
       const requestStatus = String(conversation.requestStatus || "").toLowerCase();
       const isRequest = Boolean(conversation.isRequest) || ["pending", "requested"].includes(requestStatus) || folder === "requests";
       const friendKey = String(username).toLowerCase();
-      const isSecret = secretChatUsers.some((item) => item.toLowerCase() === friendKey);
+      const isSecret = secretChatUsers.some((item) => String(item || "").toLowerCase() === friendKey);
       if (secretSelectionMode) {
         if (friendKey === String(authSession?.username || "").toLowerCase()) return false;
       } else if (secretChatOpen ? !isSecret : isSecret) return false;
@@ -8423,7 +8423,7 @@ export default function App() {
                       >
                         <TouchableOpacity
                           onPress={() => {
-                            const isOwner = username.toLowerCase() === String(authSession?.username || "").toLowerCase();
+                            const isOwner = String(username || "").toLowerCase() === String(authSession?.username || "").toLowerCase();
                             const actions = [];
                             if (isOwner && hasServerId) {
                               actions.push({ text: "Delete", style: "destructive", onPress: () => requestDeleteContent("reels", r) });
@@ -11018,7 +11018,7 @@ export default function App() {
                     {messageConversations.find(
                       (c) =>
                         String(c.username || "").toLowerCase() ===
-                        selectedChatUser.toLowerCase(),
+                        String(selectedChatUser || "").toLowerCase(),
                     )?.avatarUrl ? (
                       <Image
                         source={{
@@ -11026,15 +11026,15 @@ export default function App() {
                             messageConversations.find(
                               (c) =>
                                 String(c.username || "").toLowerCase() ===
-                                selectedChatUser.toLowerCase(),
+                                String(selectedChatUser || "").toLowerCase(),
                             ).avatarUrl,
                           ).startsWith("http")
                             ? messageConversations.find(
                                 (c) =>
                                   String(c.username || "").toLowerCase() ===
-                                  selectedChatUser.toLowerCase(),
+                                  String(selectedChatUser || "").toLowerCase(),
                               ).avatarUrl
-                            : `https://bhumi-social-app-1.onrender.com${messageConversations.find((c) => String(c.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl}`,
+                            : `https://bhumi-social-app-1.onrender.com${messageConversations.find((c) => String(c.username || "").toLowerCase() === String(selectedChatUser || "").toLowerCase()).avatarUrl}`,
                         }}
                         style={{ width: 38, height: 38, borderRadius: 19 }}
                       />
@@ -11062,7 +11062,7 @@ export default function App() {
                       {chatPreferences.name || messageConversations.find(
                         (c) =>
                           String(c.username || "").toLowerCase() ===
-                          selectedChatUser.toLowerCase(),
+                          String(selectedChatUser || "").toLowerCase(),
                       )?.displayName || selectedChatUser}
                     </Text>
                     <View style={{ flexDirection: "row", alignItems: "center", marginTop: 2, gap: 5 }}>
@@ -11726,8 +11726,8 @@ export default function App() {
                           </View>
                         </TouchableOpacity>
                           {secretSelectionMode ? (
-                            <TouchableOpacity onPress={() => toggleSecretChatUser(username)} style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: secretSelectedUsers.some((item) => item.toLowerCase() === String(username).toLowerCase()) ? "#3797F0" : "#777777", backgroundColor: secretSelectedUsers.some((item) => item.toLowerCase() === String(username).toLowerCase()) ? "#3797F0" : "transparent", alignItems: "center", justifyContent: "center" }}>
-                              {secretSelectedUsers.some((item) => item.toLowerCase() === String(username).toLowerCase()) ? <Ionicons name="checkmark" size={18} color="#FFFFFF" /> : null}
+                            <TouchableOpacity onPress={() => toggleSecretChatUser(username)} style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: secretSelectedUsers.some((item) => String(item || "").toLowerCase() === String(username).toLowerCase()) ? "#3797F0" : "#777777", backgroundColor: secretSelectedUsers.some((item) => String(item || "").toLowerCase() === String(username).toLowerCase()) ? "#3797F0" : "transparent", alignItems: "center", justifyContent: "center" }}>
+                              {secretSelectedUsers.some((item) => String(item || "").toLowerCase() === String(username).toLowerCase()) ? <Ionicons name="checkmark" size={18} color="#FFFFFF" /> : null}
                             </TouchableOpacity>
                           ) : secretChatOpen ? (
                             <TouchableOpacity onPress={() => restoreSecretChatUser(username)} accessibilityRole="button" accessibilityLabel="Move chat back to All inbox" style={{ flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 9, paddingVertical: 8, borderRadius: 10, backgroundColor: "#1C1C1E" }}>
@@ -11869,8 +11869,8 @@ export default function App() {
                       >
                         {!mine ? (
                           <View style={{ width: 24, height: 24, borderRadius: 12, marginRight: 7, marginBottom: 2, backgroundColor: "transparent", borderWidth: 1, borderColor: chatThemeColors.accent, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                            {messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase())?.avatarUrl ? (
-                              <Image source={{ uri: String(messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl).startsWith("http") ? messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl : "https://bhumi-social-app-1.onrender.com" + messageConversations.find((item) => String(item.username || "").toLowerCase() === selectedChatUser.toLowerCase()).avatarUrl }} style={{ width: 27, height: 27, borderRadius: 14 }} />
+                            {messageConversations.find((item) => String(item.username || "").toLowerCase() === String(selectedChatUser || "").toLowerCase())?.avatarUrl ? (
+                              <Image source={{ uri: String(messageConversations.find((item) => String(item.username || "").toLowerCase() === String(selectedChatUser || "").toLowerCase()).avatarUrl).startsWith("http") ? messageConversations.find((item) => String(item.username || "").toLowerCase() === String(selectedChatUser || "").toLowerCase()).avatarUrl : "https://bhumi-social-app-1.onrender.com" + messageConversations.find((item) => String(item.username || "").toLowerCase() === String(selectedChatUser || "").toLowerCase()).avatarUrl }} style={{ width: 27, height: 27, borderRadius: 14 }} />
                             ) : <Text style={{ color: "#F5F5F5", fontSize: 11, fontWeight: "800" }}>{String(selectedChatUser || "?").slice(0,1).toUpperCase()}</Text>}
                           </View>
                         ) : null}
