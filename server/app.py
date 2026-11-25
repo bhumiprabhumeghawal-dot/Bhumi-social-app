@@ -4470,6 +4470,15 @@ def init_notes_tables():
             )
         """)
         db.execute("CREATE INDEX IF NOT EXISTS idx_user_notes_expiry ON user_notes(expires_at)")
+        for column, definition in (
+            ("audio_url", "TEXT"),
+            ("audio_title", "TEXT"),
+            ("audio_artist", "TEXT"),
+        ):
+            try:
+                db.execute(f"ALTER TABLE user_notes ADD COLUMN {column} {definition}")
+            except Exception:
+                pass
 
 
 @app.get("/api/notes")
@@ -4482,6 +4491,7 @@ def get_user_notes():
         db.execute("DELETE FROM user_notes WHERE expires_at <= ?", (now,))
         rows = db.execute("""
             SELECT n.username, n.body, n.created_at, n.expires_at,
+                   n.audio_url, n.audio_title, n.audio_artist,
                    p.display_name, p.avatar_url
             FROM user_notes n
             LEFT JOIN profiles p ON LOWER(p.username)=LOWER(n.username)
@@ -4496,6 +4506,8 @@ def get_user_notes():
         item = {
             "username": row["username"], "text": row["body"],
             "createdAt": row["created_at"], "expiresAt": row["expires_at"],
+            "audioUrl": row["audio_url"], "audioTitle": row["audio_title"],
+            "audioArtist": row["audio_artist"],
             "displayName": row["display_name"] or row["username"],
             "avatarUrl": row["avatar_url"]
         }
@@ -4513,7 +4525,14 @@ def save_user_note():
         return jsonify({"error": "Please log in to post a note."}), 401
     data = request.get_json(silent=True) or {}
     body = str(data.get("text") or "").strip()
-    if not body:
+    audio_url = str(data.get("audioUrl") or "").strip() or None
+    audio_title = str(data.get("audioTitle") or "").strip() or None
+    audio_artist = str(data.get("audioArtist") or "").strip() or None
+    if audio_url and not audio_url.startswith("https://"):
+        return jsonify({"error": "Song preview URL must use HTTPS."}), 400
+    if audio_url and len(audio_url) > 2048:
+        return jsonify({"error": "Song preview URL is too long."}), 400
+    if not body and not audio_url:
         return jsonify({"error": "Note cannot be empty."}), 400
     if len(body) > 60:
         return jsonify({"error": "Note must be 60 characters or fewer."}), 400
@@ -4522,15 +4541,18 @@ def save_user_note():
     expires = (now_dt + timedelta(hours=24)).isoformat()
     with get_db() as db:
         db.execute("""
-            INSERT INTO user_notes (username, body, created_at, expires_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO user_notes
+                (username, body, created_at, expires_at, audio_url, audio_title, audio_artist)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(username) DO UPDATE SET
                 body=excluded.body, created_at=excluded.created_at,
-                expires_at=excluded.expires_at
-        """, (current, body, now, expires))
+                expires_at=excluded.expires_at, audio_url=excluded.audio_url,
+                audio_title=excluded.audio_title, audio_artist=excluded.audio_artist
+        """, (current, body, now, expires, audio_url, audio_title, audio_artist))
     return jsonify({"ok": True, "note": {
         "username": current, "text": body,
-        "createdAt": now, "expiresAt": expires
+        "createdAt": now, "expiresAt": expires,
+        "audioUrl": audio_url, "audioTitle": audio_title, "audioArtist": audio_artist
     }})
 
 
