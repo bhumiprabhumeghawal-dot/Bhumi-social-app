@@ -92,6 +92,8 @@ export default function DirectMessagesScreen({
       setAttachment(null);
       setQuery("");
       setPeople([]);
+      setInboxTab("All");
+      setProfileInfoOpen(false);
       setError("");
       return;
     }
@@ -325,8 +327,8 @@ export default function DirectMessagesScreen({
               ) : (
                 <FlatList
                   data={inboxTab === "Requests"
-                    ? conversations.filter((x) => x.isRequest || x.is_request || x.requestStatus === "pending" || x.request_status === "pending")
-                    : conversations.filter((x) => inboxTab === "All" || !String(x.folder || x.category || "").trim() || String(x.folder || x.category).toLowerCase() === inboxTab.toLowerCase())}
+                    ? conversations.filter((x) => x.isRequest || x.is_request || x.requestStatus === "pending" || x.request_status === "pending" || x.requestStatus === "requested" || x.request_status === "requested")
+                    : conversations.filter((x) => inboxTab === "All" || String(x.folder || x.category || x.inboxType || x.inbox_type || "").toLowerCase() === inboxTab.toLowerCase())}
                   keyExtractor={(x, i) => String(getUsername(x) || i)}
                   refreshing={busy}
                   onRefresh={refreshInbox}
