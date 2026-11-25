@@ -467,7 +467,7 @@ export default function DirectMessagesScreen({
                     multiline
                     blurOnSubmit={false}
                     textAlignVertical="center"
-                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 24, paddingHorizontal: 17, paddingTop: 11, paddingBottom: 10, fontSize: 15 }}
+                    style={{ flex: 1, minHeight: 44, maxHeight: 112, color: C.text, backgroundColor: C.field, borderRadius: 24, paddingHorizontal: 17, paddingTop: 11, paddingBottom: 10, fontSize: 15, transform: [{ translateY: -30 }] }}
                   />
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 3 }}>
                     <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ transform: [{ translateY: -30 }] }}><Ionicons name="image-outline" size={23} color={C.text} /></TouchableOpacity>
