@@ -858,7 +858,16 @@ export default function DirectMessagesScreen({
             </View>
           )}
           <Modal visible={noteComposerOpen} transparent animationType="fade" onRequestClose={() => setNoteComposerOpen(false)}>
-            <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.42)", justifyContent: "center", paddingHorizontal: 22 }}>
+            <KeyboardAvoidingView
+              style={{ flex: 1 }}
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              keyboardVerticalOffset={0}
+            >
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 22, paddingVertical: 24 }}
+            >
               <View style={{ backgroundColor: C.panel, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: C.line }}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                   <Text style={{ color: C.text, fontSize: 18, fontWeight: "800" }}>Your note</Text>
@@ -885,7 +894,8 @@ export default function DirectMessagesScreen({
                   <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{noteSaving ? "Saving…" : "Share note"}</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </ScrollView>
+            </KeyboardAvoidingView>
           </Modal>
           <Modal visible={!!noteViewer} transparent animationType="fade" onRequestClose={() => setNoteViewer(null)}>
             <TouchableOpacity activeOpacity={1} onPress={() => setNoteViewer(null)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.42)", justifyContent: "center", paddingHorizontal: 24 }}>
