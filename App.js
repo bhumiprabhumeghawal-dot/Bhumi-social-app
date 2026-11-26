@@ -2763,6 +2763,15 @@ export default function App() {
   const [selectedPostMediaIndex, setSelectedPostMediaIndex] = React.useState(0);
 
   React.useEffect(() => {
+    if (selectedPost?.id) recordContentView("posts", selectedPost.id).catch(() => {});
+  }, [selectedPost?.id]);
+
+  React.useEffect(() => {
+    const reel = Array.isArray(reels) ? reels[activeReelIndex] : null;
+    if (reel?.id) recordContentView("reels", reel.id).catch(() => {});
+  }, [activeReelIndex, reels]);
+
+  React.useEffect(() => {
     let active = true;
     if (!selectedStory?.id || selectedStory?.isStarterStory) {
       setStoryViewers([]);
@@ -4443,7 +4452,7 @@ export default function App() {
         ),
       );
       setUnreadNotificationCount((current) => Math.max(0, current - 1));
-      if (readTarget && ["like", "reel_like", "gift_flower"].includes(String(readTarget.kind || "").toLowerCase())) {
+      if (readTarget && ["like", "reel_like", "story_like", "gift_flower"].includes(String(readTarget.kind || "").toLowerCase())) {
         setUnreadLikeCount((current) => Math.max(0, current - 1));
       }
     } catch (e) {
@@ -11862,7 +11871,7 @@ export default function App() {
               <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
                 {notificationsList.filter((item) => {
                   if (notificationFilter === "All") return true;
-                  if (notificationFilter === "Likes") return item.kind === "like" || item.kind === "gift_flower" || item.kind === "reel_like";
+                  if (notificationFilter === "Likes") return item.kind === "like" || item.kind === "gift_flower" || item.kind === "reel_like" || item.kind === "story_like";
                   if (notificationFilter === "Comments") return item.kind === "comment" || item.kind === "reel_comment";
                   if (notificationFilter === "Messages") return item.kind === "message";
                   return ["follow", "follow_request", "follow_accepted", "follow_rejected"].includes(item.kind);
@@ -11877,6 +11886,7 @@ export default function App() {
                     gift_flower: "sent you a flower 🌸",
                     comment: "commented on your post",
                     reel_like: "liked your reel",
+                     story_like: "liked your status",
                     reel_comment: "commented on your reel",
                     message: "sent you a message",
                     mention_posts: "mentioned you in a post",
@@ -11909,7 +11919,7 @@ export default function App() {
                       >
                         <Ionicons
                           name={
-                            item.kind === "like" || item.kind === "reel_like"
+                            item.kind === "like" || item.kind === "reel_like" || item.kind === "story_like"
                               ? "heart"
                               : item.kind === "comment" || item.kind === "reel_comment"
                                 ? "chatbubble"
