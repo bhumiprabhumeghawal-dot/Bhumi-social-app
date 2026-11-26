@@ -9393,7 +9393,7 @@ export default function App() {
         ].map((tab) => (
           <TouchableOpacity
             key={tab.name}
-            style={[styles.navItem, { height: appShort ? 40 : 44, transform: [{ translateY: 0 }] }, activeTab === tab.name ? [styles.activeNavItem, { backgroundColor: lightAppearance ? "#E9E9EB" : "#26292D" }] : null]}
+            style={[styles.navItem, { height: appShort ? 40 : 44, transform: [{ translateY: -15 }] }, activeTab === tab.name ? [styles.activeNavItem, { backgroundColor: lightAppearance ? "#E9E9EB" : "#26292D" }] : null]}
             onPress={() => handleTab(tab.name)}
             accessibilityLabel={appText("tab" + tab.name)}
           >
