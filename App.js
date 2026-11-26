@@ -4554,6 +4554,9 @@ export default function App() {
           ),
         );
         setUnreadNotificationCount((current) => Math.max(0, current - 1));
+        if (["like", "reel_like", "story_like", "gift_flower"].includes(String(item.kind || "").toLowerCase())) {
+          setUnreadLikeCount((current) => Math.max(0, current - 1));
+        }
       } catch (e) {
         Alert.alert(
           appText("alertNotifications"),
@@ -4565,6 +4568,23 @@ export default function App() {
     setNotificationsListOpen(false);
     const kind = String(item.kind || "");
     const actor = String(item.actor || "").trim();
+
+    if (kind === "story_like") {
+      try {
+        const storyItems = await loadContent("stories", { force: true });
+        const storyIndex = storyItems.findIndex((entry) => Number(entry.id) === Number(item.referenceId));
+        if (storyIndex >= 0) {
+          setStoryQueue(storyItems);
+          setStoryIndex(storyIndex);
+          setSelectedStory(storyItems[storyIndex]);
+          return;
+        }
+        Alert.alert(appText("alertPostUnavailable"), "This status is no longer available.");
+      } catch (error) {
+        Alert.alert(appText("alertPostUnavailable"), error?.message || appText("alertTryAgain"));
+      }
+      return;
+    }
 
     if (kind === "like" || kind === "gift_flower" || kind === "comment" || kind === "reel_like" || kind === "reel_comment" || kind === "mention_posts" || kind === "mention_reels") {
       if (!item.referenceId) {
