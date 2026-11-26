@@ -28,7 +28,7 @@ const getMessageText = (item) => String(item?.text || item?.message || "");
 const getSender = (item) => String(item?.sender || item?.senderUsername || item?.fromUsername || item?.username || "").toLowerCase();
 
 export default function DirectMessagesScreen({
-  visible, onClose, authSession, initialUsername = "", onSelectedChatUserChange, onOpenProfile, onNavigateTab,
+  visible, onClose, authSession, ownAvatarUrl, initialUsername = "", onSelectedChatUserChange, onOpenProfile, onNavigateTab,
 }) {
   const { width: windowWidth, height: windowHeight, fontScale } = useWindowDimensions();
   // Logical dp dimensions adapt to rotation, split-screen and different phones.
@@ -470,7 +470,7 @@ export default function DirectMessagesScreen({
                   { tab: "Profile", icon: "person-circle-outline" },
                 ].map((item) => (
                   <TouchableOpacity key={item.tab} onPress={() => onNavigateTab?.(item.tab)} accessibilityRole="button" accessibilityLabel={item.tab} style={{ width: 52, height: 48, alignItems: "center", justifyContent: "center", transform: [{ translateY: -30 }] }}>
-                    <Ionicons name={item.icon} size={27} color={C.text} />
+                    {item.tab === "Profile" && ownAvatarUrl ? (\n                      <Image source={{ uri: avatarUri(ownAvatarUrl) }} style={{ width: 27, height: 27, borderRadius: 14 }} />\n                    ) : (\n                      <Ionicons name={item.icon} size={27} color={C.text} />\n                    )}
                   </TouchableOpacity>
                 ))}
               </View>
