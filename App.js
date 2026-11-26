@@ -8549,6 +8549,7 @@ export default function App() {
             <FlatList
               ref={reelListRef}
               data={reels}
+              extraData={`${activeReelIndex}:${manualReelPlay}:${activeTab}:${appSettingsPreferences["feed.reelsAutoPlay"] !== false}`}
               keyExtractor={(item, index) =>
                 String(item.id || item.uri || index)
               }
@@ -9027,6 +9028,7 @@ export default function App() {
                   setFeedViewportHeight(height);
               }}
               data={groupPostItems(feedPosts)}
+              extraData={`${activeFeedIndex}:${activeTab}:${appSettingsPreferences["feed.autoPlay"] !== false}`}
               keyExtractor={(item, index) =>
                 String(item.groupId || item.id || `${item.user}-${index}`)
               }
