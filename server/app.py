@@ -4424,6 +4424,15 @@ def get_call_status(call_id):
                 (now, call_id),
             )
             row = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
+    elif row["status"] == "accepted" and row["expires_at"] <= now:
+        # Accepted sessions have a bounded lifetime too. Expire them explicitly
+        # so clients do not keep polling a permanently accepted, stale call.
+        with get_db() as db:
+            db.execute(
+                "UPDATE call_sessions SET status='ended', updated_at=? WHERE id=? AND status='accepted'",
+                (now, call_id),
+            )
+            row = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
     return jsonify({"ok": True, "call": _call_json(row)})
 
 
