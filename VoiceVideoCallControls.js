@@ -9,8 +9,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import RNCallKeep from "react-native-callkeep";
-import { ensureCallKeepSetup } from "./incomingCallBackgroundTask";
 import { useCameraPermissions } from "expo-camera";
 import { createAudioPlayer, requestRecordingPermissionsAsync } from "expo-audio";
 import {
@@ -66,23 +64,6 @@ import {
   getCallConnectionToken,
   getVoiceVideoCallStatus,
 } from "./api";
-
-function stableCallUuid(callId) {
-  const raw = String(callId).replace(/[^a-f0-9]/gi, "").toLowerCase();
-  if (raw.length === 32) {
-    return raw.slice(0, 8) + "-" + raw.slice(8, 12) + "-" +
-      raw.slice(12, 16) + "-" + raw.slice(16, 20) + "-" + raw.slice(20);
-  }
-  let hash = 2166136261;
-  for (const char of String(callId)) {
-    hash ^= char.charCodeAt(0);
-    hash = Math.imul(hash, 16777619);
-  }
-  const hex = (hash >>> 0).toString(16).padStart(8, "0");
-  const tail = (String(callId).replace(/[^a-z0-9]/gi, "").toLowerCase() + hex)
-    .padEnd(24, "0").slice(0, 24);
-  return hex + "-0000-4000-8000-" + tail.slice(0, 12);
-}
 
 let liveKitGlobalsRegistered = false;
 if (!liveKitGlobalsRegistered) {
@@ -232,8 +213,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     }
   };
 
-  // Caller hears a ringback tone until the recipient answers. Incoming calls
-  // use Android CallKeep / iOS CallKit native ringtone, avoiding double ringing.
+  // Caller hears a ringback tone until the recipient answers.
   useEffect(() => {
     stopRingbackTone();
     if (!call || incoming || connection || roomConnected) return undefined;
@@ -253,86 +233,13 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   }, [call?.id, incoming, connection, roomConnected]);
   const disconnectHandlingRef = useRef(false);
   const mountedRef = useRef(true);
-  const callKeepUuidRef = useRef(null);
-  const callKeepCallIdRef = useRef(null);
-  const callKeepEventBusyRef = useRef(false);
-  const pendingCallKeepActionRef = useRef(null);
-  const incomingRef = useRef(false);
-  const answerHandlerRef = useRef(null);
-  const declineHandlerRef = useRef(null);
-  const endHandlerRef = useRef(null);
-
-  const processPendingCallKeepAction = () => {
-    const pending = pendingCallKeepActionRef.current;
-    if (!pending || pending.uuid !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
-    pendingCallKeepActionRef.current = null;
-    callKeepEventBusyRef.current = true;
-    const activeCall = callRef.current;
-    const isIncomingCall = !!activeCall &&
-      String(activeCall.callee || "").toLowerCase() === String(currentUsername || "").toLowerCase();
-    const handler = pending.type === "answer"
-      ? answerHandlerRef.current
-      : (isIncomingCall ? declineHandlerRef.current : endHandlerRef.current);
-    Promise.resolve(handler?.()).finally(() => {
-      callKeepEventBusyRef.current = false;
-    });
-  };
-
   useEffect(() => {
     callRef.current = call;
   }, [call]);
 
   useEffect(() => {
-    incomingRef.current = incoming;
-  }, [incoming]);
-
-  useEffect(() => {
     connectionRef.current = connection;
   }, [connection]);
-
-  useEffect(() => {
-    if (Platform.OS !== "android" || !enableIncoming || !currentUsername) return undefined;
-    let active = true;
-    const subscriptions = [];
-    const listen = (event, handler) => {
-      const subscription = RNCallKeep.addEventListener(event, handler);
-      if (subscription?.remove) subscriptions.push(subscription);
-    };
-    listen("answerCall", ({ callUUID }) => {
-      if (!active || callUUID !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
-      callKeepEventBusyRef.current = true;
-      Promise.resolve(answerHandlerRef.current?.()).finally(() => { callKeepEventBusyRef.current = false; });
-    });
-    listen("endCall", ({ callUUID }) => {
-      if (!active || callUUID !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
-      callKeepEventBusyRef.current = true;
-      callKeepUuidRef.current = null;
-      callKeepCallIdRef.current = null;
-      const handler = incomingRef.current ? declineHandlerRef.current : endHandlerRef.current;
-      Promise.resolve(handler?.()).finally(() => { callKeepEventBusyRef.current = false; });
-    });
-    ensureCallKeepSetup().then(async () => {
-      try {
-        const initialEvents = await RNCallKeep.getInitialEvents?.();
-        const queued = Array.isArray(initialEvents) ? initialEvents : [];
-        const action = [...queued].reverse().find((event) =>
-          event?.name === "RNCallKeepPerformAnswerCallAction" ||
-          event?.name === "RNCallKeepPerformEndCallAction"
-        );
-        if (action?.data?.callUUID) {
-          pendingCallKeepActionRef.current = {
-            type: action.name === "RNCallKeepPerformAnswerCallAction" ? "answer" : "end",
-            uuid: action.data.callUUID,
-          };
-          processPendingCallKeepAction();
-        }
-        await RNCallKeep.clearInitialEvents?.();
-      } catch (error) {
-        console.warn("Initial CallKeep event recovery failed:", error?.message || error);
-      }
-    }).catch(() => {});
-    return () => { active = false; subscriptions.forEach((item) => item.remove()); };
-  }, [currentUsername, enableIncoming]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -340,10 +247,6 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   }, []);
 
   const resetCall = () => {
-    const nativeUuid = callKeepUuidRef.current;
-    callKeepUuidRef.current = null;
-    callKeepCallIdRef.current = null;
-    if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     setCall(null);
     setIncoming(false);
     setConnection(null);
@@ -485,17 +388,6 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           setCall(next);
           setIncoming(true);
           setCallMessage(next.type === "video" ? `${callText(appLanguage, "incoming")} · ${callText(appLanguage, "video")}` : `${callText(appLanguage, "incoming")} · ${callText(appLanguage, "voice")}`);
-          if (Platform.OS === "android") {
-            try { await ensureCallKeepSetup(); } catch (_) {}
-            if (!active || callRef.current?.id !== next.id) return;
-            const uuid = stableCallUuid(next.id);
-            callKeepUuidRef.current = uuid;
-            callKeepCallIdRef.current = next.id;
-            const hasRecoveredNativeAction = pendingCallKeepActionRef.current?.uuid === uuid;
-            if (!hasRecoveredNativeAction) {
-              Promise.resolve(RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video")).catch((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
-            }
-          }
           return;
         }
       } catch (error) {
@@ -590,7 +482,6 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       setCall(next);
       setIncoming(false);
       await connectCall(next);
-      if (Platform.OS === "android" && callKeepUuidRef.current) RNCallKeep.setCurrentCallActive(callKeepUuidRef.current);
     } catch (error) {
       setCallMessage(translateAppText(appLanguage, "alertTryAgain"));
     } finally {
@@ -598,22 +489,14 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     }
   };
 
-  answerHandlerRef.current = answerCall;
-
   const declineCall = async () => {
     const current = callRef.current;
     if (!current) return;
     // Dismiss the local ringing UI immediately; server signalling is best-effort
     // and must not make the user wait on a slow or unavailable network.
     void respondToCall(current.id, "reject").catch(() => {});
-    const nativeUuid = callKeepUuidRef.current;
-    callKeepUuidRef.current = null;
-    callKeepCallIdRef.current = null;
-    if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     resetCall();
   };
-
-  declineHandlerRef.current = declineCall;
 
   const endCall = async () => {
     const current = callRef.current;
@@ -621,18 +504,8 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       // Close controls and release audio locally before waiting on the network.
       void respondToCall(current.id, "end").catch(() => {});
     }
-    const nativeUuid = callKeepUuidRef.current;
-    callKeepUuidRef.current = null;
-    callKeepCallIdRef.current = null;
-    if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     resetCall();
   };
-
-  endHandlerRef.current = endCall;
-
-  useEffect(() => {
-    if (call && callKeepUuidRef.current) processPendingCallKeepAction();
-  }, [call, incoming, currentUsername]);
 
   const showCallModal = !!call;
 
