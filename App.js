@@ -141,6 +141,10 @@ import {
   loadNotifications,
   markNotificationRead,
   markAllNotificationsRead,
+  recordContentView,
+  loadContentViewers,
+  toggleStoryLike,
+  loadStoryLikeState,
 } from "./api";
 import {
   SafeAreaView,
@@ -2745,6 +2749,10 @@ export default function App() {
   const [activeFeedIndex, setActiveFeedIndex] = React.useState(0);
   const [serverStories, setServerStories] = React.useState([]);
   const [selectedStory, setSelectedStory] = React.useState(null);
+  const [storyViewers, setStoryViewers] = React.useState([]);
+  const [storyLikeState, setStoryLikeState] = React.useState({ liked: false, likes: 0 });
+  const [storyLikeBusy, setStoryLikeBusy] = React.useState(false);
+  const [storyViewersOpen, setStoryViewersOpen] = React.useState(false);
   const [storyQueue, setStoryQueue] = React.useState([]);
   const [storyIndex, setStoryIndex] = React.useState(0);
   const [storyImageZoomed, setStoryImageZoomed] = React.useState(false);
@@ -2753,6 +2761,41 @@ export default function App() {
   const [storyProgress, setStoryProgress] = React.useState(0);
   const [selectedPost, setSelectedPost] = React.useState(null);
   const [selectedPostMediaIndex, setSelectedPostMediaIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    let active = true;
+    if (!selectedStory?.id || selectedStory?.isStarterStory) {
+      setStoryViewers([]);
+      setStoryLikeState({ liked: false, likes: 0 });
+      return () => { active = false; };
+    }
+    const storyOwner = String(selectedStory?.user || selectedStory?.username || "").replace(/^@/, "");
+    const isOwner = storyOwner.toLowerCase() === String(authSession?.username || "").toLowerCase();
+    recordContentView("stories", selectedStory.id).catch(() => {});
+    if (isOwner) {
+      loadContentViewers("stories", selectedStory.id)
+        .then((data) => { if (active) setStoryViewers(Array.isArray(data.viewers) ? data.viewers : []); })
+        .catch(() => { if (active) setStoryViewers([]); });
+    } else {
+      loadStoryLikeState(selectedStory.id)
+        .then((data) => { if (active) setStoryLikeState({ liked: Boolean(data.liked), likes: Number(data.likes || 0) }); })
+        .catch(() => {});
+    }
+    return () => { active = false; };
+  }, [selectedStory?.id, selectedStory?.user, selectedStory?.username, authSession?.username]);
+
+  const handleStoryLike = async () => {
+    if (!selectedStory?.id || storyLikeBusy) return;
+    setStoryLikeBusy(true);
+    try {
+      const result = await toggleStoryLike(selectedStory.id);
+      setStoryLikeState({ liked: Boolean(result.liked), likes: Number(result.likes || 0) });
+    } catch (error) {
+      Alert.alert(appText("alertNotifications"), error?.message || appText("alertTryAgain"));
+    } finally {
+      setStoryLikeBusy(false);
+    }
+  };
 
   React.useEffect(() => {
     let active = true;
@@ -9617,6 +9660,30 @@ export default function App() {
               </TouchableOpacity>
             </View>
 
+            {String(selectedStory?.user || selectedStory?.username || "").replace(/^@/, "").toLowerCase() === String(authSession?.username || "").toLowerCase() ? (
+              <View style={{ position: "absolute", bottom: 24, left: 18, right: 18, zIndex: 7 }}>
+                <TouchableOpacity onPress={() => setStoryViewersOpen((value) => !value)} style={{ flexDirection: "row", alignItems: "center", gap: 7, alignSelf: "flex-start", paddingVertical: 8 }}>
+                  <Ionicons name="eye-outline" size={20} color="#FFFFFF" />
+                  <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{storyViewers.length} views · Viewers</Text>
+                </TouchableOpacity>
+                {storyViewersOpen ? (
+                  <View style={{ maxHeight: 180, backgroundColor: "rgba(15,15,15,0.92)", borderRadius: 12, padding: 10 }}>
+                    <ScrollView nestedScrollEnabled>
+                      {storyViewers.length ? storyViewers.map((viewer) => (
+                        <View key={viewer.username} style={{ paddingVertical: 6 }}>
+                          <Text style={{ color: "#FFFFFF", fontWeight: "600" }}>{viewer.displayName || viewer.username}</Text>
+                          <Text style={{ color: "#BDBDBD", fontSize: 11 }}>@{viewer.username}</Text>
+                        </View>
+                      )) : <Text style={{ color: "#FFFFFF" }}>No views yet</Text>}
+                    </ScrollView>
+                  </View>
+                ) : null}
+              </View>
+            ) : (
+              <TouchableOpacity onPress={handleStoryLike} disabled={storyLikeBusy} style={{ position: "absolute", bottom: 28, right: 22, zIndex: 7, width: 48, height: 48, borderRadius: 24, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center" }}>
+                <Ionicons name={storyLikeState.liked ? "heart" : "heart-outline"} size={28} color={storyLikeState.liked ? "#E1306C" : "#FFFFFF"} />
+              </TouchableOpacity>
+            )}
             {!!selectedStory?.caption && (
               <View
                 style={{
