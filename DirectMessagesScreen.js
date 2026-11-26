@@ -484,8 +484,13 @@ export default function DirectMessagesScreen({
                   const attachmentUrl = item.attachmentUrl || item.attachment_url || item.imageUrl || item.image_url;
                   const attachmentName = item.attachmentName || item.attachment_name || "Open attachment";
                   const attachmentType = item.attachmentType || item.attachment_type;
+                  const messageAvatar = mine
+                    ? { username: authSession?.username || "You", avatarUrl: ownAvatarUrl }
+                    : { username: item.sender || peer, avatarUrl: item.senderAvatarUrl || item.sender_avatar_url || peerDetails?.avatarUrl };
                   return (
-                    <View style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "88%", minWidth: body || attachmentUrl ? 0 : 90, backgroundColor: mine ? C.mine : C.other, borderTopLeftRadius: 19, borderTopRightRadius: 19, borderBottomLeftRadius: mine ? 19 : 5, borderBottomRightRadius: mine ? 5 : 19, paddingHorizontal: 14, paddingVertical: 9, marginVertical: 3 }}>
+                    <View style={{ width: "100%", flexDirection: mine ? "row-reverse" : "row", alignItems: "flex-end", justifyContent: mine ? "flex-start" : "flex-start", gap: 7, marginVertical: 3 }}>
+                      {avatar(messageAvatar, 27)}
+                      <View style={{ maxWidth: "82%", minWidth: body || attachmentUrl ? 0 : 90, backgroundColor: mine ? C.mine : C.other, borderTopLeftRadius: 19, borderTopRightRadius: 19, borderBottomLeftRadius: mine ? 19 : 5, borderBottomRightRadius: mine ? 5 : 19, paddingHorizontal: 14, paddingVertical: 9 }}>
                       {attachmentUrl ? (
                         <TouchableOpacity onPress={() => Linking.openURL(avatarUri(attachmentUrl))} style={{ marginBottom: body ? 7 : 0, flexDirection: "row", alignItems: "center", gap: 7 }}>
                           <Ionicons name={String(attachmentType).toLowerCase() === "image" ? "image-outline" : "document-outline"} size={22} color={C.text} />
@@ -496,6 +501,7 @@ export default function DirectMessagesScreen({
                       <Text style={{ color: "#737373", fontSize: 9, textAlign: "right", marginTop: 4 }}>
                         {item.createdAt || item.created_at ? new Date(item.createdAt || item.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
                       </Text>
+                      </View>
                     </View>
                   );
                 }}
