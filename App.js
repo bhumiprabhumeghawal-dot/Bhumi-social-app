@@ -12454,7 +12454,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     backgroundColor: "#000000",
   },
-  navItem: { flex: 1, height: 44, alignItems: "center", justifyContent: "center", transform: [{ translateY: -20 }] },
+  navItem: { flex: 1, height: 44, alignItems: "center", justifyContent: "center", transform: [{ translateY: -35 }] },
   activeNavItem: { backgroundColor: "#26292D", borderRadius: 28, marginHorizontal: 5 },
   navIcon: { fontSize: 24, color: "#8E8E93" },
   activeNavIcon: { color: "#0095F6", fontWeight: "800" },
