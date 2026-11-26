@@ -3179,6 +3179,21 @@ def _monetization_admin_allowed(username):
     return bool(allowed and username and username.casefold() in allowed)
 
 
+@app.get("/api/admin/monetization/orders")
+def admin_list_monetization_orders():
+    username = getattr(g, "auth_username", None)
+    if not _monetization_admin_allowed(username):
+        return jsonify({"error": "Admin access is not configured for monetization reviews."}), 403
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT order_id, username, plan_id, plan_name, amount_paise,
+                   currency, status, admin_note, created_at, updated_at
+            FROM monetization_orders
+            ORDER BY created_at DESC LIMIT 500
+        """).fetchall()
+    return jsonify({"orders": [dict(row) for row in rows]})
+
+
 @app.post("/api/admin/monetization/orders/<order_id>/review")
 def review_monetization_order(order_id):
     username = getattr(g, "auth_username", None)
