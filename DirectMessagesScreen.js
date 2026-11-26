@@ -65,7 +65,7 @@ export default function DirectMessagesScreen({
   const [error, setError] = React.useState("");
   const [profileInfoOpen, setProfileInfoOpen] = React.useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false);
-  const [inboxTab, setInboxTab] = React.useState("Primary");
+  const [inboxTab, setInboxTab] = React.useState("All");
   const [filterOpen, setFilterOpen] = React.useState(false);
   const listRef = React.useRef(null);
   const searchInputRef = React.useRef(null);
@@ -124,7 +124,7 @@ export default function DirectMessagesScreen({
       setAttachment(null);
       setQuery("");
       setPeople([]);
-      setInboxTab("Primary");
+      setInboxTab("All");
       setFilterOpen(false);
       setProfileInfoOpen(false);
       setEmojiPickerOpen(false);
