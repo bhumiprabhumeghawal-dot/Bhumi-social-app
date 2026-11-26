@@ -38,6 +38,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
   const t = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   const [accountType, setAccountType] = React.useState("personal");
   const [tab, setTab] = React.useState("overview");
+  const [showMonetization, setShowMonetization] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [posts, setPosts] = React.useState([]);
@@ -95,6 +96,11 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
     const body = encodeURIComponent('Username: ' + (username || 'Not available') + String.fromCharCode(10) + 'Account type: ' + accountType + String.fromCharCode(10,10) + 'Please share the next steps for ' + topic.toLowerCase() + '.');
     try { await Linking.openURL('mailto:bhumiprabhumeghawal@gmail.com?subject=' + subject + '&body=' + body); }
     catch (_) { setFeedback(t("alertCheckConnection")); }
+  };
+
+  const openMonetization = () => { setShowMonetization(true); setFeedback(""); };
+  const selectMonetizationPlan = (planName) => {
+    setFeedback(planName + ": payment setup is not connected yet. No payment has been taken. This plan will activate only after official payment and verification setup.");
   };
 
   const createPromotionBrief = async () => {
@@ -235,6 +241,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
                   {actionButton(t("createPromotionBriefAction").toUpperCase(), createPromotionBrief)}
                   {actionButton(t("editBusinessProfileAction").toUpperCase(), () => setTab("profile"))}
                   {actionButton(t("manageProductCatalogAction").toUpperCase(), () => setTab("catalog"))}
+                  {actionButton("VIEW PREMIUM & BUSINESS PLANS", openMonetization)}
                 </>
               ) : null}
               {tab === "profile" ? (
@@ -293,8 +300,39 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
               {actionButton("REQUEST BRAND COLLABORATION", () => contactCreatorTeam("Brand Collaboration Request"))}
               {actionButton(t("askMonetizationAction").toUpperCase(), () => contactCreatorTeam("Creator Monetization Eligibility"))}
               {actionButton("CREATE PROMOTION BRIEF", createPromotionBrief)}
+              {actionButton("VIEW PREMIUM & CREATOR PLANS", openMonetization)}
               {actionButton(t("refreshCreatorDataAction").toUpperCase(), refresh, loading)}
             </>
+          ) : null}
+          {showMonetization ? (
+            <View style={{ marginTop: 16, borderWidth: 1, borderColor: GOLD, borderRadius: 18, padding: 14, backgroundColor: PANEL }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+                <Text style={{ color: GOLD, fontSize: 16, fontWeight: "900" }}>BHUMI EARNINGS</Text>
+                <TouchableOpacity onPress={() => setShowMonetization(false)}><Ionicons name="close-circle" size={23} color={MUTED}/></TouchableOpacity>
+              </View>
+              <Text style={{ color: MUTED, fontSize: 11, marginBottom: 13 }}>Premium tools for members, creators and local businesses.</Text>
+              {[
+                { title: "Bhumi Premium Membership", price: "₹99 / month", detail: "Premium profile badge, profile customization, ad-free experience and member-only extras.", icon: "diamond-outline" },
+                { title: "Creator Boost", price: "₹29 / post · ₹49 extended", detail: "Promote a selected post or reel for additional reach. Reach is not guaranteed.", icon: "rocket-outline" },
+                { title: "VIP Creator Badge", price: "₹49 / month", detail: "Distinct VIP creator badge and creator profile highlight.", icon: "ribbon-outline" },
+                { title: "Business Promotion", price: "₹199 starter · ₹499 growth", detail: "Promote a local business, offer or campaign inside Bhumi Social AI.", icon: "megaphone-outline" },
+                { title: "Business Verified Profile", price: "₹99 / month", detail: "Apply for a verified business mark. Approval requires identity and business checks; payment alone never guarantees verification.", icon: "shield-checkmark-outline" },
+                { title: "Featured Business Listing", price: "₹99 / 7 days", detail: "Eligible business listing receives a featured placement in discovery.", icon: "storefront-outline" },
+              ].map((plan) => (
+                <View key={plan.title} style={{ backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 13, padding: 12, marginTop: 9 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Ionicons name={plan.icon} size={21} color={GOLD}/>
+                    <Text style={{ color: TEXT, fontSize: 13, fontWeight: "900", marginLeft: 9, flex: 1 }}>{plan.title}</Text>
+                  </View>
+                  <Text style={{ color: GOLD, fontSize: 14, fontWeight: "900", marginTop: 8 }}>{plan.price}</Text>
+                  <Text style={{ color: MUTED, fontSize: 11, lineHeight: 17, marginTop: 5 }}>{plan.detail}</Text>
+                  <TouchableOpacity onPress={() => selectMonetizationPlan(plan.title)} style={{ backgroundColor: GOLD, borderRadius: 9, paddingVertical: 10, alignItems: "center", marginTop: 10 }}>
+                    <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "900" }}>SELECT PLAN</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <Text style={{ color: MUTED, fontSize: 10, lineHeight: 15, marginTop: 13 }}>Payments are not enabled yet. Selecting a plan does not charge you or activate a paid benefit. Payment provider, receipts, refunds and admin review will be connected before launch.</Text>
+            </View>
           ) : null}
         </ScrollView>
       </View>
