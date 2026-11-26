@@ -662,7 +662,7 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
     };
   }, [active, audioUrl, muted, soundtrackPlayer]);
 
-  const player = useVideoPlayer({ uri, useCaching: true }, (p) => {
+  const player = useVideoPlayer({ uri, useCaching: false }, (p) => {
     p.loop = loop;
     p.muted = muted;
   });
@@ -785,7 +785,7 @@ function ReelVideoZoomable({
       try { soundtrackPlayer.pause(); } catch (error) {}
     };
   }, [active, audioUrl, muted, soundtrackPlayer]);
-  const player = useVideoPlayer({ uri, useCaching: true }, (p) => {
+  const player = useVideoPlayer({ uri, useCaching: false }, (p) => {
     p.loop = loop;
     p.muted = muted;
   });
@@ -2393,7 +2393,7 @@ function ChatVideoAttachment({ uri, token, mine }) {
   const attachmentWidth = Math.min(230, Math.max(150, attachmentScreenWidth * 0.68));
   const attachmentHeight = attachmentWidth * 0.826;
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
-  const player = useVideoPlayer({ uri, headers, useCaching: true }, (p) => {
+  const player = useVideoPlayer({ uri, headers, useCaching: false }, (p) => {
     p.loop = false;
   });
 
