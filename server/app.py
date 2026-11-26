@@ -2,6 +2,7 @@ import os
 import json
 import urllib.request
 import urllib.error
+import urllib.parse
 import sqlite3
 import uuid
 import threading
@@ -792,6 +793,8 @@ def uploaded_file(kind, filename):
 
     elif kind == "chat":
         viewer = _chat_current_user()
+        if not viewer:
+            viewer = _verify_signed_chat_media(filename)
         if not viewer:
             return jsonify({"error": "Media not found"}), 404
 
@@ -4131,6 +4134,63 @@ def _chat_preference(db, username, key, default=True):
     return value if isinstance(value, bool) else default
 
 
+def _chat_session_token_hash():
+    header = request.headers.get("Authorization", "")
+    if not header.startswith("Bearer "):
+        return None
+    token = header[7:].strip()
+    if len(token) < 32:
+        return None
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _signed_chat_media_url(media_url, username):
+    """Create a short-lived media URL tied to the viewer's active login session."""
+    prefix = "/uploads/chat/"
+    if not media_url or not str(media_url).startswith(prefix):
+        return media_url
+    token_hash = _chat_session_token_hash()
+    if not token_hash:
+        return media_url
+    filename = str(media_url)[len(prefix):]
+    if not filename or "/" in filename or "\\" in filename:
+        return media_url
+    expires = int(datetime.now(timezone.utc).timestamp()) + 900
+    payload = f"{username.lower()}|{filename}|{expires}|{token_hash}"
+    signature = hmac.new(token_hash.encode("ascii"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    return f"{media_url}?u={urllib.parse.quote(username)}&e={expires}&sid={token_hash}&s={signature}"
+
+
+def _verify_signed_chat_media(filename):
+    """Validate a short-lived media URL and return its authenticated viewer."""
+    username = str(request.args.get("u") or "").strip()
+    expires_raw = str(request.args.get("e") or "")
+    token_hash = str(request.args.get("sid") or "")
+    signature = str(request.args.get("s") or "")
+    if (
+        not username or not expires_raw.isdigit()
+        or not re.fullmatch(r"[a-f0-9]{64}", token_hash)
+        or not re.fullmatch(r"[a-f0-9]{64}", signature)
+    ):
+        return None
+    expires = int(expires_raw)
+    now_epoch = int(datetime.now(timezone.utc).timestamp())
+    if expires < now_epoch or expires > now_epoch + 900:
+        return None
+    payload = f"{username.lower()}|{filename}|{expires}|{token_hash}"
+    expected = hmac.new(token_hash.encode("ascii"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        return None
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        session = db.execute("""
+            SELECT username FROM auth_sessions
+            WHERE token_hash=? AND LOWER(username)=LOWER(?) AND expires_at>?
+            LIMIT 1
+        """, (token_hash, username, now)).fetchone()
+    return session["username"] if session else None
+
+
 def _chat_current_user():
     username = _auth_user()
     if not username:
@@ -4999,8 +5059,8 @@ def get_direct_messages(username):
             "senderAvatarUrl": row["sender_avatar_url"],
             "recipientAvatarUrl": row["recipient_avatar_url"],
             "text": row["body"],
-            "imageUrl": row["image_url"],
-            "attachmentUrl": row["attachment_url"] or row["image_url"],
+            "imageUrl": _signed_chat_media_url(row["image_url"], current),
+            "attachmentUrl": _signed_chat_media_url(row["attachment_url"] or row["image_url"], current),
             "attachmentType": row["attachment_type"] or ("image" if row["image_url"] else None),
             "attachmentName": row["attachment_name"],
             "mimeType": row["attachment_mime"],
@@ -5178,8 +5238,8 @@ def send_direct_message(username):
             "sender": current,
             "recipient": target,
             "text": body,
-            "imageUrl": legacy_image_url,
-            "attachmentUrl": attachment_url,
+            "imageUrl": _signed_chat_media_url(legacy_image_url, current),
+            "attachmentUrl": _signed_chat_media_url(attachment_url, current),
             "attachmentType": attachment_type or ("image" if legacy_image_url else None),
             "attachmentName": attachment_name,
             "mimeType": attachment_mime,
