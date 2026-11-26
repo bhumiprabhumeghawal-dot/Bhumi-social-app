@@ -23,7 +23,13 @@ const inputStyle = {
   paddingVertical: 10, marginTop: 7, fontSize: 13
 };
 
-export default function CreatorBusinessHub({ visible, username, onClose, appLanguage = "en" }) {
+export default function CreatorBusinessHub({ visible, username, onClose, appLanguage = "en", lightAppearance = false }) {
+  const BG = lightAppearance ? "#FFFFFF" : "#000000";
+  const PANEL = lightAppearance ? "#F5F5F5" : "#121212";
+  const BORDER = lightAppearance ? "#E2E2E2" : "#262626";
+  const TEXT = lightAppearance ? "#111111" : "#F5F5F5";
+  const MUTED = lightAppearance ? "#737373" : "#A8A8A8";
+  const hubInputStyle = { ...inputStyle, color: TEXT, backgroundColor: lightAppearance ? "#FFFFFF" : "#0A0A0A", borderColor: BORDER };
   const { width: hubWidth, height: hubHeight, fontScale: hubFontScale } = useWindowDimensions();
   const compact = hubWidth < 360;
   const short = hubHeight < 680;
@@ -250,8 +256,8 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
               {tab === "catalog" ? (
                 <>
                   <Text style={{ color: TEXT, fontWeight: "900", fontSize: 15, marginBottom: 10 }}>{t("productsServices")}</Text>
-                  <TextInput value={form.title} onChangeText={title => setForm(current => ({ ...current, title }))} placeholder={t("productNamePlaceholder")} placeholderTextColor="#8E8E8E" style={inputStyle}/>
-                  <TextInput value={form.price} onChangeText={price => setForm(current => ({ ...current, price }))} placeholder={t("pricePlaceholder")} placeholderTextColor="#8E8E8E" keyboardType="decimal-pad" style={inputStyle}/>
+                  <TextInput value={form.title} onChangeText={title => setForm(current => ({ ...current, title }))} placeholder={t("productNamePlaceholder")} placeholderTextColor="#8E8E8E" style={hubInputStyle}/>
+                  <TextInput value={form.price} onChangeText={price => setForm(current => ({ ...current, price }))} placeholder={t("pricePlaceholder")} placeholderTextColor="#8E8E8E" keyboardType="decimal-pad" style={hubInputStyle}/>
                   <TextInput value={form.description} onChangeText={description => setForm(current => ({ ...current, description }))} placeholder={t("descriptionPlaceholder")} placeholderTextColor="#8E8E8E" multiline style={[inputStyle, { minHeight: 70, textAlignVertical: "top" }]}/>
                   {actionButton(saving ? t("addingAction").toUpperCase() : t("addToCatalogAction").toUpperCase(), addItem, saving)}
                   <Text style={{ color: GOLD, fontWeight: "900", fontSize: 14, marginTop: 22, marginBottom: 10 }}>{t("productsServices").toUpperCase()} ({items.length})</Text>
