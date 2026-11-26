@@ -614,10 +614,14 @@ function PinchZoomImage({
   );
 }
 function ReelVideo(props) {
-  // Do not allocate native video/audio players for off-screen feed items.
-  // On Android, creating a player for every mounted FlatList row can exhaust
-  // decoder/native resources while the Home feed and Reels load.
-  if (!props.active) {
+  // Keep the player alive after a video has become active so scrolling it
+  // off-screen pauses on its current frame instead of flashing to a blank view.
+  // Unseen/off-screen rows still avoid allocating native video players.
+  const [hasBeenActive, setHasBeenActive] = React.useState(!!props.active);
+  React.useEffect(() => {
+    if (props.active) setHasBeenActive(true);
+  }, [props.active]);
+  if (!props.active && !hasBeenActive) {
     return (
       <View
         style={{
