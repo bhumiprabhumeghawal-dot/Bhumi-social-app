@@ -7,6 +7,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
+import { VideoView, useVideoPlayer } from "expo-video";
 import * as FileSystem from "expo-file-system/legacy";
 import { useAudioPlayer, useAudioPlayerStatus, useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from "expo-audio";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
@@ -70,6 +71,23 @@ function VoiceMessageAttachment({ uri, name, color, mutedColor, onError }) {
   );
 }
 
+
+function ChatVideoAttachment({ uri, onError }) {
+  const player = useVideoPlayer(uri, (instance) => {
+    instance.loop = false;
+  });
+  return (
+    <View style={{ width: 236, maxWidth: "100%", height: 300, borderRadius: 12, overflow: "hidden", backgroundColor: "#000000", marginBottom: 5 }}>
+      <VideoView
+        player={player}
+        style={{ width: "100%", height: "100%" }}
+        nativeControls
+        contentFit="contain"
+        onError={(event) => onError?.(event?.error?.message || "Video play nahi hua.")}
+      />
+    </View>
+  );
+}
 
 export default function DirectMessagesScreen({
   visible, onClose, authSession, ownAvatarUrl, initialUsername = "", onSelectedChatUserChange, onOpenProfile, onNavigateTab, lightAppearance = false,
@@ -347,7 +365,7 @@ export default function DirectMessagesScreen({
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"], allowsEditing: false, quality: 0.9,
+        mediaTypes: ["images", "videos"], allowsEditing: false, quality: 0.9,
       });
       if (!result.canceled && result.assets?.[0]) await uploadPickedAsset(result.assets[0]);
     } catch (e) {
@@ -736,14 +754,28 @@ export default function DirectMessagesScreen({
                       {avatar(messageAvatar, 27)}
                       <View style={{ maxWidth: "82%", minWidth: body || attachmentUrl ? 0 : 90, backgroundColor: mine ? C.mine : C.other, borderTopLeftRadius: 19, borderTopRightRadius: 19, borderBottomLeftRadius: mine ? 19 : 5, borderBottomRightRadius: mine ? 5 : 19, paddingHorizontal: 14, paddingVertical: 9 }}>
                       {attachmentUrl ? (
-                        String(attachmentType).toLowerCase() === "audio" ? (
+                        String(attachmentType).toLowerCase() === "image" ? (
+                          <TouchableOpacity activeOpacity={0.9}
+                            onPress={() => Linking.openURL(avatarUri(attachmentUrl)).catch(() => setError("Photo open nahi hui."))}
+                            style={{ marginBottom: body ? 7 : 0 }}>
+                            <Image source={{ uri: avatarUri(attachmentUrl) }}
+                              style={{ width: 228, maxWidth: "100%", height: 230, borderRadius: 10, backgroundColor: C.field }}
+                              resizeMode="cover"
+                              onError={() => setError("Photo load nahi hui. Internet connection check karein.")} />
+                          </TouchableOpacity>
+                        ) : String(attachmentType).toLowerCase() === "video" ? (
+                          <ChatVideoAttachment uri={avatarUri(attachmentUrl)} onError={(message) => setError(message)} />
+                        ) : String(attachmentType).toLowerCase() === "audio" ? (
                           <VoiceMessageAttachment uri={avatarUri(attachmentUrl)} name={attachmentName}
                             color={C.text} mutedColor={C.muted} onError={(message) => setError(message)} />
                         ) : (
-                          <TouchableOpacity onPress={() => Linking.openURL(avatarUri(attachmentUrl)).catch(() => setError("Attachment open nahi hua."))}
-                            style={{ marginBottom: body ? 7 : 0, flexDirection: "row", alignItems: "center", gap: 7 }}>
-                            <Ionicons name={String(attachmentType).toLowerCase() === "image" ? "image-outline" : String(attachmentType).toLowerCase() === "video" ? "videocam-outline" : "document-outline"} size={22} color={C.text} />
-                            <Text numberOfLines={2} style={{ color: C.text, textDecorationLine: "underline", flexShrink: 1 }}>{attachmentName}</Text>
+                          <TouchableOpacity onPress={() => Linking.openURL(avatarUri(attachmentUrl)).catch(() => setError("File open nahi hui."))}
+                            style={{ marginBottom: body ? 7 : 0, flexDirection: "row", alignItems: "center", gap: 7, paddingVertical: 6 }}>
+                            <Ionicons name="document-text-outline" size={24} color={C.text} />
+                            <View style={{ flex: 1 }}>
+                              <Text numberOfLines={2} style={{ color: C.text, textDecorationLine: "underline", flexShrink: 1 }}>{attachmentName}</Text>
+                              <Text style={{ color: C.muted, fontSize: 10 }}>Tap to open or download</Text>
+                            </View>
                           </TouchableOpacity>
                         )
                       ) : null}
@@ -810,7 +842,7 @@ export default function DirectMessagesScreen({
                       </TouchableOpacity>
                     ) : (
                       <>
-                        <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo from gallery" style={{ paddingHorizontal: 4, paddingVertical: 8 }}>
+                        <TouchableOpacity onPress={pickPhoto} disabled={sending} accessibilityRole="button" accessibilityLabel="Choose photo or video from gallery" style={{ paddingHorizontal: 4, paddingVertical: 8 }}>
                           <Ionicons name="image-outline" size={composerIconSize} color={C.text} />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={pickAttachment} disabled={sending} accessibilityRole="button" accessibilityLabel="Add attachment" style={{ paddingHorizontal: 4, paddingVertical: 8 }}>
