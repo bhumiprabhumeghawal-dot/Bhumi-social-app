@@ -7,7 +7,6 @@ import { translateAppText, translateAppTextValue } from "./localization";
 import ChatPersonalization from "./ChatPersonalization";
 import DirectMessagesScreen from "./DirectMessagesScreen";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
-import { ensureCallKeepSetup } from "./incomingCallBackgroundTask";
 import { registerCallPushToken } from "./api";
 import * as SecureStore from "expo-secure-store";
 import * as LocalAuthentication from "expo-local-authentication";
@@ -2966,9 +2965,6 @@ export default function App() {
     (async () => {
       try {
         if (Platform.OS === "android") {
-          await ensureCallKeepSetup().catch((setupError) => {
-            console.warn("Incoming call UI setup failed:", setupError?.message || setupError);
-          });
           await Notifications.setNotificationCategoryAsync("bhumi_message_reply", [
             {
               identifier: "reply",
@@ -4570,7 +4566,7 @@ export default function App() {
 
         if (type === "incoming_call" || type === "incoming_call_headless" || type === "call") {
           // Opening the caller's conversation lets the existing pending-call
-          // poller and CallKeep integration resolve the live call state.
+          // in-app call poller resolves the live call state.
           if (actor) {
             setMessagesOpen(true);
             await openDirectChat(actor);
