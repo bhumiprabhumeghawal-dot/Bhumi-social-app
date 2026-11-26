@@ -343,7 +343,7 @@ export default function DirectMessagesScreen({
                   <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 3 : 5, paddingBottom: 1 }}>
                     <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Notes</Text>
                   </View>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 3 : 5, paddingBottom: shortScreen ? 4 : 6, gap: storyRowGap }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 3 : 5, paddingBottom: 0, gap: storyRowGap }}>
                     <View style={{ width: storyAvatarSize + 4, alignItems: "center" }}>
                       <View style={{ width: storyAvatarSize, height: storyAvatarSize, borderRadius: storyAvatarSize / 2, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
                         {avatar({ username: authSession?.username || "You", avatarUrl: ownAvatarUrl }, storyAvatarSize)}
@@ -360,7 +360,7 @@ export default function DirectMessagesScreen({
 
               {!query.trim() ? (
                 <>
-                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: 8, paddingBottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: 2, paddingBottom: 2, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                     <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Messages</Text>
                     <TouchableOpacity onPress={() => setInboxTab("Requests")} accessibilityRole="button" accessibilityLabel="Message requests">
                       <Text style={{ color: C.blue, fontSize: 13, fontWeight: "600" }}>Requests</Text>
@@ -368,7 +368,7 @@ export default function DirectMessagesScreen({
                   </View>
                   <View style={{ paddingHorizontal: horizontalInset, flexDirection: "row", alignItems: "stretch", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
                     {["Primary", "General"].map((tab) => (
-                      <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minHeight: 42, alignItems: "center", justifyContent: "center", borderBottomWidth: inboxTab === tab ? 2 : 0, borderBottomColor: C.text }}>
+                      <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minHeight: 34, alignItems: "center", justifyContent: "center", borderBottomWidth: inboxTab === tab ? 2 : 0, borderBottomColor: C.text }}>
                         <Text style={{ color: inboxTab === tab ? C.text : C.muted, fontSize: 13 * textScale, fontWeight: inboxTab === tab ? "800" : "600" }}>{tab}</Text>
                       </TouchableOpacity>
                     ))}
