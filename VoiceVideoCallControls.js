@@ -555,7 +555,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       ) : null}
 
       {call && callMinimized ? (
-        <View {...callBubblePan.panHandlers} style={{ position: "absolute", right: 12, bottom: 92, zIndex: 9999, elevation: 30 }}>
+        <View {...callBubblePan.panHandlers} style={{ position: "absolute", right: 12, top: 116, zIndex: 9999, elevation: 30 }}>
           <TouchableOpacity onPress={restoreCall} activeOpacity={0.88} style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: "#0095F6", borderWidth: 2, borderColor: "#FFFFFF", alignItems: "center", justifyContent: "center", elevation: 10 }}>
             <Ionicons name={call.type === "video" ? "videocam" : "call"} size={25} color="#FFFFFF" />
             <View style={{ position: "absolute", right: -1, top: -1, width: 13, height: 13, borderRadius: 7, backgroundColor: "#22C55E", borderWidth: 2, borderColor: "#FFFFFF" }} />
