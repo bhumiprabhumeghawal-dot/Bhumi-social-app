@@ -1265,7 +1265,7 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
         </View>
       </Modal>
       {renderSection()}
-<CreatorBusinessHub visible={hubVisible && visible} username={username} appLanguage={appLanguage} onClose={() => setHubVisible(false)} />
+<CreatorBusinessHub visible={hubVisible && visible} username={username} appLanguage={appLanguage} lightAppearance={lightAppearance} onClose={() => setHubVisible(false)} />
       <Modal visible={securityVisible && visible} transparent animationType="slide" onRequestClose={() => setSecurityVisible(false)}>
         <View style={{ flex:1,backgroundColor:"#000000",paddingTop:Platform.OS==="android"?35:55,paddingHorizontal:18,paddingBottom:20 }}>
           <View style={{ flexDirection:"row",alignItems:"center",marginBottom:16 }}>
