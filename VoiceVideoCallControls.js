@@ -543,9 +543,20 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     if (!call || busy) return;
     setBusy(true);
     try {
-      await ensureCallPermissions(call.type);
-      const accepted = await respondToCall(call.id, "accept");
-      const next = accepted || call;
+      // Prepare audio routing while the server marks the call accepted.
+      // These independent steps used to run one after another, adding avoidable
+      // delay after the recipient tapped Answer.
+      const [permissionResult, acceptResult, audioResult] = await Promise.allSettled([
+        ensureCallPermissions(call.type),
+        respondToCall(call.id, "accept"),
+        audioSessionActiveRef.current
+          ? Promise.resolve(true)
+          : AudioSession.startAudioSession(),
+      ]);
+      if (permissionResult.status === "rejected") throw permissionResult.reason;
+      if (acceptResult.status === "rejected") throw acceptResult.reason;
+      if (audioResult.status === "fulfilled") audioSessionActiveRef.current = true;
+      const next = acceptResult.value || call;
       tokenAttemptedRef.current = true;
       callRef.current = next;
       setCall(next);
