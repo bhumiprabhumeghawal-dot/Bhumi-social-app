@@ -394,7 +394,7 @@ export default function DirectMessagesScreen({
                     </TouchableOpacity>
                   </View>
                   <View style={{ paddingHorizontal: horizontalInset, flexDirection: "row", alignItems: "stretch", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
-                    {["Primary", "General"].map((tab) => (
+                    {["All", "Primary", "General"].map((tab) => (
                       <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minHeight: 30, alignItems: "center", justifyContent: "center", borderBottomWidth: inboxTab === tab ? 2 : 0, borderBottomColor: C.text }}>
                         <Text style={{ color: inboxTab === tab ? C.text : C.muted, fontSize: 13 * textScale, fontWeight: inboxTab === tab ? "800" : "600" }}>{tab}</Text>
                       </TouchableOpacity>
