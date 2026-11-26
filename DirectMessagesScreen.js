@@ -371,7 +371,22 @@ export default function DirectMessagesScreen({
                   <Ionicons name="chevron-forward" size={15} color={C.muted} />
                 </TouchableOpacity>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: compactScreen ? 9 : 15, paddingLeft: 5 }}>
-                  <VoiceVideoCallControls username={peer} currentUsername={authSession?.username || ""} enableIncoming={false} enableOutgoing={true} showButtons={true} />
+                  <VoiceVideoCallControls
+                    username={peer}
+                    currentUsername={authSession?.username || ""}
+                    enableIncoming={false}
+                    enableOutgoing={true}
+                    showButtons={true}
+                    onCallStarted={async (callInfo) => {
+                      const activityText = callInfo.type === "video" ? "📹 Video call started" : "📞 Voice call started";
+                      try {
+                        const activity = await sendDirectMessage(peer, activityText);
+                        if (activity) setMessages((oldMessages) => [...oldMessages, activity]);
+                      } catch (logError) {
+                        console.warn("Call activity could not be added to DM:", logError?.message || logError);
+                      }
+                    }}
+                  />
                   <TouchableOpacity onPress={() => setProfileInfoOpen(true)} accessibilityRole="button" accessibilityLabel="Conversation information">
                     <Ionicons name="pricetag-outline" size={24} color={C.text} />
                   </TouchableOpacity>
