@@ -709,6 +709,7 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
           style={{ width: "100%", height: "100%" }}
           contentFit={contentFit}
           nativeControls={false}
+          surfaceType="textureView"
         />
         {status === "loading" && (
           <View
@@ -915,6 +916,7 @@ function ReelVideoZoomable({
                 style={{ width: "100%", height: "100%" }}
                 contentFit={contentFit}
                 nativeControls={false}
+          surfaceType="textureView"
               />
             </Animated.View>
           </GestureDetector>
@@ -933,6 +935,7 @@ function ReelVideoZoomable({
               style={{ width: "100%", height: "100%" }}
               contentFit={contentFit}
               nativeControls={false}
+          surfaceType="textureView"
             />
           </View>
         )}
