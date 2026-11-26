@@ -544,6 +544,13 @@ export async function recordContentView(kind, contentId) {
   return data;
 }
 
+export async function loadContentActivity() {
+  const response = await fetch(`${API_BASE_URL}/api/content/activity`, { headers: await authHeaders() });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load content activity.');
+  return Array.isArray(data.items) ? data.items : [];
+}
+
 export async function loadContentViewers(kind, contentId) {
   const response = await fetch(`${API_BASE_URL}/api/content/${encodeURIComponent(kind)}/${encodeURIComponent(contentId)}/viewers`, {
     headers: await authHeaders(),
