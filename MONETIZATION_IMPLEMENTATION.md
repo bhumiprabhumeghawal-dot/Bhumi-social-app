@@ -47,6 +47,7 @@ The existing SettingsDashboard already owns the CreatorBusinessHub modal. This c
 
 ## Files changed on this branch
 
+- SettingsDashboard.js — direct entry under Premium Personalization.
 - CreatorBusinessHub.js — premium plans UI, request action, user's request history.
 - api.js — authenticated client functions for creating and reading requests.
 - server/app.py — catalogue, order persistence, verification application records, restricted admin routes.
