@@ -308,18 +308,13 @@ export default function DirectMessagesScreen({
                   <Text numberOfLines={1} style={{ color: C.text, fontSize: 20, fontWeight: "800", letterSpacing: -0.4 }}>{authSession?.username || "Messages"}</Text>
                   <Ionicons name="chevron-down" size={17} color={C.text} />
                 </View>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <TouchableOpacity onPress={() => {}} style={{ width: 42, height: 46, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="Video chat">
-                    <Ionicons name="videocam-outline" size={26} color={C.text} />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => {
-                    setQuery("");
-                    setPeople([]);
-                    requestAnimationFrame(() => searchInputRef.current?.focus?.());
-                  }} style={{ width: 42, height: 46, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="New message">
-                    <Ionicons name="create-outline" size={27} color={C.text} />
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity onPress={() => {
+                  setQuery("");
+                  setPeople([]);
+                  requestAnimationFrame(() => searchInputRef.current?.focus?.());
+                }} style={{ width: 42, height: 46, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="New message">
+                  <Ionicons name="create-outline" size={27} color={C.text} />
+                </TouchableOpacity>
               </>
             )}
           </View>
