@@ -470,7 +470,11 @@ export default function DirectMessagesScreen({
                   { tab: "Profile", icon: "person-circle-outline" },
                 ].map((item) => (
                   <TouchableOpacity key={item.tab} onPress={() => onNavigateTab?.(item.tab)} accessibilityRole="button" accessibilityLabel={item.tab} style={{ width: 52, height: 48, alignItems: "center", justifyContent: "center", transform: [{ translateY: -30 }] }}>
-                    {item.tab === "Profile" && ownAvatarUrl ? (\n                      <Image source={{ uri: avatarUri(ownAvatarUrl) }} style={{ width: 27, height: 27, borderRadius: 14 }} />\n                    ) : (\n                      <Ionicons name={item.icon} size={27} color={C.text} />\n                    )}
+                    {item.tab === "Profile" && ownAvatarUrl ? (
+                      <Image source={{ uri: avatarUri(ownAvatarUrl) }} style={{ width: 27, height: 27, borderRadius: 14 }} />
+                    ) : (
+                      <Ionicons name={item.icon} size={27} color={C.text} />
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
