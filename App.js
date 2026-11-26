@@ -8562,7 +8562,9 @@ export default function App() {
               initialNumToRender={1}
               maxToRenderPerBatch={1}
               windowSize={3}
-              removeClippedSubviews={true}
+              // Keep native video TextureViews attached while paging; Android can show
+              // black frames when FlatList detaches and reattaches clipped video rows.
+              removeClippedSubviews={false}
               getItemLayout={(_, index) => ({
                 length: reelViewportHeight,
                 offset: reelViewportHeight * index,
@@ -9036,9 +9038,9 @@ export default function App() {
               maxToRenderPerBatch={1}
               windowSize={2}
               updateCellsBatchingPeriod={100}
-              // Keep the mounted Home feed window minimal on Android: large decoded
-              // post images and native video surfaces can exhaust the 256 MB app heap.
-              removeClippedSubviews={true}
+              // Keep the Home feed window minimal for memory, but do not detach native
+              // video surfaces during scroll: Android may otherwise render black frames.
+              removeClippedSubviews={false}
               getItemLayout={
                 feedViewportHeight > 0
                   ? (_, index) => ({
