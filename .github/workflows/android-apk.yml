@@ -8,6 +8,8 @@ on:
       - master
     paths:
       - 'FINAL_APK_BUILD'
+      - 'App.js'
+      - '.github/workflows/android-apk.yml'
 
 permissions:
   contents: write
@@ -105,3 +107,34 @@ jobs:
           overwrite_files: true
           make_latest: true
 
+
+  publish-ota:
+    name: Publish compatible production OTA
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Verify Expo token
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::GitHub Actions secret EXPO_TOKEN is missing. OTA was not published."
+            exit 1
+          fi
+
+      - name: Publish JavaScript update to production
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx eas-cli update --channel production --message "GitHub master update ${GITHUB_SHA}" --non-interactive
