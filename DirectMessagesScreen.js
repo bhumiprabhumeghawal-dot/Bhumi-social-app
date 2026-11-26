@@ -805,9 +805,9 @@ export default function DirectMessagesScreen({
                 <View style={{ width: "100%", height: 1, backgroundColor: C.line, marginVertical: 20 }} />
                 <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-around" }}>
                   <TouchableOpacity onPress={() => { setProfileInfoOpen(false); onOpenProfile?.(peer); }} accessibilityRole="button" accessibilityLabel={"Open profile for " + peer} style={{ alignItems: "center", gap: 7 }}><Ionicons name="person-circle-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Profile</Text></TouchableOpacity>
-                  <TouchableOpacity onPress={togglePeerMute} disabled={profileActionBusy} accessibilityRole="button" accessibilityLabel={peerMuted ? "Unmute conversation" : "Mute conversation"} style={{ alignItems: "center", gap: 7, opacity: profileActionBusy ? 0.5 : 1 }}>
+                  <TouchableOpacity onPress={togglePeerMute} disabled={profileActionBusy} accessibilityRole="button" accessibilityLabel={peerMuted ? "Unmute posts from account" : "Mute posts from account"} style={{ alignItems: "center", gap: 7, opacity: profileActionBusy ? 0.5 : 1 }}>
                     <Ionicons name={peerMuted ? "notifications-off-outline" : "notifications-outline"} size={25} color={C.text} />
-                    <Text style={{ color: C.text, fontSize: 12 }}>{peerMuted ? "Unmute" : "Mute"}</Text>
+                    <Text style={{ color: C.text, fontSize: 12 }}>{peerMuted ? "Unmute posts" : "Mute posts"}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={confirmBlockPeer} disabled={profileActionBusy || peerBlocked} accessibilityRole="button" accessibilityLabel={peerBlocked ? "Account blocked" : "Block account"} style={{ alignItems: "center", gap: 7, opacity: profileActionBusy || peerBlocked ? 0.5 : 1 }}>
                     <Ionicons name="ban-outline" size={25} color={C.text} />
