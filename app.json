@@ -24,7 +24,6 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_PHONE_CALL",
         "android.permission.FOREGROUND_SERVICE_MICROPHONE",
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -53,7 +52,6 @@
       "expo-status-bar",
       "@livekit/react-native-expo-plugin",
       "expo-notifications",
-      "@config-plugins/react-native-callkeep",
       [
         "expo-location",
         {
