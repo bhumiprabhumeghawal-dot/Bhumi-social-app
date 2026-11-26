@@ -447,6 +447,8 @@ export default function DirectMessagesScreen({
                     enableIncoming={false}
                     enableOutgoing={true}
                     showButtons={true}
+                    iconColor={C.text}
+                    lightAppearance={lightAppearance}
                     onCallStarted={async (callInfo) => {
                       const activityText = callInfo.type === "video" ? "📹 Video call started" : "📞 Voice call started";
                       try {
