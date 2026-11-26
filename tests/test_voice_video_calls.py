@@ -15,6 +15,7 @@ class VoiceVideoCallApiTests(unittest.TestCase):
         server_app.init_db()
         server_app.init_auth_tables()
         server_app.init_people_connect_tables()
+        server_app.init_call_tables()
         now = datetime.now(timezone.utc).isoformat()
         for username in ("alice", "bob", "carol"):
             self.db.execute(
