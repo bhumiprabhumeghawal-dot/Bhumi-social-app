@@ -546,14 +546,15 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       // Prepare audio routing while the server marks the call accepted.
       // These independent steps used to run one after another, adding avoidable
       // delay after the recipient tapped Answer.
-      const [permissionResult, acceptResult, audioResult] = await Promise.allSettled([
-        ensureCallPermissions(call.type),
+      // Permissions must succeed before the server marks the call accepted.
+      // Otherwise a denied mic/camera permission can leave a ghost accepted call.
+      await ensureCallPermissions(call.type);
+      const [acceptResult, audioResult] = await Promise.allSettled([
         respondToCall(call.id, "accept"),
         audioSessionActiveRef.current
           ? Promise.resolve(true)
           : AudioSession.startAudioSession(),
       ]);
-      if (permissionResult.status === "rejected") throw permissionResult.reason;
       if (acceptResult.status === "rejected") throw acceptResult.reason;
       if (audioResult.status === "fulfilled") audioSessionActiveRef.current = true;
       const next = acceptResult.value || call;
