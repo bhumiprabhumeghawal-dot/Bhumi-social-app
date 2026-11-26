@@ -367,7 +367,12 @@ const SECTIONS = [
   ]},
 ];
 
-export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen, onPreferencesChange, appLanguage = "en", onLanguageChange }) {
+export default function SettingsDashboard({ visible, username, onClose, onLogout, onAbout, onLegacyOpen, onPreferencesChange, appLanguage = "en", onLanguageChange, lightAppearance = false }) {
+  const BG = lightAppearance ? "#FFFFFF" : "#000000";
+  const PANEL = lightAppearance ? "#F5F5F5" : "#121212";
+  const BORDER = lightAppearance ? "#E2E2E2" : "#262626";
+  const TEXT = lightAppearance ? "#111111" : "#F5F5F5";
+  const MUTED = lightAppearance ? "#737373" : "#A8A8A8";
   const { width: settingsWidth, height: settingsHeight, fontScale: settingsFontScale } = useWindowDimensions();
   const settingsCompact = settingsWidth < 360;
   const settingsShort = settingsHeight < 680;
