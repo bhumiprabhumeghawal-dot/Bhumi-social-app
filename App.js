@@ -8908,10 +8908,12 @@ export default function App() {
               decelerationRate="normal"
               nestedScrollEnabled
               showsVerticalScrollIndicator={false}
-              initialNumToRender={2}
-              maxToRenderPerBatch={2}
-              windowSize={3}
-              // Keep off-screen media cards detached on Android to limit native view and bitmap memory.
+              initialNumToRender={1}
+              maxToRenderPerBatch={1}
+              windowSize={2}
+              updateCellsBatchingPeriod={100}
+              // Keep the mounted Home feed window minimal on Android: large decoded
+              // post images and native video surfaces can exhaust the 256 MB app heap.
               removeClippedSubviews={true}
               getItemLayout={
                 feedViewportHeight > 0
