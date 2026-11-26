@@ -285,8 +285,8 @@ export default function DirectMessagesScreen({
     >
       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: C.bg }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={{ minHeight: shortScreen ? 94 : 98, paddingTop: 40, paddingHorizontal: horizontalInset, flexDirection: "row", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
@@ -535,7 +535,7 @@ export default function DirectMessagesScreen({
                 ListEmptyComponent={<View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 25 }}>{busy ? <ActivityIndicator color={C.blue} /> : <><Ionicons name="chatbubble-ellipses-outline" size={38} color="#555" /><Text style={{ color: C.muted, marginTop: 10 }}>Yeh chat shuru karein.</Text></>}</View>}
               />
 
-              <View style={{ flexShrink: 0, borderTopWidth: 0.5, borderTopColor: C.line, paddingHorizontal: compactScreen ? 7 : 10, paddingTop: 8, paddingBottom: Platform.OS === "android" ? 16 : 7, minHeight: 62, backgroundColor: C.bg }}>
+              <View style={{ flexShrink: 0, borderTopWidth: 0.5, borderTopColor: C.line, paddingHorizontal: compactScreen ? 7 : 10, paddingTop: 8, paddingBottom: Platform.OS === "android" ? 22 : 12, minHeight: 68, backgroundColor: C.bg }}>
                 {emojiPickerOpen ? (
                   <View style={{ flexDirection: "row", justifyContent: "space-around", paddingVertical: 9, marginBottom: 7, borderRadius: 14, backgroundColor: C.panel }}>
                     {["😀","😂","🥰","😍","😭","🔥","❤️","👍"].map((emoji) => (
