@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  PanResponder,
   Platform,
   useWindowDimensions,
 } from "react-native";
@@ -181,13 +182,14 @@ function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" 
     </View>
   );
 }
-export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true, appLanguage = "en" }) {
+export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true, appLanguage = "en", onCallStarted }) {
   const { width: callWidth, height: callHeight } = useWindowDimensions();
   const callCompact = callWidth < 360;
   const callShort = callHeight < 680;
   const callInset = callWidth < 340 ? 14 : callCompact ? 18 : 22;
   const label = (key) => callText(appLanguage, key);
   const [call, setCall] = useState(null);
+  const [callMinimized, setCallMinimized] = useState(false);
   const [incoming, setIncoming] = useState(false);
   const [connection, setConnection] = useState(null);
   const [callMessage, setCallMessage] = useState("");
@@ -248,6 +250,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
 
   const resetCall = () => {
     setCall(null);
+    setCallMinimized(false);
     setIncoming(false);
     setConnection(null);
     setCallMessage("");
@@ -360,6 +363,8 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       }
       callRef.current = created;
       setCall(created);
+      setCallMinimized(false);
+      onCallStarted?.({ id: created?.id, type, direction: "outgoing", peer: username });
       setIncoming(false);
       setCallMessage(callText(appLanguage, "connecting"));
     } catch (error) {
@@ -386,6 +391,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           const next = pending[0];
           callRef.current = next;
           setCall(next);
+          setCallMinimized(false);
           setIncoming(true);
           setCallMessage(next.type === "video" ? `${callText(appLanguage, "incoming")} · ${callText(appLanguage, "video")}` : `${callText(appLanguage, "incoming")} · ${callText(appLanguage, "voice")}`);
           return;
@@ -480,6 +486,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       tokenAttemptedRef.current = true;
       callRef.current = next;
       setCall(next);
+      setCallMinimized(false);
       setIncoming(false);
       await connectCall(next);
     } catch (error) {
@@ -507,7 +514,16 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     resetCall();
   };
 
-  const showCallModal = !!call;
+  const minimizeCall = () => setCallMinimized(true);
+  const restoreCall = () => setCallMinimized(false);
+  const callBubblePan = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (_event, gesture) => Math.abs(gesture.dx) > 12 || Math.abs(gesture.dy) > 12,
+    onPanResponderRelease: (_event, gesture) => {
+      if (Math.abs(gesture.dx) > 35 || Math.abs(gesture.dy) > 35) setCallMinimized(true);
+      else setCallMinimized(false);
+    },
+  })).current;
+  const showCallModal = !!call && !callMinimized;
 
   return (
     <>
@@ -538,7 +554,15 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
         </View>
       ) : null}
 
-      <Modal visible={showCallModal} animationType="fade" statusBarTranslucent onRequestClose={endCall}>
+      {call && callMinimized ? (
+        <View {...callBubblePan.panHandlers} style={{ position: "absolute", right: 12, bottom: 92, zIndex: 9999, elevation: 30 }}>
+          <TouchableOpacity onPress={restoreCall} activeOpacity={0.88} style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: "#0095F6", borderWidth: 2, borderColor: "#FFFFFF", alignItems: "center", justifyContent: "center", elevation: 10 }}>
+            <Ionicons name={call.type === "video" ? "videocam" : "call"} size={25} color="#FFFFFF" />
+            <View style={{ position: "absolute", right: -1, top: -1, width: 13, height: 13, borderRadius: 7, backgroundColor: "#22C55E", borderWidth: 2, borderColor: "#FFFFFF" }} />
+          </TouchableOpacity>
+        </View>
+      ) : null}
+      <Modal visible={showCallModal} animationType="fade" statusBarTranslucent onRequestClose={minimizeCall}>
         <View style={{ flex: 1, backgroundColor: "#07090D", paddingTop: callShort ? 20 : 42, paddingBottom: callShort ? 12 : 24 }}>
           <View pointerEvents="none" style={{ position: "absolute", top: -115, alignSelf: "center", width: Math.min(350, callWidth * 0.9), height: Math.min(350, callWidth * 0.9), borderRadius: Math.min(350, callWidth * 0.9) / 2, backgroundColor: "#10243A", opacity: 0.42 }} />
           <View pointerEvents="none" style={{ position: "absolute", bottom: 110, alignSelf: "center", width: Math.min(300, callWidth * 0.78), height: Math.min(300, callWidth * 0.78), borderRadius: Math.min(300, callWidth * 0.78) / 2, backgroundColor: "#17121F", opacity: 0.34 }} />
@@ -547,7 +571,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#0095F6" }} />
               <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700", letterSpacing: 0.2 }}>{call?.type === "video" ? label("video") : label("voice")}</Text>
             </View>
-            <TouchableOpacity onPress={endCall} accessibilityLabel={translateAppText(appLanguage, "close")} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#171B22", borderWidth: 1, borderColor: "#303946", alignItems: "center", justifyContent: "center" }}>
+            <TouchableOpacity onPress={minimizeCall} accessibilityRole="button" accessibilityLabel="Minimize call" style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#171B22", borderWidth: 1, borderColor: "#303946", alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="chevron-down" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
