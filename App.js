@@ -4391,6 +4391,7 @@ export default function App() {
   const handleReadNotification = async (notificationId) => {
     try {
       await markNotificationRead(notificationId);
+      const readTarget = notificationsList.find((item) => String(item.id) === String(notificationId));
       setNotificationsList((current) =>
         current.map((item) =>
           String(item.id) === String(notificationId)
@@ -4399,13 +4400,9 @@ export default function App() {
         ),
       );
       setUnreadNotificationCount((current) => Math.max(0, current - 1));
-      setNotificationsList((current) => {
-        const target = current.find((item) => String(item.id) === String(notificationId));
-        if (target && ["like", "reel_like", "gift_flower"].includes(String(target.kind || "").toLowerCase())) {
-          setUnreadLikeCount((count) => Math.max(0, count - 1));
-        }
-        return current;
-      });
+      if (readTarget && ["like", "reel_like", "gift_flower"].includes(String(readTarget.kind || "").toLowerCase())) {
+        setUnreadLikeCount((current) => Math.max(0, current - 1));
+      }
     } catch (e) {
       Alert.alert(
         appText("alertNotifications"),
