@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
-import { useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from "expo-audio";
+import { useAudioPlayer, useAudioPlayerStatus, useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from "expo-audio";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import {
   loadMessageConversations, loadDirectMessages, loadUserNotes, saveUserNote, sendDirectMessage, searchUsers, uploadChatAttachment,
@@ -24,6 +24,52 @@ const avatarUri = (value) => {
 const getUsername = (item) => String(item?.username || item?.peerUsername || item?.otherUsername || "").trim();
 const getMessageText = (item) => String(item?.text || item?.message || "");
 const getSender = (item) => String(item?.sender || item?.senderUsername || item?.fromUsername || item?.username || "").toLowerCase();
+
+
+function VoiceMessageAttachment({ uri, name, color, mutedColor, onError }) {
+  const player = useAudioPlayer(uri);
+  const status = useAudioPlayerStatus(player);
+  const playing = !!status?.playing;
+  const currentTime = Math.max(0, Number(status?.currentTime) || 0);
+  const duration = Math.max(0, Number(status?.duration) || 0);
+  const formatTime = (seconds) => {
+    const value = Math.floor(Number(seconds) || 0);
+    return String(Math.floor(value / 60)) + ":" + String(value % 60).padStart(2, "0");
+  };
+
+  React.useEffect(() => {
+    setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
+    return () => { try { player.pause(); } catch (_) {} };
+  }, [player]);
+
+  const togglePlayback = async () => {
+    try {
+      if (playing) player.pause();
+      else {
+        if (duration > 0 && currentTime >= duration - 0.25) await player.seekTo(0);
+        player.play();
+      }
+    } catch (error) {
+      onError?.(error?.message || "Voice message play nahi ho saka.");
+    }
+  };
+
+  return (
+    <TouchableOpacity onPress={togglePlayback} accessibilityRole="button"
+      accessibilityLabel={playing ? "Pause voice message" : "Play voice message"}
+      style={{ minWidth: 164, maxWidth: 230, flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 5 }}>
+      <Ionicons name={playing ? "pause-circle" : "play-circle"} size={34} color={color} />
+      <View style={{ flex: 1 }}>
+        <Text numberOfLines={1} style={{ color, fontSize: 13, fontWeight: "700" }}>{name || "Voice message"}</Text>
+        <View style={{ height: 3, borderRadius: 2, backgroundColor: mutedColor, marginTop: 6, overflow: "hidden" }}>
+          <View style={{ height: 3, width: duration > 0 ? Math.min(100, (currentTime / duration) * 100) + "%" : "0%", backgroundColor: color }} />
+        </View>
+        <Text style={{ color: mutedColor, fontSize: 10, marginTop: 3 }}>{formatTime(currentTime)} / {formatTime(duration)}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 
 export default function DirectMessagesScreen({
   visible, onClose, authSession, ownAvatarUrl, initialUsername = "", onSelectedChatUserChange, onOpenProfile, onNavigateTab, lightAppearance = false,
@@ -668,10 +714,16 @@ export default function DirectMessagesScreen({
                       {avatar(messageAvatar, 27)}
                       <View style={{ maxWidth: "82%", minWidth: body || attachmentUrl ? 0 : 90, backgroundColor: mine ? C.mine : C.other, borderTopLeftRadius: 19, borderTopRightRadius: 19, borderBottomLeftRadius: mine ? 19 : 5, borderBottomRightRadius: mine ? 5 : 19, paddingHorizontal: 14, paddingVertical: 9 }}>
                       {attachmentUrl ? (
-                        <TouchableOpacity onPress={() => Linking.openURL(avatarUri(attachmentUrl))} style={{ marginBottom: body ? 7 : 0, flexDirection: "row", alignItems: "center", gap: 7 }}>
-                          <Ionicons name={String(attachmentType).toLowerCase() === "image" ? "image-outline" : String(attachmentType).toLowerCase() === "audio" ? "play-circle-outline" : String(attachmentType).toLowerCase() === "video" ? "videocam-outline" : "document-outline"} size={22} color={C.text} />
-                          <Text numberOfLines={2} style={{ color: C.text, textDecorationLine: "underline", flexShrink: 1 }}>{String(attachmentType).toLowerCase() === "audio" ? "▶ Voice message" : attachmentName}</Text>
-                        </TouchableOpacity>
+                        String(attachmentType).toLowerCase() === "audio" ? (
+                          <VoiceMessageAttachment uri={avatarUri(attachmentUrl)} name={attachmentName}
+                            color={C.text} mutedColor={C.muted} onError={(message) => setError(message)} />
+                        ) : (
+                          <TouchableOpacity onPress={() => Linking.openURL(avatarUri(attachmentUrl)).catch(() => setError("Attachment open nahi hua."))}
+                            style={{ marginBottom: body ? 7 : 0, flexDirection: "row", alignItems: "center", gap: 7 }}>
+                            <Ionicons name={String(attachmentType).toLowerCase() === "image" ? "image-outline" : String(attachmentType).toLowerCase() === "video" ? "videocam-outline" : "document-outline"} size={22} color={C.text} />
+                            <Text numberOfLines={2} style={{ color: C.text, textDecorationLine: "underline", flexShrink: 1 }}>{attachmentName}</Text>
+                          </TouchableOpacity>
+                        )
                       ) : null}
                       {!!body && <Text style={{ color: C.text, fontSize: 15 * textScale, lineHeight: 21 * textScale }}>{body}</Text>}
                       <Text style={{ color: "#737373", fontSize: 9, textAlign: "right", marginTop: 4 }}>
