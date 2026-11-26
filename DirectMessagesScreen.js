@@ -336,54 +336,7 @@ export default function DirectMessagesScreen({
                   />
                   {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
                 </View>
-                <TouchableOpacity onPress={() => setFilterOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Filter messages" style={{ height: 48, justifyContent: "center", paddingRight: 2 }}>
-                  <Text style={{ color: C.blue, fontSize: 14, fontWeight: "700" }}>Filter</Text>
-                </TouchableOpacity>
               </View>
-              {filterOpen && !query.trim() ? (
-                <View style={{ marginHorizontal: horizontalInset, marginBottom: 9, padding: 10, borderRadius: 14, backgroundColor: C.panel, borderWidth: 1, borderColor: C.line }}>
-                  <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", marginBottom: 8 }}>Show messages</Text>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
-                    {["All", "Primary", "General", "Requests"].map((tab) => (
-                      <TouchableOpacity key={tab} onPress={() => { setInboxTab(tab); setFilterOpen(false); }} accessibilityRole="button" style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, backgroundColor: inboxTab === tab ? "#111111" : C.field }}>
-                        <Text style={{ color: inboxTab === tab ? "#FFFFFF" : C.text, fontSize: 12, fontWeight: "700" }}>{tab}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-              ) : null}
-              {!query.trim() ? (
-                <>
-
-                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 3 : 5, paddingBottom: 1 }}>
-                    <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Notes</Text>
-                  </View>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 3 : 5, paddingBottom: shortScreen ? 4 : 6, gap: storyRowGap }}>
-                    <View style={{ width: storyAvatarSize + 4, alignItems: "center" }}>
-                      <View style={{ width: storyAvatarSize, height: storyAvatarSize, borderRadius: storyAvatarSize / 2, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
-                        {avatar({ username: authSession?.username || "You", avatarUrl: ownAvatarUrl }, storyAvatarSize)}
-                        <View style={{ position: "absolute", right: -1, bottom: -1, width: 22, height: 22, borderRadius: 11, backgroundColor: C.field, borderWidth: 2, borderColor: C.bg, alignItems: "center", justifyContent: "center" }}>
-                          <Ionicons name="add" size={15} color={C.text} />
-                        </View>
-                      </View>
-                      <Text numberOfLines={1} style={{ color: C.muted, fontSize: 11, marginTop: 6 }}>Your note</Text>
-                    </View>
-
-                  </ScrollView>
-                </>
-              ) : null}
-
-              {!query.trim() ? (
-                <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 4, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 5, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
-                  {["All", "Primary", "General", "Requests"].map((tab) => (
-                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minWidth: 0, paddingHorizontal: 4, paddingVertical: 6, borderRadius: 12, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field, minHeight: 38, alignItems: "center", justifyContent: "center" }}>
-                      <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: inboxTab === tab ? "#111111" : C.text, fontSize: 12 * textScale, fontWeight: "700" }}>
-                        {tab}{([ "All", "Primary" ].includes(tab) ? " " + (tab === "All" ? conversations.length : conversations.filter((x) => ["", "primary"].includes(String(x.folder || x.category || x.inboxType || x.inbox_type || "primary").toLowerCase())).length) : "")}{tab === "Requests" ? "  ›" : ""}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : null}
               {query.trim().length >= 2 ? (
                 <FlatList
                   data={people}
@@ -428,30 +381,29 @@ export default function DirectMessagesScreen({
                 />
               ) : (
                 <FlatList
-                  data={inboxTab === "All"
-                    ? conversations
-                    : inboxTab === "Requests"
-                      ? conversations.filter((x) => x.isRequest || x.is_request || x.requestStatus === "pending" || x.request_status === "pending" || x.requestStatus === "requested" || x.request_status === "requested")
-                      : conversations.filter((x) => inboxTab === "Primary" ? ["", "primary"].includes(String(x.folder || x.category || x.inboxType || x.inbox_type || "primary").toLowerCase()) : String(x.folder || x.category || x.inboxType || x.inbox_type || "").toLowerCase() === inboxTab.toLowerCase())}
+                  data={conversations}
                   keyExtractor={(x, i) => String(getUsername(x) || i)}
                   refreshing={busy}
                   onRefresh={refreshInbox}
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
                   renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => openChat(getUsername(item))} activeOpacity={0.75} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: horizontalInset, paddingVertical: 8, gap: compactScreen ? 9 : 12, minHeight: compactScreen ? 66 : 72 }}>
+                    <TouchableOpacity onPress={() => openChat(getUsername(item))} activeOpacity={0.75} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: horizontalInset, paddingVertical: 7, gap: compactScreen ? 10 : 13, minHeight: compactScreen ? 70 : 76 }}>
                       {avatar(item, rowAvatarSize)}
-                      <View style={{ flex: 1, minHeight: 56, justifyContent: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
+                      <View style={{ flex: 1, minHeight: 58, justifyContent: "center", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
                         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                          <Text numberOfLines={1} style={{ flex: 1, color: C.text, fontWeight: Number(item.unreadCount || item.unread_count) > 0 ? "800" : "600", fontSize: 14 }}>{item.displayName || getUsername(item)}</Text>
+                          <Text numberOfLines={1} style={{ flex: 1, color: C.text, fontWeight: Number(item.unreadCount || item.unread_count) > 0 ? "800" : "700", fontSize: 14 }}>{item.displayName || getUsername(item)}</Text>
                           <Text numberOfLines={1} style={{ color: C.muted, fontSize: 10 }}>{item.lastMessageAt || item.updatedAt || ""}</Text>
                         </View>
                         <Text numberOfLines={1} style={{ color: C.muted, marginTop: 5, fontSize: 12, fontWeight: Number(item.unreadCount || item.unread_count) > 0 ? "700" : "400" }}>{item.lastMessage || item.last_message || "Tap to chat"}</Text>
                       </View>
-                      {Number(item.unreadCount || item.unread_count) > 0 ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.blue, marginLeft: 1 }} /> : null}
+                      <TouchableOpacity onPress={() => openChat(getUsername(item))} accessibilityRole="button" accessibilityLabel={"Open camera chat with " + getUsername(item)} style={{ width: 42, height: 48, alignItems: "center", justifyContent: "center" }}>
+                        <Ionicons name="camera-outline" size={25} color={C.text} />
+                      </TouchableOpacity>
+                      {Number(item.unreadCount || item.unread_count) > 0 ? <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: C.blue, marginLeft: -5 }} /> : null}
                     </TouchableOpacity>
                   )}
-                  ListEmptyComponent={<View style={{ flex: 1, padding: 34, alignItems: "center", justifyContent: "center" }}>{busy ? <ActivityIndicator color={C.blue} /> : <><Ionicons name={inboxTab === "Requests" ? "mail-open-outline" : "chatbubbles-outline"} size={42} color="#8E8E8E" /><Text style={{ color: C.muted, textAlign: "center", marginTop: 12 }}>{inboxTab === "Requests" ? "No message requests yet." : inboxTab === "Primary" ? "Abhi koi chat nahi hai. Search karke naya message shuru karein." : "Is tab mein abhi koi chat nahi hai."}</Text></>}</View>}
+                  ListEmptyComponent={<View style={{ flex: 1, padding: 34, alignItems: "center", justifyContent: "center" }}>{busy ? <ActivityIndicator color={C.blue} /> : <><Ionicons name="chatbubbles-outline" size={42} color="#8E8E8E" /><Text style={{ color: C.muted, textAlign: "center", marginTop: 12 }}>Abhi koi chat nahi hai. Search karke naya message shuru karein.</Text></>}</View>}
                 />
               )}
               <View style={{ height: 64, paddingBottom: 4, borderTopWidth: 0.5, borderTopColor: C.line, flexDirection: "row", alignItems: "center", justifyContent: "space-around", backgroundColor: C.bg }}>
