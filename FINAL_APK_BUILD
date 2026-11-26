@@ -1,2 +1,3 @@
-Trigger Android APK build for the latest call audio cleanup and accepted-call expiry fixes.
-Build trigger refreshed: 2026-11-26 call lifecycle build.
+Build Android APK for authentication header fix (ASCII-safe X-Device-Name).
+Source commit: 062a774bc286394128ea26dc450c6d92808385b7
+Triggered: 2026-11-26
