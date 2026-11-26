@@ -2175,7 +2175,7 @@ def list_people_notifications():
             SELECT COUNT(*) AS total
             FROM people_notifications
             WHERE recipient=? AND is_read=0
-              AND kind IN ('like', 'reel_like', 'gift_flower')
+              AND kind IN ('like', 'reel_like', 'story_like', 'gift_flower')
         """, (username,)).fetchone()
         notification_items = [{
             "id": row["id"],
