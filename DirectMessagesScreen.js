@@ -66,6 +66,8 @@ export default function DirectMessagesScreen({
   const [attachment, setAttachment] = React.useState(null);
   const [isVoiceRecording, setIsVoiceRecording] = React.useState(false);
   const voiceRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const voiceRecordingRef = React.useRef(false);
+  const voiceRecordingPeerRef = React.useRef("");
   const [error, setError] = React.useState("");
   const [profileInfoOpen, setProfileInfoOpen] = React.useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false);
@@ -184,7 +186,9 @@ export default function DirectMessagesScreen({
 
 
   const startVoiceRecording = async () => {
-    if (isVoiceRecording || sending || !peer) return;
+    // Use a ref as the immediate lock: state updates are asynchronous, so a
+    // fast double tap must not prepare two recordings on the same recorder.
+    if (voiceRecordingRef.current || sending || !peer) return;
     setError("");
     try {
       const permission = await requestRecordingPermissionsAsync();
@@ -195,15 +199,23 @@ export default function DirectMessagesScreen({
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await voiceRecorder.prepareToRecordAsync();
       voiceRecorder.record();
+      voiceRecordingPeerRef.current = peer;
+      voiceRecordingRef.current = true;
       setIsVoiceRecording(true);
     } catch (e) {
+      voiceRecordingRef.current = false;
+      voiceRecordingPeerRef.current = "";
+      setIsVoiceRecording(false);
       setError(e?.message || "Voice recording shuru nahi ho saki.");
       await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
     }
   };
 
   const stopAndSendVoiceRecording = async () => {
-    if (!isVoiceRecording || sending) return;
+    if (!voiceRecordingRef.current || sending) return;
+    const recipient = voiceRecordingPeerRef.current || peer;
+    voiceRecordingRef.current = false;
+    voiceRecordingPeerRef.current = "";
     setIsVoiceRecording(false);
     setSending(true);
     setError("");
@@ -213,9 +225,7 @@ export default function DirectMessagesScreen({
       const recordedUri = voiceRecorder.uri;
       if (!recordedUri) throw new Error("Recorded voice file nahi mila.");
 
-      // Give the multipart uploader a real .m4a filename. Without this copy,
-      // Android's temporary recorder URI can be uploaded without an audio
-      // extension and the server may classify the voice note as a generic file.
+      // Copy to a stable, explicitly named audio file before multipart upload.
       uploadUri = `${FileSystem.cacheDirectory}bhumi-voice-${Date.now()}.m4a`;
       await FileSystem.copyAsync({ from: recordedUri, to: uploadUri });
 
@@ -228,8 +238,10 @@ export default function DirectMessagesScreen({
       if (uploaded?.attachmentType !== "audio") {
         throw new Error("Voice recording audio ke roop mein upload nahi hui. Dobara record karein.");
       }
-      const sent = await sendDirectMessage(peer, "", uploaded);
-      if (sent) setMessages((old) => [...old, sent]);
+      const sent = await sendDirectMessage(recipient, "", uploaded);
+      if (sent && String(recipient).toLowerCase() === String(peerRef.current || peer).toLowerCase()) {
+        setMessages((old) => [...old, sent]);
+      }
       Keyboard.dismiss();
       requestAnimationFrame(() => listRef.current?.scrollToEnd?.({ animated: true }));
     } catch (e) {
