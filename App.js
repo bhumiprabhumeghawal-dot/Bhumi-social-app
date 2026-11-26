@@ -671,9 +671,11 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
   });
 
   React.useEffect(() => {
+    // Expo Video may still be preparing when the active feed item mounts.
+    // Retry playback when it becomes ready so the user does not need to tap.
     try {
-      if (active) player.play();
-      else player.pause();
+      if (active && status === "readyToPlay") player.play();
+      else if (!active) player.pause();
     } catch (error) {
       console.log("PLAIN_REEL_PLAYBACK_ERROR:", error?.message);
     }
@@ -682,7 +684,7 @@ const ReelVideoPlain = React.memo(function ReelVideoPlain({
         player.pause();
       } catch (error) {}
     };
-  }, [active, player]);
+  }, [active, player, status]);
 
   React.useEffect(() => {
     try {
