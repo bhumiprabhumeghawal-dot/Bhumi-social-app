@@ -6946,7 +6946,7 @@ export default function App() {
     });
   };
 
-  const lightAppearance = appSettingsPreferences["appearance.theme"] === true;
+  const lightAppearance = appSettingsPreferences["appearance.theme"] !== false;
 
   return (
     <SafeAreaView style={[styles.screen, lightAppearance && { backgroundColor: "#F7F7F7" }]}>
