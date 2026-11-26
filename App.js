@@ -9874,6 +9874,7 @@ export default function App() {
       </Modal>
 
       <SettingsDashboard
+        lightAppearance={lightAppearance}
         appLanguage={appLanguage}
         onLanguageChange={setAppLanguage}
         visible={settingsHubOpen}
@@ -11081,7 +11082,7 @@ export default function App() {
         }}
       />
 
-      <DirectMessagesScreen visible={messagesOpen} onClose={closeMessages} authSession={authSession} ownAvatarUrl={profile?.avatarUrl || authSession?.avatarUrl} initialUsername={selectedChatUser} onSelectedChatUserChange={setSelectedChatUser} onOpenProfile={openUserProfile} onNavigateTab={(tab) => { closeMessages(); handleTab(tab); }} />
+      <DirectMessagesScreen visible={messagesOpen} onClose={closeMessages} lightAppearance={lightAppearance} authSession={authSession} ownAvatarUrl={profile?.avatarUrl || authSession?.avatarUrl} initialUsername={selectedChatUser} onSelectedChatUserChange={setSelectedChatUser} onOpenProfile={openUserProfile} onNavigateTab={(tab) => { closeMessages(); handleTab(tab); }} />
 
       
 
