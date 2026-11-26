@@ -5202,6 +5202,12 @@ export default function App() {
       refreshFollowRequests();
   }, [activeTab, authSession?.username, refreshFollowRequests]);
 
+  React.useEffect(() => {
+    if (activeTab === "Profile" && authSession?.username) {
+      refreshUserNotes();
+    }
+  }, [activeTab, authSession?.username]);
+
   const resolveFollowRequest = async (requestId, decision) => {
     if (followRequestAction[requestId]) return;
     setFollowRequestAction((prev) => ({ ...prev, [requestId]: true }));
@@ -9289,6 +9295,20 @@ export default function App() {
                 <>
                   <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 18 }}>
                     <TouchableOpacity onPress={chooseProfilePhoto} disabled={profileBusy} style={{ width: 92, alignItems: "flex-start" }}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setNoteDraft(ownNote?.text || "");
+                          setNoteSong(ownNote?.audioUrl ? { url: ownNote.audioUrl, title: ownNote.audioTitle || "Song", artist: ownNote.audioArtist || "" } : null);
+                          setNoteError("");
+                          setNoteComposerOpen(true);
+                        }}
+                        activeOpacity={0.85}
+                        style={{ maxWidth: 118, minWidth: 76, alignSelf: "center", marginBottom: 6, paddingHorizontal: 9, paddingVertical: 6, borderRadius: 13, backgroundColor: lightAppearance ? "#F0F0F0" : "#292D32", borderWidth: 1, borderColor: lightAppearance ? "#E1E1E1" : "#3B3B3B" }}
+                      >
+                        <Text numberOfLines={2} style={{ color: lightAppearance ? "#171717" : "#FFFFFF", fontSize: 10, textAlign: "center" }}>
+                          {ownNote?.text || (ownNote?.audioTitle ? "♫ " + ownNote.audioTitle : "Add a note…")}
+                        </Text>
+                      </TouchableOpacity>
                       <View style={{ width: 78, height: 78, borderRadius: 39, padding: 2, borderWidth: 2, borderColor: "#34383E", alignItems: "center", justifyContent: "center" }}>
                         {profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={{ width: 70, height: 70, borderRadius: 35, backgroundColor: "#26292D" }} /> : <View style={{ width: 70, height: 70, borderRadius: 35, backgroundColor: "#26292D", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 28, fontWeight: "700" }}>{(profile.displayName || "Y").charAt(0).toUpperCase()}</Text></View>}
                       </View>
