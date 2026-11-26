@@ -68,6 +68,30 @@ class VoiceVideoCallApiTests(unittest.TestCase):
             )
         self.assertEqual(response.status_code, 409)
 
+    def test_expired_accepted_call_is_marked_ended(self):
+        now = datetime.now(timezone.utc)
+        call_id = "expired-accepted-call"
+        self.db.execute(
+            """
+            INSERT INTO call_sessions
+                (id, caller_username, callee_username, call_type, room_name,
+                 status, created_at, updated_at, expires_at)
+            VALUES (?, 'alice', 'bob', 'audio', ?, 'accepted', ?, ?, ?)
+            """,
+            (
+                call_id, "room-" + call_id,
+                (now - timedelta(hours=3)).isoformat(),
+                (now - timedelta(hours=3)).isoformat(),
+                (now - timedelta(minutes=1)).isoformat(),
+            ),
+        )
+        self.db.commit()
+
+        response = self.client.get(f"/api/calls/{call_id}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["call"]["status"], "ended")
+
     def test_call_state_transitions_are_single_use(self):
         with patch.object(server_app.threading, "Thread"):
             created = self.client.post(
