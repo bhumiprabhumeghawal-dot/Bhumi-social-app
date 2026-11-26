@@ -13,11 +13,6 @@ import {
 } from "./api";
 
 const API_ORIGIN = "https://bhumi-social-app-1.onrender.com";
-const C = {
-  bg: "#FFFFFF", panel: "#FFFFFF", field: "#EFEFEF", line: "#DBDBDB",
-  text: "#111111", muted: "#737373", blue: "#0095F6", mine: "#3797F0",
-  other: "#EFEFEF", danger: "#D93025",
-};
 const avatarUri = (value) => {
   if (!value) return null;
   const uri = String(value);
@@ -28,8 +23,17 @@ const getMessageText = (item) => String(item?.text || item?.message || "");
 const getSender = (item) => String(item?.sender || item?.senderUsername || item?.fromUsername || item?.username || "").toLowerCase();
 
 export default function DirectMessagesScreen({
-  visible, onClose, authSession, ownAvatarUrl, initialUsername = "", onSelectedChatUserChange, onOpenProfile, onNavigateTab,
+  visible, onClose, authSession, ownAvatarUrl, initialUsername = "", onSelectedChatUserChange, onOpenProfile, onNavigateTab, lightAppearance = false,
 }) {
+  const C = lightAppearance ? {
+    bg: "#FFFFFF", panel: "#FFFFFF", field: "#F2F2F2", line: "#DBDBDB",
+    text: "#111111", muted: "#737373", blue: "#0095F6", mine: "#3797F0",
+    other: "#EFEFEF", danger: "#D93025",
+  } : {
+    bg: "#000000", panel: "#121212", field: "#1C1C1E", line: "#303030",
+    text: "#F5F5F5", muted: "#A8A8A8", blue: "#0095F6", mine: "#245A91",
+    other: "#222222", danger: "#FF6B6B",
+  };
   const { width: windowWidth, height: windowHeight, fontScale } = useWindowDimensions();
   // Logical dp dimensions adapt to rotation, split-screen and different phones.
   const compactScreen = windowWidth < 360;
