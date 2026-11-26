@@ -41,7 +41,7 @@ export default function DirectMessagesScreen({
   const narrowScreen = windowWidth < 340;
   const horizontalInset = narrowScreen ? 10 : compactScreen ? 12 : 16;
   const rowAvatarSize = narrowScreen ? 46 : compactScreen ? 50 : 56;
-  const storyAvatarSize = narrowScreen ? 54 : compactScreen ? 58 : 62;
+  const storyAvatarSize = narrowScreen ? 48 : compactScreen ? 50 : 54;
   const storyRowGap = narrowScreen ? 9 : compactScreen ? 12 : 17;
   const composerIconSize = narrowScreen ? 20 : compactScreen ? 21 : 23;
   const textScale = Math.min(Math.max(fontScale || 1, 0.9), 1.25);
@@ -343,7 +343,7 @@ export default function DirectMessagesScreen({
                   <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 1 : 2, paddingBottom: 0 }}>
                     <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Notes</Text>
                   </View>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: 0, paddingBottom: 0, gap: storyRowGap }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: storyAvatarSize + 15, flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: 0, paddingBottom: 0, gap: storyRowGap }}>
                     <View style={{ width: storyAvatarSize + 4, alignItems: "center" }}>
                       <View style={{ width: storyAvatarSize, height: storyAvatarSize, borderRadius: storyAvatarSize / 2, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
                         {avatar({ username: authSession?.username || "You", avatarUrl: ownAvatarUrl }, storyAvatarSize)}
@@ -351,7 +351,7 @@ export default function DirectMessagesScreen({
                           <Ionicons name="add" size={15} color={C.text} />
                         </View>
                       </View>
-                      <Text numberOfLines={1} style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>Your note</Text>
+                      <Text numberOfLines={1} style={{ color: C.muted, fontSize: 10, marginTop: 0 }}>Your note</Text>
                     </View>
 
                   </ScrollView>
@@ -368,7 +368,7 @@ export default function DirectMessagesScreen({
                   </View>
                   <View style={{ paddingHorizontal: horizontalInset, flexDirection: "row", alignItems: "stretch", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
                     {["Primary", "General"].map((tab) => (
-                      <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minHeight: 34, alignItems: "center", justifyContent: "center", borderBottomWidth: inboxTab === tab ? 2 : 0, borderBottomColor: C.text }}>
+                      <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minHeight: 30, alignItems: "center", justifyContent: "center", borderBottomWidth: inboxTab === tab ? 2 : 0, borderBottomColor: C.text }}>
                         <Text style={{ color: inboxTab === tab ? C.text : C.muted, fontSize: 13 * textScale, fontWeight: inboxTab === tab ? "800" : "600" }}>{tab}</Text>
                       </TouchableOpacity>
                     ))}
