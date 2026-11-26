@@ -352,6 +352,7 @@ const SECTIONS = [
     ["premium.animatedRing","Animated Profile Ring","Enable an animated profile ring preference",false],
     ["premium.chatThemes","Premium Chat Themes","Use premium chat theme options",true],
     ["premium.customSounds","Custom App Sounds","Choose supported app sounds",true],
+    ["premium.membership","Premium Membership & Plans","View premium membership, creator and business plans",true],
     ["premium.profileStudio","Profile Customization Studio","Open profile personalization tools",true],
   ]},
   { key:"help", title:"Help & Support", subtitle:"Support, reports and assistance", icon:"help-circle-outline", fields:[
@@ -906,6 +907,11 @@ export default function SettingsDashboard({ visible, username, onClose, onLogout
     if (key === "account.profileQr") {
       setActive(null);
       setQrVisible(true);
+      return;
+    }
+    if (key === "premium.membership") {
+      setActive(null);
+      setHubVisible(true);
       return;
     }
     if (key === "premium.profileStudio") {
