@@ -9,6 +9,7 @@ on:
     paths:
       - 'FINAL_APK_BUILD'
       - 'App.js'
+      - 'DirectMessagesScreen.js'
       - '.github/workflows/android-apk.yml'
 
 permissions:
