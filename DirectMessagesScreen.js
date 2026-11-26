@@ -340,10 +340,10 @@ export default function DirectMessagesScreen({
               {!query.trim() ? (
                 <>
 
-                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 3 : 5, paddingBottom: 1 }}>
+                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 1 : 2, paddingBottom: 0 }}>
                     <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Notes</Text>
                   </View>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 3 : 5, paddingBottom: 0, gap: storyRowGap }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: 0, paddingBottom: 0, gap: storyRowGap }}>
                     <View style={{ width: storyAvatarSize + 4, alignItems: "center" }}>
                       <View style={{ width: storyAvatarSize, height: storyAvatarSize, borderRadius: storyAvatarSize / 2, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
                         {avatar({ username: authSession?.username || "You", avatarUrl: ownAvatarUrl }, storyAvatarSize)}
@@ -351,7 +351,7 @@ export default function DirectMessagesScreen({
                           <Ionicons name="add" size={15} color={C.text} />
                         </View>
                       </View>
-                      <Text numberOfLines={1} style={{ color: C.muted, fontSize: 11, marginTop: 6 }}>Your note</Text>
+                      <Text numberOfLines={1} style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>Your note</Text>
                     </View>
 
                   </ScrollView>
@@ -360,7 +360,7 @@ export default function DirectMessagesScreen({
 
               {!query.trim() ? (
                 <>
-                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: 2, paddingBottom: 2, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: 0, paddingBottom: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                     <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Messages</Text>
                     <TouchableOpacity onPress={() => setInboxTab("Requests")} accessibilityRole="button" accessibilityLabel="Message requests">
                       <Text style={{ color: C.blue, fontSize: 13, fontWeight: "600" }}>Requests</Text>
