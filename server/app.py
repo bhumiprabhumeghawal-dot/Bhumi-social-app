@@ -168,6 +168,29 @@ def init_db():
             CREATE INDEX IF NOT EXISTS idx_saved_content_user
             ON saved_content(username, created_at DESC)
         """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS content_views (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content_id INTEGER NOT NULL,
+                content_kind TEXT NOT NULL,
+                viewer_username TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(content_id, content_kind, viewer_username)
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_content_views_owner_lookup
+            ON content_views(content_kind, content_id, created_at DESC)
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS story_likes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content_id INTEGER NOT NULL,
+                username TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(content_id, username)
+            )
+        """)
 
 def can_view_content(db, owner, viewer=None):
     """Allow owners, approved followers of private accounts, and non-blocked viewers."""
@@ -438,6 +461,122 @@ def list_content(kind):
         items = [content_json(row, viewer, db) for row in rows]
 
     return jsonify({"items": items})
+
+
+@app.post("/api/content/<kind>/<int:content_id>/view")
+def record_content_view(kind, content_id):
+    viewer = getattr(g, "auth_username", None)
+    if not viewer:
+        return jsonify({"error": "Please log in first."}), 401
+    if kind not in ("posts", "reels", "stories"):
+        return jsonify({"error": "Unsupported content type."}), 400
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        item = db.execute(
+            "SELECT id, username FROM content WHERE id=? AND kind=?",
+            (content_id, kind),
+        ).fetchone()
+        if item is None or not can_view_content(db, item["username"], viewer):
+            return jsonify({"error": "Content not found."}), 404
+        if item["username"].casefold() != viewer.casefold():
+            db.execute("""
+                INSERT INTO content_views (content_id, content_kind, viewer_username, created_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(content_id, content_kind, viewer_username)
+                DO UPDATE SET created_at=excluded.created_at
+            """, (content_id, kind, viewer, now))
+        total = db.execute(
+            "SELECT COUNT(*) AS total FROM content_views WHERE content_id=? AND content_kind=?",
+            (content_id, kind),
+        ).fetchone()["total"]
+    return jsonify({"ok": True, "views": total})
+
+
+@app.get("/api/content/<kind>/<int:content_id>/viewers")
+def list_content_viewers(kind, content_id):
+    owner = getattr(g, "auth_username", None)
+    if not owner:
+        return jsonify({"error": "Please log in first."}), 401
+    if kind not in ("posts", "reels", "stories"):
+        return jsonify({"error": "Unsupported content type."}), 400
+    with get_db() as db:
+        item = db.execute(
+            "SELECT id, username FROM content WHERE id=? AND kind=?",
+            (content_id, kind),
+        ).fetchone()
+        if item is None or item["username"].casefold() != owner.casefold():
+            return jsonify({"error": "Only the content owner can view its viewer list."}), 403
+        rows = db.execute("""
+            SELECT v.viewer_username AS username, v.created_at,
+                   p.avatar_url, p.display_name
+            FROM content_views v
+            LEFT JOIN profiles p ON LOWER(p.username)=LOWER(v.viewer_username)
+            WHERE v.content_id=? AND v.content_kind=?
+            ORDER BY v.created_at DESC
+        """, (content_id, kind)).fetchall()
+    return jsonify({"ok": True, "views": len(rows), "viewers": [{
+        "username": row["username"],
+        "displayName": row["display_name"] if "display_name" in row.keys() else None,
+        "avatarUrl": row["avatar_url"],
+        "viewedAt": row["created_at"],
+    } for row in rows]})
+
+
+@app.post("/api/stories/<int:content_id>/like")
+def toggle_story_like(content_id):
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        story = db.execute(
+            "SELECT id, username FROM content WHERE id=? AND kind='stories'",
+            (content_id,),
+        ).fetchone()
+        if story is None or not can_view_content(db, story["username"], username):
+            return jsonify({"error": "Story not found."}), 404
+        existing = db.execute(
+            "SELECT id FROM story_likes WHERE content_id=? AND LOWER(username)=LOWER(?)",
+            (content_id, username),
+        ).fetchone()
+        if existing:
+            db.execute("DELETE FROM story_likes WHERE content_id=? AND LOWER(username)=LOWER(?)", (content_id, username))
+            liked = False
+        else:
+            db.execute(
+                "INSERT INTO story_likes (content_id, username, created_at) VALUES (?, ?, ?)",
+                (content_id, username, now),
+            )
+            liked = True
+            _people_notification(db, story["username"], username, "story_like", content_id, now)
+        count = db.execute(
+            "SELECT COUNT(*) AS total FROM story_likes WHERE content_id=?",
+            (content_id,),
+        ).fetchone()["total"]
+    return jsonify({"ok": True, "liked": liked, "likes": count})
+
+
+@app.get("/api/stories/<int:content_id>/likes")
+def list_story_likes(content_id):
+    viewer = getattr(g, "auth_username", None)
+    if not viewer:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        story = db.execute(
+            "SELECT id, username FROM content WHERE id=? AND kind='stories'",
+            (content_id,),
+        ).fetchone()
+        if story is None or not can_view_content(db, story["username"], viewer):
+            return jsonify({"error": "Story not found."}), 404
+        liked = bool(db.execute(
+            "SELECT 1 FROM story_likes WHERE content_id=? AND LOWER(username)=LOWER(?)",
+            (content_id, viewer),
+        ).fetchone())
+        count = db.execute(
+            "SELECT COUNT(*) AS total FROM story_likes WHERE content_id=?",
+            (content_id,),
+        ).fetchone()["total"]
+    return jsonify({"ok": True, "liked": liked, "likes": count})
 
 
 @app.post("/api/<kind>")
@@ -5231,6 +5370,7 @@ def _people_notification(db, recipient, actor, kind, reference_id, now):
         "follow": "follows",
         "follow_request": "requests",
         "reel_like": "reels", "reel_comment": "reels",
+        "story_like": "likes",
         "follow_accepted": "follows",
         "follow_rejected": "follows",
         "system_alert": "system_alerts",
@@ -5253,7 +5393,7 @@ def _people_notification(db, recipient, actor, kind, reference_id, now):
         (id, recipient, actor, kind, reference_id, created_at, is_read)
         VALUES (?, ?, ?, ?, ?, ?, 0)
     """, (notification_id, recipient, actor, kind, reference_id, now))
-    if kind in {"like", "gift_flower", "comment", "reel_like", "reel_comment", "follow", "follow_request", "follow_accepted", "follow_rejected"}:
+    if kind in {"like", "gift_flower", "comment", "reel_like", "reel_comment", "story_like", "follow", "follow_request", "follow_accepted", "follow_rejected"}:
         # Do not hold the request's database transaction open while contacting Expo.
         threading.Thread(
             target=_send_social_activity_push,
