@@ -83,7 +83,6 @@ function ChatVideoAttachment({ uri, onError }) {
         style={{ width: "100%", height: "100%" }}
         nativeControls
         contentFit="contain"
-        onError={(event) => onError?.(event?.error?.message || "Video play nahi hua.")}
       />
     </View>
   );
