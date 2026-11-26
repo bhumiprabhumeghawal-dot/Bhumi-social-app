@@ -8448,10 +8448,10 @@ export default function App() {
               decelerationRate="fast"
               nestedScrollEnabled
               showsVerticalScrollIndicator={false}
-              initialNumToRender={2}
-              maxToRenderPerBatch={2}
-              windowSize={5}
-              removeClippedSubviews={false}
+              initialNumToRender={1}
+              maxToRenderPerBatch={1}
+              windowSize={3}
+              removeClippedSubviews={true}
               getItemLayout={(_, index) => ({
                 length: reelViewportHeight,
                 offset: reelViewportHeight * index,
@@ -8912,11 +8912,11 @@ export default function App() {
               decelerationRate="normal"
               nestedScrollEnabled
               showsVerticalScrollIndicator={false}
-              initialNumToRender={3}
-              maxToRenderPerBatch={3}
-              windowSize={5}
-              // Avoid Android clipping during the first Home feed layout pass.
-              removeClippedSubviews={false}
+              initialNumToRender={2}
+              maxToRenderPerBatch={2}
+              windowSize={3}
+              // Keep off-screen media cards detached on Android to limit native view and bitmap memory.
+              removeClippedSubviews={true}
               getItemLayout={
                 feedViewportHeight > 0
                   ? (_, index) => ({
