@@ -2750,6 +2750,10 @@ export default function App() {
   const [serverStories, setServerStories] = React.useState([]);
   const [selectedStory, setSelectedStory] = React.useState(null);
   const [storyViewers, setStoryViewers] = React.useState([]);
+  const [postViewers, setPostViewers] = React.useState([]);
+  const [postViewersOpen, setPostViewersOpen] = React.useState(false);
+  const [reelViewers, setReelViewers] = React.useState([]);
+  const [reelViewersOpen, setReelViewersOpen] = React.useState(false);
   const [storyLikeState, setStoryLikeState] = React.useState({ liked: false, likes: 0 });
   const [storyLikeBusy, setStoryLikeBusy] = React.useState(false);
   const [storyViewersOpen, setStoryViewersOpen] = React.useState(false);
@@ -2763,13 +2767,31 @@ export default function App() {
   const [selectedPostMediaIndex, setSelectedPostMediaIndex] = React.useState(0);
 
   React.useEffect(() => {
-    if (selectedPost?.id) recordContentView("posts", selectedPost.id).catch(() => {});
-  }, [selectedPost?.id]);
+    let active = true;
+    setPostViewers([]);
+    setPostViewersOpen(false);
+    if (!selectedPost?.id || String(selectedPost?.user || "").toLowerCase() !== String(authSession?.username || "").toLowerCase()) return () => { active = false; };
+    recordContentView("posts", selectedPost.id).catch(() => {});
+    loadContentViewers("posts", selectedPost.id)
+      .then((data) => { if (active) setPostViewers(Array.isArray(data.viewers) ? data.viewers : []); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [selectedPost?.id, selectedPost?.user, authSession?.username]);
 
   React.useEffect(() => {
+    let active = true;
     const reel = Array.isArray(reels) ? reels[activeReelIndex] : null;
-    if (reel?.id) recordContentView("reels", reel.id).catch(() => {});
-  }, [activeReelIndex, reels]);
+    setReelViewers([]);
+    setReelViewersOpen(false);
+    if (!reel?.id) return () => { active = false; };
+    recordContentView("reels", reel.id).catch(() => {});
+    if (String(reel?.user || reel?.username || "").toLowerCase() === String(authSession?.username || "").toLowerCase()) {
+      loadContentViewers("reels", reel.id)
+        .then((data) => { if (active) setReelViewers(Array.isArray(data.viewers) ? data.viewers : []); })
+        .catch(() => {});
+    }
+    return () => { active = false; };
+  }, [activeReelIndex, reels, authSession?.username]);
 
   React.useEffect(() => {
     let active = true;
@@ -9951,6 +9973,17 @@ export default function App() {
             )}
           </View>
           <PostDetailActions post={selectedPost} authSession={authSession} appLanguage={appLanguage} />
+          {String(selectedPost?.user || "").toLowerCase() === String(authSession?.username || "").toLowerCase() ? (
+            <View style={{ marginHorizontal: 18, marginTop: 8 }}>
+              <TouchableOpacity onPress={() => setPostViewersOpen((value) => !value)} style={{ flexDirection: "row", alignItems: "center", gap: 7, paddingVertical: 7 }}>
+                <Ionicons name="eye-outline" size={19} color="#FFFFFF" />
+                <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{postViewers.length} views · Viewers</Text>
+              </TouchableOpacity>
+              {postViewersOpen ? postViewers.map((viewer) => (
+                <Text key={viewer.username} style={{ color: "#E5E5E5", paddingVertical: 3 }}>{viewer.displayName || viewer.username} · @{viewer.username}</Text>
+              )) : null}
+            </View>
+          ) : null}
           <View
             style={{
               marginHorizontal: 16,
