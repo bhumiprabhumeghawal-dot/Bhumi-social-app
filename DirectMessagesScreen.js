@@ -397,7 +397,7 @@ export default function DirectMessagesScreen({
                         </View>
                         <Text numberOfLines={1} style={{ color: C.muted, marginTop: 5, fontSize: 12, fontWeight: Number(item.unreadCount || item.unread_count) > 0 ? "700" : "400" }}>{item.lastMessage || item.last_message || "Tap to chat"}</Text>
                       </View>
-                      <TouchableOpacity onPress={() => openChat(getUsername(item))} accessibilityRole="button" accessibilityLabel={"Open camera chat with " + getUsername(item)} style={{ width: 42, height: 48, alignItems: "center", justifyContent: "center" }}>
+                      <TouchableOpacity onPress={async () => { await openChat(getUsername(item)); await takePhoto(); }} accessibilityRole="button" accessibilityLabel={"Send a camera photo to " + getUsername(item)} style={{ width: 42, height: 48, alignItems: "center", justifyContent: "center" }}>
                         <Ionicons name="camera-outline" size={25} color={C.text} />
                       </TouchableOpacity>
                       {Number(item.unreadCount || item.unread_count) > 0 ? <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: C.blue, marginLeft: -5 }} /> : null}
