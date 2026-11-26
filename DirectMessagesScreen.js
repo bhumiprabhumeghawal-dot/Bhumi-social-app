@@ -321,7 +321,7 @@ export default function DirectMessagesScreen({
 
           {!peer ? (
             <View style={{ flex: 1, minHeight: 0 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", marginHorizontal: horizontalInset, marginTop: query.trim() ? 13 : 0, marginBottom: 10, gap: 12 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", marginHorizontal: horizontalInset, marginTop: query.trim() ? 13 : 0, marginBottom: 5, gap: 12 }}>
                 <View style={{ flex: 1, minWidth: 0, height: 48, borderRadius: 28, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
                   <Ionicons name="search" size={19} color={C.muted} />
                   <TextInput
@@ -355,10 +355,10 @@ export default function DirectMessagesScreen({
               {!query.trim() ? (
                 <>
 
-                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 7 : 11, paddingBottom: 2 }}>
+                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 3 : 5, paddingBottom: 1 }}>
                     <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Notes</Text>
                   </View>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 6 : 9, paddingBottom: shortScreen ? 8 : 12, gap: storyRowGap }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 3 : 5, paddingBottom: shortScreen ? 4 : 6, gap: storyRowGap }}>
                     <View style={{ width: storyAvatarSize + 4, alignItems: "center" }}>
                       <View style={{ width: storyAvatarSize, height: storyAvatarSize, borderRadius: storyAvatarSize / 2, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
                         {avatar({ username: authSession?.username || "You", avatarUrl: ownAvatarUrl }, storyAvatarSize)}
@@ -374,9 +374,9 @@ export default function DirectMessagesScreen({
               ) : null}
 
               {!query.trim() ? (
-                <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 9, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 5, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
+                <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 4, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 5, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
                   {["All", "Primary", "General", "Requests"].map((tab) => (
-                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minWidth: 0, paddingHorizontal: 4, paddingVertical: 9, borderRadius: 12, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field, minHeight: 38, alignItems: "center", justifyContent: "center" }}>
+                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minWidth: 0, paddingHorizontal: 4, paddingVertical: 6, borderRadius: 12, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field, minHeight: 38, alignItems: "center", justifyContent: "center" }}>
                       <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: inboxTab === tab ? "#111111" : C.text, fontSize: 12 * textScale, fontWeight: "700" }}>
                         {tab}{([ "All", "Primary" ].includes(tab) ? " " + (tab === "All" ? conversations.length : conversations.filter((x) => ["", "primary"].includes(String(x.folder || x.category || x.inboxType || x.inbox_type || "primary").toLowerCase())).length) : "")}{tab === "Requests" ? "  ›" : ""}
                       </Text>
