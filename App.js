@@ -3118,6 +3118,9 @@ export default function App() {
   const [authMode, setAuthMode] = React.useState("login");
   const [authAccountType, setAuthAccountType] = React.useState("personal");
   const [authUsername, setAuthUsername] = React.useState("");
+  const authUsernameAutoRef = React.useRef(true);
+  const authUsernameSuffixRef = React.useRef(String(Math.floor(1000 + Math.random() * 9000)));
+  const [authPasswordVisible, setAuthPasswordVisible] = React.useState(false);
   const [authFullName, setAuthFullName] = React.useState("");
   const [authEmail, setAuthEmail] = React.useState("");
   const [authPassword, setAuthPassword] = React.useState("");
@@ -6146,8 +6149,8 @@ export default function App() {
     const username = authUsername.trim();
     const fullName = authFullName.trim();
     const email = authEmail.trim().toLowerCase();
-    if (!username || !authPassword) {
-      Alert.alert(appText("alertDetailsRequired"), appText("alertDetailsRequired"));
+    if ((!username && authMode !== "register") || !authPassword) {
+      Alert.alert("जानकारी भरें", "कृपया अपना यूज़रनेम और पासवर्ड लिखें।");
       return;
     }
     if (authMode === "register") {
@@ -6184,13 +6187,6 @@ export default function App() {
         Alert.alert(appText("alertDetailsRequired"), appText("alertTryAgain"));
         return;
       }
-      if (authPassword !== authConfirmPassword) {
-        Alert.alert(
-          "Password mismatch",
-          "Password and confirm password do not match.",
-        );
-        return;
-      }
     }
     setAuthBusy(true);
     try {
@@ -6204,17 +6200,13 @@ export default function App() {
               fullName,
             )
           : await loginAccount(username, authPassword);
-      if (authMode === "register" && authAccountType !== "personal") {
-        await savePrivacySettings(
-          { accountType: authAccountType, isPrivate: false },
-          result.username || username,
-        );
-      }
       setAuthSession({ token: result.token, username: result.username });
       setAuthPassword("");
       Alert.alert(
         appText("alertSuccess"),
-        authMode === "register" ? "Account created." : "Login successful.",
+        authMode === "register"
+          ? "खाता बन गया! आपका यूज़रनेम @" + (result.username || username) + " है। इसे याद रखें।"
+          : "लॉगिन सफल हुआ।",
       );
     } catch (error) {
       Alert.alert(
@@ -6767,40 +6759,24 @@ export default function App() {
           </View>
           {authMode === "register" ? (
             <>
-              <Text style={{ color: "#FFFFFF", fontWeight: "700", marginBottom: 9 }}>
-                {appText("chooseAccountType")}
+              <Text style={{ color: "#A8A8A8", fontSize: 13, lineHeight: 19, marginBottom: 16 }}>
+                1. अपना नाम लिखें  2. पासवर्ड बनाएँ  3. खाता तैयार!
               </Text>
-              <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
-                {[
-                  { key: "personal", title: "Personal", icon: "person-outline" },
-                  { key: "creator", title: "Creator", icon: "videocam-outline" },
-                  { key: "business", title: "Business", icon: "briefcase-outline" },
-                ].map((item) => {
-                  const active = authAccountType === item.key;
-                  return (
-                    <TouchableOpacity
-                      key={item.key}
-                      onPress={() => setAuthAccountType(item.key)}
-                      disabled={authBusy}
-                      style={{ flex: 1, minHeight: 76, paddingVertical: 12, paddingHorizontal: 5, borderRadius: 12, borderWidth: 1.5, borderColor: active ? "#0095F6" : "#262626", backgroundColor: active ? "rgba(216,184,106,0.14)" : "#121212", alignItems: "center", justifyContent: "center" }}
-                    >
-                      <Ionicons name={item.icon} size={21} color={active ? "#0095F6" : "#A8A8A8"} />
-                      <Text style={{ color: active ? "#0095F6" : "#FFFFFF", fontSize: 12, fontWeight: "800", marginTop: 5 }}>{item.title}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 13 }}>
-                {appText("signupCreatorDescription")}
-              </Text>
-              <Text
-                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
+     style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 {appText("signupFullName")}
               </Text>
               <TextInput
                 value={authFullName}
-                onChangeText={setAuthFullName}
+                onChangeText={(value) => {
+                  setAuthFullName(value);
+                  if (authUsernameAutoRef.current) {
+                    const clean = String(value || "").toLowerCase().normalize("NFKD")
+                      .replace(/[\\u0300-\\u036f]/g, "")
+                      .replace(/[^a-z0-9]+/g, "").slice(0, 30);
+                    setAuthUsername((clean.length >= 3 ? clean : "bhumi") + authUsernameSuffixRef.current);
+                  }
+                }}
                 placeholder={appText("fullNamePlaceholder")}
                 autoCapitalize="words"
                 editable={!authBusy}
@@ -6821,7 +6797,10 @@ export default function App() {
               </Text>
               <TextInput
                 value={authUsername}
-                onChangeText={setAuthUsername}
+                onChangeText={(value) => {
+                  authUsernameAutoRef.current = false;
+                  setAuthUsername(value);
+                }}
                 placeholder={appText("chooseUsernamePlaceholder")}
                 maxLength={50}
                 autoCapitalize="none"
@@ -6842,29 +6821,6 @@ export default function App() {
               <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 12 }}>
                 {appText("signupUsernameHint")}
               </Text>
-              <Text
-                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
-              >
-                {appText("signupEmailOptional")}
-              </Text>
-              <TextInput
-                value={authEmail}
-                onChangeText={setAuthEmail}
-                placeholder={appText("emailAddressPlaceholder")}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!authBusy}
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#262626",
-                  borderRadius: 8,
-                  padding: 13,
-                  marginBottom: 12,
-                  color: "#FFFFFF",
-                }}
-              />
-            </>
           ) : (
             <>
               <Text
@@ -6890,30 +6846,6 @@ export default function App() {
               />
             </>
           )}
-          {authMode === "register" && (
-            <>
-              <Text
-                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
-              >
-                {appText("signupPhoneOptional")}
-              </Text>
-              <TextInput
-                value={authPhoneNumber}
-                onChangeText={setAuthPhoneNumber}
-                placeholder={appText("mobileOptionalPlaceholder")}
-                keyboardType="phone-pad"
-                editable={!authBusy}
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#262626",
-                  borderRadius: 8,
-                  padding: 13,
-                  marginBottom: 12,
-                  color: "#FFFFFF",
-                }}
-              />
-            </>
-          )}
           <Text
             style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
           >
@@ -6923,7 +6855,7 @@ export default function App() {
             value={authPassword}
             onChangeText={setAuthPassword}
             placeholder={appText("createPasswordPlaceholder")}
-            secureTextEntry
+            secureTextEntry={!authPasswordVisible}
             autoCapitalize="none"
             editable={!authBusy}
             onSubmitEditing={submitAuth}
@@ -6937,31 +6869,11 @@ export default function App() {
               color: "#FFFFFF",
             }}
           />
-          {authMode === "register" && (
-            <>
-              <Text
-                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
-              >
-                {appText("signupConfirmPassword")}
-              </Text>
-              <TextInput
-                value={authConfirmPassword}
-                onChangeText={setAuthConfirmPassword}
-                placeholder={appText("reenterPasswordPlaceholder")}
-                secureTextEntry
-                autoCapitalize="none"
-                editable={!authBusy}
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#262626",
-                  borderRadius: 8,
-                  padding: 13,
-                  marginBottom: 16,
-                  color: "#FFFFFF",
-                }}
-              />
-            </>
-          )}
+          <TouchableOpacity onPress={() => setAuthPasswordVisible((value) => !value)} style={{ alignSelf: "flex-end", paddingVertical: 4, paddingHorizontal: 2, marginTop: -10, marginBottom: 12 }}>
+            <Text style={{ color: "#0095F6", fontWeight: "700", fontSize: 12 }}>
+              {authPasswordVisible ? "पासवर्ड छिपाएँ" : "पासवर्ड दिखाएँ"}
+            </Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={submitAuth}
             disabled={authBusy}
@@ -7069,7 +6981,9 @@ export default function App() {
         visible={liveCameraOpen}
         animationType="slide"
         presentationStyle="fullScreen"
-        onRequestClose={() => setLiveCameraOpen(false)}
+        onRequestClose={() =>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
+ setLiveCameraOpen(false)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 18, paddingVertical: 14 }}>
@@ -7104,6 +7018,7 @@ export default function App() {
             </View>
           </View>
         </SafeAreaView>
+              </KeyboardAvoidingView>
       </Modal>
 
       <Modal
@@ -7403,6 +7318,8 @@ export default function App() {
         animationType="slide"
         onRequestClose={cancelDraftMedia}
       >
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
+
         <SafeAreaView
           style={{
             flex: 1,
@@ -8409,13 +8326,16 @@ export default function App() {
                     </TouchableOpacity>
                   </View>
         </SafeAreaView>
+              </KeyboardAvoidingView>
       </Modal>
 
       <Modal
         visible={musicSearchOpen}
         transparent
         animationType="fade"
-        onRequestClose={() => setMusicSearchOpen(false)}
+        onRequestClose={() =>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
+ setMusicSearchOpen(false)}
       >
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center", padding: 16 }}>
           <View style={{ width: "100%", maxWidth: 350, maxHeight: "74%", alignSelf: "center", backgroundColor: "#151515", borderRadius: 17, borderWidth: 1, borderColor: "#343434", padding: 12, gap: 9 }}>
@@ -8515,6 +8435,7 @@ export default function App() {
             <Text style={{ color: "#777777", fontSize: 10, lineHeight: 15 }}>{appText("musicLibraryNotice")}</Text>
           </View>
         </View>
+              </KeyboardAvoidingView>
       </Modal>
 
       {activeTab !== "Reels" && activeTab !== "Home" && activeTab !== "Search" && activeTab !== "Profile" && renderAppHeader()}
@@ -12427,7 +12348,9 @@ export default function App() {
         transparent
         animationType="fade"
         statusBarTranslucent
-        onRequestClose={() => {}}
+        onRequestClose={() =>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
+ {}}
       >
         <View style={{ flex:1,backgroundColor:"#000000",justifyContent:"center",paddingHorizontal:28 }}>
           <View style={{ backgroundColor:"#121212",borderWidth:1,borderColor:"#303030",borderRadius:22,padding:22,alignItems:"center" }}>
@@ -12500,6 +12423,7 @@ export default function App() {
             </TouchableOpacity>
           </View>
         </View>
+              </KeyboardAvoidingView>
       </Modal>
       <CustomAlertHost appLanguage={appLanguage} />
     </SafeAreaView>
