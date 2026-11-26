@@ -7,6 +7,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
+import { useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from "expo-audio";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import {
   loadMessageConversations, loadDirectMessages, loadUserNotes, saveUserNote, sendDirectMessage, searchUsers, uploadChatAttachment,
@@ -62,6 +63,8 @@ export default function DirectMessagesScreen({
   const [busy, setBusy] = React.useState(false);
   const [sending, setSending] = React.useState(false);
   const [attachment, setAttachment] = React.useState(null);
+  const [isVoiceRecording, setIsVoiceRecording] = React.useState(false);
+  const voiceRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [error, setError] = React.useState("");
   const [profileInfoOpen, setProfileInfoOpen] = React.useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false);
@@ -178,6 +181,52 @@ export default function DirectMessagesScreen({
     }
   };
 
+
+  const startVoiceRecording = async () => {
+    if (isVoiceRecording || sending || !peer) return;
+    setError("");
+    try {
+      const permission = await requestRecordingPermissionsAsync();
+      if (!permission.granted) {
+        setError("Voice message record karne ke liye Microphone permission allow karein.");
+        return;
+      }
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await voiceRecorder.prepareToRecordAsync();
+      voiceRecorder.record();
+      setIsVoiceRecording(true);
+    } catch (e) {
+      setError(e?.message || "Voice recording shuru nahi ho saki.");
+      await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
+    }
+  };
+
+  const stopAndSendVoiceRecording = async () => {
+    if (!isVoiceRecording || sending) return;
+    setIsVoiceRecording(false);
+    setSending(true);
+    setError("");
+    try {
+      await voiceRecorder.stop();
+      const uri = voiceRecorder.uri;
+      if (!uri) throw new Error("Recorded voice file nahi mila.");
+      const uploaded = await uploadChatAttachment({
+        uri,
+        name: "Voice message.m4a",
+        mimeType: "audio/mp4",
+        type: "audio/mp4",
+      });
+      const sent = await sendDirectMessage(peer, "", uploaded);
+      if (sent) setMessages((old) => [...old, sent]);
+      Keyboard.dismiss();
+      requestAnimationFrame(() => listRef.current?.scrollToEnd?.({ animated: true }));
+    } catch (e) {
+      setError(e?.message || "Voice message send nahi hua.");
+    } finally {
+      setSending(false);
+      await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
+    }
+  };
 
   const uploadPickedAsset = async (asset) => {
     if (!asset) return;
@@ -585,8 +634,8 @@ export default function DirectMessagesScreen({
                       </>
                     )}
                   </View>
-                  <TouchableOpacity onPress={() => {}} accessibilityRole="button" accessibilityLabel="Record voice message" style={{ width: 30, height: 42, alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="mic-outline" size={composerIconSize + 1} color={C.text} />
+                  <TouchableOpacity onPress={isVoiceRecording ? stopAndSendVoiceRecording : startVoiceRecording} disabled={sending} accessibilityRole="button" accessibilityLabel={isVoiceRecording ? "Stop and send voice message" : "Record voice message"} style={{ width: 38, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: isVoiceRecording ? C.danger : "transparent", opacity: sending ? 0.5 : 1 }}>
+                    {isVoiceRecording ? <Ionicons name="stop" size={composerIconSize + 1} color="#FFFFFF" /> : <Ionicons name="mic-outline" size={composerIconSize + 1} color={C.blue} />}
                   </TouchableOpacity>
                 </View>
               </View>
