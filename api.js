@@ -534,6 +534,44 @@ export async function loadProfile(username = 'you', viewer = 'you') {
   return data;
 }
 
+export async function recordContentView(kind, contentId) {
+  const response = await fetch(`${API_BASE_URL}/api/content/${encodeURIComponent(kind)}/${encodeURIComponent(contentId)}/view`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not record content view.');
+  return data;
+}
+
+export async function loadContentViewers(kind, contentId) {
+  const response = await fetch(`${API_BASE_URL}/api/content/${encodeURIComponent(kind)}/${encodeURIComponent(contentId)}/viewers`, {
+    headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load viewers.');
+  return data;
+}
+
+export async function toggleStoryLike(contentId) {
+  const response = await fetch(`${API_BASE_URL}/api/stories/${encodeURIComponent(contentId)}/like`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not like story.');
+  return data;
+}
+
+export async function loadStoryLikeState(contentId) {
+  const response = await fetch(`${API_BASE_URL}/api/stories/${encodeURIComponent(contentId)}/likes`, {
+    headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load story likes.');
+  return data;
+}
+
 export async function loadProfilePosts(username, viewer = '', pageSize = 100) {
   const normalizedUsername = String(username || '').trim().replace(/^@/, '');
   if (!normalizedUsername) throw new Error('Username not found.');
