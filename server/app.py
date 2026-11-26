@@ -2032,8 +2032,7 @@ def list_people_notifications():
             FROM people_notifications
             WHERE recipient=? AND is_read=0
         """, (username,)).fetchone()
-    return jsonify({
-        "notifications": [{
+        notification_items = [{
             "id": row["id"],
             "actor": row["actor"],
             "kind": row["kind"],
@@ -2045,7 +2044,9 @@ def list_people_notifications():
             ),
             "createdAt": row["created_at"],
             "isRead": bool(row["is_read"]),
-        } for row in rows],
+        } for row in rows]
+    return jsonify({
+        "notifications": notification_items,
         "unreadCount": unread["total"],
     })
 
