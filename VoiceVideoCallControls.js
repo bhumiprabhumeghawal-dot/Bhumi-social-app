@@ -566,7 +566,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
         <View style={{ flex: 1, backgroundColor: "#07090D", paddingTop: callShort ? 20 : 42, paddingBottom: callShort ? 12 : 24 }}>
           <View pointerEvents="none" style={{ position: "absolute", top: -115, alignSelf: "center", width: Math.min(350, callWidth * 0.9), height: Math.min(350, callWidth * 0.9), borderRadius: Math.min(350, callWidth * 0.9) / 2, backgroundColor: "#10243A", opacity: 0.42 }} />
           <View pointerEvents="none" style={{ position: "absolute", bottom: 110, alignSelf: "center", width: Math.min(300, callWidth * 0.78), height: Math.min(300, callWidth * 0.78), borderRadius: Math.min(300, callWidth * 0.78) / 2, backgroundColor: "#17121F", opacity: 0.34 }} />
-          <View style={{ paddingHorizontal: callInset, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <View {...callBubblePan.panHandlers} style={{ paddingHorizontal: callInset, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#0095F6" }} />
               <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700", letterSpacing: 0.2 }}>{call?.type === "video" ? label("video") : label("voice")}</Text>
