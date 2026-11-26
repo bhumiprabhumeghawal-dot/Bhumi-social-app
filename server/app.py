@@ -4325,8 +4325,14 @@ def create_call():
         """, (call_id, caller, callee, call_type, room_name, now_text, now_text, expires_text))
         row = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
 
-    # Push delivery is best-effort; call creation must succeed even if Expo is unavailable.
-    _send_incoming_call_push(callee, caller, call_type, call_id)
+    # Return the ringing call immediately. Expo push delivery can take several
+    # seconds (and is best-effort), so never block call setup on the push network.
+    threading.Thread(
+        target=_send_incoming_call_push,
+        args=(callee, caller, call_type, call_id),
+        name="incoming-call-push",
+        daemon=True,
+    ).start()
     return jsonify({"ok": True, "call": _call_json(row)}), 201
 
 
