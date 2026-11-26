@@ -9,7 +9,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import {
-  loadMessageConversations, loadDirectMessages, sendDirectMessage, searchUsers, uploadChatAttachment,
+  loadMessageConversations, loadDirectMessages, loadUserNotes, sendDirectMessage, searchUsers, uploadChatAttachment,
 } from "./api";
 
 const API_ORIGIN = "https://bhumi-social-app-1.onrender.com";
@@ -46,6 +46,7 @@ export default function DirectMessagesScreen({
   const composerIconSize = narrowScreen ? 20 : compactScreen ? 21 : 23;
   const textScale = Math.min(Math.max(fontScale || 1, 0.9), 1.25);
   const [conversations, setConversations] = React.useState([]);
+  const [friendsNotes, setFriendsNotes] = React.useState([]);
   const [peer, setPeer] = React.useState("");
   const [messages, setMessages] = React.useState([]);
   const [draft, setDraft] = React.useState("");
@@ -68,8 +69,12 @@ export default function DirectMessagesScreen({
     setBusy(true);
     setError("");
     try {
-      const rows = await loadMessageConversations();
+      const [rows, notes] = await Promise.all([
+        loadMessageConversations(),
+        loadUserNotes().catch(() => ({ friendsNotes: [] })),
+      ]);
       setConversations(Array.isArray(rows) ? rows : []);
+      setFriendsNotes(Array.isArray(notes?.friendsNotes) ? notes.friendsNotes : []);
     } catch (e) {
       setError(e?.message || "Inbox load nahi hua.");
     } finally {
@@ -353,7 +358,17 @@ export default function DirectMessagesScreen({
                       </View>
                       <Text numberOfLines={1} style={{ color: C.muted, fontSize: 10, marginTop: 0 }}>Your note</Text>
                     </View>
-
+                    {friendsNotes.map((note) => (
+                      <View key={String(note.username)} style={{ width: storyAvatarSize + 18, alignItems: "center" }}>
+                        {avatar({ username: note.username, displayName: note.displayName, avatarUrl: note.avatarUrl }, storyAvatarSize)}
+                        <Text numberOfLines={1} style={{ color: C.text, fontSize: 10, fontWeight: "600", marginTop: 3, maxWidth: storyAvatarSize + 18 }}>
+                          {note.displayName || note.username}
+                        </Text>
+                        <Text numberOfLines={1} style={{ color: C.muted, fontSize: 9, marginTop: 1, maxWidth: storyAvatarSize + 18 }}>
+                          {note.text || note.audioTitle || "Note"}
+                        </Text>
+                      </View>
+                    ))}
                   </ScrollView>
                 </>
               ) : null}
