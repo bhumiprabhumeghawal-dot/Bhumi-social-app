@@ -182,6 +182,26 @@ function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" 
     </View>
   );
 }
+// Prefer a private call route over loudspeaker to reduce acoustic feedback.
+const startCallAudioSession = async () => {
+  if (Platform.OS === "android") {
+    await AudioSession.configureAudio({
+      android: {
+        preferredOutputList: ["bluetooth", "headset", "earpiece", "speaker"],
+        audioTypeOptions: {
+          manageAudioFocus: true,
+          audioMode: "inCommunication",
+          audioFocusMode: "gain",
+          audioStreamType: "voiceCall",
+          audioAttributesUsageType: "voiceCommunication",
+          audioAttributesContentType: "speech",
+        },
+      },
+    });
+  }
+  await AudioSession.startAudioSession();
+};
+
 export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true, appLanguage = "en", onCallStarted }) {
   const { width: callWidth, height: callHeight } = useWindowDimensions();
   const callCompact = callWidth < 360;
@@ -284,7 +304,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
         getCallConnectionToken(callInfo.id),
         audioSessionActiveRef.current
           ? Promise.resolve(true)
-          : AudioSession.startAudioSession(),
+          : startCallAudioSession(),
       ]);
       if (audioResult.status === "fulfilled") audioSessionActiveRef.current = true;
       if (tokenResult.status === "rejected") {
@@ -344,7 +364,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       // This avoids waiting for audio-session setup after the recipient answers.
       const [createdResult] = await Promise.allSettled([
         createVoiceVideoCall(username, type),
-        AudioSession.startAudioSession().then(() => {
+        startCallAudioSession().then(() => {
           audioSessionActiveRef.current = true;
           return true;
         }).catch((error) => {
@@ -508,7 +528,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
         respondToCall(call.id, "accept"),
         audioSessionActiveRef.current
           ? Promise.resolve(true)
-          : AudioSession.startAudioSession(),
+          : startCallAudioSession(),
       ]);
       if (acceptResult.status === "rejected") throw acceptResult.reason;
       if (audioResult.status === "fulfilled") audioSessionActiveRef.current = true;
