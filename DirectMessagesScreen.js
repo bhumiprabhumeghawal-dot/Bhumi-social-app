@@ -7,6 +7,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import { useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from "expo-audio";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import {
@@ -206,16 +207,27 @@ export default function DirectMessagesScreen({
     setIsVoiceRecording(false);
     setSending(true);
     setError("");
+    let uploadUri = null;
     try {
       await voiceRecorder.stop();
-      const uri = voiceRecorder.uri;
-      if (!uri) throw new Error("Recorded voice file nahi mila.");
+      const recordedUri = voiceRecorder.uri;
+      if (!recordedUri) throw new Error("Recorded voice file nahi mila.");
+
+      // Give the multipart uploader a real .m4a filename. Without this copy,
+      // Android's temporary recorder URI can be uploaded without an audio
+      // extension and the server may classify the voice note as a generic file.
+      uploadUri = `${FileSystem.cacheDirectory}bhumi-voice-${Date.now()}.m4a`;
+      await FileSystem.copyAsync({ from: recordedUri, to: uploadUri });
+
       const uploaded = await uploadChatAttachment({
-        uri,
+        uri: uploadUri,
         name: "Voice message.m4a",
         mimeType: "audio/mp4",
         type: "audio/mp4",
       });
+      if (uploaded?.attachmentType !== "audio") {
+        throw new Error("Voice recording audio ke roop mein upload nahi hui. Dobara record karein.");
+      }
       const sent = await sendDirectMessage(peer, "", uploaded);
       if (sent) setMessages((old) => [...old, sent]);
       Keyboard.dismiss();
@@ -223,6 +235,7 @@ export default function DirectMessagesScreen({
     } catch (e) {
       setError(e?.message || "Voice message send nahi hua.");
     } finally {
+      if (uploadUri) await FileSystem.deleteAsync(uploadUri, { idempotent: true }).catch(() => {});
       setSending(false);
       await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
     }
@@ -569,8 +582,8 @@ export default function DirectMessagesScreen({
                       <View style={{ maxWidth: "82%", minWidth: body || attachmentUrl ? 0 : 90, backgroundColor: mine ? C.mine : C.other, borderTopLeftRadius: 19, borderTopRightRadius: 19, borderBottomLeftRadius: mine ? 19 : 5, borderBottomRightRadius: mine ? 5 : 19, paddingHorizontal: 14, paddingVertical: 9 }}>
                       {attachmentUrl ? (
                         <TouchableOpacity onPress={() => Linking.openURL(avatarUri(attachmentUrl))} style={{ marginBottom: body ? 7 : 0, flexDirection: "row", alignItems: "center", gap: 7 }}>
-                          <Ionicons name={String(attachmentType).toLowerCase() === "image" ? "image-outline" : "document-outline"} size={22} color={C.text} />
-                          <Text numberOfLines={2} style={{ color: C.text, textDecorationLine: "underline", flexShrink: 1 }}>{attachmentName}</Text>
+                          <Ionicons name={String(attachmentType).toLowerCase() === "image" ? "image-outline" : String(attachmentType).toLowerCase() === "audio" ? "play-circle-outline" : String(attachmentType).toLowerCase() === "video" ? "videocam-outline" : "document-outline"} size={22} color={C.text} />
+                          <Text numberOfLines={2} style={{ color: C.text, textDecorationLine: "underline", flexShrink: 1 }}>{String(attachmentType).toLowerCase() === "audio" ? "▶ Voice message" : attachmentName}</Text>
                         </TouchableOpacity>
                       ) : null}
                       {!!body && <Text style={{ color: C.text, fontSize: 15 * textScale, lineHeight: 21 * textScale }}>{body}</Text>}
