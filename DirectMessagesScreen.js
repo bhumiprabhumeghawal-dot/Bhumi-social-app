@@ -308,22 +308,27 @@ export default function DirectMessagesScreen({
                   <Text numberOfLines={1} style={{ color: C.text, fontSize: 20, fontWeight: "800", letterSpacing: -0.4 }}>{authSession?.username || "Messages"}</Text>
                   <Ionicons name="chevron-down" size={17} color={C.text} />
                 </View>
-                <TouchableOpacity onPress={() => {
-                  setQuery("");
-                  setPeople([]);
-                  requestAnimationFrame(() => searchInputRef.current?.focus?.());
-                }} style={{ width: 42, height: 46, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="New message">
-                  <Ionicons name="create-outline" size={27} color={C.text} />
-                </TouchableOpacity>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <TouchableOpacity onPress={() => {}} style={{ width: 42, height: 46, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="Video chat">
+                    <Ionicons name="videocam-outline" size={26} color={C.text} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => {
+                    setQuery("");
+                    setPeople([]);
+                    requestAnimationFrame(() => searchInputRef.current?.focus?.());
+                  }} style={{ width: 42, height: 46, alignItems: "center", justifyContent: "center" }} accessibilityRole="button" accessibilityLabel="New message">
+                    <Ionicons name="create-outline" size={27} color={C.text} />
+                  </TouchableOpacity>
+                </View>
               </>
             )}
           </View>
 
           {!peer ? (
             <View style={{ flex: 1, minHeight: 0 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", marginHorizontal: horizontalInset, marginTop: query.trim() ? 13 : 0, marginBottom: 5, gap: 12 }}>
-                <View style={{ flex: 1, minWidth: 0, height: 48, borderRadius: 28, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 13 }}>
-                  <Ionicons name="search" size={19} color={C.muted} />
+              <View style={{ marginHorizontal: horizontalInset, marginTop: query.trim() ? 13 : 0, marginBottom: 5 }}>
+                <View style={{ width: "100%", height: 42, borderRadius: 11, backgroundColor: C.field, flexDirection: "row", alignItems: "center", paddingHorizontal: 12 }}>
+                  <Ionicons name="search" size={18} color={C.muted} />
                   <TextInput
                     ref={searchInputRef}
                     value={query}
@@ -332,26 +337,11 @@ export default function DirectMessagesScreen({
                     placeholderTextColor={C.muted}
                     autoCapitalize="none"
                     returnKeyType="search"
-                    style={{ flex: 1, color: C.text, paddingHorizontal: 10, height: 46 }}
+                    style={{ flex: 1, color: C.text, paddingHorizontal: 9, height: 40 }}
                   />
                   {!!query && <TouchableOpacity onPress={() => setQuery("")}><Ionicons name="close-circle" size={19} color={C.muted} /></TouchableOpacity>}
                 </View>
-                <TouchableOpacity onPress={() => setFilterOpen((value) => !value)} accessibilityRole="button" accessibilityLabel="Filter messages" style={{ height: 48, justifyContent: "center", paddingRight: 2 }}>
-                  <Text style={{ color: C.blue, fontSize: 14, fontWeight: "700" }}>Filter</Text>
-                </TouchableOpacity>
               </View>
-              {filterOpen && !query.trim() ? (
-                <View style={{ marginHorizontal: horizontalInset, marginBottom: 9, padding: 10, borderRadius: 14, backgroundColor: C.panel, borderWidth: 1, borderColor: C.line }}>
-                  <Text style={{ color: C.muted, fontSize: 11, fontWeight: "700", marginBottom: 8 }}>Show messages</Text>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
-                    {["All", "Primary", "General", "Requests"].map((tab) => (
-                      <TouchableOpacity key={tab} onPress={() => { setInboxTab(tab); setFilterOpen(false); }} accessibilityRole="button" style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, backgroundColor: inboxTab === tab ? "#111111" : C.field }}>
-                        <Text style={{ color: inboxTab === tab ? "#FFFFFF" : C.text, fontSize: 12, fontWeight: "700" }}>{tab}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-              ) : null}
               {!query.trim() ? (
                 <>
 
@@ -374,15 +364,21 @@ export default function DirectMessagesScreen({
               ) : null}
 
               {!query.trim() ? (
-                <View style={{ paddingHorizontal: horizontalInset, paddingBottom: 4, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 5, borderBottomWidth: 0.5, borderBottomColor: C.line }}>
-                  {["All", "Primary", "General", "Requests"].map((tab) => (
-                    <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minWidth: 0, paddingHorizontal: 4, paddingVertical: 6, borderRadius: 12, backgroundColor: inboxTab === tab ? "#FFFFFF" : C.field, minHeight: 38, alignItems: "center", justifyContent: "center" }}>
-                      <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: inboxTab === tab ? "#111111" : C.text, fontSize: 12 * textScale, fontWeight: "700" }}>
-                        {tab}{([ "All", "Primary" ].includes(tab) ? " " + (tab === "All" ? conversations.length : conversations.filter((x) => ["", "primary"].includes(String(x.folder || x.category || x.inboxType || x.inbox_type || "primary").toLowerCase())).length) : "")}{tab === "Requests" ? "  ›" : ""}
-                      </Text>
+                <>
+                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: 8, paddingBottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Messages</Text>
+                    <TouchableOpacity onPress={() => setInboxTab("Requests")} accessibilityRole="button" accessibilityLabel="Message requests">
+                      <Text style={{ color: C.blue, fontSize: 13, fontWeight: "600" }}>Requests</Text>
                     </TouchableOpacity>
-                  ))}
-                </View>
+                  </View>
+                  <View style={{ paddingHorizontal: horizontalInset, flexDirection: "row", alignItems: "stretch", borderBottomWidth: 0.5, borderBottomColor: C.line }}>
+                    {["Primary", "General"].map((tab) => (
+                      <TouchableOpacity key={tab} onPress={() => setInboxTab(tab)} accessibilityRole="button" accessibilityLabel={tab + " messages"} style={{ flex: 1, minHeight: 42, alignItems: "center", justifyContent: "center", borderBottomWidth: inboxTab === tab ? 2 : 0, borderBottomColor: C.text }}>
+                        <Text style={{ color: inboxTab === tab ? C.text : C.muted, fontSize: 13 * textScale, fontWeight: inboxTab === tab ? "800" : "600" }}>{tab}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
               ) : null}
               {query.trim().length >= 2 ? (
                 <FlatList
