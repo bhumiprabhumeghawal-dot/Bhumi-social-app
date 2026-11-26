@@ -7,7 +7,7 @@ import { translateAppText, translateAppTextValue } from "./localization";
 import ChatPersonalization from "./ChatPersonalization";
 import DirectMessagesScreen from "./DirectMessagesScreen";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
-import { registerCallPushToken } from "./api";
+import { registerCallPushToken, respondToCall } from "./api";
 import * as SecureStore from "expo-secure-store";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as FileSystem from "expo-file-system/legacy";
@@ -3061,6 +3061,18 @@ export default function App() {
               options: { opensAppToForeground: false },
             },
           ]);
+          await Notifications.setNotificationCategoryAsync("incoming_call", [
+            {
+              identifier: "answer_call",
+              buttonTitle: "Answer in Bhumi",
+              options: { opensAppToForeground: true },
+            },
+            {
+              identifier: "decline_call",
+              buttonTitle: "Decline",
+              options: { opensAppToForeground: false },
+            },
+          ]);
           await Notifications.setNotificationChannelAsync("incoming-calls", {
             name: "Incoming calls",
             importance: Notifications.AndroidImportance.MAX,
@@ -4681,8 +4693,13 @@ export default function App() {
         }
 
         if (type === "incoming_call" || type === "incoming_call_headless" || type === "call") {
-          // Opening the caller's conversation lets the existing pending-call
-          // in-app call poller resolves the live call state.
+          const callId = String(data.callId || data.call_id || "").trim();
+          if (response?.actionIdentifier === "decline_call") {
+            if (callId) await respondToCall(callId, "reject");
+            return;
+          }
+          // Answer opens Bhumi's own chat/call screen. The user confirms
+          // inside the app; no Android dialer or Telecom call UI is launched.
           if (actor) {
             setMessagesOpen(true);
             await openDirectChat(actor);
