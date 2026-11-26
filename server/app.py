@@ -2016,10 +2016,15 @@ def list_people_notifications():
         return jsonify({"error": "Please log in first."}), 401
     with get_db() as db:
         rows = db.execute("""
-            SELECT id, actor, kind, reference_id, created_at, is_read
-            FROM people_notifications
-            WHERE recipient=?
-            ORDER BY created_at DESC
+            SELECT n.id, n.actor, n.kind, n.reference_id, n.created_at, n.is_read,
+                   c.username AS content_owner, c.media_url AS post_media_url,
+                   c.media_type AS post_media_type
+            FROM people_notifications n
+            LEFT JOIN content c
+              ON CAST(c.id AS TEXT)=n.reference_id
+             AND c.kind IN ('posts', 'reels')
+            WHERE n.recipient=?
+            ORDER BY n.created_at DESC
             LIMIT 100
         """, (username,)).fetchall()
         unread = db.execute("""
@@ -2033,6 +2038,11 @@ def list_people_notifications():
             "actor": row["actor"],
             "kind": row["kind"],
             "referenceId": row["reference_id"],
+            "postMediaUrl": (
+                row["post_media_url"]
+                if row["content_owner"] and can_view_content(db, row["content_owner"], username)
+                and row["post_media_type"] == "image" else None
+            ),
             "createdAt": row["created_at"],
             "isRead": bool(row["is_read"]),
         } for row in rows],
