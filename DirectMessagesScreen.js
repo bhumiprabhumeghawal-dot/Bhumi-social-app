@@ -112,6 +112,7 @@ export default function DirectMessagesScreen({
   const [sending, setSending] = React.useState(false);
   const [attachment, setAttachment] = React.useState(null);
   const [isVoiceRecording, setIsVoiceRecording] = React.useState(false);
+  const [voicePreviewUri, setVoicePreviewUri] = React.useState(null);
   const voiceRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const voiceRecordingRef = React.useRef(false);
   const voiceRecordingPeerRef = React.useRef("");
@@ -261,24 +262,44 @@ export default function DirectMessagesScreen({
     }
   };
 
-  const stopAndSendVoiceRecording = async () => {
+  const stopAndPreviewVoiceRecording = async () => {
     if (!voiceRecordingRef.current || sending) return;
-    const recipient = voiceRecordingPeerRef.current || peer;
     voiceRecordingRef.current = false;
     voiceRecordingPeerRef.current = "";
     setIsVoiceRecording(false);
-    setSending(true);
     setError("");
-    let uploadUri = null;
     try {
       await voiceRecorder.stop();
       const recordedUri = voiceRecorder.uri;
       if (!recordedUri) throw new Error("Recorded voice file nahi mila.");
+      const previewUri = `${FileSystem.cacheDirectory}bhumi-voice-preview-${Date.now()}.m4a`;
+      await FileSystem.copyAsync({ from: recordedUri, to: previewUri });
+      setVoicePreviewUri((old) => {
+        if (old) FileSystem.deleteAsync(old, { idempotent: true }).catch(() => {});
+        return previewUri;
+      });
+    } catch (e) {
+      setError(e?.message || "Recording preview taiyar nahi ho saka.");
+    } finally {
+      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
+    }
+  };
 
-      // Copy to a stable, explicitly named audio file before multipart upload.
-      uploadUri = `${FileSystem.cacheDirectory}bhumi-voice-${Date.now()}.m4a`;
-      await FileSystem.copyAsync({ from: recordedUri, to: uploadUri });
+  const discardVoicePreview = async () => {
+    const oldUri = voicePreviewUri;
+    setVoicePreviewUri(null);
+    if (oldUri) await FileSystem.deleteAsync(oldUri, { idempotent: true }).catch(() => {});
+  };
 
+  const sendVoicePreview = async () => {
+    if (!voicePreviewUri || !peer || sending) return;
+    const recipient = peer;
+    setSending(true);
+    setError("");
+    let uploadUri = null;
+    try {
+      uploadUri = `${FileSystem.cacheDirectory}bhumi-voice-send-${Date.now()}.m4a`;
+      await FileSystem.copyAsync({ from: voicePreviewUri, to: uploadUri });
       const uploaded = await uploadChatAttachment({
         uri: uploadUri,
         name: "Voice message.m4a",
@@ -292,6 +313,7 @@ export default function DirectMessagesScreen({
       if (sent && String(recipient).toLowerCase() === String(peerRef.current || peer).toLowerCase()) {
         setMessages((old) => [...old, sent]);
       }
+      await discardVoicePreview();
       Keyboard.dismiss();
       requestAnimationFrame(() => listRef.current?.scrollToEnd?.({ animated: true }));
     } catch (e) {
@@ -299,7 +321,7 @@ export default function DirectMessagesScreen({
     } finally {
       if (uploadUri) await FileSystem.deleteAsync(uploadUri, { idempotent: true }).catch(() => {});
       setSending(false);
-      await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
+      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
     }
   };
 
@@ -746,6 +768,17 @@ export default function DirectMessagesScreen({
                     ))}
                   </View>
                 ) : null}
+                {voicePreviewUri ? (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: C.panel, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8, marginBottom: 7, borderWidth: 1, borderColor: C.line }}>
+                    <VoiceMessageAttachment uri={voicePreviewUri} name="Recording preview" color={C.text} mutedColor={C.muted} onError={setError} />
+                    <TouchableOpacity onPress={discardVoicePreview} disabled={sending} accessibilityRole="button" accessibilityLabel="Delete recording and record again" style={{ padding: 5 }}>
+                      <Ionicons name="trash-outline" size={21} color={C.danger} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={sendVoicePreview} disabled={sending} accessibilityRole="button" accessibilityLabel="Send voice recording" style={{ padding: 5 }}>
+                      {sending ? <ActivityIndicator color={C.blue} /> : <Ionicons name="send" size={21} color={C.blue} />}
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
                 {attachment ? (
                   <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: C.panel, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7, marginBottom: 7 }}>
                     <Ionicons name="document-attach-outline" size={18} color={C.blue} />
@@ -786,7 +819,7 @@ export default function DirectMessagesScreen({
                       </>
                     )}
                   </View>
-                  <TouchableOpacity onPress={isVoiceRecording ? stopAndSendVoiceRecording : startVoiceRecording} disabled={sending} accessibilityRole="button" accessibilityLabel={isVoiceRecording ? "Stop and send voice message" : "Record voice message"} style={{ width: 38, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: isVoiceRecording ? C.danger : "transparent", opacity: sending ? 0.5 : 1 }}>
+                  <TouchableOpacity onPress={isVoiceRecording ? stopAndPreviewVoiceRecording : startVoiceRecording} disabled={sending || !!voicePreviewUri} accessibilityRole="button" accessibilityLabel={isVoiceRecording ? "Stop recording and preview" : "Record voice message"} style={{ width: 38, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: isVoiceRecording ? C.danger : "transparent", opacity: sending || voicePreviewUri ? 0.5 : 1 }}>
                     {isVoiceRecording ? <Ionicons name="stop" size={composerIconSize + 1} color="#FFFFFF" /> : <Ionicons name="mic-outline" size={composerIconSize + 1} color={C.blue} />}
                   </TouchableOpacity>
                 </View>
