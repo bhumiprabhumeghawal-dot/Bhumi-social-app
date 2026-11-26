@@ -6773,7 +6773,6 @@ export default function App() {
                   setAuthFullName(value);
                   if (authUsernameAutoRef.current) {
                     const clean = String(value || "").toLowerCase().normalize("NFKD")
-                      .replace(/[\\u0300-\\u036f]/g, "")
                       .replace(/[^a-z0-9]+/g, "").slice(0, 30);
                     setAuthUsername((clean.length >= 3 ? clean : "bhumi") + authUsernameSuffixRef.current);
                   }
@@ -6820,7 +6819,7 @@ export default function App() {
                 }}
               />
               <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 12 }}>
-                {appText("signupUsernameHint")}
+                आपका यूज़रनेम अपने-आप बना है। लॉगिन के लिए इसे याद रखें।
               </Text>
             </>
           ) : (
