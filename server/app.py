@@ -38,6 +38,9 @@ ALLOWED_EXTENSIONS = {
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES + 2 * 1024 * 1024
 
+from server.monetization import monetization_bp
+app.register_blueprint(monetization_bp)
+
 
 def get_db():
     from server.db_compat import connect_database
