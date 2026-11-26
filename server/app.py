@@ -36,7 +36,8 @@ ALLOWED_EXTENSIONS = {
 }
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES + 2 * 1024 * 1024
+# Chat video attachments are allowed up to 100 MB; leave multipart overhead too.
+app.config["MAX_CONTENT_LENGTH"] = 102 * 1024 * 1024
 
 
 def get_db():
