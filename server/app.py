@@ -4307,13 +4307,18 @@ def create_call():
         if blocked:
             return jsonify({"error": "Calls are unavailable for this account."}), 403
 
+        # Either participant may already be busy. Check both caller and callee
+        # against both sides of every unexpired call before creating a new one.
         active = db.execute("""
             SELECT id FROM call_sessions
             WHERE status IN ('ringing', 'accepted')
               AND expires_at > ?
-              AND (LOWER(caller_username)=LOWER(?) OR LOWER(callee_username)=LOWER(?))
+              AND (
+                LOWER(caller_username) IN (LOWER(?), LOWER(?))
+                OR LOWER(callee_username) IN (LOWER(?), LOWER(?))
+              )
             LIMIT 1
-        """, (now_text, caller, caller)).fetchone()
+        """, (now_text, caller, callee, caller, callee)).fetchone()
         if active:
             return jsonify({"error": "You already have an active call."}), 409
 
@@ -4370,22 +4375,29 @@ def update_call(call_id, action):
         if action in ("accept", "reject") and not callee:
             return jsonify({"error": "Only the recipient can answer this call."}), 403
         if action == "accept":
-            if row["status"] != "ringing" or row["expires_at"] <= now:
-                return jsonify({"error": "This call has expired."}), 409
-            status = "accepted"
             expires = (datetime.now(timezone.utc) + timedelta(hours=2)).isoformat()
+            changed = db.execute("""
+                UPDATE call_sessions
+                SET status='accepted', updated_at=?, expires_at=?
+                WHERE id=? AND status='ringing' AND expires_at>?
+            """, (now, expires, call_id, now))
+            error_message = "This call is no longer ringing or has expired."
         elif action == "reject":
-            if row["status"] != "ringing":
-                return jsonify({"error": "This call is no longer ringing."}), 409
-            status, expires = "rejected", row["expires_at"]
+            changed = db.execute("""
+                UPDATE call_sessions SET status='rejected', updated_at=?
+                WHERE id=? AND status='ringing' AND expires_at>?
+            """, (now, call_id, now))
+            error_message = "This call is no longer ringing."
         else:
-            if row["status"] not in ("ringing", "accepted"):
-                return jsonify({"error": "This call has already ended."}), 409
-            status, expires = "ended", row["expires_at"]
-        db.execute(
-            "UPDATE call_sessions SET status=?, updated_at=?, expires_at=? WHERE id=?",
-            (status, now, expires, call_id),
-        )
+            changed = db.execute("""
+                UPDATE call_sessions SET status='ended', updated_at=?
+                WHERE id=? AND status IN ('ringing', 'accepted') AND expires_at>?
+            """, (now, call_id, now))
+            error_message = "This call has already ended or expired."
+        # Conditional updates make accept/reject/end mutually exclusive even
+        # when two devices send actions at nearly the same time.
+        if changed.rowcount != 1:
+            return jsonify({"error": error_message}), 409
         updated = db.execute("SELECT * FROM call_sessions WHERE id=?", (call_id,)).fetchone()
     return jsonify({"ok": True, "call": _call_json(updated)})
 
@@ -4432,6 +4444,8 @@ def get_call_token(call_id):
         return jsonify({"error": "Call not found."}), 404
     if row["status"] != "accepted":
         return jsonify({"error": "The other person has not accepted the call yet."}), 409
+    if row["expires_at"] <= datetime.now(timezone.utc).isoformat():
+        return jsonify({"error": "This call has expired."}), 409
     if username.casefold() not in (
         row["caller_username"].casefold(), row["callee_username"].casefold()
     ):
