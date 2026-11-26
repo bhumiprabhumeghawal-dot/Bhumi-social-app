@@ -4762,9 +4762,13 @@ def get_direct_messages(username):
                 dm.created_at, dm.delivered_at, dm.read_at, dm.reply_to_id,
                 dm.expires_at,
                 parent.body AS reply_text,
-                parent.sender_username AS reply_sender
+                parent.sender_username AS reply_sender,
+                sender_profile.avatar_url AS sender_avatar_url,
+                recipient_profile.avatar_url AS recipient_avatar_url
             FROM direct_messages dm
             LEFT JOIN direct_messages parent ON parent.id = dm.reply_to_id
+            LEFT JOIN profiles sender_profile ON LOWER(sender_profile.username)=LOWER(dm.sender_username)
+            LEFT JOIN profiles recipient_profile ON LOWER(recipient_profile.username)=LOWER(dm.recipient_username)
             WHERE ((LOWER(dm.sender_username)=LOWER(?) AND LOWER(dm.recipient_username)=LOWER(?))
                OR (LOWER(dm.sender_username)=LOWER(?) AND LOWER(dm.recipient_username)=LOWER(?)))
               AND (dm.expires_at IS NULL OR dm.expires_at > ?)
@@ -4778,6 +4782,8 @@ def get_direct_messages(username):
             "id": row["id"],
             "sender": row["sender_username"],
             "recipient": row["recipient_username"],
+            "senderAvatarUrl": row["sender_avatar_url"],
+            "recipientAvatarUrl": row["recipient_avatar_url"],
             "text": row["body"],
             "imageUrl": row["image_url"],
             "attachmentUrl": row["attachment_url"] or row["image_url"],
