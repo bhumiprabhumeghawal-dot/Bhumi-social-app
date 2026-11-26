@@ -1439,6 +1439,7 @@ function PostCard({
                         aspectRatio: undefined,
                       },
                     ]}
+                    resizeMethod="resize"
                     resizeMode="cover"
                   />
                 ) : (
@@ -1482,6 +1483,7 @@ function PostCard({
                   styles.postImage,
                   { height: mediaHeight, aspectRatio: undefined },
                 ]}
+                resizeMethod="resize"
                 resizeMode="cover"
               />
             ) : (
