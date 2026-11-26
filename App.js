@@ -4629,6 +4629,7 @@ export default function App() {
         current.map((item) => ({ ...item, isRead: true })),
       );
       setUnreadNotificationCount(0);
+      setUnreadLikeCount(0);
     } catch (e) {
       Alert.alert(
         appText("alertNotifications"),
