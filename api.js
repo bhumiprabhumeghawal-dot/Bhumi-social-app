@@ -3,6 +3,18 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
 const API_BASE_URL = 'https://bhumi-social-app-1.onrender.com';
 
+const withAbsoluteAvatar = (item) => {
+  if (!item || typeof item !== "object") return item;
+  const next = { ...item };
+  for (const key of ["avatarUrl", "senderAvatarUrl", "recipientAvatarUrl", "profilePicture", "avatar"]) {
+    const value = next[key];
+    if (typeof value === "string" && value.trim() && !/^https?:\/\//i.test(value)) {
+      next[key] = `${API_BASE_URL}${value.startsWith("/") ? "" : "/"}${value}`;
+    }
+  }
+  return next;
+};
+
 const AUTH_TOKEN_KEY = 'socialapp_auth_token';
 const AUTH_USERNAME_KEY = 'socialapp_auth_username';
 
@@ -1025,7 +1037,7 @@ export async function searchUsers(query) {
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Search failed.');
-  return data.results || [];
+  return (data.results || []).map(withAbsoluteAvatar);
 }
 
 export async function loadFollowRequests() {
@@ -1142,7 +1154,7 @@ export async function loadMessageConversations() {
     const response = await fetch(`${API_BASE_URL}/api/messages/conversations`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Could not load conversations.');
-    return data.conversations || [];
+    return (data.conversations || []).map(withAbsoluteAvatar);
   });
 }
 
@@ -1165,7 +1177,7 @@ export async function loadDirectMessages(username) {
     );
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Could not load messages.');
-    return data.messages || [];
+    return (data.messages || []).map(withAbsoluteAvatar);
   });
 }
 
