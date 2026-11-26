@@ -539,6 +539,33 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     return () => { active = false; if (timer) clearTimeout(timer); };
   }, [call, incoming, connection]);
 
+  // Keep the recipient's ringing screen in sync if the caller cancels,
+  // the call expires, or the server marks it missed while this device is ringing.
+  useEffect(() => {
+    if (!call || !incoming) return undefined;
+    let active = true;
+    let timer = null;
+    const checkIncomingStatus = async () => {
+      if (!active || callRef.current?.id !== call.id) return;
+      try {
+        const latest = await getVoiceVideoCallStatus(call.id);
+        if (!active || callRef.current?.id !== call.id) return;
+        if (latest && ["rejected", "missed", "ended"].includes(latest.status)) {
+          resetCall();
+          return;
+        }
+      } catch (_) {
+        // A temporary network failure must not dismiss a valid ringing call.
+      } finally {
+        if (active && callRef.current?.id === call.id) {
+          timer = setTimeout(checkIncomingStatus, 1200);
+        }
+      }
+    };
+    void checkIncomingStatus();
+    return () => { active = false; if (timer) clearTimeout(timer); };
+  }, [call?.id, incoming]);
+
   const answerCall = async () => {
     if (!call || busy) return;
     setBusy(true);
