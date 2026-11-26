@@ -3,6 +3,12 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
 const API_BASE_URL = 'https://bhumi-social-app-1.onrender.com';
 
+// Keep device metadata safe for HTTP headers on every Android/iOS version.
+// Native platform/version values can contain characters rejected by OkHttp.
+const DEVICE_PLATFORM = String(Platform.OS || "unknown").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 12) || "unknown";
+const DEVICE_OS_VERSION = String(Platform.Version ?? "unknown").replace(/[^A-Za-z0-9._-]/g, "").slice(0, 24) || "unknown";
+const DEVICE_NAME_HEADER = `${DEVICE_PLATFORM} device ${DEVICE_OS_VERSION}`;
+
 const withAbsoluteAvatar = (item) => {
   if (!item || typeof item !== "object") return item;
   const next = { ...item };
@@ -91,7 +97,7 @@ async function authHeaders(extra = {}) {
 export async function registerAccount(username, password, phoneNumber, email, fullName) {
   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Device-Name': `${Platform.OS} device ${Platform.Version}` },
+    headers: { 'Content-Type': 'application/json', 'X-Device-Name': DEVICE_NAME_HEADER },
     body: JSON.stringify({
       username: username.trim(),
       full_name: fullName.trim(),
@@ -109,7 +115,7 @@ export async function registerAccount(username, password, phoneNumber, email, fu
 export async function loginAccount(username, password) {
   const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Device-Name': `${Platform.OS} device ${Platform.Version}` },
+    headers: { 'Content-Type': 'application/json', 'X-Device-Name': DEVICE_NAME_HEADER },
     body: JSON.stringify({ username: username.trim(), password }),
   });
   const data = await response.json();
