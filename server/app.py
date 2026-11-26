@@ -37,7 +37,8 @@ ALLOWED_EXTENSIONS = {
 
 app = Flask(__name__)
 # Chat video attachments are allowed up to 100 MB; leave multipart overhead too.
-app.config["MAX_CONTENT_LENGTH"] = 102 * 1024 * 1024
+# Permit large DM uploads; per-media limits are enforced by each upload endpoint.
+app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024 + 10 * 1024 * 1024
 
 
 def get_db():
@@ -3908,9 +3909,9 @@ def upload_chat_photo():
     try:
         media.save(destination)
         size = destination.stat().st_size
-        if size <= 0 or size > 10 * 1024 * 1024:
+        if size <= 0 or size > 100 * 1024 * 1024:
             destination.unlink(missing_ok=True)
-            return jsonify({"error": "Chat photos must not exceed 10 MB."}), 413
+            return jsonify({"error": "Chat photos must not exceed 100 MB."}), 413
         with get_db() as db:
             db.execute("""
                 INSERT INTO chat_media (
@@ -3959,10 +3960,10 @@ def upload_chat_attachment():
         return jsonify({"error": "This file type is not allowed in chat."}), 415
 
     size_limits = {
-        "image": 10 * 1024 * 1024,
-        "video": 100 * 1024 * 1024,
-        "audio": 30 * 1024 * 1024,
-        "file": 25 * 1024 * 1024,
+        "image": 100 * 1024 * 1024,
+        "video": 1024 * 1024 * 1024,
+        "audio": 500 * 1024 * 1024,
+        "file": 500 * 1024 * 1024,
     }
     folder = UPLOAD_DIR / "chat"
     folder.mkdir(parents=True, exist_ok=True)
