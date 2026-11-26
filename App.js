@@ -3518,6 +3518,7 @@ export default function App() {
   React.useEffect(() => {
     if (!authSession?.username) {
       setUnreadNotificationCount(0);
+      setUnreadLikeCount(0);
       setMessageConversations([]);
       return undefined;
     }
@@ -3531,6 +3532,7 @@ export default function App() {
         if (!active) return;
         setMessageConversations(Array.isArray(conversations) ? conversations : []);
         setUnreadNotificationCount(Number(notifications?.unreadCount || 0));
+        setUnreadLikeCount(Number(notifications?.unreadLikeCount || 0));
       } catch (error) {
         console.warn("Unread badge refresh failed:", error?.message || error);
       }
@@ -3926,6 +3928,7 @@ export default function App() {
   const [notificationsList, setNotificationsList] = React.useState([]);
   const [unreadNotificationCount, setUnreadNotificationCount] =
     React.useState(0);
+  const [unreadLikeCount, setUnreadLikeCount] = React.useState(0);
   const [notificationsLoading, setNotificationsLoading] = React.useState(false);
   const [notificationDetailsOpen, setNotificationDetailsOpen] =
     React.useState(false);
@@ -4009,6 +4012,7 @@ export default function App() {
     let active = true;
     if (!authSession) {
       setUnreadNotificationCount(0);
+      setUnreadLikeCount(0);
       return () => {
         active = false;
       };
@@ -4021,6 +4025,7 @@ export default function App() {
       .then(([notifications, enabled, details]) => {
         if (!active) return;
         setUnreadNotificationCount(Number(notifications.unreadCount || 0));
+        setUnreadLikeCount(Number(notifications.unreadLikeCount || 0));
         setNotificationsEnabled(Boolean(enabled));
         setNotificationDetails((current) => ({ ...current, ...details }));
       })
@@ -4372,6 +4377,7 @@ export default function App() {
         Array.isArray(data.notifications) ? data.notifications : [],
       );
       setUnreadNotificationCount(Number(data.unreadCount || 0));
+      setUnreadLikeCount(Number(data.unreadLikeCount || 0));
     } catch (e) {
       Alert.alert(
         appText("alertNotifications"),
@@ -4393,6 +4399,13 @@ export default function App() {
         ),
       );
       setUnreadNotificationCount((current) => Math.max(0, current - 1));
+      setNotificationsList((current) => {
+        const target = current.find((item) => String(item.id) === String(notificationId));
+        if (target && ["like", "reel_like", "gift_flower"].includes(String(target.kind || "").toLowerCase())) {
+          setUnreadLikeCount((count) => Math.max(0, count - 1));
+        }
+        return current;
+      });
     } catch (e) {
       Alert.alert(
         appText("alertNotifications"),
@@ -8830,8 +8843,8 @@ export default function App() {
                     </TouchableOpacity>
                     <Text style={{ flex: 1, textAlign: "center", fontSize: 25, fontWeight: "700", letterSpacing: -1, color: lightAppearance ? "#111111" : "#F5F5F5" }} numberOfLines={1}>Bhumi Social AI</Text>
                     <TouchableOpacity onPress={openNotifications} accessibilityLabel={appText("notificationsTitle")} style={{ width: 42, alignItems: "flex-end", justifyContent: "center", position: "relative" }}>
-                      <Ionicons name="heart-outline" size={29} color={lightAppearance ? "#111111" : "#F5F5F5"} />
-                      {unreadNotificationCount > 0 ? <View style={{ position: "absolute", right: 0, top: 0, width: 9, height: 9, borderRadius: 5, backgroundColor: "#E1306C" }} /> : null}
+                      <Ionicons name={unreadLikeCount > 0 ? "heart" : "heart-outline"} size={29} color={unreadLikeCount > 0 ? "#E1306C" : lightAppearance ? "#111111" : "#F5F5F5"} />
+                      {unreadLikeCount > 0 ? <View style={{ position: "absolute", right: -3, top: -2, minWidth: 17, height: 17, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#E1306C", borderWidth: 1, borderColor: lightAppearance ? "#FFFFFF" : "#000000", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "800" }}>{unreadLikeCount > 99 ? "99+" : unreadLikeCount}</Text></View> : null}
                     </TouchableOpacity>
                   </View>
                   <ScrollView
