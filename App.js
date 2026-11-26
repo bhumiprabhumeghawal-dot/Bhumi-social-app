@@ -1634,11 +1634,11 @@ function PostCard({
           >
             <View
               style={{
-                backgroundColor: "#121212",
+                backgroundColor: lightAppearance ? "#FFFFFF" : "#121212",
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
                 borderTopWidth: 1,
-                borderColor: "#262626",
+                borderColor: lightAppearance ? "#E5E5E5" : "#262626",
                 paddingHorizontal: 18,
                 paddingTop: 10,
                 paddingBottom: 18,
@@ -1665,11 +1665,11 @@ function PostCard({
               >
                 <View>
                   <Text
-                    style={{ fontSize: 18, fontWeight: "800", color: "#FFFFFF" }}
+                    style={{ fontSize: 18, fontWeight: "800", color: lightAppearance ? "#111111" : "#FFFFFF" }}
                   >
                     {postText("commentsTitle")}
                   </Text>
-                  <Text style={{ color: "#8E8E93", fontSize: 11, marginTop: 3 }}>
+                  <Text style={{ color: lightAppearance ? "#737373" : "#8E8E93", fontSize: 11, marginTop: 3 }}>
                     {postText("joinConversation")}
                   </Text>
                 </View>
@@ -1680,7 +1680,7 @@ function PostCard({
                     width: 32,
                     height: 32,
                     borderRadius: 16,
-                    backgroundColor: "#1C1C1E",
+                    backgroundColor: lightAppearance ? "#F0F0F0" : "#1C1C1E",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -1691,14 +1691,14 @@ function PostCard({
 
               <ScrollView style={{ flexGrow: 0, maxHeight: commentsMaxHeight }}>
                 {comments.length === 0 ? (
-                  <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
+                  <Text style={{ color: lightAppearance ? "#737373" : "#A8A8A8", paddingVertical: 12 }}>
                     {postText("noComments")}
                   </Text>
                 ) : (
                   comments.map((comment) => (
                     <View
                       key={String(comment.id)}
-                      style={{ paddingVertical: 8, marginLeft: comment.parentCommentId ? 18 : 0, borderLeftWidth: comment.parentCommentId ? 2 : 0, borderLeftColor: "#333333", paddingLeft: comment.parentCommentId ? 9 : 0 }}
+                      style={{ paddingVertical: 8, marginLeft: comment.parentCommentId ? 18 : 0, borderLeftWidth: comment.parentCommentId ? 2 : 0, borderLeftColor: lightAppearance ? "#DDDDDD" : "#333333", paddingLeft: comment.parentCommentId ? 9 : 0 }}
                     >
                       <Text style={{ color: "#FFFFFF" }}>
                         <Text
@@ -1734,7 +1734,7 @@ function PostCard({
                             paddingVertical: 5,
                             paddingHorizontal: 12,
                             borderRadius: 8,
-                            backgroundColor: "#E8F2FC",
+                            backgroundColor: lightAppearance ? "#E8F2FC" : "#E8F2FC",
                           }}
                         >
                           <Text
@@ -1794,7 +1794,7 @@ function PostCard({
                     opacity: interactionBusy ? 0.55 : 1,
                   }}
                 >
-                  <Text style={{ color: commentDraft.trim() && !interactionBusy ? "#FFFFFF" : "#8E8E93", fontWeight: "800", fontSize: 12 }}>
+                  <Text style={{ color: commentDraft.trim() && !interactionBusy ? "#FFFFFF" : (lightAppearance ? "#737373" : "#8E8E93"), fontWeight: "800", fontSize: 12 }}>
                     {postText("postComment")}
                   </Text>
                 </TouchableOpacity>
