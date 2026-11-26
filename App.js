@@ -8785,6 +8785,15 @@ export default function App() {
                               {r.likesCount ?? r.likes ?? "0"}
                             </Text>
                           </TouchableOpacity>
+                          {String(username).toLowerCase() === String(authSession?.username || "").toLowerCase() && index === activeReelIndex ? (
+                            <TouchableOpacity
+                              onPress={() => NativeAlert.alert("Reel viewers", reelViewers.length ? reelViewers.map((viewer) => viewer.displayName || viewer.username).join("\n") : "No views yet")}
+                              style={{ alignItems: "center" }}
+                            >
+                              <Ionicons name="eye-outline" size={27} color="#FFFFFF" />
+                              <Text style={{ color: "#FFFFFF", fontSize: 11, marginTop: 3 }}>{reelViewers.length}</Text>
+                            </TouchableOpacity>
+                          ) : null}
                           <TouchableOpacity
                             onPress={() => handleOpenReelComments(r)}
                             style={{ alignItems: "center" }}
