@@ -11081,7 +11081,7 @@ export default function App() {
         }}
       />
 
-      <DirectMessagesScreen visible={messagesOpen} onClose={closeMessages} authSession={authSession} initialUsername={selectedChatUser} onSelectedChatUserChange={setSelectedChatUser} onOpenProfile={openUserProfile} onNavigateTab={(tab) => { closeMessages(); handleTab(tab); }} />
+      <DirectMessagesScreen visible={messagesOpen} onClose={closeMessages} authSession={authSession} ownAvatarUrl={profile?.avatarUrl || authSession?.avatarUrl} initialUsername={selectedChatUser} onSelectedChatUserChange={setSelectedChatUser} onOpenProfile={openUserProfile} onNavigateTab={(tab) => { closeMessages(); handleTab(tab); }} />
 
       
 
