@@ -1516,13 +1516,26 @@ export async function stopLocationShare(shareId) {
 
 // SOCIALAPP_LIVEKIT_CALL_API_V1
 async function callApi(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: await authHeaders({
-      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(options.headers || {}),
-    }),
-  });
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeout = controller ? setTimeout(() => controller.abort(), 10000) : null;
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      ...(controller ? { signal: controller.signal } : {}),
+      headers: await authHeaders({
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers || {}),
+      }),
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error('Call server took too long to respond. Please try again.');
+    }
+    throw error;
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
   let data = {};
   try { data = await response.json(); } catch (_) {}
   if (!response.ok) {
