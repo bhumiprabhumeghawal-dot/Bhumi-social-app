@@ -49,6 +49,7 @@ export default function DirectMessagesScreen({
   const [friendsNotes, setFriendsNotes] = React.useState([]);
   const [ownNote, setOwnNote] = React.useState(null);
   const [noteComposerOpen, setNoteComposerOpen] = React.useState(false);
+  const [noteViewer, setNoteViewer] = React.useState(null);
   const [noteText, setNoteText] = React.useState("");
   const [songUrl, setSongUrl] = React.useState("");
   const [songTitle, setSongTitle] = React.useState("");
@@ -372,7 +373,7 @@ export default function DirectMessagesScreen({
                       <Text numberOfLines={1} style={{ color: C.muted, fontSize: 10, marginTop: 2 }}>Your note</Text>
                     </TouchableOpacity>
                     {friendsNotes.map((note) => (
-                      <TouchableOpacity key={String(note.username)} onPress={() => note.audioUrl ? Linking.openURL(note.audioUrl) : null} activeOpacity={note.audioUrl ? 0.75 : 1} style={{ width: storyAvatarSize + 24, alignItems: "center" }}>
+                      <TouchableOpacity key={String(note.username)} onPress={() => setNoteViewer(note)} activeOpacity={0.8} style={{ width: storyAvatarSize + 24, alignItems: "center" }}>
                         <View style={{ maxWidth: storyAvatarSize + 30, minHeight: 27, borderRadius: 13, backgroundColor: C.field, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 5, borderWidth: 0.5, borderColor: C.line }}>
                           <Text numberOfLines={2} style={{ color: C.text, fontSize: 10, textAlign: "center" }}>{note.text || (note.audioTitle ? "♫ " + note.audioTitle : "")}</Text>
                         </View>
@@ -620,6 +621,33 @@ export default function DirectMessagesScreen({
                 </TouchableOpacity>
               </View>
             </View>
+          </Modal>
+          <Modal visible={!!noteViewer} transparent animationType="fade" onRequestClose={() => setNoteViewer(null)}>
+            <TouchableOpacity activeOpacity={1} onPress={() => setNoteViewer(null)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.42)", justifyContent: "center", paddingHorizontal: 24 }}>
+              <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ width: "100%", maxWidth: 330, alignSelf: "center", backgroundColor: C.panel, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: C.line }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 11, marginBottom: 16 }}>
+                  {avatar({ username: noteViewer?.username, displayName: noteViewer?.displayName, avatarUrl: noteViewer?.avatarUrl }, 46)}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: C.text, fontWeight: "800", fontSize: 15 }}>{noteViewer?.displayName || noteViewer?.username || "Note"}</Text>
+                    <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>Note · expires after 24 hours</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setNoteViewer(null)} accessibilityRole="button" accessibilityLabel="Close note">
+                    <Ionicons name="close" size={22} color={C.text} />
+                  </TouchableOpacity>
+                </View>
+                {!!noteViewer?.text && <Text style={{ color: C.text, fontSize: 17, lineHeight: 25 }}>{noteViewer.text}</Text>}
+                {noteViewer?.audioUrl ? (
+                  <TouchableOpacity onPress={() => Linking.openURL(noteViewer.audioUrl).catch(() => setError("Song link could not be opened."))} style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 16, padding: 12, borderRadius: 12, backgroundColor: C.field }}>
+                    <Ionicons name="play-circle" size={28} color={C.blue} />
+                    <View style={{ flex: 1 }}>
+                      <Text numberOfLines={1} style={{ color: C.text, fontWeight: "700" }}>{noteViewer.audioTitle || "Play song"}</Text>
+                      <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>Tap to open song</Text>
+                    </View>
+                    <Ionicons name="open-outline" size={17} color={C.muted} />
+                  </TouchableOpacity>
+                ) : null}
+              </TouchableOpacity>
+            </TouchableOpacity>
           </Modal>
           <Modal visible={profileInfoOpen && !!peer} transparent animationType="fade" onRequestClose={() => setProfileInfoOpen(false)}>
             <TouchableOpacity activeOpacity={1} onPress={() => setProfileInfoOpen(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.38)", justifyContent: "flex-end" }}>
