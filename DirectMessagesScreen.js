@@ -9,7 +9,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import {
-  loadMessageConversations, loadDirectMessages, loadUserNotes, sendDirectMessage, searchUsers, uploadChatAttachment,
+  loadMessageConversations, loadDirectMessages, loadUserNotes, saveUserNote, sendDirectMessage, searchUsers, uploadChatAttachment,
 } from "./api";
 
 const API_ORIGIN = "https://bhumi-social-app-1.onrender.com";
@@ -47,6 +47,12 @@ export default function DirectMessagesScreen({
   const textScale = Math.min(Math.max(fontScale || 1, 0.9), 1.25);
   const [conversations, setConversations] = React.useState([]);
   const [friendsNotes, setFriendsNotes] = React.useState([]);
+  const [ownNote, setOwnNote] = React.useState(null);
+  const [noteComposerOpen, setNoteComposerOpen] = React.useState(false);
+  const [noteText, setNoteText] = React.useState("");
+  const [songUrl, setSongUrl] = React.useState("");
+  const [songTitle, setSongTitle] = React.useState("");
+  const [noteSaving, setNoteSaving] = React.useState(false);
   const [peer, setPeer] = React.useState("");
   const [messages, setMessages] = React.useState([]);
   const [draft, setDraft] = React.useState("");
@@ -75,6 +81,7 @@ export default function DirectMessagesScreen({
       ]);
       setConversations(Array.isArray(rows) ? rows : []);
       setFriendsNotes(Array.isArray(notes?.friendsNotes) ? notes.friendsNotes : []);
+      setOwnNote(notes?.ownNote || null);
     } catch (e) {
       setError(e?.message || "Inbox load nahi hua.");
     } finally {
@@ -345,29 +352,33 @@ export default function DirectMessagesScreen({
               {!query.trim() ? (
                 <>
 
-                  <View style={{ paddingHorizontal: horizontalInset, paddingTop: shortScreen ? 1 : 2, paddingBottom: 0 }}>
-                    <Text style={{ color: C.text, fontSize: 16, fontWeight: "800" }}>Notes</Text>
-                  </View>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: storyAvatarSize + 15, flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: 0, paddingBottom: 0, gap: storyRowGap }}>
-                    <View style={{ width: storyAvatarSize + 4, alignItems: "center" }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ minHeight: storyAvatarSize + 48, maxHeight: storyAvatarSize + 62, flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: horizontalInset, paddingTop: 3, paddingBottom: 5, gap: storyRowGap, alignItems: "flex-end" }}>
+                    <TouchableOpacity onPress={() => { setNoteText(ownNote?.text || ""); setSongUrl(ownNote?.audioUrl || ""); setSongTitle(ownNote?.audioTitle || ""); setNoteComposerOpen(true); }} activeOpacity={0.8} style={{ width: storyAvatarSize + 24, alignItems: "center" }}>
+                      {(ownNote?.text || ownNote?.audioTitle) ? (
+                        <View style={{ maxWidth: storyAvatarSize + 30, minHeight: 27, borderRadius: 13, backgroundColor: C.field, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 5, borderWidth: 0.5, borderColor: C.line }}>
+                          <Text numberOfLines={2} style={{ color: C.text, fontSize: 10, textAlign: "center" }}>{ownNote.text || ("♫ " + ownNote.audioTitle)}</Text>
+                        </View>
+                      ) : (
+                        <View style={{ backgroundColor: C.field, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 5 }}>
+                          <Text style={{ color: C.muted, fontSize: 10 }}>Write a note…</Text>
+                        </View>
+                      )}
                       <View style={{ width: storyAvatarSize, height: storyAvatarSize, borderRadius: storyAvatarSize / 2, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
                         {avatar({ username: authSession?.username || "You", avatarUrl: ownAvatarUrl }, storyAvatarSize)}
-                        <View style={{ position: "absolute", right: -1, bottom: -1, width: 22, height: 22, borderRadius: 11, backgroundColor: C.field, borderWidth: 2, borderColor: C.bg, alignItems: "center", justifyContent: "center" }}>
-                          <Ionicons name="add" size={15} color={C.text} />
+                        <View style={{ position: "absolute", right: -1, bottom: -1, width: 22, height: 22, borderRadius: 11, backgroundColor: C.blue, borderWidth: 2, borderColor: C.bg, alignItems: "center", justifyContent: "center" }}>
+                          <Ionicons name="add" size={15} color="#FFFFFF" />
                         </View>
                       </View>
-                      <Text numberOfLines={1} style={{ color: C.muted, fontSize: 10, marginTop: 0 }}>Your note</Text>
-                    </View>
+                      <Text numberOfLines={1} style={{ color: C.muted, fontSize: 10, marginTop: 2 }}>Your note</Text>
+                    </TouchableOpacity>
                     {friendsNotes.map((note) => (
-                      <View key={String(note.username)} style={{ width: storyAvatarSize + 18, alignItems: "center" }}>
+                      <TouchableOpacity key={String(note.username)} onPress={() => note.audioUrl ? Linking.openURL(note.audioUrl) : null} activeOpacity={note.audioUrl ? 0.75 : 1} style={{ width: storyAvatarSize + 24, alignItems: "center" }}>
+                        <View style={{ maxWidth: storyAvatarSize + 30, minHeight: 27, borderRadius: 13, backgroundColor: C.field, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 5, borderWidth: 0.5, borderColor: C.line }}>
+                          <Text numberOfLines={2} style={{ color: C.text, fontSize: 10, textAlign: "center" }}>{note.text || (note.audioTitle ? "♫ " + note.audioTitle : "")}</Text>
+                        </View>
                         {avatar({ username: note.username, displayName: note.displayName, avatarUrl: note.avatarUrl }, storyAvatarSize)}
-                        <Text numberOfLines={1} style={{ color: C.text, fontSize: 10, fontWeight: "600", marginTop: 3, maxWidth: storyAvatarSize + 18 }}>
-                          {note.displayName || note.username}
-                        </Text>
-                        <Text numberOfLines={1} style={{ color: C.muted, fontSize: 9, marginTop: 1, maxWidth: storyAvatarSize + 18 }}>
-                          {note.text || note.audioTitle || "Note"}
-                        </Text>
-                      </View>
+                        <Text numberOfLines={1} style={{ color: C.text, fontSize: 10, fontWeight: "600", marginTop: 2, maxWidth: storyAvatarSize + 24 }}>{note.displayName || note.username}</Text>
+                      </TouchableOpacity>
                     ))}
                   </ScrollView>
                 </>
@@ -580,6 +591,36 @@ export default function DirectMessagesScreen({
               </View>
             </View>
           )}
+          <Modal visible={noteComposerOpen} transparent animationType="fade" onRequestClose={() => setNoteComposerOpen(false)}>
+            <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.42)", justifyContent: "center", paddingHorizontal: 22 }}>
+              <View style={{ backgroundColor: C.panel, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: C.line }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                  <Text style={{ color: C.text, fontSize: 18, fontWeight: "800" }}>Your note</Text>
+                  <TouchableOpacity onPress={() => setNoteComposerOpen(false)}><Ionicons name="close" size={23} color={C.text} /></TouchableOpacity>
+                </View>
+                <TextInput value={noteText} onChangeText={setNoteText} placeholder="Share a thought…" placeholderTextColor={C.muted} maxLength={60} multiline style={{ minHeight: 76, maxHeight: 110, color: C.text, backgroundColor: C.field, borderRadius: 12, padding: 12, textAlignVertical: "top" }} />
+                <Text style={{ color: C.muted, fontSize: 10, textAlign: "right", marginTop: 4 }}>{noteText.length}/60</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginTop: 12, marginBottom: 7 }}>
+                  <Ionicons name="musical-notes-outline" size={19} color={C.blue} />
+                  <Text style={{ color: C.text, fontWeight: "700", fontSize: 13 }}>Add a song</Text>
+                </View>
+                <TextInput value={songTitle} onChangeText={setSongTitle} placeholder="Song title" placeholderTextColor={C.muted} style={{ color: C.text, backgroundColor: C.field, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 8 }} />
+                <TextInput value={songUrl} onChangeText={setSongUrl} placeholder="Paste song link (https://…)" placeholderTextColor={C.muted} autoCapitalize="none" keyboardType="url" style={{ color: C.text, backgroundColor: C.field, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 }} />
+                <Text style={{ color: C.muted, fontSize: 10, marginTop: 6 }}>Notes 24 ghante baad status ki tarah expire ho jayega.</Text>
+                <TouchableOpacity disabled={noteSaving || (!noteText.trim() && !songUrl.trim())} onPress={async () => {
+                  setNoteSaving(true);
+                  try {
+                    const saved = await saveUserNote(noteText.trim(), songUrl.trim() ? { url: songUrl.trim(), title: songTitle.trim() || "Song", artist: "" } : null);
+                    setOwnNote(saved.note || { text: noteText.trim(), audioUrl: songUrl.trim() || null, audioTitle: songTitle.trim() || null, username: authSession?.username });
+                    setNoteComposerOpen(false);
+                  } catch (e) { setError(e?.message || "Note save nahi hua."); }
+                  finally { setNoteSaving(false); }
+                }} style={{ marginTop: 15, backgroundColor: C.blue, borderRadius: 12, paddingVertical: 12, alignItems: "center", opacity: noteSaving || (!noteText.trim() && !songUrl.trim()) ? 0.5 : 1 }}>
+                  <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{noteSaving ? "Saving…" : "Share note"}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
           <Modal visible={profileInfoOpen && !!peer} transparent animationType="fade" onRequestClose={() => setProfileInfoOpen(false)}>
             <TouchableOpacity activeOpacity={1} onPress={() => setProfileInfoOpen(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.38)", justifyContent: "flex-end" }}>
               <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 22, paddingTop: 24, paddingBottom: 34, alignItems: "center", borderTopWidth: 1, borderColor: C.line }}>
