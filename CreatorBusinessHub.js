@@ -8,7 +8,7 @@ import { translateAppText } from "./localization";
 import {
   loadPrivacySettings, savePrivacySettings, loadProfilePosts,
   loadBusinessProfile, saveBusinessProfile, loadBusinessCatalog, loadProfileConnections,
-  createBusinessCatalogItem, deleteBusinessCatalogItem
+  createBusinessCatalogItem, deleteBusinessCatalogItem, createMonetizationOrder, loadMonetizationOrders
 } from "./api";
 
 const GOLD = "#0095F6";
@@ -39,6 +39,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
   const [accountType, setAccountType] = React.useState("personal");
   const [tab, setTab] = React.useState("overview");
   const [showMonetization, setShowMonetization] = React.useState(false);
+  const [monetizationOrders, setMonetizationOrders] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [posts, setPosts] = React.useState([]);
@@ -99,8 +100,18 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
   };
 
   const openMonetization = () => { setShowMonetization(true); setFeedback(""); };
-  const selectMonetizationPlan = (planName) => {
-    setFeedback(planName + ": payment setup is not connected yet. No payment has been taken. This plan will activate only after official payment and verification setup.");
+  const selectMonetizationPlan = async (planId) => {
+    setSaving(true);
+    try {
+      const result = await createMonetizationOrder(planId);
+      const orders = await loadMonetizationOrders();
+      setMonetizationOrders(Array.isArray(orders) ? orders : []);
+      setFeedback((result.message || "Your request was saved.") + " Order ID: " + (result.order?.order_id || ""));
+    } catch (error) {
+      setFeedback(error?.message || "Could not save this plan request.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const createPromotionBrief = async () => {
@@ -312,26 +323,39 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
               </View>
               <Text style={{ color: MUTED, fontSize: 11, marginBottom: 13 }}>Premium tools for members, creators and local businesses.</Text>
               {[
-                { title: "Bhumi Premium Membership", price: "₹99 / month", detail: "Premium profile badge, profile customization, ad-free experience and member-only extras.", icon: "diamond-outline" },
-                { title: "Creator Boost", price: "₹29 / post · ₹49 extended", detail: "Promote a selected post or reel for additional reach. Reach is not guaranteed.", icon: "rocket-outline" },
-                { title: "VIP Creator Badge", price: "₹49 / month", detail: "Distinct VIP creator badge and creator profile highlight.", icon: "ribbon-outline" },
-                { title: "Business Promotion", price: "₹199 starter · ₹499 growth", detail: "Promote a local business, offer or campaign inside Bhumi Social AI.", icon: "megaphone-outline" },
-                { title: "Business Verified Profile", price: "₹99 / month", detail: "Apply for a verified business mark. Approval requires identity and business checks; payment alone never guarantees verification.", icon: "shield-checkmark-outline" },
-                { title: "Featured Business Listing", price: "₹99 / 7 days", detail: "Eligible business listing receives a featured placement in discovery.", icon: "storefront-outline" },
+                { id: "premium_monthly", title: "Bhumi Premium Membership", price: "₹99 / month", detail: "Premium profile badge, profile customization, ad-free experience and member-only extras.", icon: "diamond-outline" },
+                { id: "creator_boost", title: "Creator Boost - Post", price: "₹29 / post", detail: "Promote one selected post or reel. Additional reach is not guaranteed.", icon: "rocket-outline" },
+                { id: "creator_boost_extended", title: "Creator Boost - Extended", price: "₹49", detail: "Extended promotion option for a selected post or reel.", icon: "trending-up-outline" },
+                { id: "vip_creator_monthly", title: "VIP Creator Badge", price: "₹49 / month", detail: "Distinct VIP creator badge and creator profile highlight.", icon: "ribbon-outline" },
+                { id: "business_promotion_starter", title: "Business Promotion - Starter", price: "₹199", detail: "Starter local-business promotion campaign.", icon: "megaphone-outline" },
+                { id: "business_promotion_growth", title: "Business Promotion - Growth", price: "₹499", detail: "Larger business promotion campaign with expanded placement options.", icon: "business-outline" },
+                { id: "business_verified_monthly", title: "Business Verified Profile", price: "₹99 / month", detail: "Apply for verification. Approval requires genuine identity and business checks; payment alone never guarantees verification.", icon: "shield-checkmark-outline" },
+                { id: "featured_business_7d", title: "Featured Business Listing", price: "₹99 / 7 days", detail: "Eligible business listing can receive a featured placement in discovery.", icon: "storefront-outline" },
               ].map((plan) => (
-                <View key={plan.title} style={{ backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 13, padding: 12, marginTop: 9 }}>
+                <View key={plan.id} style={{ backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 13, padding: 12, marginTop: 9 }}>
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <Ionicons name={plan.icon} size={21} color={GOLD}/>
                     <Text style={{ color: TEXT, fontSize: 13, fontWeight: "900", marginLeft: 9, flex: 1 }}>{plan.title}</Text>
                   </View>
                   <Text style={{ color: GOLD, fontSize: 14, fontWeight: "900", marginTop: 8 }}>{plan.price}</Text>
                   <Text style={{ color: MUTED, fontSize: 11, lineHeight: 17, marginTop: 5 }}>{plan.detail}</Text>
-                  <TouchableOpacity onPress={() => selectMonetizationPlan(plan.title)} style={{ backgroundColor: GOLD, borderRadius: 9, paddingVertical: 10, alignItems: "center", marginTop: 10 }}>
-                    <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "900" }}>SELECT PLAN</Text>
+                  <TouchableOpacity disabled={saving} onPress={() => selectMonetizationPlan(plan.id)} style={{ backgroundColor: GOLD, borderRadius: 9, paddingVertical: 10, alignItems: "center", marginTop: 10, opacity: saving ? 0.6 : 1 }}>
+                    <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "900" }}>{saving ? "SAVING..." : "REQUEST PLAN"}</Text>
                   </TouchableOpacity>
                 </View>
               ))}
-              <Text style={{ color: MUTED, fontSize: 10, lineHeight: 15, marginTop: 13 }}>Payments are not enabled yet. Selecting a plan does not charge you or activate a paid benefit. Payment provider, receipts, refunds and admin review will be connected before launch.</Text>
+              <Text style={{ color: MUTED, fontSize: 10, lineHeight: 15, marginTop: 13 }}>Payments are not enabled yet. A request only creates a pending record; it does not charge you or activate a paid benefit. Payment provider, receipts, refunds and admin review must be configured before launch.</Text>
+              {monetizationOrders.length ? (
+                <View style={{ marginTop: 16, borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 12 }}>
+                  <Text style={{ color: GOLD, fontSize: 12, fontWeight: "900", marginBottom: 8 }}>MY PLAN REQUESTS</Text>
+                  {monetizationOrders.slice(0, 5).map(order => (
+                    <View key={order.order_id} style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: BORDER }}>
+                      <Text style={{ color: TEXT, fontSize: 11, fontWeight: "800" }}>{order.plan_name}</Text>
+                      <Text style={{ color: MUTED, fontSize: 10, marginTop: 3 }}>{order.order_id} · {(Number(order.amount_paise || 0) / 100).toLocaleString("en-IN", { style: "currency", currency: "INR" })} · {String(order.status || "pending").replace(/_/g, " ")}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </View>
           ) : null}
         </ScrollView>
