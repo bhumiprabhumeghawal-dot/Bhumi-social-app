@@ -375,20 +375,9 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     try {
       await ensureCallPermissions(type);
       tokenAttemptedRef.current = false;
-      // Warm the native audio route while the recipient's phone is ringing.
-      // This avoids waiting for audio-session setup after the recipient answers.
-      const [createdResult] = await Promise.allSettled([
-        createVoiceVideoCall(username, type),
-        startCallAudioSession().then(() => {
-          audioSessionActiveRef.current = true;
-          return true;
-        }).catch((error) => {
-          console.warn("LiveKit audio prewarm failed:", error?.message || error);
-          return false;
-        }),
-      ]);
-      if (createdResult.status === "rejected") throw createdResult.reason;
-      const created = createdResult.value;
+      // Start server signalling immediately. Do not hold the outgoing call
+      // screen/ringing state while Android audio routing is being prepared.
+      const created = await createVoiceVideoCall(username, type);
       if (!mountedRef.current) {
         if (audioSessionActiveRef.current) {
           audioSessionActiveRef.current = false;
