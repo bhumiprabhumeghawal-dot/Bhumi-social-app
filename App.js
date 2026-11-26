@@ -11813,10 +11813,9 @@ export default function App() {
                         flexDirection: "row",
                         alignItems: "center",
                         paddingHorizontal: 18,
-                        paddingVertical: 16,
-                        backgroundColor: item.isRead ? "#000000" : "#121212",
-                        borderBottomWidth: 1,
-                        borderBottomColor: "#303030",
+                        paddingVertical: 12,
+                        backgroundColor: "transparent",
+                        borderBottomWidth: 0,
                       }}
                     >
                       <View
@@ -11867,6 +11866,19 @@ export default function App() {
                             : ""}
                         </Text>
                       </View>
+                      {item.postMediaUrl ? (
+                        <Image
+                          source={{ uri: item.postMediaUrl }}
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: 7,
+                            marginLeft: 10,
+                            backgroundColor: "#242424",
+                          }}
+                          resizeMode="cover"
+                        />
+                      ) : null}
                       {!item.isRead ? (
                         <View
                           style={{
