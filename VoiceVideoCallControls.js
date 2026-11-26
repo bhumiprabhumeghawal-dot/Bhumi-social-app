@@ -464,6 +464,36 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     return () => { active = false; if (timer) clearTimeout(timer); };
   }, [call?.id, incoming]);
 
+  // Keep an accepted call synchronized with the server while LiveKit is connected.
+  // Without this, a remote hang-up can leave the other device showing a stale call UI.
+  useEffect(() => {
+    if (!call || incoming || !connection) return undefined;
+    let active = true;
+    let timer = null;
+    const checkActiveCall = async () => {
+      if (!active || callRef.current?.id !== call.id) return;
+      try {
+        const latest = await getVoiceVideoCallStatus(call.id);
+        if (!active || callRef.current?.id !== call.id) return;
+        if (latest && ["ended", "rejected", "missed"].includes(latest.status)) {
+          resetCall();
+          return;
+        }
+      } catch (_) {
+        // Do not end a healthy media session because one status request failed.
+      } finally {
+        if (active && callRef.current?.id === call.id) {
+          timer = setTimeout(checkActiveCall, 2500);
+        }
+      }
+    };
+    timer = setTimeout(checkActiveCall, 1500);
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [call?.id, incoming, connection?.token]);
+
   const answerCall = async () => {
     if (!call || busy) return;
     setBusy(true);
