@@ -307,7 +307,7 @@ const SECTIONS = [
     ["feed.sensitive","Sensitive Content Control","Limit sensitive recommended content",true],
   ]},
   { key:"appearance", title:"Appearance Settings", subtitle:"Make the app feel like yours", icon:"color-palette-outline", fields:[
-    ["appearance.theme","Light Appearance","Switch the app canvas and status bar to a bright theme",false],
+    ["appearance.theme","Light Appearance","Switch the app canvas and status bar to a bright theme",true],
     ["appearance.royalTheme","Bhumi Blue Theme","Use the Bhumi blue premium theme",true],
     ["appearance.language","App Language","Choose your display language",true],
     ["appearance.largeText","Larger Text","Increase text size across the app",false],
