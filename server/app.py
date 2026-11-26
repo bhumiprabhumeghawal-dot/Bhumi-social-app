@@ -522,6 +522,32 @@ def list_content_viewers(kind, content_id):
     } for row in rows]})
 
 
+@app.get("/api/content/activity")
+def list_my_content_activity():
+    owner = getattr(g, "auth_username", None)
+    if not owner:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT v.viewer_username AS actor, v.created_at,
+                   c.id AS content_id, c.kind AS content_kind,
+                   p.avatar_url, p.display_name
+            FROM content_views v
+            JOIN content c ON c.id=v.content_id AND c.kind=v.content_kind
+            LEFT JOIN profiles p ON LOWER(p.username)=LOWER(v.viewer_username)
+            WHERE LOWER(c.username)=LOWER(?)
+            ORDER BY v.created_at DESC
+            LIMIT 100
+        """, (owner,)).fetchall()
+    return jsonify({"ok": True, "items": [{
+        "id": "view-{}-{}-{}".format(row["content_kind"], row["content_id"], row["actor"]),
+        "kind": "content_view", "actor": row["actor"],
+        "referenceId": row["content_id"], "contentKind": row["content_kind"],
+        "displayName": row["display_name"], "avatarUrl": row["avatar_url"],
+        "createdAt": row["created_at"], "isRead": True,
+    } for row in rows]})
+
+
 @app.post("/api/stories/<int:content_id>/like")
 def toggle_story_like(content_id):
     username = getattr(g, "auth_username", None)
