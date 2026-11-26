@@ -375,14 +375,7 @@ export default function DirectMessagesScreen({
                       </View>
                       <Text numberOfLines={1} style={{ color: C.muted, fontSize: 11, marginTop: 6 }}>Your note</Text>
                     </View>
-                    {conversations.slice(0, 12).map((item, index) => (
-                      <TouchableOpacity key={String(getUsername(item) || index)} onPress={() => openChat(getUsername(item))} style={{ width: 66, alignItems: "center" }}>
-                        <View style={{ width: 62, height: 62, borderRadius: 31, borderWidth: 1.5, borderColor: C.muted, alignItems: "center", justifyContent: "center" }}>
-                          {avatar(item, rowAvatarSize)}
-                        </View>
-                        <Text numberOfLines={1} style={{ color: C.muted, fontSize: 11, marginTop: 6 }}>{getUsername(item)}</Text>
-                      </TouchableOpacity>
-                    ))}
+
                   </ScrollView>
                 </>
               ) : null}
