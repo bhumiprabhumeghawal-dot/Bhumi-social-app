@@ -9005,7 +9005,7 @@ export default function App() {
         </View>
       ) : activeTab === "Search" ? (
         <ScrollView
-          style={styles.content}
+          style={[styles.content, { backgroundColor: lightAppearance ? "#FFFFFF" : "#000000" }]}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: 30 }}
         >
@@ -9013,7 +9013,7 @@ export default function App() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: "#1C1C1E",
+              backgroundColor: lightAppearance ? "#F0F0F0" : "#1C1C1E",
               borderRadius: 12,
               paddingHorizontal: 14,
               marginBottom: 18,
@@ -9034,7 +9034,7 @@ export default function App() {
                 flex: 1,
                 paddingVertical: 14,
                 paddingHorizontal: 10,
-                color: "#F5F5F5",
+                color: lightAppearance ? "#111111" : "#F5F5F5",
                 fontSize: 15,
               }}
             />
@@ -9064,7 +9064,7 @@ export default function App() {
                   );
                 })}
               </View>
-              {!feedPosts.length ? <Text style={{ color: "#A8A8A8", textAlign: "center", paddingVertical: 20 }}>{appText("communityPostsEmpty")}</Text> : null}
+              {!feedPosts.length ? <Text style={{ color: lightAppearance ? "#737373" : "#A8A8A8", textAlign: "center", paddingVertical: 20 }}>{appText("communityPostsEmpty")}</Text> : null}
             </View>
           ) : searchLoading ? (
             <Text style={{ color: "#A8A8A8", paddingVertical: 12 }}>
@@ -9265,23 +9265,23 @@ export default function App() {
         <>
         {renderAppHeader()}
         <ScrollView
-          style={[styles.content, { backgroundColor: "#000000" }]}
+          style={[styles.content, { backgroundColor: lightAppearance ? "#FFFFFF" : "#000000" }]}
           contentContainerStyle={{ paddingBottom: 28 }}
           showsVerticalScrollIndicator={false}
         >
           {!profile ? null : (
-            <View style={{ backgroundColor: "#000000" }}>
+            <View style={{ backgroundColor: lightAppearance ? "#FFFFFF" : "#000000" }}>
               {profileEditing ? (
                 <View style={{ padding: 20 }}>
-                  <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "800", marginBottom: 18 }}>Edit profile</Text>
-                  <Text style={{ color: "#F5F5F5", marginBottom: 6 }}>{appText("displayName")}</Text>
+                  <Text style={{ color: lightAppearance ? "#111111" : "#FFFFFF", fontSize: 22, fontWeight: "800", marginBottom: 18 }}>Edit profile</Text>
+                  <Text style={{ color: lightAppearance ? "#111111" : "#F5F5F5", marginBottom: 6 }}>{appText("displayName")}</Text>
                   <TextInput value={profileDraft.displayName} onChangeText={(v) => setProfileDraft((d) => ({ ...d, displayName: v }))} maxLength={60} placeholder={appText("displayName")} style={{ borderWidth: 1, borderColor: "#36393F", borderRadius: 10, padding: 12, color: "#FFFFFF", marginBottom: 14 }} />
                   <Text style={{ color: "#A8A8A8", marginBottom: 6 }}>{appText("usernamePermanent")}</Text>
                   <Text style={{ color: "#FFFFFF", paddingVertical: 10 }}>@{profile.username || "you"}</Text>
                   <Text style={{ color: "#A8A8A8", marginBottom: 6 }}>{appText("bio")}</Text>
                   <TextInput value={profileDraft.bio} onChangeText={(v) => setProfileDraft((d) => ({ ...d, bio: v }))} maxLength={300} multiline placeholder={appText("writeAbout")} style={{ borderWidth: 1, borderColor: "#36393F", borderRadius: 10, padding: 12, minHeight: 90, color: "#FFFFFF", marginBottom: 16, textAlignVertical: "top" }} />
                   <View style={{ flexDirection: "row", gap: 10 }}>
-                    <TouchableOpacity onPress={saveProfile} disabled={profileBusy} style={{ flex: 1, backgroundColor: "#26292D", borderRadius: 9, padding: 13, alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{profileBusy ? appText("saving") : appText("save")}</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={saveProfile} disabled={profileBusy} style={{ flex: 1, backgroundColor: lightAppearance ? "#F0F0F0" : "#26292D", borderRadius: 9, padding: 13, alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{profileBusy ? appText("saving") : appText("save")}</Text></TouchableOpacity>
                     <TouchableOpacity onPress={() => { setProfileDraft({ displayName: profile.displayName || "you", bio: profile.bio || "" }); setProfileEditing(false); }} style={{ flex: 1, backgroundColor: "#26292D", borderRadius: 9, padding: 13, alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontWeight: "700" }}>{appText("back")}</Text></TouchableOpacity>
                   </View>
                 </View>
@@ -9292,7 +9292,7 @@ export default function App() {
                       <View style={{ width: 78, height: 78, borderRadius: 39, padding: 2, borderWidth: 2, borderColor: "#34383E", alignItems: "center", justifyContent: "center" }}>
                         {profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={{ width: 70, height: 70, borderRadius: 35, backgroundColor: "#26292D" }} /> : <View style={{ width: 70, height: 70, borderRadius: 35, backgroundColor: "#26292D", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 28, fontWeight: "700" }}>{(profile.displayName || "Y").charAt(0).toUpperCase()}</Text></View>}
                       </View>
-                      <View style={{ position: "absolute", right: 0, bottom: 0, width: 23, height: 23, borderRadius: 12, backgroundColor: "#FFFFFF", borderWidth: 3, borderColor: "#000000", alignItems: "center", justifyContent: "center" }}><Ionicons name="add" size={15} color="#111111" /></View>
+                      <View style={{ position: "absolute", right: 0, bottom: 0, width: 23, height: 23, borderRadius: 12, backgroundColor: "#FFFFFF", borderWidth: 3, borderColor: lightAppearance ? "#FFFFFF" : "#000000", alignItems: "center", justifyContent: "center" }}><Ionicons name="add" size={15} color="#111111" /></View>
                     </TouchableOpacity>
                     <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                       {[
@@ -9314,7 +9314,7 @@ export default function App() {
                   </View>
 
                   <View style={{ flexDirection: "row", gap: appCompact ? 7 : 10, paddingHorizontal: appSideInset, marginBottom: 25 }}>
-                    <TouchableOpacity onPress={() => { setProfileDraft({ displayName: profile.displayName || "you", bio: profile.bio || "" }); setProfileEditing(true); }} style={{ flex: 1, minWidth: 0, backgroundColor: "#292D32", borderRadius: 11, paddingVertical: 12, paddingHorizontal: 5, alignItems: "center" }}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82} style={{ color: "#FFFFFF", fontSize: 16 * appTextScale, fontWeight: "700" }}>Edit profile</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setProfileDraft({ displayName: profile.displayName || "you", bio: profile.bio || "" }); setProfileEditing(true); }} style={{ flex: 1, minWidth: 0, backgroundColor: lightAppearance ? "#E9E9EB" : "#292D32", borderRadius: 11, paddingVertical: 12, paddingHorizontal: 5, alignItems: "center" }}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82} style={{ color: "#FFFFFF", fontSize: 16 * appTextScale, fontWeight: "700" }}>Edit profile</Text></TouchableOpacity>
                     <TouchableOpacity onPress={() => Share.share({ message: "@" + (profile.username || "you") + " on Bhumi Social AI" })} style={{ flex: 1, minWidth: 0, backgroundColor: "#292D32", borderRadius: 11, paddingVertical: 12, paddingHorizontal: 5, alignItems: "center" }}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82} style={{ color: "#FFFFFF", fontSize: 16 * appTextScale, fontWeight: "700" }}>Share profile</Text></TouchableOpacity>
                   </View>
 
