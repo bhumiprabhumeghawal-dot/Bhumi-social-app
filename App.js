@@ -614,14 +614,10 @@ function PinchZoomImage({
   );
 }
 function ReelVideo(props) {
-  // Keep the player alive after a video has become active so scrolling it
-  // off-screen pauses on its current frame instead of flashing to a blank view.
-  // Unseen/off-screen rows still avoid allocating native video players.
-  const [hasBeenActive, setHasBeenActive] = React.useState(!!props.active);
-  React.useEffect(() => {
-    if (props.active) setHasBeenActive(true);
-  }, [props.active]);
-  if (!props.active && !hasBeenActive) {
+  // Keep native decoder memory bounded: only the currently active feed item
+  // owns a native player. Previously active off-screen rows must unmount their
+  // player instead of retaining decoders as the user keeps scrolling.
+  if (props.active === false) {
     return (
       <View
         style={{
