@@ -6762,7 +6762,8 @@ export default function App() {
               <Text style={{ color: "#A8A8A8", fontSize: 13, lineHeight: 19, marginBottom: 16 }}>
                 1. अपना नाम लिखें  2. पासवर्ड बनाएँ  3. खाता तैयार!
               </Text>
-     style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
+              <Text
+                style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}
               >
                 {appText("signupFullName")}
               </Text>
@@ -6821,6 +6822,7 @@ export default function App() {
               <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 12 }}>
                 {appText("signupUsernameHint")}
               </Text>
+            </>
           ) : (
             <>
               <Text
@@ -6893,9 +6895,19 @@ export default function App() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() =>
-              setAuthMode(authMode === "login" ? "register" : "login")
-            }
+            onPress={() => {
+              if (authMode === "login") {
+                authUsernameAutoRef.current = true;
+                authUsernameSuffixRef.current = String(Math.floor(1000 + Math.random() * 9000));
+                setAuthUsername("");
+                setAuthFullName("");
+                setAuthPassword("");
+                setAuthPasswordVisible(false);
+                setAuthMode("register");
+              } else {
+                setAuthMode("login");
+              }
+            }}
             disabled={authBusy}
             style={{ padding: 16, alignItems: "center" }}
           >
