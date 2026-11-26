@@ -99,7 +99,16 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
     catch (_) { setFeedback(t("alertCheckConnection")); }
   };
 
-  const openMonetization = () => { setShowMonetization(true); setFeedback(""); };
+  const openMonetization = async () => {
+    setShowMonetization(true);
+    setFeedback("");
+    try {
+      const orders = await loadMonetizationOrders();
+      setMonetizationOrders(Array.isArray(orders) ? orders : []);
+    } catch (error) {
+      setFeedback(error?.message || "Could not load your plan requests.");
+    }
+  };
   const selectMonetizationPlan = async (planId) => {
     setSaving(true);
     try {
