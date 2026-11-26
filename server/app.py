@@ -3056,6 +3056,161 @@ def init_auth_tables():
             ON password_reset_otps(LOWER(email))
         """)
 
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS monetization_orders (
+                order_id TEXT PRIMARY KEY,
+                username TEXT NOT NULL,
+                plan_id TEXT NOT NULL,
+                plan_name TEXT NOT NULL,
+                amount_paise INTEGER NOT NULL,
+                currency TEXT NOT NULL DEFAULT 'INR',
+                status TEXT NOT NULL DEFAULT 'payment_not_configured',
+                payment_reference TEXT,
+                admin_note TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_monetization_orders_user_time
+            ON monetization_orders(username, created_at DESC)
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS business_verification_requests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                order_id TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                review_note TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+
+
+
+MONETIZATION_PLANS = {
+    "premium_monthly": {"name": "Bhumi Premium Membership", "amount_paise": 9900, "account": "any"},
+    "creator_boost": {"name": "Creator Boost - Post", "amount_paise": 2900, "account": "creator"},
+    "creator_boost_extended": {"name": "Creator Boost - Extended", "amount_paise": 4900, "account": "creator"},
+    "vip_creator_monthly": {"name": "VIP Creator Badge", "amount_paise": 4900, "account": "creator"},
+    "business_promotion_starter": {"name": "Business Promotion - Starter", "amount_paise": 19900, "account": "business"},
+    "business_promotion_growth": {"name": "Business Promotion - Growth", "amount_paise": 49900, "account": "business"},
+    "business_verified_monthly": {"name": "Business Verified Profile Application", "amount_paise": 9900, "account": "business"},
+    "featured_business_7d": {"name": "Featured Business Listing - 7 days", "amount_paise": 9900, "account": "business"},
+}
+
+
+@app.get("/api/monetization/plans")
+def monetization_plans():
+    return jsonify({"plans": [
+        {"id": plan_id, "name": plan["name"], "amount_paise": plan["amount_paise"],
+         "currency": "INR", "status": "payment_not_configured"}
+        for plan_id, plan in MONETIZATION_PLANS.items()
+    ], "payments_enabled": False})
+
+
+@app.post("/api/monetization/orders")
+def create_monetization_order():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    data = request.get_json(silent=True) or {}
+    plan_id = str(data.get("plan_id", "")).strip()
+    plan = MONETIZATION_PLANS.get(plan_id)
+    if not plan:
+        return jsonify({"error": "Please select a valid plan."}), 400
+    if plan["account"] != "any":
+        with get_db() as db:
+            account = db.execute(
+                "SELECT account_type FROM user_settings WHERE LOWER(username)=LOWER(?)",
+                (username,),
+            ).fetchone()
+        actual_type = account["account_type"] if account else "personal"
+        if actual_type != plan["account"]:
+            return jsonify({"error": "Switch to the required account type before requesting this plan."}), 403
+
+    now = datetime.now(timezone.utc).isoformat()
+    order_id = "BHM-" + uuid.uuid4().hex[:16].upper()
+    with get_db() as db:
+        db.execute("""
+            INSERT INTO monetization_orders
+            (order_id, username, plan_id, plan_name, amount_paise, currency, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, 'INR', 'payment_not_configured', ?, ?)
+        """, (order_id, username, plan_id, plan["name"], plan["amount_paise"], now, now))
+        if plan_id == "business_verified_monthly":
+            db.execute("""
+                INSERT INTO business_verification_requests
+                (username, order_id, status, created_at, updated_at)
+                VALUES (?, ?, 'awaiting_payment_and_review', ?, ?)
+            """, (username, order_id, now, now))
+    return jsonify({
+        "ok": True, "order": {
+            "order_id": order_id, "plan_id": plan_id, "plan_name": plan["name"],
+            "amount_paise": plan["amount_paise"], "currency": "INR",
+            "status": "payment_not_configured"
+        },
+        "message": "Request saved. Payments are not enabled; no charge was made and no paid benefit was activated."
+    }), 201
+
+
+@app.get("/api/monetization/orders")
+def list_monetization_orders():
+    username = getattr(g, "auth_username", None)
+    if not username:
+        return jsonify({"error": "Please log in first."}), 401
+    with get_db() as db:
+        rows = db.execute("""
+            SELECT order_id, plan_id, plan_name, amount_paise, currency, status,
+                   admin_note, created_at, updated_at
+            FROM monetization_orders
+            WHERE LOWER(username)=LOWER(?)
+            ORDER BY created_at DESC LIMIT 100
+        """, (username,)).fetchall()
+    return jsonify({"orders": [dict(row) for row in rows], "payments_enabled": False})
+
+
+def _monetization_admin_allowed(username):
+    allowed = {
+        value.strip().casefold()
+        for value in os.environ.get("SOCIALAPP_ADMIN_USERNAMES", "").split(",")
+        if value.strip()
+    }
+    return bool(allowed and username and username.casefold() in allowed)
+
+
+@app.post("/api/admin/monetization/orders/<order_id>/review")
+def review_monetization_order(order_id):
+    username = getattr(g, "auth_username", None)
+    if not _monetization_admin_allowed(username):
+        return jsonify({"error": "Admin access is not configured for monetization reviews."}), 403
+    data = request.get_json(silent=True) or {}
+    status = str(data.get("status", "")).strip()
+    if status not in ("approved", "rejected", "refunded"):
+        return jsonify({"error": "Invalid review status."}), 400
+    note = str(data.get("note", "")).strip()[:500]
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        row = db.execute(
+            "SELECT order_id, plan_id FROM monetization_orders WHERE order_id=?",
+            (order_id,),
+        ).fetchone()
+        if not row:
+            return jsonify({"error": "Order not found."}), 404
+        if status == "approved":
+            return jsonify({"error": "Payment verification is not configured; orders cannot be activated yet."}), 409
+        db.execute("""
+            UPDATE monetization_orders SET status=?, admin_note=?, updated_at=?
+            WHERE order_id=?
+        """, (status, note, now, order_id))
+        if row["plan_id"] == "business_verified_monthly":
+            db.execute("""
+                UPDATE business_verification_requests SET status=?, review_note=?, updated_at=?
+                WHERE order_id=?
+            """, (status, note, now, order_id))
+    return jsonify({"ok": True, "order_id": order_id, "status": status})
+
+
 
 def _auth_user():
     header = request.headers.get("Authorization", "")
