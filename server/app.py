@@ -2032,6 +2032,12 @@ def list_people_notifications():
             FROM people_notifications
             WHERE recipient=? AND is_read=0
         """, (username,)).fetchone()
+        unread_likes = db.execute("""
+            SELECT COUNT(*) AS total
+            FROM people_notifications
+            WHERE recipient=? AND is_read=0
+              AND kind IN ('like', 'reel_like', 'gift_flower')
+        """, (username,)).fetchone()
         notification_items = [{
             "id": row["id"],
             "actor": row["actor"],
@@ -2048,6 +2054,7 @@ def list_people_notifications():
     return jsonify({
         "notifications": notification_items,
         "unreadCount": unread["total"],
+        "unreadLikeCount": unread_likes["total"],
     })
 
 
