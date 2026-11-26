@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal, ScrollView,
+  ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal, ScrollView,
   Platform, SafeAreaView, Text, TextInput, TouchableOpacity, View, Linking,
   Keyboard, useWindowDimensions,
 } from "react-native";
@@ -12,6 +12,7 @@ import { useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync, s
 import VoiceVideoCallControls from "./VoiceVideoCallControls";
 import {
   loadMessageConversations, loadDirectMessages, loadUserNotes, saveUserNote, sendDirectMessage, searchUsers, uploadChatAttachment,
+  blockAccount, loadBlockedAccounts, loadFeedUserLists, addFeedUserList, removeFeedUserList,
 } from "./api";
 
 const API_ORIGIN = "https://bhumi-social-app-1.onrender.com";
@@ -70,6 +71,9 @@ export default function DirectMessagesScreen({
   const voiceRecordingPeerRef = React.useRef("");
   const [error, setError] = React.useState("");
   const [profileInfoOpen, setProfileInfoOpen] = React.useState(false);
+  const [peerMuted, setPeerMuted] = React.useState(false);
+  const [peerBlocked, setPeerBlocked] = React.useState(false);
+  const [profileActionBusy, setProfileActionBusy] = React.useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false);
   const [inboxTab, setInboxTab] = React.useState("All");
   const [filterOpen, setFilterOpen] = React.useState(false);
@@ -314,6 +318,60 @@ export default function DirectMessagesScreen({
     } finally {
       setSending(false);
     }
+  };
+
+  React.useEffect(() => {
+    if (!profileInfoOpen || !peer) return;
+    let live = true;
+    Promise.all([loadFeedUserLists(), loadBlockedAccounts()])
+      .then(([lists, blocked]) => {
+        if (!live) return;
+        const key = String(peer).toLowerCase();
+        setPeerMuted((lists?.muted || []).some((name) => String(name).toLowerCase() === key));
+        setPeerBlocked((blocked || []).some((item) => String(typeof item === "string" ? item : item?.username || "").toLowerCase() === key));
+      })
+      .catch((e) => { if (live) setError(e?.message || "Profile actions could not be loaded."); });
+    return () => { live = false; };
+  }, [profileInfoOpen, peer]);
+
+  const togglePeerMute = async () => {
+    if (!peer || profileActionBusy) return;
+    setProfileActionBusy(true);
+    setError("");
+    try {
+      if (peerMuted) await removeFeedUserList("muted", peer);
+      else await addFeedUserList("muted", peer);
+      setPeerMuted(!peerMuted);
+    } catch (e) {
+      setError(e?.message || "Mute setting could not be updated.");
+    } finally {
+      setProfileActionBusy(false);
+    }
+  };
+
+  const confirmBlockPeer = () => {
+    if (!peer || profileActionBusy) return;
+    const target = peer;
+    Alert.alert(
+      "Block @" + target + "?",
+      "They won't be able to contact you or interact with your content.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Block", style: "destructive", onPress: async () => {
+          setProfileActionBusy(true);
+          setError("");
+          try {
+            await blockAccount(target);
+            setPeerBlocked(true);
+            setProfileInfoOpen(false);
+          } catch (e) {
+            setError(e?.message || "Account could not be blocked.");
+          } finally {
+            setProfileActionBusy(false);
+          }
+        } },
+      ],
+    );
   };
 
   const closeChat = () => {
@@ -747,8 +805,14 @@ export default function DirectMessagesScreen({
                 <View style={{ width: "100%", height: 1, backgroundColor: C.line, marginVertical: 20 }} />
                 <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-around" }}>
                   <TouchableOpacity onPress={() => { setProfileInfoOpen(false); onOpenProfile?.(peer); }} accessibilityRole="button" accessibilityLabel={"Open profile for " + peer} style={{ alignItems: "center", gap: 7 }}><Ionicons name="person-circle-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Profile</Text></TouchableOpacity>
-                  <View style={{ alignItems: "center", gap: 7 }}><Ionicons name="notifications-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Mute</Text></View>
-                  <View style={{ alignItems: "center", gap: 7 }}><Ionicons name="ban-outline" size={25} color={C.text} /><Text style={{ color: C.text, fontSize: 12 }}>Block</Text></View>
+                  <TouchableOpacity onPress={togglePeerMute} disabled={profileActionBusy} accessibilityRole="button" accessibilityLabel={peerMuted ? "Unmute conversation" : "Mute conversation"} style={{ alignItems: "center", gap: 7, opacity: profileActionBusy ? 0.5 : 1 }}>
+                    <Ionicons name={peerMuted ? "notifications-off-outline" : "notifications-outline"} size={25} color={C.text} />
+                    <Text style={{ color: C.text, fontSize: 12 }}>{peerMuted ? "Unmute" : "Mute"}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={confirmBlockPeer} disabled={profileActionBusy || peerBlocked} accessibilityRole="button" accessibilityLabel={peerBlocked ? "Account blocked" : "Block account"} style={{ alignItems: "center", gap: 7, opacity: profileActionBusy || peerBlocked ? 0.5 : 1 }}>
+                    <Ionicons name="ban-outline" size={25} color={C.text} />
+                    <Text style={{ color: C.text, fontSize: 12 }}>{peerBlocked ? "Blocked" : "Block"}</Text>
+                  </TouchableOpacity>
                 </View>
                 <TouchableOpacity onPress={() => setProfileInfoOpen(false)} style={{ marginTop: 24, paddingVertical: 12, width: "100%", borderRadius: 12, backgroundColor: C.field, alignItems: "center" }}>
                   <Text style={{ color: C.text, fontWeight: "700" }}>Close</Text>
