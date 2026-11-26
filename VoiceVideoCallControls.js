@@ -265,7 +265,22 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+      stopRingbackTone();
+      const activeCall = callRef.current;
+      if (activeCall?.id) {
+        // If this control unmounts while a call is active, release the server
+        // session as well as the local media resources.
+        void respondToCall(activeCall.id, "end").catch(() => {});
+      }
+      if (audioSessionActiveRef.current) {
+        audioSessionActiveRef.current = false;
+        AudioSession.stopAudioSession().catch((error) => {
+          console.warn("LiveKit audio session stop failed during unmount:", error?.message || error);
+        });
+      }
+    };
   }, []);
 
   const resetCall = () => {
@@ -540,6 +555,10 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       setIncoming(false);
       await connectCall(next);
     } catch (error) {
+      if (audioSessionActiveRef.current) {
+        audioSessionActiveRef.current = false;
+        await AudioSession.stopAudioSession().catch(() => {});
+      }
       setCallMessage(translateAppText(appLanguage, "alertTryAgain"));
     } finally {
       setBusy(false);
