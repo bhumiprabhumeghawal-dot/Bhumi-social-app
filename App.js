@@ -4482,7 +4482,7 @@ export default function App() {
     const kind = String(item.kind || "");
     const actor = String(item.actor || "").trim();
 
-    if (kind === "like" || kind === "gift_flower" || kind === "comment" || kind === "reel_like" || kind === "reel_comment") {
+    if (kind === "like" || kind === "gift_flower" || kind === "comment" || kind === "reel_like" || kind === "reel_comment" || kind === "mention_posts" || kind === "mention_reels") {
       if (!item.referenceId) {
         Alert.alert(
           appText("alertPostUnavailable"),
@@ -4490,7 +4490,7 @@ export default function App() {
         );
         return;
       }
-      const isReelActivity = kind === "reel_like" || kind === "reel_comment";
+      const isReelActivity = kind === "reel_like" || kind === "reel_comment" || kind === "mention_reels";
       let post = null;
       if (!isReelActivity) {
         try {
@@ -4504,7 +4504,7 @@ export default function App() {
         setSelectedPost(post);
         return;
       }
-      if (kind === "comment" || kind === "like" || isReelActivity) {
+      if (kind === "comment" || kind === "like" || kind === "mention_posts" || isReelActivity) {
         try {
           let reelItems = reels || [];
           if (!reelItems.some((entry) => Number(entry.id) === Number(item.referenceId))) {
