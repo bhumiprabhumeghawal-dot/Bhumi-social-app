@@ -143,6 +143,7 @@ import {
   markAllNotificationsRead,
   recordContentView,
   loadContentViewers,
+  loadContentActivity,
   toggleStoryLike,
   loadStoryLikeState,
 } from "./api";
@@ -4446,10 +4447,11 @@ export default function App() {
     setNotificationsListOpen(true);
     setNotificationsLoading(true);
     try {
-      const data = await loadNotifications();
-      setNotificationsList(
-        Array.isArray(data.notifications) ? data.notifications : [],
-      );
+      const [data, activity] = await Promise.all([loadNotifications(), loadContentActivity()]);
+      setNotificationsList([
+        ...(Array.isArray(data.notifications) ? data.notifications : []),
+        ...activity,
+      ].sort((a, b) => String(b.createdAt || b.created_at || "").localeCompare(String(a.createdAt || a.created_at || ""))));
       setUnreadNotificationCount(Number(data.unreadCount || 0));
       setUnreadLikeCount(Number(data.unreadLikeCount || 0));
     } catch (e) {
@@ -11920,7 +11922,7 @@ export default function App() {
             </View>
             <ScrollView
                   nestedScrollEnabled horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
-              {["All", "Likes", "Comments", "Follows", "Messages"].map((filter) => (
+              {["All", "Likes", "Views", "Comments", "Follows", "Messages"].map((filter) => (
                 <TouchableOpacity key={filter} onPress={() => setNotificationFilter(filter)}
                   style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 18, backgroundColor: notificationFilter === filter ? "#0095F6" : "#262626" }}>
                   <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "800" }}>{appText("notif" + filter)}</Text>
@@ -11934,6 +11936,7 @@ export default function App() {
                 {notificationsList.filter((item) => {
                   if (notificationFilter === "All") return true;
                   if (notificationFilter === "Likes") return item.kind === "like" || item.kind === "gift_flower" || item.kind === "reel_like" || item.kind === "story_like";
+                  if (notificationFilter === "Views") return item.kind === "content_view";
                   if (notificationFilter === "Comments") return item.kind === "comment" || item.kind === "reel_comment";
                   if (notificationFilter === "Messages") return item.kind === "message";
                   return ["follow", "follow_request", "follow_accepted", "follow_rejected"].includes(item.kind);
@@ -11949,6 +11952,7 @@ export default function App() {
                     comment: "commented on your post",
                     reel_like: "liked your reel",
                      story_like: "liked your status",
+                    content_view: "viewed your " + (item.contentKind === "stories" ? "status" : item.contentKind === "reels" ? "reel" : "post"),
                     reel_comment: "commented on your reel",
                     message: "sent you a message",
                     mention_posts: "mentioned you in a post",
@@ -11958,7 +11962,7 @@ export default function App() {
                   return (
                     <TouchableOpacity
                       key={String(item.id || index)}
-                      onPress={() => handleNotificationPress(item)}
+                      onPress={() => item.kind === "content_view" ? openUserProfile(item.actor) : handleNotificationPress(item)}
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
