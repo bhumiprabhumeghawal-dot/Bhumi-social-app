@@ -2771,11 +2771,14 @@ export default function App() {
     let active = true;
     setPostViewers([]);
     setPostViewersOpen(false);
-    if (!selectedPost?.id || String(selectedPost?.user || "").toLowerCase() !== String(authSession?.username || "").toLowerCase()) return () => { active = false; };
+    if (!selectedPost?.id) return () => { active = false; };
     recordContentView("posts", selectedPost.id).catch(() => {});
-    loadContentViewers("posts", selectedPost.id)
-      .then((data) => { if (active) setPostViewers(Array.isArray(data.viewers) ? data.viewers : []); })
-      .catch(() => {});
+    const isOwner = String(selectedPost?.user || "").toLowerCase() === String(authSession?.username || "").toLowerCase();
+    if (isOwner) {
+      loadContentViewers("posts", selectedPost.id)
+        .then((data) => { if (active) setPostViewers(Array.isArray(data.viewers) ? data.viewers : []); })
+        .catch(() => {});
+    }
     return () => { active = false; };
   }, [selectedPost?.id, selectedPost?.user, authSession?.username]);
 
@@ -11925,7 +11928,7 @@ export default function App() {
               {["All", "Likes", "Views", "Comments", "Follows", "Messages"].map((filter) => (
                 <TouchableOpacity key={filter} onPress={() => setNotificationFilter(filter)}
                   style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 18, backgroundColor: notificationFilter === filter ? "#0095F6" : "#262626" }}>
-                  <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "800" }}>{appText("notif" + filter)}</Text>
+                  <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "800" }}>{filter === "Views" ? "Views" : appText("notif" + filter)}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
