@@ -202,7 +202,7 @@ const startCallAudioSession = async () => {
   await AudioSession.startAudioSession();
 };
 
-export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true, appLanguage = "en", onCallStarted }) {
+export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true, appLanguage = "en", onCallStarted, iconColor = "#FFFFFF", lightAppearance = false }) {
   const { width: callWidth, height: callHeight } = useWindowDimensions();
   const callCompact = callWidth < 360;
   const callShort = callHeight < 680;
@@ -604,7 +604,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           onPress={() => startCall("audio")}
           style={{ width: 32, height: 38, alignItems: "center", justifyContent: "center", backgroundColor: "transparent", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
-          <Ionicons name="call-outline" size={23} color="#FFFFFF" />
+          <Ionicons name="call-outline" size={23} color={iconColor} />
         </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button"
@@ -613,7 +613,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           onPress={() => startCall("video")}
           style={{ width: 32, height: 38, alignItems: "center", justifyContent: "center", backgroundColor: "transparent", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
-          <Ionicons name="videocam-outline" size={23} color="#FFFFFF" />
+          <Ionicons name="videocam-outline" size={23} color={iconColor} />
         </TouchableOpacity>
       </View> : null}
 
