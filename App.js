@@ -3121,6 +3121,7 @@ export default function App() {
   const authUsernameAutoRef = React.useRef(true);
   const authUsernameSuffixRef = React.useRef(String(Math.floor(1000 + Math.random() * 9000)));
   const [authPasswordVisible, setAuthPasswordVisible] = React.useState(false);
+  const [showAdvancedSignup, setShowAdvancedSignup] = React.useState(false);
   const [authFullName, setAuthFullName] = React.useState("");
   const [authEmail, setAuthEmail] = React.useState("");
   const [authPassword, setAuthPassword] = React.useState("");
@@ -6200,6 +6201,12 @@ export default function App() {
               fullName,
             )
           : await loginAccount(username, authPassword);
+      if (authMode === "register" && authAccountType !== "personal") {
+        await savePrivacySettings(
+          { accountType: authAccountType, isPrivate: false },
+          result.username || username,
+        );
+      }
       setAuthSession({ token: result.token, username: result.username });
       setAuthPassword("");
       Alert.alert(
@@ -6821,6 +6828,25 @@ export default function App() {
               <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 12 }}>
                 आपका यूज़रनेम अपने-आप बना है। लॉगिन के लिए इसे याद रखें।
               </Text>
+              <TouchableOpacity onPress={() => setShowAdvancedSignup((value) => !value)} style={{ paddingVertical: 8, marginBottom: 6 }}>
+                <Text style={{ color: "#0095F6", fontSize: 12, fontWeight: "700" }}>
+                  {showAdvancedSignup ? "खाते का प्रकार छिपाएँ" : "Creator या Business खाता चाहिए? यहाँ चुनें"}
+                </Text>
+              </TouchableOpacity>
+              {showAdvancedSignup ? (
+                <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
+                  {[
+                    { key: "personal", title: "Personal", icon: "person-outline" },
+                    { key: "creator", title: "Creator", icon: "videocam-outline" },
+                    { key: "business", title: "Business", icon: "briefcase-outline" },
+                  ].map((item) => (
+                    <TouchableOpacity key={item.key} onPress={() => setAuthAccountType(item.key)} style={{ flex: 1, minHeight: 54, borderRadius: 10, borderWidth: 1, borderColor: authAccountType === item.key ? "#0095F6" : "#363636", alignItems: "center", justifyContent: "center", backgroundColor: authAccountType === item.key ? "#102A3A" : "#121212" }}>
+                      <Ionicons name={item.icon} size={18} color={authAccountType === item.key ? "#0095F6" : "#A8A8A8"} />
+                      <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700", marginTop: 3 }}>{item.title}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
             </>
           ) : (
             <>
@@ -6902,6 +6928,8 @@ export default function App() {
                 setAuthFullName("");
                 setAuthPassword("");
                 setAuthPasswordVisible(false);
+                setAuthAccountType("personal");
+                setShowAdvancedSignup(false);
                 setAuthMode("register");
               } else {
                 setAuthMode("login");
@@ -6983,6 +7011,7 @@ export default function App() {
   const lightAppearance = appSettingsPreferences["appearance.theme"] !== false;
 
   return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
     <SafeAreaView style={[styles.screen, lightAppearance && { backgroundColor: "#F7F7F7" }]}>
       <StatusBar style={lightAppearance ? "dark" : "light"} hidden={false} translucent={false} />
       <VoiceVideoCallControls username={selectedChatUser} currentUsername={authSession?.username} enableOutgoing={false} showButtons={false} appLanguage={appLanguage} />
@@ -12438,6 +12467,7 @@ export default function App() {
       </Modal>
       <CustomAlertHost appLanguage={appLanguage} />
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
