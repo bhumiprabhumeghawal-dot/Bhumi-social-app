@@ -601,8 +601,11 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   answerHandlerRef.current = answerCall;
 
   const declineCall = async () => {
-    if (!call) return;
-    try { await respondToCall(call.id, "reject"); } catch (_) {}
+    const current = callRef.current;
+    if (!current) return;
+    // Dismiss the local ringing UI immediately; server signalling is best-effort
+    // and must not make the user wait on a slow or unavailable network.
+    void respondToCall(current.id, "reject").catch(() => {});
     const nativeUuid = callKeepUuidRef.current;
     callKeepUuidRef.current = null;
     callKeepCallIdRef.current = null;
@@ -615,7 +618,8 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const endCall = async () => {
     const current = callRef.current;
     if (current) {
-      try { await respondToCall(current.id, "end"); } catch (_) {}
+      // Close controls and release audio locally before waiting on the network.
+      void respondToCall(current.id, "end").catch(() => {});
     }
     const nativeUuid = callKeepUuidRef.current;
     callKeepUuidRef.current = null;
