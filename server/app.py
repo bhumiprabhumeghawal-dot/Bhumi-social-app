@@ -41,6 +41,9 @@ app = Flask(__name__)
 # Permit large DM uploads; per-media limits are enforced by each upload endpoint.
 app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024 + 10 * 1024 * 1024
 
+from server.monetization import monetization_bp
+app.register_blueprint(monetization_bp)
+
 
 def get_db():
     from server.db_compat import connect_database
