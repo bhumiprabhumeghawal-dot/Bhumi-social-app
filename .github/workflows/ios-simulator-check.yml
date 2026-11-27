@@ -3,6 +3,9 @@ run-name: iOS Simulator compile check
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
 
 permissions:
   contents: read
