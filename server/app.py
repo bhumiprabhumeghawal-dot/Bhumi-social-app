@@ -4277,16 +4277,9 @@ def send_direct_message(username):
     if attachment_type not in {None, "image", "video", "audio", "file"}:
         return jsonify({"error": "Invalid attachment type."}), 400
 
-    if attachment_url:
-        prefix = "/uploads/chat/"
-        filename = attachment_url[len(prefix):] if attachment_url.startswith(prefix) else ""
-        if (
-            not filename
-            or "/" in filename
-            or "\\" in filename
-            or secure_filename(filename) != filename
-        ):
-            return jsonify({"error": "Invalid chat attachment."}), 400
+    # Attachment URLs may point to local uploads or approved remote object storage.
+    # The authoritative safety check below requires an exact chat_media row owned
+    # by the sender, so rejecting every non-local URL here breaks cloud uploads.
 
     now = datetime.now(timezone.utc).isoformat()
     message_id = str(uuid.uuid4())
