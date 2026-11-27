@@ -1070,7 +1070,9 @@ export async function getChatPresence(username) {
 
 export async function loadMessageConversations() {
   return coalesceChatRead('conversations', async () => {
-    const response = await fetch(`${API_BASE_URL}/api/messages/conversations`);
+    const response = await fetch(`${API_BASE_URL}/api/messages/conversations`, {
+      headers: await authHeaders(),
+    });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Could not load conversations.');
     return data.conversations || [];
