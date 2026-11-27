@@ -12398,9 +12398,7 @@ export default function App() {
         transparent
         animationType="fade"
         statusBarTranslucent
-        onRequestClose={() =>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
- {}}
+        onRequestClose={() => {}}
       >
         <View style={{ flex:1,backgroundColor:"#000000",justifyContent:"center",paddingHorizontal:28 }}>
           <View style={{ backgroundColor:"#121212",borderWidth:1,borderColor:"#303030",borderRadius:22,padding:22,alignItems:"center" }}>
@@ -12473,7 +12471,6 @@ export default function App() {
             </TouchableOpacity>
           </View>
         </View>
-              </KeyboardAvoidingView>
       </Modal>
       <CustomAlertHost appLanguage={appLanguage} />
     </SafeAreaView>
