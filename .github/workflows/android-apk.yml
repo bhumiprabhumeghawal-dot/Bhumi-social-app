@@ -3,20 +3,6 @@ run-name: Bhumi Social AI Android APK
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      - 'FINAL_APK_BUILD'
-      - 'App.js'
-      - 'DirectMessagesScreen.js'
-      - 'api.js'
-      - 'app.json'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'assets/**'
-      - '**/*.js'
-      - '.github/workflows/android-apk.yml'
 
 permissions:
   contents: write
