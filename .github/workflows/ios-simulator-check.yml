@@ -1,0 +1,67 @@
+name: iOS Simulator Compatibility Check
+run-name: Bhumi Social AI iOS simulator check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ios-simulator:
+    name: Generate and compile iOS simulator app
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Set up Ruby and CocoaPods
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: false
+
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods --no-document
+          pod --version
+
+      - name: Install JavaScript dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate Expo iOS configuration
+        run: npx expo config --type prebuild
+
+      - name: Generate iOS native project
+        run: npx expo prebuild --platform ios --non-interactive --clean
+        env:
+          CI: "1"
+
+      - name: Compile for iOS Simulator (no Apple signing)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace ios/SocialApp.xcworkspace \
+            -scheme SocialApp \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/BhumiSocialDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee "$RUNNER_TEMP/ios-build.log"
+
+      - name: Upload iOS build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bhumi-Social-iOS-Simulator-Build-Log
+          path: ${{ runner.temp }}/ios-build.log
+          if-no-files-found: ignore
+          retention-days: 7
