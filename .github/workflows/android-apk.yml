@@ -3,6 +3,11 @@ run-name: Bhumi Social AI Android APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '.github/workflows/**'
 
 permissions:
   contents: write
@@ -102,6 +107,7 @@ jobs:
 
 
   publish-ota:
+    if: github.event_name == 'workflow_dispatch'
     name: Publish compatible production OTA
     runs-on: ubuntu-latest
     timeout-minutes: 20
