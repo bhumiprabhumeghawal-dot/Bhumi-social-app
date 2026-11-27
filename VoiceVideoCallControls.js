@@ -5,13 +5,12 @@ import {
   Text,
   TouchableOpacity,
   View,
-  PanResponder,
   Platform,
-  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import RNCallKeep from "react-native-callkeep";
 import { useCameraPermissions } from "expo-camera";
-import { createAudioPlayer, requestRecordingPermissionsAsync } from "expo-audio";
+import { requestRecordingPermissionsAsync } from "expo-audio";
 import {
   AudioSession,
   LiveKitRoom,
@@ -22,42 +21,6 @@ import {
   registerGlobals,
 } from "@livekit/react-native";
 import { Track, VideoPresets } from "livekit-client";
-import { translateAppText } from "./localization";
-
-const CALL_LABELS = {
-  en: ["Voice call","Video call","VOICE CALL","VIDEO CALL","Incoming call","Answer call","Cancel call","Reconnect","Reconnecting…","Mute","Unmute","Camera","Camera off","End","Call connected.","Connecting call…","Your video","You","Cancel call"],
-  hi: ["वॉइस कॉल","वीडियो कॉल","वॉइस कॉल","वीडियो कॉल","आने वाली कॉल","कॉल उठाएँ","कॉल काटें","फिर से कनेक्ट करें","फिर से कनेक्ट हो रहा है…","माइक बंद करें","माइक चालू करें","कैमरा","कैमरा बंद","समाप्त करें","कॉल कनेक्ट हो गई।","कॉल कनेक्ट हो रही है…","आपका वीडियो","आप","कॉल रद्द करें"],
-  gu: ["વૉઇસ કૉલ","વિડિયો કૉલ","વૉઇસ કૉલ","વિડિયો કૉલ","આવતો કૉલ","કૉલ ઉપાડો","કૉલ કાપો","ફરીથી કનેક્ટ કરો","ફરીથી કનેક્ટ થઈ રહ્યું છે…","માઇક બંધ","માઇક ચાલુ","કૅમેરા","કૅમેરા બંધ","સમાપ્ત","કૉલ કનેક્ટ થઈ ગયો.","કૉલ કનેક્ટ થઈ રહ્યો છે…","તમારો વિડિયો","તમે","કૉલ રદ કરો"],
-  bn: ["ভয়েস কল","ভিডিও কল","ভয়েস কল","ভিডিও কল","ইনকামিং কল","কল ধরুন","কল কেটে দিন","আবার সংযোগ করুন","আবার সংযোগ হচ্ছে…","মাইক বন্ধ","মাইক চালু","ক্যামেরা","ক্যামেরা বন্ধ","শেষ করুন","কল সংযুক্ত হয়েছে।","কল সংযোগ হচ্ছে…","আপনার ভিডিও","আপনি","কল বাতিল করুন"],
-  mr: ["व्हॉइस कॉल","व्हिडिओ कॉल","व्हॉइस कॉल","व्हिडिओ कॉल","येणारा कॉल","कॉल उचला","कॉल कट करा","पुन्हा कनेक्ट करा","पुन्हा कनेक्ट होत आहे…","माइक बंद","माइक सुरू","कॅमेरा","कॅमेरा बंद","समाप्त","कॉल जोडला गेला.","कॉल जोडला जात आहे…","तुमचा व्हिडिओ","तुम्ही","कॉल रद्द करा"],
-  ta: ["குரல் அழைப்பு","வீடியோ அழைப்பு","குரல் அழைப்பு","வீடியோ அழைப்பு","உள்வரும் அழைப்பு","அழைப்பை ஏற்கவும்","அழைப்பை நிராகரிக்கவும்","மீண்டும் இணைக்கவும்","மீண்டும் இணைக்கிறது…","ஒலிவாங்கியை அணை","ஒலிவாங்கியை இயக்கு","கேமரா","கேமரா அணை","முடி","அழைப்பு இணைக்கப்பட்டது.","அழைப்பு இணைக்கப்படுகிறது…","உங்கள் வீடியோ","நீங்கள்","அழைப்பை ரத்துசெய்"],
-  te: ["వాయిస్ కాల్","వీడియో కాల్","వాయిస్ కాల్","వీడియో కాల్","ఇన్‌కమింగ్ కాల్","కాల్ ఆన్సర్ చేయండి","కాల్ కట్ చేయండి","మళ్లీ కనెక్ట్ చేయండి","మళ్లీ కనెక్ట్ అవుతోంది…","మైక్ ఆఫ్","మైక్ ఆన్","కెమెరా","కెమెరా ఆఫ్","ముగించు","కాల్ కనెక్ట్ అయింది.","కాల్ కనెక్ట్ అవుతోంది…","మీ వీడియో","మీరు","కాల్ రద్దు చేయండి"],
-  pa: ["ਵੌਇਸ ਕਾਲ","ਵੀਡੀਓ ਕਾਲ","ਵੌਇਸ ਕਾਲ","ਵੀਡੀਓ ਕਾਲ","ਆਉਣ ਵਾਲੀ ਕਾਲ","ਕਾਲ ਚੁੱਕੋ","ਕਾਲ ਕੱਟੋ","ਮੁੜ ਕਨੈਕਟ ਕਰੋ","ਮੁੜ ਕਨੈਕਟ ਹੋ ਰਿਹਾ ਹੈ…","ਮਾਈਕ ਬੰਦ","ਮਾਈਕ ਚਾਲੂ","ਕੈਮਰਾ","ਕੈਮਰਾ ਬੰਦ","ਖਤਮ","ਕਾਲ ਜੁੜ ਗਈ।","ਕਾਲ ਜੁੜ ਰਹੀ ਹੈ…","ਤੁਹਾਡਾ ਵੀਡੀਓ","ਤੁਸੀਂ","ਕਾਲ ਰੱਦ ਕਰੋ"],
-  kn: ["ಧ್ವನಿ ಕರೆ","ವೀಡಿಯೊ ಕರೆ","ಧ್ವನಿ ಕರೆ","ವೀಡಿಯೊ ಕರೆ","ಒಳಬರುವ ಕರೆ","ಕರೆ ಸ್ವೀಕರಿಸಿ","ಕರೆ ಕಡಿತಗೊಳಿಸಿ","ಮತ್ತೆ ಸಂಪರ್ಕಿಸಿ","ಮತ್ತೆ ಸಂಪರ್ಕಿಸಲಾಗುತ್ತಿದೆ…","ಮೈಕ್ ಆಫ್","ಮೈಕ್ ಆನ್","ಕ್ಯಾಮೆರಾ","ಕ್ಯಾಮೆರಾ ಆಫ್","ಮುಕ್ತಾಯ","ಕರೆ ಸಂಪರ್ಕಗೊಂಡಿದೆ.","ಕರೆ ಸಂಪರ್ಕಗೊಳ್ಳುತ್ತಿದೆ…","ನಿಮ್ಮ ವೀಡಿಯೊ","ನೀವು","ಕರೆಯನ್ನು ರದ್ದುಗೊಳಿಸಿ"],
-  ml: ["വോയ്സ് കോൾ","വീഡിയോ കോൾ","വോയ്സ് കോൾ","വീഡിയോ കോൾ","വരുന്ന കോൾ","കോൾ എടുക്കുക","കോൾ നിരസിക്കുക","വീണ്ടും ബന്ധിപ്പിക്കുക","വീണ്ടും ബന്ധിപ്പിക്കുന്നു…","മൈക്ക് ഓഫ്","മൈക്ക് ഓൺ","ക്യാമറ","ക്യാമറ ഓഫ്","അവസാനിപ്പിക്കുക","കോൾ ബന്ധിപ്പിച്ചു.","കോൾ ബന്ധിപ്പിക്കുന്നു…","നിങ്ങളുടെ വീഡിയോ","നിങ്ങൾ","കോൾ റദ്ദാക്കുക"],
-  ur: ["وائس کال","ویڈیو کال","وائس کال","ویڈیو کال","آنے والی کال","کال اٹھائیں","کال ختم کریں","دوبارہ منسلک کریں","دوبارہ منسلک ہو رہا ہے…","مائیک بند","مائیک آن","کیمرہ","کیمرہ بند","ختم","کال منسلک ہو گئی۔","کال منسلک ہو رہی ہے…","آپ کی ویڈیو","آپ","کال منسوخ کریں"],
-  es: ["Llamada de voz","Videollamada","LLAMADA DE VOZ","VIDEOLLAMADA","Llamada entrante","Responder","Rechazar","Reconectar","Reconectando…","Silenciar","Activar sonido","Cámara","Cámara apagada","Finalizar","Llamada conectada.","Conectando llamada…","Tu vídeo","Tú","Cancelar llamada"],
-  fr: ["Appel vocal","Appel vidéo","APPEL VOCAL","APPEL VIDÉO","Appel entrant","Répondre","Refuser","Reconnecter","Reconnexion…","Couper le micro","Activer le micro","Caméra","Caméra désactivée","Terminer","Appel connecté.","Connexion de l’appel…","Votre vidéo","Vous","Annuler l’appel"],
-  ar: ["مكالمة صوتية","مكالمة فيديو","مكالمة صوتية","مكالمة فيديو","مكالمة واردة","رد","رفض","إعادة الاتصال","جارٍ إعادة الاتصال…","كتم الميكروفون","تشغيل الميكروفون","الكاميرا","إيقاف الكاميرا","إنهاء","تم الاتصال.","جارٍ الاتصال…","الفيديو الخاص بك","أنت","إلغاء المكالمة"],
-  pt: ["Chamada de voz","Chamada de vídeo","CHAMADA DE VOZ","CHAMADA DE VÍDEO","Chamada recebida","Atender","Recusar","Reconectar","Reconectando…","Silenciar","Ativar som","Câmera","Câmera desligada","Encerrar","Chamada conectada.","Conectando chamada…","Seu vídeo","Você","Cancelar chamada"],
-  de: ["Sprachanruf","Videoanruf","SPRACHANRUF","VIDEOANRUF","Eingehender Anruf","Annehmen","Ablehnen","Erneut verbinden","Verbindung wird hergestellt…","Mikrofon stummschalten","Mikrofon aktivieren","Kamera","Kamera aus","Beenden","Anruf verbunden.","Anruf wird verbunden…","Dein Video","Du","Anruf abbrechen"],
-  ja: ["音声通話","ビデオ通話","音声通話","ビデオ通話","着信中","応答","拒否","再接続","再接続中…","マイクをミュート","マイクをオン","カメラ","カメラオフ","終了","通話が接続されました。","通話を接続中…","あなたのビデオ","あなた","通話をキャンセル"],
-  ko: ["음성 통화","영상 통화","음성 통화","영상 통화","수신 전화","받기","거절","다시 연결","다시 연결 중…","마이크 음소거","마이크 켜기","카메라","카메라 끄기","종료","통화가 연결되었습니다.","통화 연결 중…","내 비디오","나","통화 취소"],
-  id: ["Panggilan suara","Panggilan video","PANGGILAN SUARA","PANGGILAN VIDEO","Panggilan masuk","Jawab","Tolak","Hubungkan ulang","Menghubungkan ulang…","Bisukan","Aktifkan suara","Kamera","Kamera mati","Akhiri","Panggilan terhubung.","Menghubungkan panggilan…","Video Anda","Anda","Batalkan panggilan"],
-  ru: ["Голосовой звонок","Видеозвонок","ГОЛОСОВОЙ ЗВОНОК","ВИДЕОЗВОНОК","Входящий звонок","Ответить","Отклонить","Переподключить","Переподключение…","Выключить микрофон","Включить микрофон","Камера","Камера выключена","Завершить","Звонок подключён.","Подключение звонка…","Ваше видео","Вы","Отменить звонок"],
-  zh: ["语音通话","视频通话","语音通话","视频通话","来电","接听","拒绝","重新连接","正在重新连接…","静音","取消静音","摄像头","摄像头已关闭","结束","通话已连接。","正在连接通话…","你的视频","你","取消通话"],
-  tr: ["Sesli arama","Görüntülü arama","SESLİ ARAMA","GÖRÜNTÜLÜ ARAMA","Gelen arama","Yanıtla","Reddet","Yeniden bağlan","Yeniden bağlanıyor…","Mikrofonu kapat","Mikrofonu aç","Kamera","Kamera kapalı","Bitir","Arama bağlandı.","Arama bağlanıyor…","Videonuz","Siz","Aramayı iptal et"],
-  th: ["โทรด้วยเสียง","วิดีโอคอล","โทรด้วยเสียง","วิดีโอคอล","สายเรียกเข้า","รับสาย","ปฏิเสธ","เชื่อมต่อใหม่","กำลังเชื่อมต่อใหม่…","ปิดไมค์","เปิดไมค์","กล้อง","ปิดกล้อง","วางสาย","เชื่อมต่อสายแล้ว","กำลังเชื่อมต่อสาย…","วิดีโอของคุณ","คุณ","ยกเลิกสาย"],
-  vi: ["Cuộc gọi thoại","Cuộc gọi video","GỌI THOẠI","GỌI VIDEO","Cuộc gọi đến","Trả lời","Từ chối","Kết nối lại","Đang kết nối lại…","Tắt mic","Bật mic","Máy ảnh","Đã tắt máy ảnh","Kết thúc","Đã kết nối cuộc gọi.","Đang kết nối cuộc gọi…","Video của bạn","Bạn","Hủy cuộc gọi"]
-};
-const callText = (language, key) => {
-  const keys = ["voice","video","voiceCaps","videoCaps","incoming","answer","decline","reconnect","reconnecting","mute","unmute","camera","cameraOff","end","connected","connecting","yourVideo","you","cancel"];
-  const index = keys.indexOf(key);
-  const normalizedLanguage = typeof language === "string" ? language.trim().toLowerCase().split("-")[0] : "en";
-  const row = CALL_LABELS[normalizedLanguage] || CALL_LABELS.en;
-  return index >= 0 ? row[index] : translateAppText(language, key);
-};
-
 import {
   createVoiceVideoCall,
   loadPendingCalls,
@@ -66,6 +29,7 @@ import {
   getVoiceVideoCallStatus,
 } from "./api";
 
+let callKeepSetupPromise = null;
 let liveKitGlobalsRegistered = false;
 if (!liveKitGlobalsRegistered) {
   try {
@@ -76,32 +40,7 @@ if (!liveKitGlobalsRegistered) {
   }
 }
 
-function CallAvatarStage({ name, status, connected = false }) {
-  const { width, height } = useWindowDimensions();
-  const compact = width < 360;
-  const avatarSize = Math.max(104, Math.min(compact ? 126 : 154, Math.min(width * 0.42, height * 0.22)));
-  const innerSize = avatarSize * 0.86;
-  return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#07090D", paddingHorizontal: 18 }}>
-      <View style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2, borderWidth: 1, borderColor: "rgba(0,149,246,0.42)", backgroundColor: "rgba(0,149,246,0.08)", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-        <View style={{ width: innerSize, height: innerSize, borderRadius: innerSize / 2, borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", backgroundColor: "#202630", alignItems: "center", justifyContent: "center" }}>
-          <Ionicons name="person" size={avatarSize * 0.4} color="#FFFFFF" />
-        </View>
-      </View>
-      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: Math.min(29, width * 0.075), fontWeight: "700", marginTop: 12, letterSpacing: 0.2, textAlign: "center" }}>{name || "Bhumi Social"}</Text>
-      <View style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 18, backgroundColor: "#171B22", borderWidth: 1, borderColor: "#303946", flexDirection: "row", alignItems: "center", gap: 8 }}>
-        {connected ? <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#45D483" }} /> : <ActivityIndicator color="#0095F6" size="small" />}
-        <Text style={{ color: "#D1D7E0", fontSize: 12, fontWeight: "600" }}>{status}</Text>
-      </View>
-    </View>
-  );
-}
-
-function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" }) {
-  const { width: videoStageWidth, height: videoStageHeight } = useWindowDimensions();
-  const previewWidth = Math.max(76, Math.min(112, videoStageWidth * 0.28));
-  const previewHeight = Math.min(previewWidth * 1.41, Math.max(110, videoStageHeight * 0.34));
-  const labels = { connected: callText(appLanguage, "connected"), connecting: callText(appLanguage, "connecting") };
+function CallVideoStage({ callType, remoteName, isConnected }) {
   // The React Native LiveKit hook returns local and remote camera references.
   // Keep its documented one-argument form so the local self-preview is included.
   const tracks = useTracks([Track.Source.Camera]);
@@ -129,11 +68,16 @@ function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" 
 
   if (callType !== "video") {
     return (
-      <CallAvatarStage
-        name={remoteName}
-        status={isConnected ? labels.connected : labels.connecting}
-        connected={isConnected}
-      />
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#000000" }}>
+        <View style={{ width: 126, height: 126, borderRadius: 63, backgroundColor: "#262626", borderWidth: 1, borderColor: "#3A3A3A", alignItems: "center", justifyContent: "center" }}>
+          <Ionicons name="person" size={58} color="#FFFFFF" />
+        </View>
+        <Text style={{ color: "#FFFFFF", fontSize: 22, fontWeight: "800", marginTop: 20 }}>{remoteName}</Text>
+        <View style={{ marginTop: 10, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: "#1F1F1F", flexDirection: "row", alignItems: "center", gap: 7 }}>
+          {isConnected ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#45D483" }} /> : <ActivityIndicator color="#0095F6" size="small" />}
+          <Text style={{ color: "#D1D1D1", fontSize: 12 }}>{isConnected ? "वॉइस कॉल कनेक्ट है" : "वॉइस कॉल कनेक्ट हो रही है…"}</Text>
+        </View>
+      </View>
     );
   }
 
@@ -149,19 +93,19 @@ function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" 
             <Ionicons name="videocam" size={42} color="#FFFFFF" />
           </View>
           <ActivityIndicator color="#0095F6" size="large" style={{ marginTop: 22 }} />
-          <Text style={{ color: "#FFFFFF", marginTop: 12, fontSize: 13 }}>{isConnected ? labels.connected : labels.connecting}</Text>
+          <Text style={{ color: "#FFFFFF", marginTop: 12, fontSize: 13 }}>{isConnected ? "दूसरे व्यक्ति का वीडियो आ रहा है…" : "वीडियो कनेक्ट हो रहा है…"}</Text>
         </View>
       )}
       <View pointerEvents="none" style={{ position: "absolute", top: 14, left: 14, right: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <View style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.55)", flexDirection: "row", alignItems: "center", gap: 6 }}>
           <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: isConnected ? "#45D483" : "#0095F6" }} />
-          <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "800", letterSpacing: 0.8 }}>{isConnected ? labels.connected : labels.connecting}</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "800", letterSpacing: 0.8 }}>{isConnected ? "LIVE" : "CONNECTING"}</Text>
         </View>
         <View style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.55)" }}>
-          <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{remoteName || callText(appLanguage, "video")}</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>{remoteName || "Video call"}</Text>
         </View>
       </View>
-      <View style={{ position: "absolute", right: Math.max(8, videoStageWidth * 0.035), top: Math.max(46, videoStageHeight * 0.09), width: previewWidth, height: previewHeight, overflow: "hidden", borderRadius: 18, borderWidth: 1.5, borderColor: "#FFFFFF", backgroundColor: "#262626", elevation: 8 }}>
+      <View style={{ position: "absolute", right: 14, top: 58, width: 112, height: 158, overflow: "hidden", borderRadius: 18, borderWidth: 1.5, borderColor: "#FFFFFF", backgroundColor: "#262626", elevation: 8 }}>
         {localCameraTrackRef ? (
           <VideoTrack
             trackRef={localCameraTrackRef}
@@ -172,44 +116,18 @@ function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" 
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
             <Ionicons name="person" size={30} color="#FFFFFF" />
             <ActivityIndicator color="#FFFFFF" size="small" style={{ marginTop: 8 }} />
-            <Text style={{ color: "#E5E5E5", fontSize: 9, marginTop: 5 }}>{label("yourVideo")}</Text>
+            <Text style={{ color: "#E5E5E5", fontSize: 9, marginTop: 5 }}>आपका वीडियो</Text>
           </View>
         )}
         <View style={{ position: "absolute", left: 6, bottom: 6, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.62)" }}>
-          <Text style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700" }}>{label("you")}</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700" }}>You</Text>
         </View>
       </View>
     </View>
   );
 }
-// Prefer a private call route over loudspeaker to reduce acoustic feedback.
-const startCallAudioSession = async () => {
-  if (Platform.OS === "android") {
-    await AudioSession.configureAudio({
-      android: {
-        preferredOutputList: ["bluetooth", "headset", "earpiece", "speaker"],
-        audioTypeOptions: {
-          manageAudioFocus: true,
-          audioMode: "inCommunication",
-          audioFocusMode: "gain",
-          audioStreamType: "voiceCall",
-          audioAttributesUsageType: "voiceCommunication",
-          audioAttributesContentType: "speech",
-        },
-      },
-    });
-  }
-  await AudioSession.startAudioSession();
-};
-
-export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true, appLanguage = "en", onCallStarted, iconColor = "#FFFFFF", lightAppearance = false }) {
-  const { width: callWidth, height: callHeight } = useWindowDimensions();
-  const callCompact = callWidth < 360;
-  const callShort = callHeight < 680;
-  const callInset = callWidth < 340 ? 14 : callCompact ? 18 : 22;
-  const label = (key) => callText(appLanguage, key);
+export default function VoiceVideoCallControls({ username, currentUsername = username, enableIncoming = true, enableOutgoing = true, showButtons = true }) {
   const [call, setCall] = useState(null);
-  const [callMinimized, setCallMinimized] = useState(false);
   const [incoming, setIncoming] = useState(false);
   const [connection, setConnection] = useState(null);
   const [callMessage, setCallMessage] = useState("");
@@ -223,69 +141,85 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const tokenAttemptedRef = useRef(false);
   const connectionRef = useRef(null);
   const audioSessionActiveRef = useRef(false);
-  const ringbackPlayerRef = useRef(null);
-
-  const stopRingbackTone = () => {
-    const player = ringbackPlayerRef.current;
-    ringbackPlayerRef.current = null;
-    if (player) {
-      try { player.pause(); } catch (_) {}
-      try { player.remove(); } catch (_) {}
-      try { player.release(); } catch (_) {}
-    }
-  };
-
-  // Caller hears a ringback tone until the recipient answers.
-  useEffect(() => {
-    stopRingbackTone();
-    if (!call || incoming || connection || roomConnected) return undefined;
-    let player;
-    try {
-      player = createAudioPlayer({ uri: "https://sfxmint.com/dl/phone-ring-10.mp3" });
-      player.loop = true;
-      player.volume = 0.7;
-      ringbackPlayerRef.current = player;
-      player.play();
-    } catch (error) {
-      console.warn("Call ringback tone could not start:", error?.message || error);
-    }
-    return () => {
-      if (ringbackPlayerRef.current === player) stopRingbackTone();
-    };
-  }, [call?.id, incoming, connection, roomConnected]);
   const disconnectHandlingRef = useRef(false);
   const mountedRef = useRef(true);
+  const callKeepUuidRef = useRef(null);
+  const callKeepCallIdRef = useRef(null);
+  const callKeepEventBusyRef = useRef(false);
+  const incomingRef = useRef(false);
+  const answerHandlerRef = useRef(null);
+  const declineHandlerRef = useRef(null);
+  const endHandlerRef = useRef(null);
+
   useEffect(() => {
     callRef.current = call;
   }, [call]);
+
+  useEffect(() => {
+    incomingRef.current = incoming;
+  }, [incoming]);
 
   useEffect(() => {
     connectionRef.current = connection;
   }, [connection]);
 
   useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      stopRingbackTone();
-      const activeCall = callRef.current;
-      if (activeCall?.id) {
-        // If this control unmounts while a call is active, release the server
-        // session as well as the local media resources.
-        void respondToCall(activeCall.id, "end").catch(() => {});
-      }
-      if (audioSessionActiveRef.current) {
-        audioSessionActiveRef.current = false;
-        AudioSession.stopAudioSession().catch((error) => {
-          console.warn("LiveKit audio session stop failed during unmount:", error?.message || error);
-        });
-      }
+    if (Platform.OS !== "android" || !enableIncoming || !currentUsername) return undefined;
+    let active = true;
+    const subscriptions = [];
+    const listen = (event, handler) => {
+      const subscription = RNCallKeep.addEventListener(event, handler);
+      if (subscription?.remove) subscriptions.push(subscription);
     };
+    listen("answerCall", ({ callUUID }) => {
+      if (!active || callUUID !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
+      callKeepEventBusyRef.current = true;
+      Promise.resolve(answerHandlerRef.current?.()).finally(() => { callKeepEventBusyRef.current = false; });
+    });
+    listen("endCall", ({ callUUID }) => {
+      if (!active || callUUID !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
+      callKeepEventBusyRef.current = true;
+      callKeepUuidRef.current = null;
+      callKeepCallIdRef.current = null;
+      const handler = incomingRef.current ? declineHandlerRef.current : endHandlerRef.current;
+      Promise.resolve(handler?.()).finally(() => { callKeepEventBusyRef.current = false; });
+    });
+    if (!callKeepSetupPromise) {
+      callKeepSetupPromise = RNCallKeep.setup({
+        ios: { appName: "Bhumi Social AI" },
+        android: {
+          alertTitle: "कॉल की अनुमति जरूरी है",
+          alertDescription: "Bhumi Social AI को लॉक स्क्रीन पर कॉल दिखाने के लिए Phone Account की अनुमति दें।",
+          cancelButton: "बाद में",
+          okButton: "अनुमति दें",
+          additionalPermissions: [],
+        },
+        foregroundService: {
+          channelId: "bhumi-social-calls",
+          channelName: "Bhumi Social Calls",
+          notificationTitle: "Bhumi Social कॉल चालू है",
+        },
+      }).catch((error) => {
+        callKeepSetupPromise = null;
+        console.warn("CallKeep setup failed:", error?.message || error);
+        throw error;
+      });
+    }
+    callKeepSetupPromise.catch(() => {});
+    return () => { active = false; subscriptions.forEach((item) => item.remove()); };
+  }, [currentUsername, enableIncoming]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
   }, []);
 
   const resetCall = () => {
+    const nativeUuid = callKeepUuidRef.current;
+    callKeepUuidRef.current = null;
+    callKeepCallIdRef.current = null;
+    if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     setCall(null);
-    setCallMinimized(false);
     setIncoming(false);
     setConnection(null);
     setCallMessage("");
@@ -311,7 +245,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     setBusy(true);
     setConnectionFailed(false);
     setRoomConnected(false);
-    setCallMessage(callText(appLanguage, "connecting"));
+    setCallMessage("कॉल कनेक्ट हो रही है…");
     try {
       // Fetch the short-lived room token while native audio routing starts.
       // These independent setup steps run together to reduce answer-to-audio delay.
@@ -319,7 +253,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
         getCallConnectionToken(callInfo.id),
         audioSessionActiveRef.current
           ? Promise.resolve(true)
-          : startCallAudioSession(),
+          : AudioSession.startAudioSession(),
       ]);
       if (audioResult.status === "fulfilled") audioSessionActiveRef.current = true;
       if (tokenResult.status === "rejected") {
@@ -336,7 +270,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           audioSessionActiveRef.current = false;
           await AudioSession.stopAudioSession().catch(() => {});
         }
-        throw new Error("Call server connection details were not received.");
+        throw new Error("कॉल सर्वर से कनेक्शन जानकारी नहीं मिली।");
       }
       if (!mountedRef.current) {
         audioSessionActiveRef.current = false;
@@ -345,11 +279,11 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       }
       setConnection(result);
       setConnectionFailed(false);
-      setCallMessage(callText(appLanguage, "connecting"));
+      setCallMessage("कॉल रूम से जुड़ रहे हैं…");
     } catch (error) {
       if (mountedRef.current) {
         setConnectionFailed(true);
-        setCallMessage(translateAppText(appLanguage, "alertTryAgain"));
+        setCallMessage(error?.message || "कॉल कनेक्ट नहीं हो पाई।");
       }
     } finally {
       if (mountedRef.current) setBusy(false);
@@ -362,9 +296,9 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       ? (cameraPermission?.granted ? Promise.resolve(cameraPermission) : requestCameraPermission())
       : Promise.resolve({ granted: true });
     const [microphone, camera] = await Promise.all([microphonePromise, cameraPromise]);
-    if (!microphone?.granted) throw new Error("Allow microphone access to make a call.");
+    if (!microphone?.granted) throw new Error("कॉल के लिए माइक्रोफोन की अनुमति दें।");
     if (type === "video" && !camera?.granted) {
-      throw new Error("Allow camera access for a video call.");
+      throw new Error("वीडियो कॉल के लिए कैमरा की अनुमति दें।");
     }
   };
 
@@ -375,9 +309,20 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     try {
       await ensureCallPermissions(type);
       tokenAttemptedRef.current = false;
-      // Start server signalling immediately. Do not hold the outgoing call
-      // screen/ringing state while Android audio routing is being prepared.
-      const created = await createVoiceVideoCall(username, type);
+      // Warm the native audio route while the recipient's phone is ringing.
+      // This avoids waiting for audio-session setup after the recipient answers.
+      const [createdResult] = await Promise.allSettled([
+        createVoiceVideoCall(username, type),
+        AudioSession.startAudioSession().then(() => {
+          audioSessionActiveRef.current = true;
+          return true;
+        }).catch((error) => {
+          console.warn("LiveKit audio prewarm failed:", error?.message || error);
+          return false;
+        }),
+      ]);
+      if (createdResult.status === "rejected") throw createdResult.reason;
+      const created = createdResult.value;
       if (!mountedRef.current) {
         if (audioSessionActiveRef.current) {
           audioSessionActiveRef.current = false;
@@ -387,16 +332,14 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
       }
       callRef.current = created;
       setCall(created);
-      setCallMinimized(false);
-      onCallStarted?.({ id: created?.id, type, direction: "outgoing", peer: username });
       setIncoming(false);
-      setCallMessage(callText(appLanguage, "connecting"));
+      setCallMessage("रिंग हो रही है… सामने वाले के जवाब का इंतज़ार करें।");
     } catch (error) {
       if (audioSessionActiveRef.current && !callRef.current) {
         audioSessionActiveRef.current = false;
         await AudioSession.stopAudioSession().catch(() => {});
       }
-      if (mountedRef.current) setCallMessage(translateAppText(appLanguage, "alertTryAgain"));
+      if (mountedRef.current) setCallMessage(error?.message || "कॉल शुरू नहीं हो पाई।");
     } finally {
       if (mountedRef.current) setBusy(false);
     }
@@ -415,9 +358,16 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           const next = pending[0];
           callRef.current = next;
           setCall(next);
-          setCallMinimized(false);
           setIncoming(true);
-          setCallMessage(next.type === "video" ? `${callText(appLanguage, "incoming")} · ${callText(appLanguage, "video")}` : `${callText(appLanguage, "incoming")} · ${callText(appLanguage, "voice")}`);
+          setCallMessage(next.type === "video" ? "आपको वीडियो कॉल आ रही है।" : "आपको वॉइस कॉल आ रही है।");
+          if (Platform.OS === "android") {
+            try { if (callKeepSetupPromise) await callKeepSetupPromise; } catch (_) {}
+            if (!active || callRef.current?.id !== next.id) return;
+            const uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); });
+            callKeepUuidRef.current = uuid;
+            callKeepCallIdRef.current = next.id;
+            Promise.resolve(RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video")).catch((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
+          }
           return;
         }
       } catch (error) {
@@ -447,12 +397,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
         }
         if (["rejected", "missed", "ended"].includes(latest.status)) {
           finished = true;
-          setCallMessage(latest.status === "rejected" ? callText(appLanguage, "decline") : latest.status === "missed" ? callText(appLanguage, "incoming") : callText(appLanguage, "end"));
+          setCallMessage(latest.status === "rejected" ? "कॉल अस्वीकार कर दी गई।" : latest.status === "missed" ? "कॉल का जवाब नहीं मिला।" : "कॉल समाप्त हो गई।");
           timer = setTimeout(() => { if (active) resetCall(); }, 2200);
           return;
         }
       } catch (error) {
-        if (active) setCallMessage(translateAppText(appLanguage, "alertCheckConnection"));
+        if (active) setCallMessage(error?.message || "कॉल की स्थिति नहीं मिल रही।");
       } finally {
         if (active && !finished && !tokenAttemptedRef.current) timer = setTimeout(checkStatus, 900 + Math.floor(Math.random() * 200));
       }
@@ -461,148 +411,76 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     return () => { active = false; if (timer) clearTimeout(timer); };
   }, [call, incoming, connection]);
 
-  // Keep the recipient's ringing screen in sync if the caller cancels,
-  // the call expires, or the server marks it missed while this device is ringing.
-  useEffect(() => {
-    if (!call || !incoming) return undefined;
-    let active = true;
-    let timer = null;
-    const checkIncomingStatus = async () => {
-      if (!active || callRef.current?.id !== call.id) return;
-      try {
-        const latest = await getVoiceVideoCallStatus(call.id);
-        if (!active || callRef.current?.id !== call.id) return;
-        if (latest && ["rejected", "missed", "ended"].includes(latest.status)) {
-          resetCall();
-          return;
-        }
-      } catch (_) {
-        // A temporary network failure must not dismiss a valid ringing call.
-      } finally {
-        if (active && callRef.current?.id === call.id) {
-          timer = setTimeout(checkIncomingStatus, 1200);
-        }
-      }
-    };
-    void checkIncomingStatus();
-    return () => { active = false; if (timer) clearTimeout(timer); };
-  }, [call?.id, incoming]);
-
-  // Keep an accepted call synchronized with the server while LiveKit is connected.
-  // Without this, a remote hang-up can leave the other device showing a stale call UI.
-  useEffect(() => {
-    if (!call || incoming || !connection) return undefined;
-    let active = true;
-    let timer = null;
-    const checkActiveCall = async () => {
-      if (!active || callRef.current?.id !== call.id) return;
-      try {
-        const latest = await getVoiceVideoCallStatus(call.id);
-        if (!active || callRef.current?.id !== call.id) return;
-        if (latest && ["ended", "rejected", "missed"].includes(latest.status)) {
-          resetCall();
-          return;
-        }
-      } catch (_) {
-        // Do not end a healthy media session because one status request failed.
-      } finally {
-        if (active && callRef.current?.id === call.id) {
-          timer = setTimeout(checkActiveCall, 2500);
-        }
-      }
-    };
-    timer = setTimeout(checkActiveCall, 1500);
-    return () => {
-      active = false;
-      if (timer) clearTimeout(timer);
-    };
-  }, [call?.id, incoming, connection?.token]);
-
   const answerCall = async () => {
     if (!call || busy) return;
     setBusy(true);
     try {
-      // Prepare audio routing while the server marks the call accepted.
-      // These independent steps used to run one after another, adding avoidable
-      // delay after the recipient tapped Answer.
-      // Permissions must succeed before the server marks the call accepted.
-      // Otherwise a denied mic/camera permission can leave a ghost accepted call.
       await ensureCallPermissions(call.type);
-      const [acceptResult, audioResult] = await Promise.allSettled([
-        respondToCall(call.id, "accept"),
-        audioSessionActiveRef.current
-          ? Promise.resolve(true)
-          : startCallAudioSession(),
-      ]);
-      if (acceptResult.status === "rejected") throw acceptResult.reason;
-      if (audioResult.status === "fulfilled") audioSessionActiveRef.current = true;
-      const next = acceptResult.value || call;
+      const accepted = await respondToCall(call.id, "accept");
+      const next = accepted || call;
       tokenAttemptedRef.current = true;
       callRef.current = next;
       setCall(next);
-      setCallMinimized(false);
       setIncoming(false);
       await connectCall(next);
+      if (Platform.OS === "android" && callKeepUuidRef.current) RNCallKeep.setCurrentCallActive(callKeepUuidRef.current);
     } catch (error) {
-      if (audioSessionActiveRef.current) {
-        audioSessionActiveRef.current = false;
-        await AudioSession.stopAudioSession().catch(() => {});
-      }
-      setCallMessage(translateAppText(appLanguage, "alertTryAgain"));
+      setCallMessage(error?.message || "कॉल स्वीकार नहीं हो पाई।");
     } finally {
       setBusy(false);
     }
   };
 
+  answerHandlerRef.current = answerCall;
+
   const declineCall = async () => {
-    const current = callRef.current;
-    if (!current) return;
-    // Dismiss the local ringing UI immediately; server signalling is best-effort
-    // and must not make the user wait on a slow or unavailable network.
-    void respondToCall(current.id, "reject").catch(() => {});
+    if (!call) return;
+    try { await respondToCall(call.id, "reject"); } catch (_) {}
+    const nativeUuid = callKeepUuidRef.current;
+    callKeepUuidRef.current = null;
+    callKeepCallIdRef.current = null;
+    if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     resetCall();
   };
+
+  declineHandlerRef.current = declineCall;
 
   const endCall = async () => {
     const current = callRef.current;
     if (current) {
-      // Close controls and release audio locally before waiting on the network.
-      void respondToCall(current.id, "end").catch(() => {});
+      try { await respondToCall(current.id, "end"); } catch (_) {}
     }
+    const nativeUuid = callKeepUuidRef.current;
+    callKeepUuidRef.current = null;
+    callKeepCallIdRef.current = null;
+    if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     resetCall();
   };
 
-  const minimizeCall = () => setCallMinimized(true);
-  const restoreCall = () => setCallMinimized(false);
-  const callBubblePan = useRef(PanResponder.create({
-    onMoveShouldSetPanResponder: (_event, gesture) => Math.abs(gesture.dx) > 12 || Math.abs(gesture.dy) > 12,
-    onPanResponderRelease: (_event, gesture) => {
-      if (Math.abs(gesture.dx) > 35 || Math.abs(gesture.dy) > 35) setCallMinimized(true);
-      else setCallMinimized(false);
-    },
-  })).current;
-  const showCallModal = !!call && !callMinimized;
+  const showCallModal = !!call;
 
   return (
     <>
-      {showButtons ? <View style={{ flexDirection: "row", alignItems: "center", gap: 14, marginRight: 2 }}>
+      {showButtons ? <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel={label("voice")}
+          accessibilityLabel="Voice call"
           disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("audio")}
-          style={{ width: 32, height: 38, alignItems: "center", justifyContent: "center", backgroundColor: "transparent", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
+          style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
-          <Ionicons name="call-outline" size={23} color={iconColor} />
+          <Ionicons name="call-outline" size={20} color="#FFFFFF" />
+          <Text style={{ color: "#E5E5E5", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>VOICE</Text>
         </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel={label("video")}
+          accessibilityLabel="Video call"
           disabled={!enableOutgoing || !username || busy || !!call}
           onPress={() => startCall("video")}
-          style={{ width: 32, height: 38, alignItems: "center", justifyContent: "center", backgroundColor: "transparent", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
+          style={{ minWidth: 76, height: 48, paddingHorizontal: 12, borderRadius: 16, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", opacity: !enableOutgoing || !username || busy || call ? 0.55 : 1 }}
         >
-          <Ionicons name="videocam-outline" size={23} color={iconColor} />
+          <Ionicons name="videocam-outline" size={21} color="#FFFFFF" />
+          <Text style={{ color: "#E5E5E5", fontSize: 9, fontWeight: "700", marginTop: 2, letterSpacing: 0.6 }}>VIDEO</Text>
         </TouchableOpacity>
       </View> : null}
 
@@ -612,24 +490,15 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
         </View>
       ) : null}
 
-      {call && callMinimized ? (
-        <View {...callBubblePan.panHandlers} style={{ position: "absolute", right: 12, top: 116, zIndex: 9999, elevation: 30 }}>
-          <TouchableOpacity onPress={restoreCall} activeOpacity={0.88} style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: "#0095F6", borderWidth: 2, borderColor: "#FFFFFF", alignItems: "center", justifyContent: "center", elevation: 10 }}>
-            <Ionicons name={call.type === "video" ? "videocam" : "call"} size={25} color="#FFFFFF" />
-            <View style={{ position: "absolute", right: -1, top: -1, width: 13, height: 13, borderRadius: 7, backgroundColor: "#22C55E", borderWidth: 2, borderColor: "#FFFFFF" }} />
-          </TouchableOpacity>
-        </View>
-      ) : null}
-      <Modal visible={showCallModal} animationType="fade" statusBarTranslucent onRequestClose={minimizeCall}>
-        <View style={{ flex: 1, backgroundColor: "#07090D", paddingTop: callShort ? 20 : 42, paddingBottom: callShort ? 12 : 24 }}>
-          <View pointerEvents="none" style={{ position: "absolute", top: -115, alignSelf: "center", width: Math.min(350, callWidth * 0.9), height: Math.min(350, callWidth * 0.9), borderRadius: Math.min(350, callWidth * 0.9) / 2, backgroundColor: "#10243A", opacity: 0.42 }} />
-          <View pointerEvents="none" style={{ position: "absolute", bottom: 110, alignSelf: "center", width: Math.min(300, callWidth * 0.78), height: Math.min(300, callWidth * 0.78), borderRadius: Math.min(300, callWidth * 0.78) / 2, backgroundColor: "#17121F", opacity: 0.34 }} />
-          <View {...callBubblePan.panHandlers} style={{ paddingHorizontal: callInset, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+      <Modal visible={showCallModal} animationType="fade" statusBarTranslucent onRequestClose={endCall}>
+        <View style={{ flex: 1, backgroundColor: "#000000", paddingTop: 54, paddingBottom: 30 }}>
+          <View style={{ position: "absolute", top: -110, alignSelf: "center", width: 330, height: 330, borderRadius: 165, backgroundColor: "#1B1B1B", opacity: 0.72 }} />
+          <View style={{ paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#0095F6" }} />
-              <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700", letterSpacing: 0.2 }}>{call?.type === "video" ? label("video") : label("voice")}</Text>
+              <Text style={{ color: "#0095F6", fontSize: 10, fontWeight: "800", letterSpacing: 1.4 }}>BHUMI SOCIAL • CALL</Text>
             </View>
-            <TouchableOpacity onPress={minimizeCall} accessibilityRole="button" accessibilityLabel="Minimize call" style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#171B22", borderWidth: 1, borderColor: "#303946", alignItems: "center", justifyContent: "center" }}>
+            <TouchableOpacity onPress={endCall} accessibilityLabel="Close call" style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "#262626", borderWidth: 1, borderColor: "#363636", alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="chevron-down" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -644,7 +513,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               onConnected={() => {
                 if (mountedRef.current) {
                   setRoomConnected(true);
-                  setCallMessage(callText(appLanguage, "connected"));
+                  setCallMessage("कॉल कनेक्ट हो गई।");
                 }
               }}
               onError={(error) => {
@@ -653,7 +522,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                   connectionRef.current = null;
                   setRoomConnected(false);
                   setConnectionFailed(true);
-                  setCallMessage(translateAppText(appLanguage, "alertTryAgain"));
+                  setCallMessage(error?.message || "कॉल कनेक्शन में समस्या आई। फिर से कोशिश करें।");
                   if (audioSessionActiveRef.current) {
                     audioSessionActiveRef.current = false;
                     AudioSession.stopAudioSession().catch(() => {});
@@ -668,7 +537,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                 connectionRef.current = null;
                 setRoomConnected(false);
                 setConnectionFailed(true);
-                setCallMessage(translateAppText(appLanguage, "alertCheckConnection"));
+                setCallMessage("कॉल का नेटवर्क कनेक्शन टूट गया। फिर से कनेक्ट करें।");
                 if (audioSessionActiveRef.current) {
                   audioSessionActiveRef.current = false;
                   AudioSession.stopAudioSession().catch(() => {});
@@ -689,11 +558,6 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
               options={{
                 adaptiveStream: true,
                 dynacast: true,
-                audioCaptureDefaults: {
-                  autoGainControl: true,
-                  echoCancellation: true,
-                  noiseSuppression: true,
-                },
                 videoCaptureDefaults: {
                   resolution: VideoPresets.h720.resolution,
                 },
@@ -701,33 +565,39 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                   videoEncoding: VideoPresets.h720.encoding,
                   videoSimulcastLayers: [VideoPresets.h360, VideoPresets.h180],
                   simulcast: true,
+                  audioBitrate: 32000,
                 },
               }}
               style={{ flex: 1, marginTop: 18 }}
             >
-              <CallVideoStage callType={call?.type} remoteName={incoming ? call?.caller : username} isConnected={roomConnected} appLanguage={appLanguage} />
+              <CallVideoStage callType={call?.type} remoteName={incoming ? call?.caller : username} isConnected={roomConnected} />
             </LiveKitRoom>
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 28 }}>
-              <CallAvatarStage
-                name={incoming ? call?.caller : (call?.callee || username)}
-                status={callMessage || (incoming ? label("incoming") : label("connecting"))}
-                connected={false}
-              />
+              <View style={{ width: 154, height: 154, borderRadius: 77, borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", backgroundColor: "#171717", shadowColor: "#0095F6", shadowOpacity: 0.22, shadowRadius: 24, elevation: 10 }}>
+                <View style={{ width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: "#4A4A4A", backgroundColor: "#262626", alignItems: "center", justifyContent: "center" }}>
+                  <Ionicons name={incoming ? "call" : call?.type === "video" ? "videocam" : "call"} size={48} color="#FFFFFF" />
+                </View>
+              </View>
+              <Text style={{ color: "#FFFFFF", fontSize: 25, fontWeight: "800", marginTop: 28, letterSpacing: 0.2 }}>{incoming ? call?.caller : username}</Text>
+              <Text style={{ color: "#BDBDBD", fontSize: 12, marginTop: 7, letterSpacing: 1.5 }}>{call?.type === "video" ? "VIDEO CALL" : "VOICE CALL"}</Text>
+              <View style={{ marginTop: 20, paddingHorizontal: 17, paddingVertical: 9, borderRadius: 22, backgroundColor: "#1F1F1F", borderWidth: 1, borderColor: "#363636" }}>
+                <Text style={{ color: "#D1D1D1", fontSize: 12, textAlign: "center" }}>{callMessage || (incoming ? "आपको कॉल आ रही है" : "रिंग हो रही है…")}</Text>
+              </View>
               {busy ? <ActivityIndicator color="#0095F6" size="small" style={{ marginTop: 22 }} /> : null}
               {incoming ? (
-                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: callCompact ? 8 : 18, marginTop: callShort ? 18 : 36, width: "100%" }}>
-                  <TouchableOpacity onPress={declineCall} activeOpacity={0.85} style={{ width: 84, height: 104, alignItems: "center", justifyContent: "flex-start" }}>
-                    <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#FF3040", alignItems: "center", justifyContent: "center" }}>
-                      <Ionicons name="call" size={25} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18, marginTop: 48, width: "100%" }}>
+                  <TouchableOpacity onPress={declineCall} activeOpacity={0.85} style={{ width: 132, minHeight: 92, borderRadius: 22, backgroundColor: "#28131D", borderWidth: 1, borderColor: "#9A4054", alignItems: "center", justifyContent: "center", paddingVertical: 13 }}>
+                    <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#B83D50", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="call" size={22} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
                     </View>
-                    <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600", marginTop: 9 }}>{label("decline")}</Text>
+                    <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 8 }}>कॉल कैंसल</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={answerCall} disabled={busy} activeOpacity={0.85} style={{ width: 84, height: 104, alignItems: "center", justifyContent: "flex-start", opacity: busy ? 0.6 : 1 }}>
-                    <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#00C86B", alignItems: "center", justifyContent: "center" }}>
-                      <Ionicons name="call" size={25} color="#FFFFFF" />
+                  <TouchableOpacity onPress={answerCall} disabled={busy} activeOpacity={0.85} style={{ width: 132, minHeight: 92, borderRadius: 22, backgroundColor: "#10271F", borderWidth: 1, borderColor: "#3D9A70", alignItems: "center", justifyContent: "center", paddingVertical: 13, opacity: busy ? 0.6 : 1 }}>
+                    <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#159A65", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="call" size={22} color="#FFFFFF" />
                     </View>
-                    <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600", marginTop: 9 }}>{label("answer")}</Text>
+                    <Text style={{ color: "#D9F5E7", fontSize: 12, fontWeight: "800", marginTop: 8 }}>कॉल रिसीव</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -739,14 +609,14 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
                       activeOpacity={0.85}
                       style={{ marginTop: 30, minWidth: 170, minHeight: 54, borderRadius: 18, backgroundColor: "#102A3C", borderWidth: 1, borderColor: "#0095F6", alignItems: "center", justifyContent: "center", paddingHorizontal: 18, opacity: busy ? 0.6 : 1 }}
                     >
-                      <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "800" }}>{busy ? label("reconnecting") : label("reconnect")}</Text>
+                      <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "800" }}>{busy ? "फिर से जुड़ रहे हैं…" : "फिर से कनेक्ट करें"}</Text>
                     </TouchableOpacity>
                   ) : null}
-                  <TouchableOpacity onPress={endCall} activeOpacity={0.85} style={{ marginTop: connectionFailed ? 12 : (callShort ? 16 : 36), width: 84, height: 104, alignItems: "center", justifyContent: "flex-start" }}>
-                    <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#FF3040", alignItems: "center", justifyContent: "center" }}>
-                      <Ionicons name="call" size={25} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
+                  <TouchableOpacity onPress={endCall} activeOpacity={0.85} style={{ marginTop: connectionFailed ? 18 : 48, width: 156, minHeight: 88, borderRadius: 22, backgroundColor: "#28131D", borderWidth: 1, borderColor: "#9A4054", alignItems: "center", justifyContent: "center", paddingVertical: 12 }}>
+                    <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: "#B83D50", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="call" size={22} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
                     </View>
-                    <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600", marginTop: 9 }}>{label("cancel")}</Text>
+                    <Text style={{ color: "#F4DDE2", fontSize: 12, fontWeight: "800", marginTop: 7 }}>कॉल कैंसल करें</Text>
                   </TouchableOpacity>
                 </>
               )}
@@ -754,26 +624,26 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           )}
 
           {connection?.token ? (
-            <View style={{ marginTop: 10, marginHorizontal: callInset, paddingHorizontal: callCompact ? 10 : 18, paddingTop: 14, paddingBottom: 12, borderRadius: 28, backgroundColor: "#171717", borderWidth: 1, borderColor: "#363636", flexDirection: "row", justifyContent: "space-around", alignItems: "center" }}>
-              <TouchableOpacity onPress={() => setMicEnabled((value) => !value)} accessibilityLabel={micEnabled ? label("mute") : label("unmute")} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <View style={{ marginTop: 16, marginHorizontal: 22, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12, borderRadius: 28, backgroundColor: "#171717", borderWidth: 1, borderColor: "#363636", flexDirection: "row", justifyContent: "space-around", alignItems: "center" }}>
+              <TouchableOpacity onPress={() => setMicEnabled((value) => !value)} accessibilityLabel={micEnabled ? "Mute microphone" : "Unmute microphone"} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
                 <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: micEnabled ? "#333333" : "#B83D50", borderWidth: 1, borderColor: "#555555", alignItems: "center", justifyContent: "center" }}>
                   <Ionicons name={micEnabled ? "mic" : "mic-off"} size={22} color="#FFFFFF" />
                 </View>
-                <Text style={{ color: "#E5E5E5", fontSize: 10, fontWeight: "600" }}>{micEnabled ? label("mute") : label("unmute")}</Text>
+                <Text style={{ color: "#E5E5E5", fontSize: 10, fontWeight: "600" }}>{micEnabled ? "Mute" : "Unmute"}</Text>
               </TouchableOpacity>
               {call?.type === "video" ? (
-                <TouchableOpacity onPress={() => setCameraEnabled((value) => !value)} accessibilityLabel={cameraEnabled ? label("cameraOff") : label("camera")} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <TouchableOpacity onPress={() => setCameraEnabled((value) => !value)} accessibilityLabel={cameraEnabled ? "Turn camera off" : "Turn camera on"} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
                   <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: cameraEnabled ? "#333333" : "#B83D50", borderWidth: 1, borderColor: "#555555", alignItems: "center", justifyContent: "center" }}>
                     <Ionicons name={cameraEnabled ? "videocam" : "videocam-off"} size={22} color="#FFFFFF" />
                   </View>
-                  <Text style={{ color: "#E5E5E5", fontSize: 10, fontWeight: "600" }}>{cameraEnabled ? label("camera") : label("cameraOff")}</Text>
+                  <Text style={{ color: "#E5E5E5", fontSize: 10, fontWeight: "600" }}>{cameraEnabled ? "Camera" : "Camera off"}</Text>
                 </TouchableOpacity>
               ) : null}
-              <TouchableOpacity onPress={endCall} accessibilityLabel={label("end")} style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
-                <View style={{ width: 62, height: 62, borderRadius: 31, backgroundColor: "#FF3040", borderWidth: 4, borderColor: "#57212A", alignItems: "center", justifyContent: "center" }}>
+              <TouchableOpacity onPress={endCall} accessibilityLabel="End call" style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <View style={{ width: 62, height: 62, borderRadius: 31, backgroundColor: "#E3445B", borderWidth: 4, borderColor: "#512633", alignItems: "center", justifyContent: "center" }}>
                   <Ionicons name="call" size={23} color="#FFFFFF" style={{ transform: [{ rotate: "135deg" }] }} />
                 </View>
-                <Text style={{ color: "#F2DCE1", fontSize: 10, fontWeight: "700" }}>{label("end")}</Text>
+                <Text style={{ color: "#F2DCE1", fontSize: 10, fontWeight: "700" }}>End</Text>
               </TouchableOpacity>
             </View>
           ) : null}
@@ -782,3 +652,4 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     </>
   );
 }
+
