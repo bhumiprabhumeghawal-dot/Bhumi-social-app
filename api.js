@@ -1222,7 +1222,7 @@ export async function getChatPresence(username) {
 
 export async function loadMessageConversations() {
   return coalesceChatRead('conversations', async () => {
-    const response = await fetch(`${API_BASE_URL}/api/messages/conversations`);
+    const response = await fetch(`${API_BASE_URL}/api/messages/conversations`, { headers: await authHeaders() });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Could not load conversations.');
     return (data.conversations || []).map(withAbsoluteAvatar);
@@ -1244,7 +1244,8 @@ export async function loadDirectMessages(username) {
   const peer = String(username || '').trim().toLowerCase();
   return coalesceChatRead(`messages:${peer}`, async () => {
     const response = await fetch(
-      `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`
+      `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`,
+      { headers: await authHeaders() }
     );
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Could not load messages.');
@@ -1255,7 +1256,7 @@ export async function loadDirectMessages(username) {
 export async function unsendDirectMessage(username, messageId) {
   const response = await fetch(
     `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/${encodeURIComponent(messageId)}`,
-    { method: 'DELETE' }
+    { method: 'DELETE', headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) {
@@ -1269,7 +1270,7 @@ export async function updateChatTyping(username, typing) {
     `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/typing`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ typing: !!typing }),
     }
   );
@@ -1280,7 +1281,8 @@ export async function updateChatTyping(username, typing) {
 
 export async function loadChatTyping(username) {
   const response = await fetch(
-    `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/typing`
+    `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/typing`,
+    { headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not load typing status.');
