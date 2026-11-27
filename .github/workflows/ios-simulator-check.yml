@@ -2,6 +2,9 @@ name: iOS Simulator Compatibility Check
 run-name: Bhumi Social AI iOS simulator check
 
 on:
+  push:
+    branches:
+      - ios-simulator-compat-check
   workflow_dispatch:
 
 permissions:
