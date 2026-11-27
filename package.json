@@ -45,7 +45,9 @@
     "expo-location": "~58.0.22",
     "expo-local-authentication": "~58.0.3",
     "unimodules-app-loader": "~58.0.2",
-    "@config-plugins/react-native-webrtc": "15.0.2"
+    "@config-plugins/react-native-webrtc": "15.0.2",
+    "@config-plugins/react-native-callkeep": "14.0.2",
+    "react-native-callkeep": "4.6.1"
   },
   "scripts": {
     "start": "expo start",

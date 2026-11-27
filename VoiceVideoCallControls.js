@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import RNCallKeep from "react-native-callkeep";
 import { useCameraPermissions } from "expo-camera";
 import { createAudioPlayer, requestRecordingPermissionsAsync } from "expo-audio";
 import {
@@ -65,6 +66,25 @@ import {
   getCallConnectionToken,
   getVoiceVideoCallStatus,
 } from "./api";
+
+function callKeepUuidForCallId(callId) {
+  const raw = String(callId || "").replace(/[^a-f0-9]/gi, "").toLowerCase();
+  if (raw.length === 32) {
+    return raw.slice(0, 8) + "-" + raw.slice(8, 12) + "-" +
+      raw.slice(12, 16) + "-" + raw.slice(16, 20) + "-" + raw.slice(20);
+  }
+  let hash = 2166136261;
+  for (const char of String(callId || "")) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  const hex = (hash >>> 0).toString(16).padStart(8, "0");
+  const tail = (String(callId || "").replace(/[^a-z0-9]/gi, "").toLowerCase() + hex)
+    .padEnd(24, "0").slice(0, 24);
+  return hex + "-0000-4000-8000-" + tail.slice(0, 12);
+}
+
+let callKeepSetupPromise = null;
 
 let liveKitGlobalsRegistered = false;
 if (!liveKitGlobalsRegistered) {
@@ -224,6 +244,12 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   const connectionRef = useRef(null);
   const audioSessionActiveRef = useRef(false);
   const ringbackPlayerRef = useRef(null);
+  const callKeepUuidRef = useRef(null);
+  const callKeepEventBusyRef = useRef(false);
+  const incomingRef = useRef(false);
+  const answerHandlerRef = useRef(null);
+  const declineHandlerRef = useRef(null);
+  const endHandlerRef = useRef(null);
 
   const stopRingbackTone = () => {
     const player = ringbackPlayerRef.current;
@@ -264,6 +290,54 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   }, [connection]);
 
   useEffect(() => {
+    incomingRef.current = incoming;
+  }, [incoming]);
+
+  useEffect(() => {
+    if (Platform.OS !== "android" || !enableIncoming || !currentUsername) return undefined;
+    let active = true;
+    const subscriptions = [];
+    const listen = (event, handler) => {
+      const subscription = RNCallKeep.addEventListener(event, handler);
+      if (subscription?.remove) subscriptions.push(subscription);
+    };
+    listen("answerCall", ({ callUUID }) => {
+      if (!active || callUUID !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
+      callKeepEventBusyRef.current = true;
+      Promise.resolve(answerHandlerRef.current?.()).finally(() => { callKeepEventBusyRef.current = false; });
+    });
+    listen("endCall", ({ callUUID }) => {
+      if (!active || callUUID !== callKeepUuidRef.current || callKeepEventBusyRef.current) return;
+      callKeepEventBusyRef.current = true;
+      const handler = incomingRef.current ? declineHandlerRef.current : endHandlerRef.current;
+      Promise.resolve(handler?.()).finally(() => { callKeepEventBusyRef.current = false; });
+    });
+    if (!callKeepSetupPromise) {
+      callKeepSetupPromise = RNCallKeep.setup({
+        ios: { appName: "Bhumi Social AI" },
+        android: {
+          alertTitle: "कॉल की अनुमति जरूरी है",
+          alertDescription: "Bhumi Social AI को लॉक स्क्रीन पर कॉल दिखाने के लिए Phone Account की अनुमति दें।",
+          cancelButton: "बाद में",
+          okButton: "अनुमति दें",
+          additionalPermissions: [],
+        },
+        foregroundService: {
+          channelId: "bhumi-social-calls",
+          channelName: "Bhumi Social Calls",
+          notificationTitle: "Bhumi Social कॉल चालू है",
+        },
+      }).catch((error) => {
+        callKeepSetupPromise = null;
+        console.warn("CallKeep setup failed:", error?.message || error);
+        throw error;
+      });
+    }
+    callKeepSetupPromise.catch(() => {});
+    return () => { active = false; subscriptions.forEach((item) => item.remove()); };
+  }, [currentUsername, enableIncoming]);
+
+  useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
@@ -284,6 +358,9 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
   }, []);
 
   const resetCall = () => {
+    const nativeUuid = callKeepUuidRef.current;
+    callKeepUuidRef.current = null;
+    if (Platform.OS === "android" && nativeUuid) RNCallKeep.endCall(nativeUuid);
     setCall(null);
     setCallMinimized(false);
     setIncoming(false);
@@ -418,6 +495,13 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           setCallMinimized(false);
           setIncoming(true);
           setCallMessage(next.type === "video" ? `${callText(appLanguage, "incoming")} · ${callText(appLanguage, "video")}` : `${callText(appLanguage, "incoming")} · ${callText(appLanguage, "voice")}`);
+          if (Platform.OS === "android") {
+            try { if (callKeepSetupPromise) await callKeepSetupPromise; } catch (_) {}
+            if (!active || callRef.current?.id !== next.id) return;
+            const uuid = callKeepUuidForCallId(next.id);
+            callKeepUuidRef.current = uuid;
+            Promise.resolve(RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video")).catch((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
+          }
           return;
         }
       } catch (error) {
@@ -554,6 +638,8 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     }
   };
 
+  answerHandlerRef.current = answerCall;
+
   const declineCall = async () => {
     const current = callRef.current;
     if (!current) return;
@@ -563,6 +649,8 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     resetCall();
   };
 
+  declineHandlerRef.current = declineCall;
+
   const endCall = async () => {
     const current = callRef.current;
     if (current) {
@@ -571,6 +659,8 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
     }
     resetCall();
   };
+
+  endHandlerRef.current = endCall;
 
   const minimizeCall = () => setCallMinimized(true);
   const restoreCall = () => setCallMinimized(false);

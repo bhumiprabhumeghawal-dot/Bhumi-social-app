@@ -28,7 +28,8 @@
         "android.permission.FOREGROUND_SERVICE_MICROPHONE",
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE_PHONE_CALL"
       ],
       "softwareKeyboardLayoutMode": "resize"
     },
@@ -69,7 +70,8 @@
           "faceIDPermission": "Allow Bhumi Social AI to use Face ID to unlock the app."
         }
       ],
-      "@config-plugins/react-native-webrtc"
+      "@config-plugins/react-native-webrtc",
+      "@config-plugins/react-native-callkeep"
     ],
     "extra": {
       "eas": {

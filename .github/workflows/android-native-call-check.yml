@@ -1,0 +1,55 @@
+name: Android Native Call Integration Check
+on:
+  push:
+    branches:
+      - fix/native-android-incoming-call-current-master
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'app.json'
+      - 'index.js'
+      - 'incomingCallBackgroundTask.js'
+      - 'VoiceVideoCallControls.js'
+      - '.github/workflows/android-native-call-check.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'app.json'
+      - 'index.js'
+      - 'incomingCallBackgroundTask.js'
+      - 'VoiceVideoCallControls.js'
+      - '.github/workflows/android-native-call-check.yml'
+permissions:
+  contents: read
+jobs:
+  android-native-compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Validate Expo config
+        run: npx expo config --type prebuild
+        env:
+          CI: "1"
+      - name: Generate Android native project
+        run: npx expo prebuild --platform android --non-interactive --no-install
+        env:
+          CI: "1"
+      - name: Compile Android native sources without packaging an APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon compileDebugKotlin compileDebugJavaWithJavac
