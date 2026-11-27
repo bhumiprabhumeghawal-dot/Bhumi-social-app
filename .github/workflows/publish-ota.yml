@@ -2,11 +2,6 @@ name: Publish Bhumi Social OTA Update
 run-name: Publish Bhumi Social AI OTA
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - '.github/workflows/publish-ota.yml'
   workflow_dispatch:
 
 permissions:
