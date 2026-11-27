@@ -5,6 +5,7 @@ on:
     branches: [fix/livekit-webrtc-expo-config]
     paths:
       - "package.json"
+      - "package-lock.json"
       - "app.json"
       - ".github/workflows/livekit-native-compat-check.yml"
   pull_request:
@@ -23,7 +24,7 @@ jobs:
   android-native-check:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,6 +41,15 @@ jobs:
           npx expo prebuild --platform android --non-interactive --no-install
         env:
           CI: "1"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Compile Android app Kotlin and Java sources
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew :app:compileDebugKotlin :app:compileDebugJavaWithJavac --no-daemon
       - name: Commit the verified lockfile back to this PR branch
         run: |
           if ! git diff --quiet -- package-lock.json; then
