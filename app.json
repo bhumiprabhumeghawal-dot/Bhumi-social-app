@@ -67,7 +67,8 @@
         {
           "faceIDPermission": "Allow Bhumi Social AI to use Face ID to unlock the app."
         }
-      ]
+      ],
+      "@config-plugins/react-native-webrtc"
     ],
     "extra": {
       "eas": {
