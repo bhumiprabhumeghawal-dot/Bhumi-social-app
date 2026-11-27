@@ -15,7 +15,7 @@
       "autoIncrement": true
     },
     "ios-simulator": {
-      "distribution": "internal",
+      "extends": "development",
       "ios": {
         "simulator": true
       }
