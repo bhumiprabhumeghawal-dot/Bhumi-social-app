@@ -574,7 +574,7 @@ export async function uploadProfileAvatar(asset, username = 'you') {
 export async function deleteProfileAvatar(username = 'you') {
   const response = await fetch(
     `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/avatar`,
-    { method: 'DELETE' }
+    { method: 'DELETE', headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'प्रोफ़ाइल फ़ोटो हट नहीं सकी।');
@@ -1109,7 +1109,7 @@ export async function updateChatTyping(username, typing) {
     `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/typing`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ typing: !!typing }),
     }
   );
@@ -1120,7 +1120,8 @@ export async function updateChatTyping(username, typing) {
 
 export async function loadChatTyping(username) {
   const response = await fetch(
-    `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/typing`
+    `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/typing`,
+    { headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Could not load typing status.');
