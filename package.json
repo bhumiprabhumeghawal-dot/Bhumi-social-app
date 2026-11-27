@@ -52,5 +52,9 @@
   "private": true,
   "allowScripts": {
     "munim-ffmpeg@0.9.2": true
+  },
+  "overrides": {
+    "react-dom": "19.3.0",
+    "react-server-dom-webpack": "19.3.0"
   }
 }
