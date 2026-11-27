@@ -192,11 +192,11 @@ function CallVideoStage({ callType, remoteName, isConnected, appLanguage = "en" 
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
             <Ionicons name="person" size={30} color="#FFFFFF" />
             <ActivityIndicator color="#FFFFFF" size="small" style={{ marginTop: 8 }} />
-            <Text style={{ color: "#E5E5E5", fontSize: 9, marginTop: 5 }}>{label("yourVideo")}</Text>
+            <Text style={{ color: "#E5E5E5", fontSize: 9, marginTop: 5 }}>{callText(appLanguage, "yourVideo")}</Text>
           </View>
         )}
         <View style={{ position: "absolute", left: 6, bottom: 6, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.62)" }}>
-          <Text style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700" }}>{label("you")}</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 9, fontWeight: "700" }}>{callText(appLanguage, "you")}</Text>
         </View>
       </View>
     </View>
