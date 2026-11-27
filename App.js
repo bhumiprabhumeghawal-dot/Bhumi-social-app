@@ -7037,9 +7037,7 @@ export default function App() {
         visible={liveCameraOpen}
         animationType="slide"
         presentationStyle="fullScreen"
-        onRequestClose={() =>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
- setLiveCameraOpen(false)}
+        onRequestClose={() => setLiveCameraOpen(false)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 18, paddingVertical: 14 }}>
@@ -7074,7 +7072,6 @@ export default function App() {
             </View>
           </View>
         </SafeAreaView>
-              </KeyboardAvoidingView>
       </Modal>
 
       <Modal
@@ -8389,9 +8386,7 @@ export default function App() {
         visible={musicSearchOpen}
         transparent
         animationType="fade"
-        onRequestClose={() =>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
- setMusicSearchOpen(false)}
+        onRequestClose={() => setMusicSearchOpen(false)}
       >
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center", padding: 16 }}>
           <View style={{ width: "100%", maxWidth: 350, maxHeight: "74%", alignSelf: "center", backgroundColor: "#151515", borderRadius: 17, borderWidth: 1, borderColor: "#343434", padding: 12, gap: 9 }}>
@@ -8491,7 +8486,6 @@ export default function App() {
             <Text style={{ color: "#777777", fontSize: 10, lineHeight: 15 }}>{appText("musicLibraryNotice")}</Text>
           </View>
         </View>
-              </KeyboardAvoidingView>
       </Modal>
 
       {activeTab !== "Reels" && activeTab !== "Home" && activeTab !== "Search" && activeTab !== "Profile" && renderAppHeader()}
@@ -12404,9 +12398,7 @@ export default function App() {
         transparent
         animationType="fade"
         statusBarTranslucent
-        onRequestClose={() =>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
- {}}
+        onRequestClose={() => {}}
       >
         <View style={{ flex:1,backgroundColor:"#000000",justifyContent:"center",paddingHorizontal:28 }}>
           <View style={{ backgroundColor:"#121212",borderWidth:1,borderColor:"#303030",borderRadius:22,padding:22,alignItems:"center" }}>
@@ -12479,7 +12471,6 @@ export default function App() {
             </TouchableOpacity>
           </View>
         </View>
-              </KeyboardAvoidingView>
       </Modal>
       <CustomAlertHost appLanguage={appLanguage} />
     </SafeAreaView>
