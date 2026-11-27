@@ -6883,6 +6883,7 @@ export default function App() {
                       <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700", marginTop: 3 }}>{item.title}</Text>
                     </TouchableOpacity>
                   ))}
+                  </View>
                 </View>
               ) : null}
             </>
