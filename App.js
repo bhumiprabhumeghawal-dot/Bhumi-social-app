@@ -11,7 +11,6 @@ import { registerCallPushToken } from "./api";
 import * as SecureStore from "expo-secure-store";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as FileSystem from "expo-file-system/legacy";
-import * as IntentLauncher from "expo-intent-launcher";
 import * as Updates from "expo-updates";
 import * as Notifications from "expo-notifications";
 import React from "react";
