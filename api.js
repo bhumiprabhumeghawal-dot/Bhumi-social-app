@@ -1095,7 +1095,7 @@ export async function loadDirectMessages(username) {
 export async function unsendDirectMessage(username, messageId) {
   const response = await fetch(
     `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}/${encodeURIComponent(messageId)}`,
-    { method: 'DELETE' }
+    { method: 'DELETE', headers: await authHeaders() }
   );
   const data = await response.json();
   if (!response.ok) {
