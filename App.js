@@ -6846,11 +6846,33 @@ export default function App() {
               </Text>
               <TouchableOpacity onPress={() => setShowAdvancedSignup((value) => !value)} style={{ paddingVertical: 8, marginBottom: 6 }}>
                 <Text style={{ color: "#0095F6", fontSize: 12, fontWeight: "700" }}>
-                  {showAdvancedSignup ? "खाते का प्रकार छिपाएँ" : "Creator या Business खाता चाहिए? यहाँ चुनें"}
+                  {showAdvancedSignup ? "अतिरिक्त विकल्प छिपाएँ" : "ईमेल, फ़ोन या खाता प्रकार जोड़ें (वैकल्पिक)"}
                 </Text>
               </TouchableOpacity>
               {showAdvancedSignup ? (
-                <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
+                <View style={{ marginBottom: 12 }}>
+                  <Text style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}>ईमेल (वैकल्पिक)</Text>
+                  <TextInput
+                    value={authEmail}
+                    onChangeText={setAuthEmail}
+                    placeholder="name@example.com"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    editable={!authBusy}
+                    style={{ borderWidth: 1, borderColor: "#363636", borderRadius: 10, backgroundColor: "#121212", padding: 13, marginBottom: 10, color: "#FFFFFF" }}
+                  />
+                  <Text style={{ color: "#FFFFFF", fontWeight: "600", marginBottom: 6 }}>फ़ोन नंबर (वैकल्पिक)</Text>
+                  <TextInput
+                    value={authPhoneNumber}
+                    onChangeText={setAuthPhoneNumber}
+                    placeholder="फ़ोन नंबर (ज़रूरी नहीं)"
+                    keyboardType="phone-pad"
+                    editable={!authBusy}
+                    style={{ borderWidth: 1, borderColor: "#363636", borderRadius: 10, backgroundColor: "#121212", padding: 13, marginBottom: 12, color: "#FFFFFF" }}
+                  />
+                  <Text style={{ color: "#A8A8A8", fontSize: 11, lineHeight: 16, marginBottom: 8 }}>फ़ोन नंबर देना ज़रूरी नहीं है। यूज़रनेम में अंक भी इस्तेमाल कर सकते हैं।</Text>
+                  <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
                   {[
                     { key: "personal", title: "Personal", icon: "person-outline" },
                     { key: "creator", title: "Creator", icon: "videocam-outline" },
