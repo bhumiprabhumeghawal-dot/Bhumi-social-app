@@ -40,7 +40,8 @@
     "@livekit/react-native-expo-plugin": "1.2.0",
     "@livekit/react-native-webrtc": "150.2.0",
     "livekit-client": "2.20.0",
-    "expo-notifications": "~58.1.9"
+    "expo-notifications": "~58.1.9",
+    "@config-plugins/react-native-webrtc": "^15.0.2"
   },
   "scripts": {
     "start": "expo start",
