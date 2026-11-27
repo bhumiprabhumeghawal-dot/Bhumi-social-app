@@ -1,5 +1,10 @@
 name: Regenerate native call dependency lockfile
 on:
+  push:
+    branches:
+      - fix/native-android-incoming-call-current-master
+    paths-ignore:
+      - 'package-lock.json'
   workflow_dispatch:
 permissions:
   contents: write
