@@ -7037,9 +7037,7 @@ export default function App() {
         visible={liveCameraOpen}
         animationType="slide"
         presentationStyle="fullScreen"
-        onRequestClose={() =>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
- setLiveCameraOpen(false)}
+        onRequestClose={() => setLiveCameraOpen(false)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 18, paddingVertical: 14 }}>
@@ -7074,7 +7072,6 @@ export default function App() {
             </View>
           </View>
         </SafeAreaView>
-              </KeyboardAvoidingView>
       </Modal>
 
       <Modal
