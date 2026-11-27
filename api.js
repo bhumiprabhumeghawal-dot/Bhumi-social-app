@@ -715,6 +715,26 @@ export async function loadProfileConnections(username, type = 'followers') {
 }
 
 
+export async function createMonetizationOrder(planId) {
+  const response = await fetch(`${API_BASE_URL}/api/monetization/orders`, {
+    method: "POST",
+    headers: await authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ plan_id: String(planId || "") }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Plan request could not be saved.");
+  return data;
+}
+
+export async function loadMonetizationOrders() {
+  const response = await fetch(`${API_BASE_URL}/api/monetization/orders`, {
+    headers: await authHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Plan requests could not be loaded.");
+  return data.orders || [];
+}
+
 export async function loadBusinessProfile() {
   const response = await fetch(`${API_BASE_URL}/api/business/profile`, {
     headers: await authHeaders(),

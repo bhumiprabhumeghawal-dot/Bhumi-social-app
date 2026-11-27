@@ -8,7 +8,7 @@ import { translateAppText } from "./localization";
 import {
   loadPrivacySettings, savePrivacySettings, loadProfilePosts,
   loadBusinessProfile, saveBusinessProfile, loadBusinessCatalog, loadProfileConnections,
-  createBusinessCatalogItem, deleteBusinessCatalogItem
+  createBusinessCatalogItem, deleteBusinessCatalogItem, createMonetizationOrder, loadMonetizationOrders
 } from "./api";
 
 const GOLD = "#0095F6";
@@ -38,6 +38,8 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
   const t = React.useCallback((key) => translateAppText(appLanguage, key), [appLanguage]);
   const [accountType, setAccountType] = React.useState("personal");
   const [tab, setTab] = React.useState("overview");
+  const [showMonetization, setShowMonetization] = React.useState(false);
+  const [monetizationOrders, setMonetizationOrders] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [posts, setPosts] = React.useState([]);
@@ -95,6 +97,30 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
     const body = encodeURIComponent('Username: ' + (username || 'Not available') + String.fromCharCode(10) + 'Account type: ' + accountType + String.fromCharCode(10,10) + 'Please share the next steps for ' + topic.toLowerCase() + '.');
     try { await Linking.openURL('mailto:bhumiprabhumeghawal@gmail.com?subject=' + subject + '&body=' + body); }
     catch (_) { setFeedback(t("alertCheckConnection")); }
+  };
+
+  const openMonetization = async () => {
+    setShowMonetization(true);
+    setFeedback("");
+    try {
+      const orders = await loadMonetizationOrders();
+      setMonetizationOrders(Array.isArray(orders) ? orders : []);
+    } catch (error) {
+      setFeedback(error?.message || "Could not load your plan requests.");
+    }
+  };
+  const selectMonetizationPlan = async (planId) => {
+    setSaving(true);
+    try {
+      const result = await createMonetizationOrder(planId);
+      const orders = await loadMonetizationOrders();
+      setMonetizationOrders(Array.isArray(orders) ? orders : []);
+      setFeedback((result.message || "Your request was saved.") + " Order ID: " + (result.order?.order_id || ""));
+    } catch (error) {
+      setFeedback(error?.message || "Could not save this plan request.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const createPromotionBrief = async () => {
@@ -235,6 +261,7 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
                   {actionButton(t("createPromotionBriefAction").toUpperCase(), createPromotionBrief)}
                   {actionButton(t("editBusinessProfileAction").toUpperCase(), () => setTab("profile"))}
                   {actionButton(t("manageProductCatalogAction").toUpperCase(), () => setTab("catalog"))}
+                  {actionButton("VIEW PREMIUM & BUSINESS PLANS", openMonetization)}
                 </>
               ) : null}
               {tab === "profile" ? (
@@ -293,8 +320,52 @@ export default function CreatorBusinessHub({ visible, username, onClose, appLang
               {actionButton("REQUEST BRAND COLLABORATION", () => contactCreatorTeam("Brand Collaboration Request"))}
               {actionButton(t("askMonetizationAction").toUpperCase(), () => contactCreatorTeam("Creator Monetization Eligibility"))}
               {actionButton("CREATE PROMOTION BRIEF", createPromotionBrief)}
+              {actionButton("VIEW PREMIUM & CREATOR PLANS", openMonetization)}
               {actionButton(t("refreshCreatorDataAction").toUpperCase(), refresh, loading)}
             </>
+          ) : null}
+          {showMonetization ? (
+            <View style={{ marginTop: 16, borderWidth: 1, borderColor: GOLD, borderRadius: 18, padding: 14, backgroundColor: PANEL }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+                <Text style={{ color: GOLD, fontSize: 16, fontWeight: "900" }}>BHUMI EARNINGS</Text>
+                <TouchableOpacity onPress={() => setShowMonetization(false)}><Ionicons name="close-circle" size={23} color={MUTED}/></TouchableOpacity>
+              </View>
+              <Text style={{ color: MUTED, fontSize: 11, marginBottom: 13 }}>Premium tools for members, creators and local businesses.</Text>
+              {[
+                { id: "premium_monthly", title: "Bhumi Premium Membership", price: "₹99 / month", detail: "Premium profile badge, profile customization, ad-free experience and member-only extras.", icon: "diamond-outline" },
+                { id: "creator_boost", title: "Creator Boost - Post", price: "₹29 / post", detail: "Promote one selected post or reel. Additional reach is not guaranteed.", icon: "rocket-outline" },
+                { id: "creator_boost_extended", title: "Creator Boost - Extended", price: "₹49", detail: "Extended promotion option for a selected post or reel.", icon: "trending-up-outline" },
+                { id: "vip_creator_monthly", title: "VIP Creator Badge", price: "₹49 / month", detail: "Distinct VIP creator badge and creator profile highlight.", icon: "ribbon-outline" },
+                { id: "business_promotion_starter", title: "Business Promotion - Starter", price: "₹199", detail: "Starter local-business promotion campaign.", icon: "megaphone-outline" },
+                { id: "business_promotion_growth", title: "Business Promotion - Growth", price: "₹499", detail: "Larger business promotion campaign with expanded placement options.", icon: "business-outline" },
+                { id: "business_verified_monthly", title: "Business Verified Profile", price: "₹99 / month", detail: "Apply for verification. Approval requires genuine identity and business checks; payment alone never guarantees verification.", icon: "shield-checkmark-outline" },
+                { id: "featured_business_7d", title: "Featured Business Listing", price: "₹99 / 7 days", detail: "Eligible business listing can receive a featured placement in discovery.", icon: "storefront-outline" },
+              ].map((plan) => (
+                <View key={plan.id} style={{ backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 13, padding: 12, marginTop: 9 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Ionicons name={plan.icon} size={21} color={GOLD}/>
+                    <Text style={{ color: TEXT, fontSize: 13, fontWeight: "900", marginLeft: 9, flex: 1 }}>{plan.title}</Text>
+                  </View>
+                  <Text style={{ color: GOLD, fontSize: 14, fontWeight: "900", marginTop: 8 }}>{plan.price}</Text>
+                  <Text style={{ color: MUTED, fontSize: 11, lineHeight: 17, marginTop: 5 }}>{plan.detail}</Text>
+                  <TouchableOpacity disabled={saving} onPress={() => selectMonetizationPlan(plan.id)} style={{ backgroundColor: GOLD, borderRadius: 9, paddingVertical: 10, alignItems: "center", marginTop: 10, opacity: saving ? 0.6 : 1 }}>
+                    <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "900" }}>{saving ? "SAVING..." : "REQUEST PLAN"}</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <Text style={{ color: MUTED, fontSize: 10, lineHeight: 15, marginTop: 13 }}>Payments are not enabled yet. A request only creates a pending record; it does not charge you or activate a paid benefit. Payment provider, receipts, refunds and admin review must be configured before launch.</Text>
+              {monetizationOrders.length ? (
+                <View style={{ marginTop: 16, borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 12 }}>
+                  <Text style={{ color: GOLD, fontSize: 12, fontWeight: "900", marginBottom: 8 }}>MY PLAN REQUESTS</Text>
+                  {monetizationOrders.slice(0, 5).map(order => (
+                    <View key={order.order_id} style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: BORDER }}>
+                      <Text style={{ color: TEXT, fontSize: 11, fontWeight: "800" }}>{order.plan_name}</Text>
+                      <Text style={{ color: MUTED, fontSize: 10, marginTop: 3 }}>{order.order_id} · {(Number(order.amount_paise || 0) / 100).toLocaleString("en-IN", { style: "currency", currency: "INR" })} · {String(order.status || "pending").replace(/_/g, " ")}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </View>
           ) : null}
         </ScrollView>
       </View>
