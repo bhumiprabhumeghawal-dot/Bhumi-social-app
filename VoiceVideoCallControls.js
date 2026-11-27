@@ -29,6 +29,23 @@ import {
   getVoiceVideoCallStatus,
 } from "./api";
 
+function callKeepUuidForCallId(callId) {
+  const raw = String(callId || "").replace(/[^a-f0-9]/gi, "").toLowerCase();
+  if (raw.length === 32) {
+    return raw.slice(0, 8) + "-" + raw.slice(8, 12) + "-" +
+      raw.slice(12, 16) + "-" + raw.slice(16, 20) + "-" + raw.slice(20);
+  }
+  let hash = 2166136261;
+  for (const char of String(callId || "")) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  const hex = (hash >>> 0).toString(16).padStart(8, "0");
+  const tail = (String(callId || "").replace(/[^a-z0-9]/gi, "").toLowerCase() + hex)
+    .padEnd(24, "0").slice(0, 24);
+  return hex + "-0000-4000-8000-" + tail.slice(0, 12);
+}
+
 let callKeepSetupPromise = null;
 let liveKitGlobalsRegistered = false;
 if (!liveKitGlobalsRegistered) {
@@ -363,7 +380,7 @@ export default function VoiceVideoCallControls({ username, currentUsername = use
           if (Platform.OS === "android") {
             try { if (callKeepSetupPromise) await callKeepSetupPromise; } catch (_) {}
             if (!active || callRef.current?.id !== next.id) return;
-            const uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); });
+            const uuid = callKeepUuidForCallId(next.id);
             callKeepUuidRef.current = uuid;
             callKeepCallIdRef.current = next.id;
             Promise.resolve(RNCallKeep.displayIncomingCall(uuid, String(next.caller || "Bhumi Social"), String(next.caller || "Bhumi Social"), "generic", next.type === "video")).catch((error) => console.warn("CallKeep incoming UI failed:", error?.message || error));
