@@ -1,10 +1,5 @@
 name: Publish In-App OTA Update
 on:
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - ".github/workflows/android-apk.yml"
   workflow_dispatch:
 permissions:
   contents: read
