@@ -8386,9 +8386,7 @@ export default function App() {
         visible={musicSearchOpen}
         transparent
         animationType="fade"
-        onRequestClose={() =>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
- setMusicSearchOpen(false)}
+        onRequestClose={() => setMusicSearchOpen(false)}
       >
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center", padding: 16 }}>
           <View style={{ width: "100%", maxWidth: 350, maxHeight: "74%", alignSelf: "center", backgroundColor: "#151515", borderRadius: 17, borderWidth: 1, borderColor: "#343434", padding: 12, gap: 9 }}>
@@ -8488,7 +8486,6 @@ export default function App() {
             <Text style={{ color: "#777777", fontSize: 10, lineHeight: 15 }}>{appText("musicLibraryNotice")}</Text>
           </View>
         </View>
-              </KeyboardAvoidingView>
       </Modal>
 
       {activeTab !== "Reels" && activeTab !== "Home" && activeTab !== "Search" && activeTab !== "Profile" && renderAppHeader()}
