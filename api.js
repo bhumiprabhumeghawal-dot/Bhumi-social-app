@@ -1081,7 +1081,8 @@ export async function loadDirectMessages(username) {
   const peer = String(username || '').trim().toLowerCase();
   return coalesceChatRead(`messages:${peer}`, async () => {
     const response = await fetch(
-      `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`
+      `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`,
+      { headers: await authHeaders() }
     );
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Could not load messages.');
