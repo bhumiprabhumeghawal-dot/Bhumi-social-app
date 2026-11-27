@@ -1232,7 +1232,7 @@ export async function sendDirectMessage(username, text, attachment = null, reply
     `${API_BASE_URL}/api/messages/${encodeURIComponent(username)}`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         text,
         imageUrl: attachmentType === 'image' ? attachmentUrl : null,
