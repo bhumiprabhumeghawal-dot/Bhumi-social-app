@@ -46,6 +46,7 @@
       "expo-font",
       "expo-status-bar",
       "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
       "expo-notifications"
     ],
     "extra": {

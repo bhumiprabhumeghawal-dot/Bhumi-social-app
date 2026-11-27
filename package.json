@@ -39,8 +39,9 @@
     "@livekit/react-native": "3.2.0",
     "@livekit/react-native-expo-plugin": "1.2.0",
     "@livekit/react-native-webrtc": "150.2.0",
-    "livekit-client": "2.20.0",
-    "expo-notifications": "~58.1.9"
+    "livekit-client": "2.25.0",
+    "expo-notifications": "~58.1.9",
+    "@config-plugins/react-native-webrtc": "15.0.2"
   },
   "scripts": {
     "start": "expo start",
@@ -51,5 +52,9 @@
   "private": true,
   "allowScripts": {
     "munim-ffmpeg@0.9.2": true
+  },
+  "overrides": {
+    "react-dom": "19.3.0",
+    "react-server-dom-webpack": "19.3.0"
   }
 }
