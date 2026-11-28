@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import appConfig from "./app.json";
 import SettingsDashboard from "./SettingsDashboard";
+import AIStudioScreen from "./AIStudioScreen";
 import { translateAppText, translateAppTextValue } from "./localization";
 import ChatPersonalization from "./ChatPersonalization";
 import DirectMessagesScreen from "./DirectMessagesScreen";
@@ -1997,8 +1998,7 @@ function PostDetailActions({ post, authSession, appLanguage = "en" }) {
         </TouchableOpacity>
         <TouchableOpacity onPress={sharePost}>
           <Ionicons name="paper-plane-outline" size={26} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+        </TouchableOpacity>      </View>
       <Modal
         visible={commentsOpen}
         transparent
@@ -3997,8 +3997,7 @@ export default function App() {
     businessName: "", category: "", description: "", phone: "", whatsapp: "",
     email: "", website: "", address: "", area: "", city: "", state: "",
     pincode: "", serviceAreas: "", serviceRadiusKm: 0, openingHours: "",
-  });
-  const [privacySettings, setPrivacySettings] = React.useState({
+  });  const [privacySettings, setPrivacySettings] = React.useState({
     isPrivate: false,
     accountType: "personal",
     showActivity: true,
@@ -5997,8 +5996,7 @@ export default function App() {
         setServerStories((current) => [
           { ...item, name: item.user || "you", own: true, color: "#DDE7F5" },
           ...current,
-        ]);
-        setActiveTab("Home");
+        ]);        setActiveTab("Home");
       } else {
         setReels((current) => [item, ...current]);
         setActiveTab("Reels");
@@ -7997,8 +7995,7 @@ export default function App() {
                             >
                               <Text style={{
                                 color: selected ? "#FFFFFF" : "#E5E5E5",
-                                fontSize: 12,
-                                fontWeight: selected ? "700" : "500",
+                                fontSize: 12,                                fontWeight: selected ? "700" : "500",
                               }}>
                                 {filter.name}
                               </Text>
@@ -8530,7 +8527,9 @@ export default function App() {
       )}
 
       <View {...tabSwipeResponder.panHandlers} style={{ flex: 1 }}>
-      {activeTab === "Reels" ? (
+      {activeTab === "AIStudio" ? (
+        <AIStudioScreen onBack={() => handleTab("Home")} />
+      ) : activeTab === "Reels" ? (
         <View
           style={{ flex: 1, backgroundColor: "#000000" }}
           onLayout={(event) => {
@@ -9529,6 +9528,7 @@ export default function App() {
         {[
           { name: "Home", icon: "home-outline", activeIcon: "home" },
           { name: "Reels", icon: "play-outline", activeIcon: "play" },
+          { name: "AIStudio", icon: "sparkles-outline", activeIcon: "sparkles" },
           { name: "Chat", icon: "paper-plane-outline", activeIcon: "paper-plane" },
           { name: "Search", icon: "search-outline", activeIcon: "search" },
           { name: "Profile", icon: "person-outline", activeIcon: "person" },
@@ -9997,8 +9997,7 @@ export default function App() {
                   justifyContent: "center",
                   backgroundColor: "#121212",
                 }}
-              >
-                <Text style={{ fontSize: 64 }}>
+              >                <Text style={{ fontSize: 64 }}>
                   {selectedPost?.emoji || "🌿"}
                 </Text>
               </View>
@@ -11997,8 +11996,7 @@ export default function App() {
                           size={21}
                           color="#0095F6"
                         />
-                      </View>
-                      <View style={{ flex: 1 }}>
+                      </View>                      <View style={{ flex: 1 }}>
                         <Text
                           style={{
                             color: "#F5F5F5",
